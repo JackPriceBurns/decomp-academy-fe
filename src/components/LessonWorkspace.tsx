@@ -13,14 +13,12 @@ import {
   IconLoader2,
   IconAlertTriangle,
   IconEye,
-  IconList,
   IconGitCompare,
   IconTerminal2,
   IconBook2,
-  IconFileCode,
   IconStack2,
 } from "@tabler/icons-react";
-import { ObjDiff, AsmList, ObjOverview, preloadGlossary } from "./AsmDiff";
+import { ObjDiff, ObjOverview, preloadGlossary } from "./AsmDiff";
 import {
   analyze,
   preloadObjdiff,
@@ -70,7 +68,7 @@ interface CheckState {
   noHints?: boolean;
 }
 
-type Tab = "diff" | "objects" | "target" | "yours" | "console";
+type Tab = "diff" | "objects" | "console";
 
 // Tween a number up to `value` (respecting reduced-motion).
 function useCountUp(value: number, ms = 550) {
@@ -108,6 +106,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   const [targetRows, setTargetRows] = useState<Seg[][] | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
   const [selectedSymbol, setSelectedSymbol] = useState(lesson.symbol);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [tab, setTab] = useState<Tab>("diff");
   const [mobilePane, setMobilePane] = useState<"brief" | "code" | "result">("brief");
   const [hintsShown, setHintsShown] = useState(0);
@@ -128,6 +127,8 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
     async (opts?: { initial?: boolean }) => {
       const initial = opts?.initial ?? false;
       const myRun = loadIdRef.current;
+      // A fresh check shows the celebration again if it matches.
+      setBannerDismissed(false);
       // Drop the previous vm so the diff shows a skeleton while recompiling rather
       // than a stale result the learner could misread as their new edit.
       setCheck((c) => ({ status: "running", matchPercent: c.matchPercent }));
@@ -232,6 +233,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
     setTargetRows(null);
     setOverview(null);
     setSelectedSymbol(lesson.symbol);
+    setBannerDismissed(false);
     targetB64Ref.current = null;
     userB64Ref.current = null;
     diffsRef.current = {};
@@ -405,6 +407,8 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
             selectedSymbol={selectedSymbol}
             onSelectSymbol={selectSymbol}
             lessonSymbol={lesson.symbol}
+            bannerDismissed={bannerDismissed}
+            onDismissBanner={() => setBannerDismissed(true)}
             className={mobilePane === "code" ? "hidden lg:flex" : "flex"}
           />
         </section>
@@ -626,6 +630,8 @@ function ResultPanel({
   selectedSymbol,
   onSelectSymbol,
   lessonSymbol,
+  bannerDismissed,
+  onDismissBanner,
   className = "",
 }: {
   tab: Tab;
@@ -636,13 +642,16 @@ function ResultPanel({
   selectedSymbol: string;
   onSelectSymbol: (name: string) => void;
   lessonSymbol: string;
+  bannerDismissed: boolean;
+  onDismissBanner: () => void;
   className?: string;
 }) {
   const isErr = check.status === "compileError" || check.status === "error";
-  const yours = check.vm?.userRows ?? [];
   // Only the lesson's own function gets the celebratory match banner; browsing
-  // another symbol from the overview just shows its diff.
-  const showBanner = check.status === "match" && selectedSymbol === lessonSymbol;
+  // another symbol from the overview just shows its diff. Once dismissed, the
+  // diff (all matching) is shown instead.
+  const showBanner =
+    check.status === "match" && selectedSymbol === lessonSymbol && !bannerDismissed;
   // When there's no live diff yet (initial load / compile error), fall back to
   // showing the target as an all-"missing" diff so the goal is always visible.
   const targetOnly: DiffRowVM[] | null = targetRows
@@ -657,12 +666,6 @@ function ResultPanel({
         <TabButton active={tab === "objects"} onClick={() => setTab("objects")} icon={<IconStack2 size={14} />}>
           Objects
         </TabButton>
-        <TabButton active={tab === "target"} onClick={() => setTab("target")} icon={<IconList size={14} />}>
-          Target asm
-        </TabButton>
-        <TabButton active={tab === "yours"} onClick={() => setTab("yours")} icon={<IconFileCode size={14} />}>
-          Your asm
-        </TabButton>
         <TabButton active={tab === "console"} onClick={() => setTab("console")} icon={<IconTerminal2 size={14} />}>
           Console
         </TabButton>
@@ -675,7 +678,12 @@ function ResultPanel({
           (check.status === "running" && !check.vm ? (
             <DiffSkeleton />
           ) : showBanner ? (
-            <MatchBanner percent={100} firstEver={check.firstEver} noHints={check.noHints} />
+            <MatchBanner
+              percent={100}
+              firstEver={check.firstEver}
+              noHints={check.noHints}
+              onViewDiff={onDismissBanner}
+            />
           ) : check.vm ? (
             <>
               {selectedSymbol !== lessonSymbol && (
@@ -696,14 +704,6 @@ function ResultPanel({
             <ObjOverview overview={overview} selected={selectedSymbol} onSelect={onSelectSymbol} />
           ) : (
             <DiffSkeleton />
-          ))}
-        {tab === "target" &&
-          (targetRows ? <AsmList rows={targetRows} /> : <DiffSkeleton />)}
-        {tab === "yours" &&
-          (yours.length ? (
-            <AsmList rows={yours} />
-          ) : (
-            <Empty>Your compiled assembly shows up here after a check.</Empty>
           ))}
         {tab === "console" && <Console check={check} isErr={isErr} />}
       </div>
@@ -773,10 +773,12 @@ function MatchBanner({
   percent,
   firstEver,
   noHints,
+  onViewDiff,
 }: {
   percent: number;
   firstEver?: boolean;
   noHints?: boolean;
+  onViewDiff: () => void;
 }) {
   return (
     <div className="relative flex h-full flex-col items-center justify-center gap-3 overflow-hidden p-6 text-center">
@@ -807,6 +809,12 @@ function MatchBanner({
           <IconBulb size={13} /> Solved with no hints
         </span>
       )}
+      <button
+        onClick={onViewDiff}
+        className="mt-1 inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-soft/60 px-3 py-1.5 text-xs text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
+      >
+        <IconGitCompare size={13} /> View diff
+      </button>
     </div>
   );
 }
