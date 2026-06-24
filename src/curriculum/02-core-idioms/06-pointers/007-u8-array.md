@@ -15,7 +15,7 @@ hints:
 # Scale of one
 
 (`u8` is the GameCube SDK's typedef for `unsigned char` — `typedef unsigned
-char u8;` — and shows up everywhere in this codebase. The matching signed and
+char u8;` — and shows up everywhere in GameCube code. The matching signed and
 wider types are `s8`, `u16`/`s16`, `u32`/`s32`.)
 
 The scaling factor *is* the element size. A `u8` is one byte, so scaling `i` by

@@ -18,8 +18,9 @@ like this:
 2. **Read the target asm.** Pull the retail disassembly and understand what the
    function *does* — the loads, the arithmetic, the calls, the control flow. (See
    the "Reading objdump" lesson for how to interpret each line.)
-3. **Write plausible C.** Your best guess at the original source (more on the
-   "plausible 2002 C" mindset later).
+3. **Write plausible C.** Your best guess at the original source — the kind of
+   plausible, period C a developer would have written, not assembly transcribed
+   into C.
 4. **Rebuild one .o.** Compile *just* your unit, not the whole game. Fast loops
    win.
 5. **Diff.** Compare your object against the retail object.
@@ -35,23 +36,17 @@ is shifting everything below it is usually wasted effort.
 
 ## The tools that drive the loop
 
-- **objdiff** — the interactive diff viewer. You point it at the project; it
-  watches your source files and **rebuilds automatically** when you save, showing
-  your asm next to the target side by side with mismatches highlighted. This is
-  where you live while matching.
-- **`function_objdump.py <unit> <symbol>`** — prints the full target asm for one
-  function straight from the retail object. Your starting point: "what am I trying
-  to reproduce?"
-- **`ndiff.py <unit> <symbol>`** — a *normalized* instruction diff between the
-  target object and your built object. It masks out branch-target addresses and
-  label noise so you only see real codegen differences, and it groups them into
-  regions. It locates divergence; it does **not** prescribe the fix — that's your
-  job.
+The one constant across decomp projects is **objdiff** — the interactive diff
+viewer. You point it at the project; it watches your source files and **rebuilds
+automatically** when you save, showing your asm next to the target side by side
+with mismatches highlighted and branch-target/label noise masked out, so you only
+see real codegen differences. This is where you live while matching — and in this
+academy, the diff view you've been using *is* objdiff.
 
-These last two are helper scripts that ship with a given decomp project; the
-exact names vary from repo to repo (objdiff itself is the one constant). The point
-is the *roles* — "dump one target function" and "normalized diff against my
-build" — not the filenames.
+Projects usually also ship a couple of small helper scripts — one to dump a
+single target function's asm ("what am I trying to reproduce?"), another for a
+normalized diff against your build. Names vary from repo to repo; the *roles* are
+what matter, and objdiff covers both for you here.
 
 ## Build one unit, not the world
 
