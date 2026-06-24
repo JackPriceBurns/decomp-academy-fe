@@ -46,7 +46,7 @@ export default function Home() {
           </span>
           <div className="ml-auto flex items-center gap-4 text-sm">
             <a
-              href="https://decomp.dev/zcanann/SFA-Decomp"
+              href="https://github.com/JackPriceBurns/decomp-academy-fe"
               target="_blank"
               rel="noreferrer"
               className="hidden items-center gap-1.5 text-content-secondary transition hover:text-content-primary sm:inline-flex"
