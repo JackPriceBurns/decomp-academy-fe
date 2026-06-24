@@ -30,6 +30,8 @@ export interface CompileResult {
   instructions?: Instruction[];
   /** All symbols found (helps when the expected symbol name is wrong). */
   symbols?: string[];
+  /** The raw object file (base64) for browser-side objdiff-wasm diffing. */
+  objBase64?: string;
 }
 
 const TIMEOUT_MS = 25_000;
@@ -118,7 +120,10 @@ export async function compile(req: CompileRequest): Promise<CompileResult> {
       };
     }
 
-    return { ok: true, diagnostics: "", instructions, symbols };
+    // The raw object file (base64) so the browser can diff it with objdiff-wasm —
+    // exactly the artifact a real decomp workflow compares against.
+    const objBase64 = (await fs.readFile(oFile)).toString("base64");
+    return { ok: true, diagnostics: "", instructions, symbols, objBase64 };
   } finally {
     fs.rm(dir, { recursive: true, force: true }).catch(() => {});
   }

@@ -18,8 +18,18 @@ import {
   IconTerminal2,
   IconBook2,
   IconFileCode,
+  IconStack2,
 } from "@tabler/icons-react";
-import { AsmDiff, AsmList, Insn, Row } from "./AsmDiff";
+import { ObjDiff, AsmList, ObjOverview } from "./AsmDiff";
+import {
+  analyze,
+  preloadObjdiff,
+  type Analysis,
+  type DiffRowVM,
+  type ObjDiffVM,
+  type Overview,
+  type Seg,
+} from "@/lib/objdiff/client";
 import { Difficulty } from "./CurriculumMap";
 import { loadCode, recordResult, saveCode, totalSolved } from "@/lib/progress";
 
@@ -54,13 +64,13 @@ type Status = "idle" | "running" | "match" | "close" | "compileError" | "error";
 interface CheckState {
   status: Status;
   matchPercent?: number;
-  rows?: Row[];
+  vm?: ObjDiffVM;
   message?: string;
   firstEver?: boolean;
   noHints?: boolean;
 }
 
-type Tab = "diff" | "target" | "yours" | "console";
+type Tab = "diff" | "objects" | "target" | "yours" | "console";
 
 // Tween a number up to `value` (respecting reduced-motion).
 function useCountUp(value: number, ms = 550) {
@@ -95,86 +105,170 @@ function useCountUp(value: number, ms = 550) {
 export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   const [code, setCode] = useState(lesson.starter);
   const [check, setCheck] = useState<CheckState>({ status: "idle" });
-  const [target, setTarget] = useState<Insn[] | null>(null);
-  const [tab, setTab] = useState<Tab>("target");
+  const [targetRows, setTargetRows] = useState<Seg[][] | null>(null);
+  const [overview, setOverview] = useState<Overview | null>(null);
+  const [selectedSymbol, setSelectedSymbol] = useState(lesson.symbol);
+  const [tab, setTab] = useState<Tab>("diff");
   const [mobilePane, setMobilePane] = useState<"brief" | "code" | "result">("brief");
   const [hintsShown, setHintsShown] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
   const codeRef = useRef(code);
   codeRef.current = code;
+  // Latest object files (base64), read without re-creating callbacks.
+  const targetB64Ref = useRef<string | null>(null);
+  const userB64Ref = useRef<string | null>(null);
+  // Per-symbol diffs from the latest analyze() pass — selectSymbol reads these
+  // without recompiling/re-parsing.
+  const diffsRef = useRef<Analysis["diffs"]>({});
+  // Monotonic token bumped on every lesson open; async work checks it before
+  // committing state so a stale in-flight compile can't clobber a newer lesson.
+  const loadIdRef = useRef(0);
 
-  // Restore saved code per lesson.
+  const run = useCallback(
+    async (opts?: { initial?: boolean }) => {
+      const initial = opts?.initial ?? false;
+      const myRun = loadIdRef.current;
+      // Drop the previous vm so the diff shows a skeleton while recompiling rather
+      // than a stale result the learner could misread as their new edit.
+      setCheck((c) => ({ status: "running", matchPercent: c.matchPercent }));
+      if (!initial) {
+        setTab("diff");
+        setMobilePane("result");
+      }
+      saveCode(lesson.id, codeRef.current);
+      try {
+        const res = await fetch("/api/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lesson: lesson.id, code: codeRef.current }),
+        });
+        const d = await res.json();
+        if (loadIdRef.current !== myRun) return; // lesson changed mid-flight
+        if (!d.ok) {
+          if (d.compileError) {
+            setCheck({ status: "compileError", message: d.compileError });
+          } else {
+            setCheck({ status: "error", message: d.error || "Something went wrong." });
+          }
+          // On the initial auto-compile, keep the diff tab (it falls back to the
+          // target listing) rather than yanking the learner to the console.
+          if (!initial) setTab("console");
+          return;
+        }
+        if (!d.objBase64) {
+          setCheck({ status: "error", message: "The compiler returned no object file." });
+          if (!initial) setTab("console");
+          return;
+        }
+        userB64Ref.current = d.objBase64;
+
+        let analysis: Analysis;
+        try {
+          // One objdiff pass yields the overview + every symbol's diff.
+          analysis = await analyze(targetB64Ref.current, d.objBase64, lesson.symbol);
+        } catch (e) {
+          console.error("objdiff analysis failed", e);
+          if (loadIdRef.current !== myRun) return;
+          setCheck({ status: "error", message: "Couldn't analyze the compiled output." });
+          if (!initial) setTab("console");
+          return;
+        }
+        if (loadIdRef.current !== myRun) return;
+
+        diffsRef.current = analysis.diffs;
+        setOverview(analysis.overview);
+        // A Compile & Check always re-centers on the lesson's own function.
+        setSelectedSymbol(lesson.symbol);
+        const vm = analysis.diffs[lesson.symbol];
+        setTargetRows(vm?.targetRows ?? null);
+        const exact = vm?.exact ?? false;
+        const pct = vm?.matchPercent ?? 0;
+        // Capture "first ever solve" and "no help used" before we record this run.
+        const firstEver = exact && totalSolved() === 0;
+        const noHints = exact && hintsShown === 0 && !showSolution;
+        setCheck({ status: exact ? "match" : "close", matchPercent: pct, vm, firstEver, noHints });
+        setTab("diff");
+        // Pre-compiling the starter on open is not a solve attempt — don't record it.
+        if (!initial) recordResult(lesson.id, exact ? 100 : pct);
+      } catch {
+        if (loadIdRef.current !== myRun) return;
+        setCheck({ status: "error", message: "Network error talking to the compiler." });
+        if (!initial) setTab("console");
+      }
+    },
+    [lesson.id, lesson.symbol, hintsShown, showSolution],
+  );
+  const runRef = useRef(run);
+  runRef.current = run;
+
+  // Browse a different symbol from the object overview: a pure lookup into the
+  // last analyze() result (no recompile, no re-parse). Only the lesson's own
+  // symbol counts as solving, and this never re-fires the solve celebration.
+  const selectSymbol = useCallback(
+    (name: string) => {
+      const vm = diffsRef.current[name];
+      if (!vm) return;
+      setSelectedSymbol(name);
+      setTab("diff");
+      setMobilePane("result");
+      setCheck({
+        status: name === lesson.symbol && vm.exact ? "match" : "close",
+        matchPercent: vm.matchPercent,
+        vm,
+      });
+    },
+    [lesson.symbol],
+  );
+
+  // On lesson open: reset, fetch the cached target object, then pre-compile the
+  // learner's starting code once so a diff is visible immediately (no blank state).
   useEffect(() => {
+    const myLoad = ++loadIdRef.current;
     const saved = loadCode(lesson.id);
-    setCode(saved ?? lesson.starter);
+    const initialCode = saved ?? lesson.starter;
+    setCode(initialCode);
+    codeRef.current = initialCode;
     setCheck({ status: "idle" });
-    setTarget(null);
+    setTargetRows(null);
+    setOverview(null);
+    setSelectedSymbol(lesson.symbol);
+    targetB64Ref.current = null;
+    userB64Ref.current = null;
+    diffsRef.current = {};
     setHintsShown(0);
     setShowSolution(false);
-    setTab("target");
+    setTab("diff");
     setMobilePane("brief");
-  }, [lesson.id, lesson.starter]);
+    if (lesson.concept) return;
+    preloadObjdiff();
 
-  // Fetch the authoritative target asm so the learner can see what to match.
-  useEffect(() => {
-    let active = true;
     fetch(`/api/target?lesson=${lesson.id}`)
       .then((r) => r.json())
-      .then((d) => {
-        if (active && d.ok) setTarget(d.instructions);
+      .then(async (d) => {
+        if (loadIdRef.current !== myLoad || !d.ok || !d.objBase64) return;
+        targetB64Ref.current = d.objBase64;
+        // Seed the Target asm tab + overview from the target alone, so they're
+        // visible during the brief compile of the learner's starter.
+        try {
+          const a = await analyze(d.objBase64, null, lesson.symbol);
+          if (loadIdRef.current === myLoad) {
+            diffsRef.current = a.diffs;
+            setOverview(a.overview);
+            setTargetRows(a.diffs[lesson.symbol]?.targetRows ?? null);
+          }
+        } catch (e) {
+          console.error("objdiff target analysis failed", e);
+        }
+        if (loadIdRef.current === myLoad) runRef.current({ initial: true });
       })
       .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [lesson.id]);
-
-  const run = useCallback(async () => {
-    setCheck((c) => ({ status: "running", matchPercent: c.matchPercent }));
-    setTab("diff");
-    setMobilePane("result");
-    saveCode(lesson.id, codeRef.current);
-    try {
-      const res = await fetch("/api/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lesson: lesson.id, code: codeRef.current }),
-      });
-      const d = await res.json();
-      if (!d.ok) {
-        if (d.compileError) {
-          setCheck({ status: "compileError", message: d.compileError });
-          setTab("console");
-        } else {
-          setCheck({ status: "error", message: d.error || "Something went wrong." });
-          setTab("console");
-        }
-        return;
-      }
-      const pct = d.diff.matchPercent as number;
-      const exact = d.diff.exact as boolean;
-      // Capture "first ever solve" and "no help used" before we record this run.
-      const firstEver = exact && totalSolved() === 0;
-      const noHints = exact && hintsShown === 0 && !showSolution;
-      setCheck({
-        status: exact ? "match" : "close",
-        matchPercent: pct,
-        rows: d.diff.rows,
-        firstEver,
-        noHints,
-      });
-      setTab("diff");
-      recordResult(lesson.id, exact ? 100 : pct);
-    } catch {
-      setCheck({ status: "error", message: "Network error talking to the compiler." });
-      setTab("console");
-    }
-  }, [lesson.id, hintsShown, showSolution]);
+  }, [lesson.id, lesson.starter, lesson.symbol, lesson.concept]);
 
   const reset = () => {
     setCode(lesson.starter);
     saveCode(lesson.id, lesson.starter);
     setCheck({ status: "idle" });
+    setTab("diff");
   };
 
   if (lesson.concept) return <ConceptView lesson={lesson} />;
@@ -205,7 +299,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
           </button>
         ))}
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,440px)_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(20rem,440px)_minmax(0,1fr)]">
         {/* Brief column */}
         <aside
           className={`min-h-0 flex-col border-r border-line bg-bg-soft/40 lg:flex ${
@@ -272,7 +366,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
                 <IconRefresh size={14} /> Reset
               </button>
               <button
-                onClick={run}
+                onClick={() => run()}
                 disabled={check.status === "running"}
                 className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-on transition hover:bg-accent-hover active:scale-[0.97] disabled:opacity-60"
               >
@@ -292,14 +386,18 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
               mobilePane === "result" ? "hidden" : "block"
             }`}
           >
-            <CodeEditor value={code} onChange={setCode} onRun={run} />
+            <CodeEditor value={code} onChange={setCode} onRun={() => run()} />
           </div>
 
           <ResultPanel
             tab={tab}
             setTab={setTab}
             check={check}
-            target={target}
+            targetRows={targetRows}
+            overview={overview}
+            selectedSymbol={selectedSymbol}
+            onSelectSymbol={selectSymbol}
+            lessonSymbol={lesson.symbol}
             className={mobilePane === "code" ? "hidden lg:flex" : "flex"}
           />
         </section>
@@ -512,32 +610,45 @@ function SolutionBox({
   );
 }
 
-// Pull the learner's own compiled instruction stream out of the diff rows.
-function userAsmFrom(rows?: Row[]): Insn[] {
-  if (!rows) return [];
-  return rows.filter((r) => r.user).map((r) => r.user as Insn);
-}
-
 function ResultPanel({
   tab,
   setTab,
   check,
-  target,
+  targetRows,
+  overview,
+  selectedSymbol,
+  onSelectSymbol,
+  lessonSymbol,
   className = "",
 }: {
   tab: Tab;
   setTab: (t: Tab) => void;
   check: CheckState;
-  target: Insn[] | null;
+  targetRows: Seg[][] | null;
+  overview: Overview | null;
+  selectedSymbol: string;
+  onSelectSymbol: (name: string) => void;
+  lessonSymbol: string;
   className?: string;
 }) {
   const isErr = check.status === "compileError" || check.status === "error";
-  const yours = userAsmFrom(check.rows);
+  const yours = check.vm?.userRows ?? [];
+  // Only the lesson's own function gets the celebratory match banner; browsing
+  // another symbol from the overview just shows its diff.
+  const showBanner = check.status === "match" && selectedSymbol === lessonSymbol;
+  // When there's no live diff yet (initial load / compile error), fall back to
+  // showing the target as an all-"missing" diff so the goal is always visible.
+  const targetOnly: DiffRowVM[] | null = targetRows
+    ? targetRows.map((segs) => ({ kind: "delete" as const, target: segs, user: null }))
+    : null;
   return (
     <div className={`min-h-[260px] flex-[1] flex-col bg-bg-inset/60 lg:min-h-0 ${className}`}>
       <div className="flex items-center gap-1 border-b border-line bg-bg-soft/50 px-2">
         <TabButton active={tab === "diff"} onClick={() => setTab("diff")} icon={<IconGitCompare size={14} />}>
           Diff
+        </TabButton>
+        <TabButton active={tab === "objects"} onClick={() => setTab("objects")} icon={<IconStack2 size={14} />}>
+          Objects
         </TabButton>
         <TabButton active={tab === "target"} onClick={() => setTab("target")} icon={<IconList size={14} />}>
           Target asm
@@ -554,19 +665,33 @@ function ResultPanel({
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         {tab === "diff" &&
-          (check.status === "running" ? (
+          (check.status === "running" && !check.vm ? (
             <DiffSkeleton />
-          ) : check.rows ? (
-            check.status === "match" ? (
-              <MatchBanner percent={100} firstEver={check.firstEver} noHints={check.noHints} />
-            ) : (
-              <AsmDiff rows={check.rows} />
-            )
+          ) : showBanner ? (
+            <MatchBanner percent={100} firstEver={check.firstEver} noHints={check.noHints} />
+          ) : check.vm ? (
+            <>
+              {selectedSymbol !== lessonSymbol && (
+                <div className="border-b border-line bg-bg-soft/60 px-3 py-1.5 font-mono text-2xs text-content-muted">
+                  viewing <span className="text-accent">{selectedSymbol}</span> · Compile &amp; Check returns to{" "}
+                  <span className="text-content-secondary">{lessonSymbol}</span>
+                </div>
+              )}
+              <ObjDiff rows={check.vm.rows} />
+            </>
+          ) : targetOnly ? (
+            <ObjDiff rows={targetOnly} />
           ) : (
             <Empty>Hit “Compile &amp; Check” to diff your code against the target.</Empty>
           ))}
+        {tab === "objects" &&
+          (overview ? (
+            <ObjOverview overview={overview} selected={selectedSymbol} onSelect={onSelectSymbol} />
+          ) : (
+            <DiffSkeleton />
+          ))}
         {tab === "target" &&
-          (target ? <AsmList rows={target} /> : <DiffSkeleton />)}
+          (targetRows ? <AsmList rows={targetRows} /> : <DiffSkeleton />)}
         {tab === "yours" &&
           (yours.length ? (
             <AsmList rows={yours} />
@@ -709,7 +834,7 @@ function TabButton({
 function MatchMeter({ check }: { check: CheckState }) {
   const pct = check.matchPercent ?? 0;
   const shown = useCountUp(pct);
-  const diffs = check.rows?.filter((r) => r.kind !== "same").length ?? 0;
+  const diffs = check.vm?.rows.filter((r) => r.kind !== "none").length ?? 0;
 
   if (check.status === "match")
     return (

@@ -18,5 +18,9 @@ export async function GET(req: NextRequest) {
   if (!target.ok) {
     return NextResponse.json({ ok: false, error: target.error }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, instructions: target.instructions });
+  return NextResponse.json({
+    ok: true,
+    instructions: target.instructions,
+    objBase64: target.objBase64,
+  });
 }
