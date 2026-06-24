@@ -3,6 +3,7 @@ import { compile } from "@/lib/compile";
 import { Instruction, diffAsm, DiffResult } from "@/lib/asm";
 import { getLesson } from "./registry";
 import { LessonSource } from "./types";
+import { compileApiUrl, postJson } from "./remote";
 
 // In-memory cache of compiled reference targets, keyed by a hash of the inputs
 // that affect codegen. The reference solution is authoritative, so caching it is
@@ -35,6 +36,24 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
   const key = targetKey(l);
   const cached = targetCache.get(key);
   if (cached) return { ok: true, instructions: cached };
+
+  // Proxy mode: ask the deployed compile service for the target.
+  const api = compileApiUrl();
+  if (api) {
+    try {
+      const d = await postJson(`${api}/target`, {
+        solution: l.solution,
+        symbol: l.symbol,
+        context: l.context,
+        extraFlags: l.extraFlags,
+      });
+      if (!d?.ok) return { ok: false, error: d?.error || "Compile service error." };
+      targetCache.set(key, d.instructions);
+      return { ok: true, instructions: d.instructions };
+    } catch (e) {
+      return { ok: false, error: "Could not reach the compile service." };
+    }
+  }
 
   const res = await compile({
     code: l.solution,
@@ -72,6 +91,29 @@ export async function checkLesson(
 ): Promise<CheckResult> {
   const lesson = getLesson(lessonId);
   if (!lesson) return { ok: false, error: "Unknown lesson." };
+  if (lesson.concept) return { ok: false, error: "This lesson has no exercise." };
+
+  // Proxy mode: the compile service compiles both sides and diffs in one call.
+  const api = compileApiUrl();
+  if (api) {
+    try {
+      const d = await postJson(`${api}/check`, {
+        code,
+        referenceSolution: lesson.solution,
+        symbol: lesson.symbol,
+        context: lesson.context,
+        extraFlags: lesson.extraFlags,
+      });
+      if (!d?.ok) {
+        return d?.compileError
+          ? { ok: false, compileError: d.compileError, target: d.target }
+          : { ok: false, error: d?.error || "Compile service error." };
+      }
+      return { ok: true, diff: d.diff, target: d.target, user: d.user };
+    } catch (e) {
+      return { ok: false, error: "Could not reach the compile service." };
+    }
+  }
 
   const target = await getTarget(lesson);
   if (!target.ok || !target.instructions) {
