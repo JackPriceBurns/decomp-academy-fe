@@ -1,5 +1,6 @@
 import { ALL_LESSON_SOURCES } from "@/curriculum";
 import { CHAPTERS, CHAPTER_BY_ID } from "@/curriculum/chapters";
+import { TIERS, TIER_BY_ID } from "@/curriculum/tiers";
 import { LessonSource } from "./types";
 
 const chapterOrder = new Map(CHAPTERS.map((c) => [c.id, c.order]));
@@ -38,6 +39,7 @@ export interface ChapterWithLessons {
   title: string;
   blurb: string;
   order: number;
+  tier: string;
   lessons: LessonSource[];
 }
 
@@ -48,4 +50,4 @@ export function chaptersWithLessons(): ChapterWithLessons[] {
   }));
 }
 
-export { CHAPTERS, CHAPTER_BY_ID };
+export { CHAPTERS, CHAPTER_BY_ID, TIERS, TIER_BY_ID };

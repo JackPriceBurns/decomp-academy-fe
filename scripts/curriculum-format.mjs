@@ -72,6 +72,12 @@ export function formatChapter(chapter) {
   return `---\n${YAML.stringify(fm).trimEnd()}\n---\n`;
 }
 
+/** Serialize a Tier to its _tier.md content. Same shape as a chapter. */
+export function formatTier(tier) {
+  const fm = { title: tier.title, blurb: tier.blurb };
+  return `---\n${YAML.stringify(fm).trimEnd()}\n---\n`;
+}
+
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
 const CODE_BLOCK_RE = /<!--\s*(starter|solution|context)\s*-->\s*\n```[a-zA-Z0-9]*\n([\s\S]*?)\n```/g;
 
@@ -115,8 +121,15 @@ export function parseLessonFile(raw, { chapter, order }) {
 }
 
 /** Parse a _chapter.md file into a Chapter. id and order come from the folder
- *  name (NN-<id>), supplied by the caller. */
-export function parseChapterFile(raw, { id, order }) {
+ *  name (NN-<id>), supplied by the caller. tier is the parent tier folder's id. */
+export function parseChapterFile(raw, { id, order, tier }) {
+  const { data } = splitFrontmatter(raw);
+  return { id, title: data.title, blurb: data.blurb, order, tier };
+}
+
+/** Parse a _tier.md file into a Tier. Same shape as a chapter (title + blurb);
+ *  id and order come from the folder name (NN-<id>), supplied by the caller. */
+export function parseTierFile(raw, { id, order }) {
   const { data } = splitFrontmatter(raw);
   return { id, title: data.title, blurb: data.blurb, order };
 }

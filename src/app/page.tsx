@@ -5,7 +5,7 @@ import {
   IconCode,
   IconCircleCheck,
 } from "@tabler/icons-react";
-import { chaptersWithLessons, LESSONS } from "@/lib/lessons/registry";
+import { chaptersWithLessons, LESSONS, TIERS } from "@/lib/lessons/registry";
 import { CurriculumMap } from "@/components/CurriculumMap";
 import { MatchLog } from "@/components/MatchLog";
 import { Hero } from "@/components/Hero";
@@ -20,6 +20,7 @@ export default function Home() {
       title: c.title,
       blurb: c.blurb,
       order: c.order,
+      tier: c.tier,
       lessons: c.lessons.map((l) => ({
         id: l.id,
         title: l.title,
@@ -111,7 +112,7 @@ export default function Home() {
         <div className="mb-8">
           <MatchLog lessons={heatLessons} />
         </div>
-        <CurriculumMap chapters={chapters} />
+        <CurriculumMap chapters={chapters} tiers={TIERS} />
       </section>
       <footer className="border-t border-line bg-bg-soft/40">
         <div className="mx-auto flex max-w-5xl flex-col gap-2 px-5 py-8 text-sm text-content-muted sm:flex-row sm:items-center sm:justify-between">

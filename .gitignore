@@ -2,6 +2,7 @@ node_modules
 .next
 out
 .DS_Store
+.idea
 *.log
 .env*.local
 /scratch

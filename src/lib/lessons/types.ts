@@ -1,5 +1,16 @@
 import { Instruction } from "../asm";
 
+/** A curriculum "act" grouping consecutive chapters on the map. Defined by a
+ *  _tier.md at src/curriculum/<NN>-<id>/ — order and grouping come from folders. */
+export interface Tier {
+  id: string;
+  title: string;
+  /** One-line summary shown beside the tier heading. */
+  blurb: string;
+  /** Display order. */
+  order: number;
+}
+
 export interface Chapter {
   id: string;
   title: string;
@@ -7,6 +18,8 @@ export interface Chapter {
   blurb: string;
   /** Display order. */
   order: number;
+  /** id of the parent tier (from the enclosing _tier.md folder). */
+  tier: string;
 }
 
 export interface LessonSource {

@@ -59,13 +59,26 @@ standard GitHub fork-and-PR flow:
 
 ### Where the content lives
 
-All lessons live under **`src/curriculum/`**, one folder per chapter named
-`NN-<id>` (e.g. `15-int64`). Inside each chapter:
+All content lives under **`src/curriculum/`** as a three-level folder tree —
+ordering and grouping come entirely from the folder/file names, so there's no
+config map to maintain:
 
-- `_chapter.md` — the chapter's title and one-line blurb.
-- `NNN-<slug>.md` — one file per lesson, in order. Each has YAML frontmatter
-  (`id`, `title`, `difficulty`, `concepts`, `symbol`, `hints`) followed by the
-  explanation and a `<!-- starter -->` / `<!-- solution -->` C block.
+```
+src/curriculum/
+  03-real-abi/              ← tier ("act" on the curriculum map)
+    _tier.md                  title + one-line blurb
+    05-int64/                ← chapter
+      _chapter.md             title + one-line blurb
+      001-register-pairing.md ← lesson
+      002-add.md
+```
+
+- Every folder is named `NN-<id>`. The `NN` prefix orders siblings *within* its
+  parent only — chapters restart at `01` inside each tier. The global chapter
+  number shown on the site (e.g. mastery = 17) is computed automatically.
+- A **lesson** `.md` has YAML frontmatter (`id`, `title`, `difficulty`,
+  `concepts`, `symbol`, `hints`) followed by the explanation and a
+  `<!-- starter -->` / `<!-- solution -->` C block.
 
 The build step compiles this Markdown tree into JSON the app imports — it runs
 automatically before `dev`/`build`, or on demand:
@@ -76,7 +89,9 @@ npm run curriculum
 
 ### Adding a lesson
 
-1. Pick (or create) a chapter folder under `src/curriculum/`.
+1. Pick (or create) a chapter folder under the appropriate tier in
+   `src/curriculum/` (add a new chapter with its own `_chapter.md`, or a new
+   tier with a `_tier.md`).
 2. Copy an existing `NNN-<slug>.md` as a template and edit the frontmatter,
    explanation, starter, and solution. The `symbol` field is the function name
    the grader compiles and diffs.

@@ -26,16 +26,22 @@ interface ChapterLite {
   title: string;
   blurb: string;
   order: number;
+  /** id of the parent tier — drives the curriculum-map grouping. */
+  tier: string;
   lessons: LessonLite[];
 }
+// The "acts" of the map. Defined by src/curriculum/<NN>-<id>/_tier.md, so
+// grouping and order come from the folder tree — there is no range to keep in
+// sync when chapters are added or renumbered.
+interface TierLite {
+  id: string;
+  title: string;
+  blurb: string;
+  order: number;
+}
 
-// Four ascending acts turn a flat 306-lesson wall into a journey with a shape.
-const TIERS = [
-  { id: "I", label: "Warm-up", desc: "Learn to read the machine", min: 1, max: 2 },
-  { id: "II", label: "Core idioms", desc: "Every shape C compiles into", min: 3, max: 10 },
-  { id: "III", label: "The real ABI", desc: "Frames, globals, the optimizer", min: 11, max: 14 },
-  { id: "IV", label: "Proving ground", desc: "Endless reps, then real functions", min: 15, max: 16 },
-] as const;
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+const toRoman = (n: number) => ROMAN[n - 1] ?? String(n);
 
 // Rough time-to-complete so a chapter reads as a commitment, not a void.
 function estMinutes(l: LessonLite) {
@@ -45,7 +51,7 @@ function chapterMinutes(c: ChapterLite) {
   return c.lessons.reduce((s, l) => s + estMinutes(l), 0);
 }
 
-export function CurriculumMap({ chapters }: { chapters: ChapterLite[] }) {
+export function CurriculumMap({ chapters, tiers }: { chapters: ChapterLite[]; tiers: TierLite[] }) {
   const { isSolved, bestPercent } = useProgress();
 
   // The single lesson the learner should do next: first not-yet-solved, in order.
@@ -64,8 +70,8 @@ export function CurriculumMap({ chapters }: { chapters: ChapterLite[] }) {
   return (
     <div className="space-y-8">
       <Legend />
-      {TIERS.map((tier) => {
-        const tierChapters = chapters.filter((c) => c.order >= tier.min && c.order <= tier.max);
+      {tiers.map((tier) => {
+        const tierChapters = chapters.filter((c) => c.tier === tier.id);
         if (!tierChapters.length) return null;
         const tierLessons = tierChapters.flatMap((c) => c.lessons);
         const tierSolved = tierLessons.filter((l) => isSolved(l.id)).length;
@@ -78,13 +84,13 @@ export function CurriculumMap({ chapters }: { chapters: ChapterLite[] }) {
                   tierDone ? "bg-good/15 text-good" : "bg-accent/10 text-accent"
                 }`}
               >
-                {tier.id}
+                {toRoman(tier.order)}
               </span>
               <div className="flex-1">
                 <div className="text-sm font-semibold uppercase tracking-wide text-content-secondary">
-                  {tier.label}
+                  {tier.title}
                 </div>
-                <div className="text-xs text-content-muted">{tier.desc}</div>
+                <div className="text-xs text-content-muted">{tier.blurb}</div>
               </div>
               <span className="text-xs tabular-nums text-content-muted">
                 {tierSolved}/{tierLessons.length}
