@@ -18,18 +18,22 @@ hints:
 
 Right-shifting an **unsigned** value is a *logical* shift: bits move toward the
 low end and the high end is filled with zeros. MWCC emits `rlwinm`, printed as
-the extended mnemonic **`srwi`**:
+the extended mnemonic **`srwi`**. For example, shifting an unsigned value right
+by 5:
 
 ```asm
-srwi  r3, r3, 3    # (u32)x >> 3
+srwi    r3,r3,5
 blr
 ```
 
 The **type drives this**. Because `x` is `u32`, the compiler knows the top bits
-must come in as zero, so a plain masked rotate suffices — `srwi r3, r3, 3` is
-really `rlwinm r3, r3, 29, 3, 31`. If `x` were signed, the high bits would
+must come in as zero, so a plain masked rotate suffices — `srwi r3, r3, 5` is
+really `rlwinm r3, r3, 27, 5, 31`. If `x` were signed, the high bits would
 instead be filled with the sign bit, which needs a *different* instruction
 entirely (the next lesson).
+
+Read the immediate in the target `srwi` to find the shift amount, keep the type
+`u32`, and the instruction follows.
 
 ## Your task
 

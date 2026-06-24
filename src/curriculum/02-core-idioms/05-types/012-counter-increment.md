@@ -16,26 +16,38 @@ hints:
 
 # Read, modify, write — all at byte width
 
-A byte counter ticking up is a complete read-modify-write at narrow width, and it
-ties this chapter together. `(*p)++` on a `u8*` loads the byte, adds one, and
-stores it back:
+Narrow read-modify-write sequences follow a fixed three-instruction pattern on
+PowerPC. Consider a function that adds `2` to the byte at `p[1]`:
+
+```c
+void add_two(u8* p) {
+    p[1] += 2;
+}
+```
 
 ```asm
-lbz   r4, 0(r3)   # load the current count (zero-extended, no extsb)
-addi  r0, r4, 1   # increment
-stb   r0, 0(r3)   # truncate back to a byte and store
+lbz   r4, 1(r3)   # load unsigned byte from p[1]
+addi  r0, r4, 2   # add the constant in a 32-bit register
+stb   r0, 1(r3)   # truncate and store back
 blr
 ```
 
-Three details to absorb: the load is `lbz` (unsigned byte, zero-extended), the
-arithmetic is a plain `addi` in a 32-bit register, and the store is `stb`, which
-truncates the sum back into one byte — so `255 + 1` correctly wraps to `0`.
-Here the byte is loaded, incremented, and stored straight back — it never escapes
-into a wider signed context — so even a `char*` counter would compile to this
-exact sequence with no `extsb`. But the moment a `char` value *is* widened to
-`int` (passed to a function, used in 32-bit arithmetic), that spurious `extsb`
-appears (you saw it in the u8-vs-char lesson). The habit stands: **`u8` for a raw
-byte.**
+Three phases, three instructions: **`lbz`** zero-extends one byte into a
+register; **`addi`** does the arithmetic at 32-bit width; **`stb`** takes the
+low byte of the result and writes it back, discarding the upper bits — so
+`255 + 1` correctly wraps to `0`.
+
+Notice there is no `extsb` anywhere. That instruction appears only when a
+signed byte value is *widened* to a wider signed integer. Because the byte is
+loaded, modified, and stored back without ever being compared or passed to
+something that needs a sign-extended value, neither `u8` nor `char` generates
+one here. The habit still stands: reach for **`u8` for a raw byte**, because
+the moment a `char` value escapes into a wider signed context you will see a
+spurious `extsb` that `u8` avoids.
+
+The assembly for `bump` follows the same three-phase structure. The
+displacement and immediate differ — study those numbers and work out what
+operation on which element they represent.
 
 ## Your task
 

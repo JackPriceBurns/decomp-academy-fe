@@ -14,30 +14,45 @@ hints:
 
 # Advancing a pointer in a loop
 
-A classic string walk reads bytes until it hits the NUL terminator, counting as
-it goes. The compiler keeps the running pointer in `r3` and the count in `r4`,
-bumping both with `addi` and re-checking the loaded byte against zero each
-iteration:
+Reading through a byte buffer means loading one byte per iteration with `lbz`,
+advancing the pointer register with `addi`, and testing the loaded value. Because
+the element type is `u8` (unsigned), the zero test uses `cmplwi` (compare logical
+word immediate — unsigned) rather than `cmpwi`.
+
+MWCC lays out the loop with the test **at the bottom**: an initial `b` jumps
+straight to the first check, so a zero-length input skips the body entirely. The
+back-edge branch carries a `+` hint — the compiler statically predicts loops will
+iterate, so the branch-taken path is marked likely.
+
+Here is a different example that sums the byte values instead of counting them:
+
+```c
+int byte_sum(u8* s) {
+    int total = 0;
+    while (*s) {
+        total += *s;
+        s++;
+    }
+    return total;
+}
+```
 
 ```asm
-li      r4, 0          # count = 0
-b       check
-loop:
-addi    r4, r4, 1      # count++
-addi    r3, r3, 1      # s++
-check:
-lbz     r0, 0(r3)      # *s
-cmplwi  r0, 0          # compare unsigned against 0
-bne+    loop           # keep going while non-zero
-mr      r3, r4         # return count
+li      r4,0
+b       10 <byte_sum+0x10>
+add     r4,r4,r0
+addi    r3,r3,1
+lbz     r0,0(r3)
+cmplwi  r0,0
+bne+    8 <byte_sum+0x8>
+mr      r3,r4
 blr
 ```
 
-Note the loop tests at the *bottom* (the initial `b` jumps straight to the
-check), and the unsigned compare `cmplwi` comes from the `u8` element type. The
-`+` on `bne+` is a static branch hint predicting the back-edge is taken — loops
-are expected to iterate, so MWCC marks the loop branch as likely. (Contrast the
-`beq-` in the NULL-check lesson, where the early-out is marked *un*likely.)
+Notice the `lbz`/`cmplwi`/`bne+` trio at the loop check, the pointer advancing
+via `addi r3,r3,1`, and the accumulator held in `r4` until the final `mr`. Now
+consider how the loop body changes when the goal is *counting* iterations instead
+of summing byte values — what instruction replaces `add`?
 
 ## Your task
 

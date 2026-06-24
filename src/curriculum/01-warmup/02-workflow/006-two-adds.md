@@ -14,25 +14,30 @@ hints:
 
 # When the compiler regroups your chain
 
-`a + b + c` is two adds, so you might expect `add` then `add` straight down `r3`.
-But addition is **associative** — `(a + b) + c` equals `a + (b + c)` — and the
-compiler uses that freedom to schedule the work differently:
+Addition is **associative** — `(a + b) + c` equals `a + (b + c)` — and the
+compiler uses that freedom to schedule the work differently from what you might
+expect. Instead of computing left-to-right through the registers, it may defer
+one operand while it pairs two others first.
+
+Consider `sum4`, a four-argument sum:
 
 ```asm
-mr  r0, r3        # r0 = a  (saved for later)
-add r3, r4, r5    # r3 = b + c
-add r3, r0, r3    # r3 = a + (b + c)
+add  r0, r4, r5   # r0 = b + c  (computed first)
+mr   r4, r3       # r4 = a      (saved aside)
+add  r3, r0, r6   # r3 = (b + c) + d
+add  r3, r4, r3   # r3 = a + ((b + c) + d)
 blr
 ```
 
-Instead of summing left-to-right, it computes `b + c` first, parking `a` in `r0`
-with an `mr` (*move register*, a register-to-register copy) so the operand in
-`r3` isn't lost. The final `add` then combines the saved `a` with the `b + c`
-partial. The result is identical — only the grouping changed.
+The `mr` (*move register*) instruction is a register-to-register copy with no
+arithmetic effect. Here it parks `a` out of the way so the compiler can pair
+`b + c` first, then fold in `d`, then stitch `a` back in last. The result is
+mathematically identical to summing left-to-right; only the grouping changed.
 
-This is your first reminder that matching isn't always literal: when an operation
-is associative or commutative, the toolchain may reorder it. Your job is to write
-the C whose *meaning* matches; the compiler picks the schedule.
+When you see an `mr` at the top of a function, look for the operand it saves —
+it will show up again in a later `add`. The final instruction count tells you
+how many operations the expression contains; the registers tell you which
+arguments are involved.
 
 ## Your task
 

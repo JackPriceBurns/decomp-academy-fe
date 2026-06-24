@@ -14,10 +14,26 @@ hints:
 
 # Indexed load from a `u16` array
 
-`a[i]` scales the index by `sizeof(u16)` and uses an indexed load: **lhzx (scale 2)**.
-Unlike a constant displacement, a *variable* index must be scaled at runtime: MWCC first emits a `slwi` to multiply the index by the element size,
-then the indexed load. So expect two instructions, e.g. `slwi r0, r4, N`
-followed by the load.
+When an array element is accessed through a variable index, the compiler must scale the index by the element's size at runtime and then issue an *indexed* load. For multi-byte elements MWCC emits a `slwi` (shift-left-word-immediate) before the load — the shift amount equals `log2(sizeof(element))`.
+
+For an unsigned 2-byte element the shift is by 1 (i.e. `× 2`), followed by **`lhzx`** (indexed zero-extending half-word load). This is the unsigned counterpart to `lhax`: no sign extension, so the upper bits are zeroed.
+
+Consider an unsigned short buffer lookup:
+
+```c
+u16 fetch(u16* buf, int n) {
+    return buf[n];
+}
+```
+
+```asm
+fetch:
+  slwi    r0,r4,1
+  lhzx    r3,r3,r0
+  blr
+```
+
+Same shift as the signed case, but the opcode changes to `lhzx` because the element type is unsigned.
 
 ## Your task
 Write `at` to match the target.

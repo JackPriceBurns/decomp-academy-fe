@@ -26,23 +26,28 @@ condition is checked before the body ever runs, so the zero-iteration case is
 handled. (Two names, one shape: the test is *physically* at the bottom, but
 *behaviorally* the loop is pre-tested thanks to that jump-to-test at the top.)
 
+Here is a concrete example — `squares(n)`, which sums the integers from 1
+through `n`:
+
 ```asm
 li   r0, 0          # s = 0
-li   r4, 0          # i = 0
+li   r4, 1          # i = 1
 b    test           # jump straight to the test (pre-test)
 body:
 add  r0, r0, r4     # s += i
 addi r4, r4, 1      # i++
 test:
-cmpw r4, r3         # i < n ?
-blt+ body           # if so, go round again
+cmpw r4, r3         # i <= n ?
+ble+ body           # if so, go round again
 mr   r3, r0         # return s
 blr
 ```
 
-The variable `i` that drives the loop is its **induction variable**. Notice the
-test is at the bottom, reached first via that leading `b` — if `n <= 0` the body
-never runs.
+The variable `i` (here `r4`) that drives the loop is its **induction variable**.
+Notice the test is at the bottom, reached first via that leading `b` — if
+`n < 1` the body never runs. Your function `sum` counts from 0, not 1, and
+stops before `n` rather than at `n`, so both the initializer and the test
+condition will differ from this example.
 
 > **A note on optimization.** At the project's full `-O4,p` setting MWCC would
 > *unroll* this tiny sum into a long pipelined mess, because it can compute the

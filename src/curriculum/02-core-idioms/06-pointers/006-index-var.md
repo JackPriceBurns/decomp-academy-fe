@@ -14,26 +14,38 @@ hints:
 
 # When the index is a register
 
-A *constant* index folded into a displacement. A *variable* index can't — it
-isn't known at compile time. The compiler must scale it at runtime, then use the
-**indexed** load `lwzx rD, rA, rB`, which reads from `rA + rB` (two registers,
-no displacement).
+A *constant* index folds into a displacement at compile time. A *variable* index
+cannot — the value isn't known until runtime. The compiler must scale it then,
+using the **indexed** load `lwzx rD, rA, rB`, which reads from `rA + rB` (two
+registers, no displacement field).
 
-For an `int*`, the index is scaled by 4 with a shift-left-by-2 (`slwi`):
+The scaling step uses `slwi` — shift-left immediate — to multiply by the element
+size. Here is a function that indexes a `u16` array by a variable:
+
+```c
+typedef unsigned short u16;
+u16 at_u16(u16* p, int i) {
+    return p[i];
+}
+```
 
 ```asm
-slwi r0, r4, 2    # i * 4  (sizeof(int))
-lwzx r3, r3, r0   # load p[i]
+slwi  r0, r4, 1   # i * 2  (sizeof(u16))
+lhzx  r3, r3, r0  # load halfword at p + byte_offset
 blr
 ```
 
-So `slwi` by 2 followed by `lwzx` is the signature of an `int*` indexed by a
-variable. The shift amount tells you the element size: 2 → 4-byte elements.
+`sizeof(u16)` is 2, so the shift amount is 1 (shift-left by 1 = multiply by 2).
+The indexed halfword load `lhzx` then uses the scaled byte offset in `r0` as the
+second register operand.
 
-One thing to recognize in the wild: `slwi rA, rB, n` is itself a simplified
-mnemonic for `rlwinm rA, rB, n, 0, 31-n`. Disassemblers like objdump or Ghidra
-often print the underlying `rlwinm` (here `rlwinm r0, r4, 2, 0, 29`) instead of
-the friendlier `slwi r0, r4, 2` — they're the same shift.
+The shift amount is the key diagnostic: **shift amount → element size as a power
+of 2**. Shift by 1 → 2-byte elements; shift by 2 → 4-byte elements. The
+instruction mnemonic (`lhzx`, `lwzx`, `lbzx`, …) cross-checks the element size.
+
+One note for reading real disassembly: `slwi rA, rB, n` is a simplified mnemonic
+for `rlwinm rA, rB, n, 0, 31-n`. Tools like objdump or Ghidra sometimes print
+the underlying `rlwinm` form; they are the same instruction.
 
 ## Your task
 

@@ -21,14 +21,14 @@ induction integer; the pointer in `r3` *is* the loop state. Each iteration loads
 a byte with `lbz` (load byte, zero-extended), tests it, and bumps the pointer:
 
 ```asm
-li   r4, 0          # n = 0
+li   r4, 0          # counter = 0
 b    test
 body:
-addi r4, r4, 1      # n++
-addi r3, r3, 1      # p++
+addi r4, r4, 1      # increment counter
+addi r3, r3, 1      # advance pointer
 test:
-lbz  r0, 0(r3)      # *p
-cmplwi r0, 0        # *p != 0 ?   (unsigned compare)
+lbz  r0, 0(r3)      # byte load
+cmplwi r0, 0        # unsigned compare against zero
 bne+ body
 mr   r3, r4
 blr

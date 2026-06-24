@@ -18,22 +18,28 @@ The GameCube ABI hands the first eight integer (or pointer) arguments to a
 function in registers **`r3`, `r4`, `r5`, `r6`, `r7`, `r8`, `r9`, `r10`** — in
 that order. The first argument is in `r3`, the second in `r4`, and so on.
 
-A function that simply returns its **fourth** argument therefore just copies
-`r6` into the return register `r3`:
+Consider a function `third(int a, int b, int c, int d)` that returns its third
+argument. Three out of four parameters are unused, so the only instruction is a
+single `mr` to copy the right register into the return register:
 
 ```asm
-mr   r3, r6      # r3 = the 4th argument
+mr   r3, r5      # r3 = the 3rd argument
 blr
 ```
 
-`mr` ("move register") is `r3 = r6`. The other three arguments arrive in
-`r3`–`r5` but go unused, so they generate no code at all. Knowing the
-argument-to-register mapping by heart lets you read any function signature
-straight off its first few instructions.
+`mr` ("move register") copies one GPR to another. The three unused arguments
+arrive in registers but generate no code. Knowing the argument-to-register
+mapping by heart lets you read any function signature straight off its first few
+instructions.
+
+Now look at the assembly for `fourth`. The `mr` copies a different source
+register — figure out which argument position that register corresponds to and
+return it.
 
 ## Your task
 
-Write `fourth`, taking four `int`s and returning the **fourth** one (`d`).
+Write `fourth`, taking four `int`s and returning the one whose register matches
+the assembly above.
 
 <!-- starter -->
 ```c

@@ -14,24 +14,35 @@ hints:
 
 # The field's type picks the load
 
-A field's C type decides both its **size** and the **load instruction**. A
-`u8` field is loaded with `lbz` (load byte, zero-extend); a `u16` with `lhz`
-(load halfword). Given a packed color:
+A field's C type decides both its **size** and the **load instruction**. For
+`u8` fields (one byte, unsigned) the compiler emits `lbz` (*load byte
+zero-extend*). For `u16` fields (two bytes, unsigned) it emits `lhz` (*load
+halfword zero-extend*). The offset in the instruction gives you the field's
+position; the instruction mnemonic gives you its width and signedness.
+
+An `lbz`/`lhz` is a strong decompilation signal: the field at that offset is
+`u8`/`u16`, not `int`. Avoid `char` for an unsigned byte — `char` is
+implementation-defined and would produce a spurious `extsb` sign-extension after
+the load.
+
+Here is an example reading the *third* byte field of the same Color struct
+(offset 2):
 
 ```c
 typedef struct { u8 r; u8 g; u8 b; u8 a; } Color;
+
+u8 Color_getB(Color* c) {
+    return c->b;
+}
 ```
 
-each byte is one wide, so `g` is at offset 1:
-
 ```asm
-lbz  r3, 1(r3)   # load c->g
+lbz     r3,2(r3)    # load c->b (offset 2)
 blr
 ```
 
-This is a strong decompilation signal: an `lbz`/`lhz` at some offset tells you the
-field there is a **`u8`/`u16`**, not an `int`. Use `u8` (not `char`) for a byte
-loaded without arithmetic — `char` would drag in a spurious `extsb` sign-extend.
+The offset 2 corresponds to `b` because `r` occupies byte 0 and `g` byte 1.
+Now inspect the target assembly and determine which field its offset points to.
 
 ## Your task
 

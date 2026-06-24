@@ -53,10 +53,9 @@ from the floats chapter, here landing in a byte global.
 
 The globals are declared for you:
 `gCounter` (int), `gSrcA`/`gSrcB`/`gLerpT` (f32), `gColor` (u8). Write
-`worldUpdate` that:
-1. increments `gCounter` (`gCounter = gCounter + 1;`),
-2. copies `gSrcA` into `gLerpT`,
-3. sets `gColor = (u8)(s32)(gSrcA * gSrcB);`.
+`worldUpdate` to reproduce the assembly above. Read each opcode to determine
+what type each global is, which operands feed each instruction, and what the
+float-to-byte path looks like.
 
 <!-- starter -->
 ```c

@@ -19,9 +19,9 @@ hints:
 # Clearing and setting a flag bit
 
 Straight from SFA's `crfueltank_update`: a timer helper decides which branch
-runs, and each branch flips the same `0x4000` flag bit in opposite directions.
-Because the function now *calls* something, you get your first real
-prologue/epilogue with a saved register.
+runs, and each branch flips the same flag bit in opposite directions. Because the
+function *calls* something, you get a real prologue/epilogue with a saved
+register.
 
 ```c
 typedef struct { f32 timer; s16 flags; u8 fadeTimer; u8 pad; } CrFuelTankObject;
@@ -29,45 +29,71 @@ extern int timerCountDown(f32* t);
 extern void ObjHits_EnableObject(CrFuelTankObject* o);
 ```
 
-The two flag writes are the heart of it. A **single-bit clear** written as
-`flags & ~0x4000` leads MWCC to emit an `rlwinm` mask rather than an `andi`; the
-**set** is a plain `| 0x4000` → `ori`. The `(s16)` cast keeps the
-field at halfword width (`lha`/`sth`):
+**Two idioms, same field.** A single-bit clear and a single-bit set on the same
+`s16` flags field compile differently:
+
+- `flags & ~MASK` → `rlwinm` (rotate-and-mask; clears exactly one bit)
+- `flags | MASK` → `ori` (OR immediate; sets exactly one bit)
+
+Writing `flags &= 0xbfff` instead of `flags &= ~0x4000` would emit `andi` — a
+different instruction that won't match.
+
+The `(s16)` cast around each result keeps the field halfword-wide: reads use
+`lha` and writes use `sth`.
+
+To see both idioms in a simpler context, here is a particle-timer variant that
+operates on bit `0x2000` instead:
 
 ```asm
-stwu    r1, -16(r1)        # prologue — we make a call
+# nonzero branch:
+lha     r3, 4(r31)
+li      r0, 128
+rlwinm  r3, r3, 0, 19, 17  # flags &= ~0x2000
+sth     r3, 4(r31)
+stb     r0, 6(r31)         # alpha = 0x80
+b       .end
+# zero branch:
+lha     r0, 4(r31)
+ori     r0, r0, 8192       # flags |= 0x2000
+sth     r0, 4(r31)
+```
+
+Note `rlwinm r3, r3, 0, 19, 17`: rotate by 0, keep bits from MB=19 through
+ME=17 (wrapping), which zeros every bit *except* those in that range — the
+excluded bit is at MSB-position 18, i.e. `0x2000`. The `ori 8192` is
+`0x2000` in decimal.
+
+In the target assembly below, read the `rlwinm` MB/ME fields to work out which
+bit is cleared, and read the `ori` immediate to confirm the same bit is set.
+Read the `li` immediate to find the byte-field value.
+
+```asm
+stwu    r1, -16(r1)
 mflr    r0
 ...
 bl      timerCountDown
 cmpwi   r3, 0
 beq-    .else
+mr      r3, r31
 bl      ObjHits_EnableObject
 lha     r3, 4(r31)
 li      r0, 255
-rlwinm  r3, r3, 0, 18, 16  # flags &= ~0x4000   (clear one bit)
+rlwinm  r3, r3, 0, 18, 16
 sth     r3, 4(r31)
-stb     r0, 6(r31)         # fadeTimer = 0xff
+stb     r0, 6(r31)
 b       .end
 .else:
 lha     r0, 4(r31)
-ori     r0, r0, 16384      # flags |= 0x4000     (set one bit)
+ori     r0, r0, 16384
 sth     r0, 4(r31)
 .end:
+...
+blr
 ```
-
-Reading `rlwinm r3, r3, 0, 18, 16` back: the fields are
-`rlwinm rA, rS, SH, MB, ME` — rotate by `SH`=0 (no rotate), then keep the bits
-from `MB`=18 through `ME`=16 *wrapping* (because MB > ME), which is every bit
-except the one at MSB-position 17, i.e. `0x4000`. So this is exactly
-`flags &= ~0x4000`. The contrast `rlwinm` (clear) vs `ori` (set) is the lesson:
-same flag, two different mask idioms, and a different C expression like
-`&= 0xbfff` would emit `andi` and miss the match.
 
 ## Your task
 
-With the struct above, write `crfueltank_tick`. If `timerCountDown(&obj->timer)`
-is nonzero, enable hits, **clear** the `0x4000` flag, and set `fadeTimer` to
-`0xff`. Otherwise, **set** the `0x4000` flag. Keep the `(s16)` casts.
+With the struct above, write `crfueltank_tick` to reproduce the assembly above.
 
 <!-- starter -->
 ```c

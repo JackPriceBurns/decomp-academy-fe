@@ -39,12 +39,12 @@ constant in the expression.
 
 ## Your task
 
-Write `scaleHalf`, taking an `f32 x` and returning `x * 0.5f`. Use the `0.5f`
-literal — the `f` suffix matters. Write `0.5` (a *double*) and MWCC promotes
-`x` to double, multiplies in double precision, and converts back: you get
-`lfd`/`fmul`/`frsp` instead of the `lfs`/`fmuls` shown above, and the match
-fails. Forgetting the suffix is one of the most common real-world causes of a
-float mismatch.
+Write `scaleHalf`, taking an `f32 x`, to reproduce the `lfs`/`fmuls` sequence
+above. Pay close attention to literal suffixes — writing a plain `double` literal
+instead of an `f32` one causes MWCC to promote `x` to double precision, multiply,
+then convert back, producing `lfd`/`fmul`/`frsp` instead of `lfs`/`fmuls`.
+Forgetting the suffix is one of the most common real-world causes of a float
+mismatch.
 
 <!-- starter -->
 ```c

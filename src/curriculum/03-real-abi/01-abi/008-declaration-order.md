@@ -20,45 +20,44 @@ in `r31`, the second in `r30` (MWCC allocates downward from the top). Which
 value is "first"? It is set by the **order the locals are declared** in your C:
 the first-declared surviving local takes the highest register, `r31`.
 
-In `order_demo`, `first` is declared before `second`:
+Consider `order_alt(s32 x, s32 y)` below, where `beta` is declared first and
+`alpha` second, both receiving their values from `scale()` calls:
 
 ```asm
-stw  r31, 12(r1)
-stw  r30, 8(r1)
-mr   r30, r4         # y parked for the second call
-bl   transform       # first = transform(x)
-mr   r31, r3         # first -> r31  (declared first -> highest reg)
-mr   r3, r30
-bl   transform       # second = transform(y)
-subf r3, r3, r31     # first - second
+stwu   r1,-16(r1)
+mflr   r0
+stw    r0,20(r1)
+stw    r31,12(r1)
+stw    r30,8(r1)
+mr     r30,r3      # park x (r3) for the second call
+mr     r3,r4       # pass y (r4) first
+bl     scale       # beta = scale(y)
+mr     r31,r3      # beta -> r31  (declared first -> highest register)
+mr     r3,r30
+bl     scale       # alpha = scale(x)
+lwz    r0,20(r1)
+add    r3,r31,r3   # beta + alpha
+lwz    r31,12(r1)
+lwz    r30,8(r1)
+mtlr   r0
+addi   r1,r1,16
+blr
 ```
 
-The snippet above is the real output for the solution: `first`, declared first,
-lands in `r31` (via `mr r31, r3` after its call), and the final `subf` reads
-`first - second` as `subf r3, r3, r31`.
+`beta`, declared first, ends up in `r31`. `alpha`, declared second, lives in
+`r30`. The key lever for decompilers: **if the target assembly has the register
+assignments flipped**, swap the declaration order in your C and recompile.
 
-Now the decompiler's lever: **if the target had `first` in r30 and `second` in
-r31, you'd simply swap the two declarations.** Reordering
-`int first; int second;` to `int second; int first;` flips their register
-homes — `second` would take `r31` and `first` would take `r30`, leaving the
-result `first - second` unchanged (the two `transform` calls are independent, so
-only their order shifts). The swapped source compiles to the mirror image, with
-`second` parked in `r31` and the subtraction reading `subf r3, r31, r3`:
-
-```asm
-mr   r31, r3         # second -> r31  (now declared first -> highest reg)
-...
-subf r3, r31, r3     # first - second
-```
-
-Register coloring you can't otherwise reach is often just a declaration-order
-edit away.
+Now look at the target assembly for `order_demo`. Two locals land in `r31` and
+`r30` across two `transform` calls. Identify which parameter feeds which local
+and which register that local settles in — that tells you the declaration order.
+Then determine what the final instruction does with those two values.
 
 ## Your task
 
-Write `order_demo`. Declare `first = transform(x)` first, then `second =
-transform(y)`, and return `first - second`. `transform` is declared for you.
-The first-declared local, `first`, should land in `r31`.
+Write `order_demo`, calling `transform` twice and returning a combination of the
+results. `transform` is declared for you. Match the register assignments in the
+target assembly by choosing the right declaration order.
 
 <!-- starter -->
 ```c

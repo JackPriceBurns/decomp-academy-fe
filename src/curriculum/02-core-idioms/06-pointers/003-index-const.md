@@ -14,18 +14,30 @@ hints:
 
 # The displacement field earns its keep
 
-When you index a pointer with a *constant*, like `p[2]`, the compiler folds the
-offset straight into the displacement field of the load. There's no separate
-add. Since each `int` is 4 bytes, element 2 lives at byte offset `2 * 4 = 8`:
+When you index a pointer with a *constant*, the compiler folds the scaled byte
+offset straight into the displacement field of the load. There is no separate
+add instruction — the scaling happens at compile time.
+
+Here is a function that reads the sixth element of an `int` array:
+
+```c
+int sixth(int* p) {
+    return p[5];
+}
+```
 
 ```asm
-lwz  r3, 8(r3)    # r3 = p[2]
+lwz  r3, 20(r3)   # fetch word at p + 20 bytes
 blr
 ```
 
-This is the first place **element size** shows up: the C index `2` becomes the
-byte displacement `8`. Reading disassembly, you divide back — a displacement of
-`8` on an `int*` means index `2`.
+`sizeof(int)` is 4, so index 5 maps to byte offset `5 * 4 = 20`. Reading it in
+reverse: a displacement of `20` on an `int*` means `20 / 4 = 5`, the sixth
+element. That conversion — divide the displacement by the element size — is the
+core skill for reading constant-index accesses from disassembly.
+
+Look at the target assembly for `third`. The displacement it uses points at a
+specific element; divide by `sizeof(int)` to find which one.
 
 ## Your task
 

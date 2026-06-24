@@ -14,17 +14,29 @@ hints:
 
 # Putting the idioms together
 
-Real code combines these tricks. `x * 4 + 1` mixes a strength-reduced multiply
-with an immediate add. MWCC may even fuse the shift-and-add cleverly:
+Real code combines these tricks. An affine expression — multiply by a
+power-of-two, then add a constant — compiles to a strength-reduced shift
+followed by an immediate add.
+
+To see how the instructions encode the math: the shift left amount is the
+base-2 exponent of the multiplier, and the `addi` immediate is the addend. For
+example, `n * 8 + 3` (shift left by 3, then add 3) becomes:
 
 ```asm
-slwi r3, r3, 2    # x * 4
-addi r3, r3, 1    # + 1
+slwi r3, r3, 3    # left-shift by 3  →  n * 8
+addi r3, r3, 3    # add 3
 blr
 ```
 
-When you read disassembly, mentally collapse `slwi`/`addi` chains back into the
-arithmetic expression that produced them. That reverse-mapping is the whole job.
+Your target function uses different constants. Read the shift amount and the
+`addi` immediate from the disassembly below and work backwards to the C
+expression that produces them.
+
+```asm
+slwi r3, r3, 2
+addi r3, r3, 1
+blr
+```
 
 ## Your task
 

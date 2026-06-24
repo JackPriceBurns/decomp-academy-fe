@@ -14,9 +14,30 @@ hints:
 
 # Clear bit 1
 
-Write the clear as `x &= ~0x2`. Because the *complement* of a
-single bit is a contiguous run of ones, MWCC emits a single **`rlwinm`** (clear
-one bit) rather than a two-immediate `andi` — the idiom from the bitwise chapter.
+To clear a single bit, complement the single-bit mask with `~` and AND it in.
+The complement of any single-bit mask is a contiguous run of set bits with a
+single hole, which MWCC encodes as one **`rlwinm`** — no multi-instruction
+sequence needed.
+
+For example, clearing bit 5 (`~0x20`) from a `u32`:
+
+```c
+u32 clr_example(u32 x) {
+    return x & ~0x20;
+}
+```
+
+```asm
+clr_example:
+    rlwinm  r3,r3,0,27,25
+    blr
+```
+
+The `rlwinm` keeps every bit except bit 5; the mask wraps around from bit 27
+back to bit 25, leaving bit 26 (bit 5 in hardware numbering) zeroed.
+
+Look at the assembly for `clrb` below. Work out which bit is being cleared
+from the `rlwinm` operands, then write the equivalent C.
 
 ## Your task
 Write `clrb` on a `u32`, returning `x` with bit 1 cleared.

@@ -15,23 +15,30 @@ hints:
 
 # The mirror image
 
-`a < b ? a : b` is `min(a, b)`, and the asm is the max idiom with one bit
-flipped — the branch condition. Where max skipped on `ble-`, min skips on
-`bge-`:
+Recall how `max` works: compare `r3` and `r4`, then conditionally copy the
+larger into the return register using a pair of `mr` instructions. The `min`
+idiom has the same two-`mr` skeleton — the **only** difference is a single bit
+in the branch condition.
+
+`max` uses `ble-` (branch if ≤ to skip the copy), which means "if `a` is
+already ≤ `b`, keep `b`". Flipping to `bge-` (branch if ≥) inverts the
+selection: "if `a` is already ≥ `b`, keep `b`" — but now `a < b` is the case
+where we stage `a` for the result, so we're returning the *smaller* value.
+
+To see the structural difference, here is the `max` assembly for reference:
 
 ```asm
 cmpw r3, r4
-bge- .else       # if a >= b, keep b
-mr   r4, r3      # a is smaller: stage it
+ble- .else       # a <= b -> b is already the larger; skip the copy
+mr   r4, r3      # a is larger: stage it as the result
 .else:
 mr   r3, r4
 blr
 ```
 
-The `mr`/`mr` merge is byte-for-byte identical to max; *only the condition code
-in the branch differs* (`bge` vs `ble`). When you see this two-move shape after
-a compare, the single branch condition tells you whether the original C was a
-min or a max.
+Study that branch condition carefully. The `min` pattern is identical except
+for one mnemonic change — find what the branch condition must become so that
+the *smaller* argument ends up in `r3`.
 
 ## Your task
 

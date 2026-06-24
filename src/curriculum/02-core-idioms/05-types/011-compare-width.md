@@ -17,37 +17,39 @@ hints:
 # `cmplwi` vs `cmpwi` is a type tell
 
 When a value feeds a *branch*, the comparison opcode reveals its declared type.
-An **unsigned** operand (like a `u16`) compares with **`cmplwi`** — *compare
-**l**ogical word immediate* — after being zero-extended to clear the high bits:
+A **signed** narrow operand compares with **`cmpwi`**, preceded by a sign-extend
+that fills the top bits before comparing. For example, a signed 16-bit parameter
+compared against 100:
 
 ```asm
-clrlwi r0, r3, 16   # zero-extend the u16
-cmplwi r0, 256      # unsigned compare
+extsh  r0,r3       # sign-extend narrow signed value
+cmpwi  r0,100      # signed compare
 bne-   skip
-bl     act
+bl     trigger
 ```
 
-A **signed narrow** operand of the same width (an `s16`) compares with
-**`cmpwi`** — the signed compare — preceded by a sign-extend. (A plain 32-bit
-`int` is already full-width, so it gets the `cmpwi` with *no* extend.)
+An **unsigned** narrow operand compares with **`cmplwi`** — *compare **l**ogical
+word immediate* — instead, preceded by a zero-extend to clear the high bits:
 
 ```asm
-extsh  r0, r3       # sign-extend the s16
-cmpwi  r0, 256      # signed compare
+clrlwi r0,r3,16    # zero-extend narrow unsigned value
+cmplwi r0,100      # unsigned compare
 bne-   skip
-bl     act
+bl     trigger
 ```
 
-The difference is one letter — `cmpl**w**i` vs `cmp**w**i` — and the preceding
-`clrlwi` vs `extsh`. If the target uses `cmplwi`, your operand must be unsigned;
-match the local or field to the field's actual width and sign.
+The difference is one letter — `cmplwi` vs `cmpwi` — and the preceding extend:
+`clrlwi` (zero-extend) for unsigned, `extsh`/`extsb` (sign-extend) for signed.
+The bit-width of the `clrlwi` shift matches the width of the source type. If the
+target uses `cmplwi`, your operand must be unsigned; match the parameter to the
+correct width and sign.
 
 ## Your task
 
 `act` is a function. The starter below declares the parameter as **`s16 x`**,
-which produces `extsh` + `cmpwi` (the signed compare). Change the parameter to
-the type that makes the comparison emit `cmplwi` — the target uses the *logical*
-(unsigned) compare, so pick the type whose zero-extend feeds it.
+which produces `extsh` + `cmpwi` (the signed compare). Change the parameter type
+so the comparison emits `cmplwi` instead — the target assembly uses the logical
+(unsigned) compare with the same 16-bit width.
 
 <!-- starter -->
 ```c

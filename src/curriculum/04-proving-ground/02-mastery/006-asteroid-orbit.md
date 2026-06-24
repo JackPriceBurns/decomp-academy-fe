@@ -44,42 +44,106 @@ extern f32 lbl_orbitStep;
 extern u16 lbl_tilt;
 ```
 
-Three forces converge here. **(1)** Because the function holds float values
-across calls, MWCC saves `f30`/`f31` using **paired-single** `psq_st`/`psq_l`
-in the prologue/epilogue — a GameCube-only idiom. **(2)** `a + b*c` collapses
-into a single fused `fmadds`. **(3)** Advancing the angle divides a float and
-converts to int with `fdivs` then `fctiwz`:
+Three forces converge here.
+
+**Paired-single prologue.** Because the function holds float values across calls,
+MWCC saves `f30`/`f31` using `psq_st`/`psq_l` rather than two separate `stfs`
+instructions — a GameCube-only callee-save idiom. It happens automatically; don't
+try to reproduce it in C.
+
+**`fmadds` fusion.** The expression `a + b * c` (addition on the outside) fuses
+into a single `fmadds` when all operands are `f32`. The operand order inside the
+instruction reflects source order.
+
+**Recomputed radius.** Register pressure across intervening trig calls forces the
+compiler to reload the radius conversion from `s32AsFloat` rather than cache it.
+If you compute radius once and store it in a single local, the compiler will not
+match — it will cache the value across the calls. The trick is to call
+`s32AsFloat` again immediately before each use.
+
+**Call-order hygiene.** Declare trig helpers as `f32 fn(...)`, not `double` —
+a `double` return type injects a stray `frsp`. Keep the exact call sequence: each
+result is consumed before the next call.
+
+For comparison, a simpler satellite variant that orbits a center using only `posX`
+and `posZ` (no tilt axis) produces this structure:
 
 ```asm
-psq_st  f31, 56(r1), 0, 0  # save callee float regs (paired-single)
+bl      FindSatellite          # anchor lookup
 ...
-fdivs   f0, f0, f1         # lbl_orbitStep / radius
-fctiwz  f0, f0             # -> integer
-...
-fmuls   f1, f1, f31
-lfs     f0, 4(r31)         # anchor->posX
-fmadds  f0, f30, f1, f0    # posX = radius*sin*cos + anchor->posX
+bl      s32AsFloat             # radius for angle advance
+lfs     f0, lbl_rotRate
+fdivs   f0, f0, f1             # rotRate / radius
+fctiwz  f0, f0                 # -> int
+...                            # accumulate into heading
+bl      fsin16Approx           # sin(angle)
+fmr     f31, f1                # save result
+bl      s32AsFloat             # radius for posX
+lfs     f0, 4(r31)             # anchor->posX
+fmadds  f0, f1, f31, f0        # fmadds
 stfs    f0, 4(r29)
-...
+bl      s32AsFloat             # radius for posZ (recomputed)
+fmr     f31, f1                # save result
+bl      fcos16Approx           # cos(angle)
+lfs     f0, 8(r31)             # anchor->posZ
+fmadds  f0, f31, f1, f0        # fmadds
+stfs    f0, 8(r29)
 ```
 
-Two helper-call hygiene notes worth keeping in mind: declare the trig helpers as
-`f32 fn(...)`, **not** `double` — a `double` return would inject a stray
-`frsp`. And keep the call order exactly as written: each `fsin/fcos/s32AsFloat`
-result is consumed before the next call, so the compiler reloads radius between
-the X and Z computations rather than caching it.
+Now read the actual target:
+
+```asm
+stwu    r1, -64(r1)
+...
+psq_st  f31, 56(r1), 0, 0  # save f31 (paired-single)
+psq_st  f30, 40(r1), 0, 0  # save f30
+...
+li      r3, 100
+lwz     r30, 0(r29)         # state = obj->state
+bl      ObjList_FindObjectById
+...                         # rotX, rotY, rotZ += rotStep* (lha/add/sth x3)
+lwz     r3, 8(r30)
+bl      s32AsFloat           # convert orbitRadius
+lfs     f0, lbl_orbitStep
+lhz     r0, 6(r30)          # load orbitAngle
+fdivs   f0, f0, f1          # lbl_orbitStep / radius
+fctiwz  f0, f0
+...                         # orbitAngle += (u16)(...)
+lhz     r3, 0(lbl_tilt)
+bl      fcos16Approx        # c = cos(lbl_tilt)
+fmr     f30, f1
+lhz     r3, 6(r30)          # orbitAngle
+bl      fsin16Approx        # s = sin(orbitAngle)
+fmr     f31, f1
+lwz     r3, 8(r30)
+bl      s32AsFloat           # radius (first call)
+fmuls   f1, f1, f31
+lfs     f0, 4(r31)          # anchor->posX
+fmadds  f0, f30, f1, f0
+stfs    f0, 4(r29)          # obj->posX
+lhz     r3, 6(r30)
+bl      fcos16Approx
+fmr     f31, f1
+lwz     r3, 8(r30)
+bl      s32AsFloat           # radius (second call)
+lfs     f0, 12(r31)         # anchor->posZ
+fmadds  f0, f1, f31, f0
+stfs    f0, 12(r29)         # obj->posZ
+...
+psq_l   f31, 56(r1), 0, 0
+psq_l   f30, 40(r1), 0, 0
+...
+blr
+```
+
+Trace the call sequence: find the id passed to `ObjList_FindObjectById`, count
+the rot-step increments, identify the formula used to advance `orbitAngle`
+(`fdivs` + `fctiwz`), and read each `fmadds` to reconstruct the position
+expressions.
 
 ## Your task
 
-With the structs above, write `asteroid_orbit`. Find the anchor by id `0x64`;
-add each `rotStep*` into the matching `rot*`; advance `orbitAngle` by
-`(u16)(lbl_orbitStep / s32AsFloat(orbitRadius))`; then set
-`posX = radius*sin(angle)*cos(tilt) + anchor->posX` and
-`posZ = radius*cos(angle) + anchor->posZ`, where `radius = s32AsFloat(orbitRadius)`.
-Crucially, **recompute `radius = s32AsFloat(orbitRadius)` immediately before each of
-`posX` and `posZ`**: register pressure across the intervening trig calls means the
-compiler reloads it (you'll see a second `bl s32AsFloat` rather than a cached value),
-and caching it in one local will mismatch. Mirror the call order shown.
+With the structs above, write `asteroid_orbit` to reproduce the assembly above.
 
 <!-- starter -->
 ```c

@@ -28,23 +28,27 @@ they pack. Two rules of thumb that this compiler follows:
   is the first to cross into table form; lesson 1's `0..7` (eight cases) sits
   comfortably above the threshold. The rule is "at least seven," not "more than
   eight."
-- **Sparse → compare chain, always.** Cases like `1, 10, 100, 500` are far
-  apart. A table indexed by `x` would need 500 entries (mostly default) — far
+- **Sparse → compare chain, always.** Cases like `2, 20, 200, 1000` are far
+  apart. A table indexed by `x` would need 1000 entries (mostly default) — far
   too big — so MWCC bisects them no matter how many there are:
 
 ```asm
-cmpwi r3, 100      # probe the middle case value
-beq-  .case100
-bge-  .hi          # x > 100 -> search the upper half
-cmpwi r3, 10
-beq-  .case10
+cmpwi r3, 200      # probe the middle case value
+beq-  .case200
+bge-  .hi          # x > 200 -> search the upper half
+cmpwi r3, 20
+beq-  .case20
 bge-  .default
-cmpwi r3, 1
-beq-  .case1
+cmpwi r3, 2
+beq-  .case2
+b     .default
+.hi:
+cmpwi r3, 1000
+beq-  .case1000
 b     .default
 ...
-.case1: li r3, 11   # each case body is the same tiny li/blr...
-        blr          # ...only the dispatch above differs from the table form
+.case2:    li r3, 1   # each case body is the same tiny li/blr...
+           blr         # ...only the dispatch above differs from the table form
 ```
 
 So when you're matching a switch, **count the cases and check their spread
@@ -55,8 +59,9 @@ which case labels to write.
 
 ## Your task
 
-Write `route`, a sparse `switch` on `x`: case `1` → `11`, case `10` → `22`,
-case `100` → `33`, case `500` → `44`, default `0`. Four scattered cases stays
+Write `route(int x)`: a sparse `switch` on `x`. Read the `cmpwi` probe values
+from the assembly above to recover which case labels to write, and read the
+`li r3, N` in each arm to recover the return value. Four scattered cases stays
 a compare chain.
 
 <!-- starter -->

@@ -14,9 +14,23 @@ hints:
 
 # Clear bit 14
 
-Write the clear as `x &= ~0x4000`. Because the *complement* of a
-single bit is a contiguous run of ones, MWCC emits a single **`rlwinm`** (clear
-one bit) rather than a two-immediate `andi` — the idiom from the bitwise chapter.
+Clearing a single bit uses AND against a mask that has every bit set *except*
+the one to erase. The `~` complement operator is the idiomatic way to form
+that mask in C. Because the complement of a single-bit mask is a contiguous
+run of ones (a rotated window), MWCC emits a single **`rlwinm`** rather
+than a two-immediate `andi`.
+
+For example, clearing bit 9 (mask `~0x0200`) produces:
+
+```
+rlwinm  r3,r3,0,23,21
+blr
+```
+
+The `rlwinm` rotation 0 with mask `23,21` leaves all bits intact except bit 9
+(PowerPC bit numbering counts from the MSB). Read the target assembly to
+identify which bit position is being masked out, then form the C expression
+that clears it.
 
 ## Your task
 Write `clrb` on a `u32`, returning `x` with bit 14 cleared.

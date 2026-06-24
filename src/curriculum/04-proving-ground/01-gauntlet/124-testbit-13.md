@@ -13,9 +13,23 @@ hints:
 
 # Test bit 13
 
-Extracting one bit as a 0/1 value is `(x >> 13) & 1`. MWCC folds the shift
-and the mask into a single **`rlwinm`** that rotates bit 13 down to the
-bottom and keeps only it (bit 0 collapses to a `clrlwi`).
+To isolate a single bit as a 0/1 integer, you right-shift the value so the
+target bit lands in bit 0, then AND with 1 to discard the rest. MWCC
+combines both operations into a single **`rlwinm`** — the rotate-and-mask
+instruction — rather than emitting a separate shift and a separate AND.
+
+For example, extracting bit 5 from `x` produces:
+
+```
+rlwinm  r3,r3,27,31,31
+blr
+```
+
+The rotation amount (27 = 32 − 5) moves bit 5 into position 31 (the LSB),
+and the mask `31,31` keeps only that bit.
+
+Your function tests a *different* bit; read the target assembly to find which
+bit position it moves to the LSB and work backward to the C expression.
 
 ## Your task
 Write `testb` on a `u32`, returning bit 13 of `x` as 0 or 1.

@@ -49,10 +49,11 @@ float-heavy enough to spill them. You match it by writing C with enough live
 ## Your task
 
 Write `mix(f32 *p)`: call the provided `transform` on `p[0]..p[5]` into six
-locals `a, b, c, d, e, g` (we skip the name `f` so it isn't confused with the
-`f32` type), then `return a*b + c*d + e*g + a*c + b*d + e*a;`. Holding six float
-results across six calls forces several callee-saved FPRs — watch the
-`psq_st`/`stfd` pairs appear in the prologue.
+locals — skip the name `f` so it isn't confused with the `f32` type — then
+combine those locals into a return value. Holding six float results live
+across six calls forces several callee-saved FPRs — watch the
+`psq_st`/`stfd` pairs appear in the prologue. Use the `fmadds`/`fmuls`/`fadds`
+instructions in the epilogue to reconstruct which products are added together.
 
 <!-- starter -->
 ```c

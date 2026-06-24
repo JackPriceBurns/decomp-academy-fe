@@ -47,10 +47,8 @@ this means recognizing all three at once and writing each in its natural C form.
 
 ## Your task
 
-Write `step_state(GameState s)`. First, if the provided `volatile int g_abort`
-is non-zero, `return -1`. Otherwise `switch` on `s` over the eight `GameState`
-values (`ST_BOOT`..`ST_QUIT`) returning `1..8` in order, with `0` by default.
-The enum and `g_abort` are provided in context.
+Write `step_state(GameState s)` to reproduce the assembly above. The `GameState`
+enum and `g_abort` are provided in context.
 
 <!-- starter -->
 ```c

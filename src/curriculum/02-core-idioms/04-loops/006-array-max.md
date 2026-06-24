@@ -16,25 +16,25 @@ hints:
 
 # A known trip count uses the count register
 
-This loop scans `a[1..n-1]` keeping the largest value seen. Because the trip
-count (`n - 1`) is known *before* the loop starts, MWCC loads it into the special
+This loop scans an array keeping track of the best value seen. Because the trip
+count is known *before* the loop starts, MWCC loads it into the special
 **count register** with `mtctr` and uses `bdnz` ("decrement CTR, branch if
 non-zero") as the loop branch — no explicit counter compare needed. The body
-itself is data-dependent (it only updates `m` when `a[i] > m`), so the loop stays
-rolled even at full `-O4,p`:
+is data-dependent (the running result is only updated conditionally), so the
+loop stays rolled even at full `-O4,p`:
 
 ```asm
 addi r0, r4, -1     # trip count = n - 1
-addi r5, r3, 4      # p = &a[1]
-lwz  r3, 0(r3)      # m = a[0]
+addi r5, r3, 4      # pointer past first element
+lwz  r3, 0(r3)      # load seed value
 mtctr r0            # CTR = n - 1
 cmpwi r4, 1
-blelr-              # if n <= 1, return a[0]
+blelr-              # early return when nothing to scan
 body:
-lwz  r0, 0(r5)      # x = a[i]
-cmpw r0, r3         # x > m ?
+lwz  r0, 0(r5)      # load candidate
+cmpw r0, r3         # compare against running result
 ble- skip
-mr   r3, r0         #   m = x
+mr   r3, r0         # conditional update
 skip:
 addi r5, r5, 4      # advance pointer
 bdnz+ body          # CTR--, loop while non-zero

@@ -29,17 +29,22 @@ The GameCube's CPU returns a function's result in register **`r3`**. A function
 that returns an integer constant therefore does just two things:
 
 ```asm
-li   r3, 42      # load immediate 42 into r3
+li   r3, 7       # load immediate 7 into r3
 blr              # branch to link register = "return"
 ```
 
-`li` means *load immediate* and `blr` (*branch to link register*) is how every
-function returns. You'll see `blr` at the end of almost everything.
+`li` means *load immediate*: it stuffs a literal value straight into a register.
+`blr` (*branch to link register*) is how every function returns. You'll see
+`blr` at the end of almost everything.
+
+The target on the right uses the same two-instruction shape — `li` followed by
+`blr` — but with a different constant loaded into `r3`. Read the target asm to
+find out which one.
 
 ## Your task
 
-The target on the right is exactly those two instructions. Write `answer` to
-match them. Hit **Compile & Check** (or ⌘/Ctrl + Enter).
+Write `answer` to match the target assembly. Hit **Compile & Check** (or
+⌘/Ctrl + Enter).
 
 <!-- starter -->
 ```c

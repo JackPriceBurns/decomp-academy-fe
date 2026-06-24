@@ -19,10 +19,10 @@ hints:
 # Two structs, one position copy
 
 Modeled on the tail of SFA's `crfueltank_hitDetect`: when a fuel tank is hit,
-the game copies the *hitter's* position onto the tank, lifting `Y` by a constant
-so the effect spawns slightly above the impact. It's a clean exercise in moving
-`f32` fields between two different structs while a couple of `u8` status bytes
-get set.
+the game copies the *hitter's* position onto the tank, lifting one axis by a
+constant so the effect spawns slightly offset from the impact point. It's a clean
+exercise in moving `f32` fields between two different structs while a couple of
+`u8` status bytes get set.
 
 ```c
 typedef struct { f32 posX; f32 posY; f32 posZ; } HitObj;
@@ -33,41 +33,62 @@ typedef struct {
 extern f32 lbl_yBias;
 ```
 
-`fadeTimer` and `triggered` are `u8`s right after the `s16 flags`, landing at
-offsets 14 and 15. The float copies are straight `lfs`/`stfs` pairs except `Y`,
-which adds the bias:
+**Byte fields after a halfword.** `flags` is `s16` (2 bytes), so `fadeTimer` and
+`triggered` land at offsets 14 and 15 within `CrFuelTankObject`. Loading or
+storing a `u8` field uses `lbz`/`stb`.
+
+**Float copies.** Copying an `f32` field from one struct to another is a bare
+`lfs` followed by `stfs` — no arithmetic register involved. Only when a bias is
+added does an `fadds` appear between the load and the store.
+
+**Statement order drives instruction order.** The compiler schedules `stb`
+byte-store statements roughly in source order. If you write the byte stores
+*after* the float copies, MWCC reschedules them to the end and produces a
+non-matching layout. Write the byte stores in whatever order the assembly shows
+them.
+
+Consider an analogous function that spawns an explosion, biasing posX instead
+of posY and using a different timer value:
 
 ```asm
-li      r5, 250
+li      r5, 30
 li      r0, 1
-stb     r5, 14(r3)         # obj->fadeTimer = 0xfa
-stb     r0, 15(r3)         # obj->triggered = 1
-lfs     f0, 0(r4)          # hitObj->posX
-stfs    f0, 0(r3)          # obj->posX = ...
-lfs     f1, lbl_yBias
-lfs     f0, 4(r4)          # hitObj->posY
+stb     r5, 14(r3)         # obj->lifetime = 0x1e
+stb     r0, 15(r3)         # obj->active = 1
+lfs     f1, lbl_xBias(0)
+lfs     f0, 0(r4)          # src->posX
 fadds   f0, f1, f0
-stfs    f0, 4(r3)          # obj->posY = lbl_yBias + hitObj->posY
+stfs    f0, 0(r3)          # obj->posX = lbl_xBias + src->posX
+lfs     f0, 4(r4)
+stfs    f0, 4(r3)
 lfs     f0, 8(r4)
 stfs    f0, 8(r3)
 blr
 ```
 
-Note that a plain field-to-field float copy is just `lfs` then `stfs` — no
-float register math at all. Only the biased `Y` brings in an `fadds`. Watch the
-operand order MWCC picks: `lbl_yBias + hitObj->posY` puts the constant in `f1`
-first, exactly as written.
+The bias appears on posX in the example (offset 0), not posY. Now read the actual
+target to find which component gets the `fadds`, the byte-field values, and the
+bias symbol:
 
-Statement order matters: the two `stb` byte stores come *first* because that's
-how the original ordered them. Write the position copies first and MWCC reorders
-the byte stores to the tail (and reschedules around them) — a functional but
-non-matching layout. Match the source statement order to the instruction order.
+```asm
+li      r5, 250
+li      r0, 1
+stb     r5, 14(r3)
+stb     r0, 15(r3)
+lfs     f0, 0(r4)
+stfs    f0, 0(r3)
+lfs     f1, lbl_yBias(0)
+lfs     f0, 4(r4)
+fadds   f0, f1, f0
+stfs    f0, 4(r3)
+lfs     f0, 8(r4)
+stfs    f0, 8(r3)
+blr
+```
 
 ## Your task
 
-With the structs above, write `crfueltank_apply`: set `fadeTimer` to `0xfa` and
-`triggered` to `1`, then copy all three position components from `hitObj`,
-adding `lbl_yBias` to `Y`.
+With the structs above, write `crfueltank_apply` to reproduce the assembly above.
 
 <!-- starter -->
 ```c

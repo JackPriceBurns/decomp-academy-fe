@@ -22,18 +22,22 @@ different type. Given:
 typedef union { f32 f; u32 bits; } FloatBits;
 ```
 
-both `f` and `bits` are at offset 0. Reading `u->bits` is an ordinary integer
-load of those four bytes:
+both `f` and `bits` are at offset 0 and both occupy 4 bytes. The difference is
+in the *instruction* the compiler emits: the member's **type** determines whether
+you get an integer load or a float load. Reading the `f` member produces:
 
 ```asm
-lwz  r3, 0(r3)   # reinterpret the float's bytes as u32
+lfs  f1, 0(r3)
 blr
 ```
 
+Reading the `bits` member instead uses an integer load — same displacement (0),
+different instruction, different destination register class.
+
 This is the clean way to express **type punning** — pulling the raw bit pattern
 out of a float, or viewing a 32-bit word as four bytes. A pointer cast like
-`*(u32*)&u->f` would compile to the very same `lwz r3, 0(r3)`, so the asm alone
-can't tell the two source forms apart — but a union member is the idiomatic MWCC
+`*(u32*)&u->f` would compile to the same integer load, so the asm alone can't
+tell the two source forms apart — but a union member is the idiomatic MWCC
 spelling, and the one to prefer when you recover this load.
 
 ## Your task

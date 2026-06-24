@@ -20,19 +20,19 @@ register** (r3, r5, r7, r9). Most of the time that's automatic. But when a
 narrower argument comes first, it can leave a register **unused** to keep the
 pair aligned.
 
-Take `aligned_64(u32 a, u64 b)`:
+Consider `show_align(u32 x, u64 y)`:
 
-- `a` (a `u32`) takes `r3`.
-- `b` would naturally fall into `r4:r5` — but `r4` is **even**, so it's skipped.
-- `b` aligns up to **`r5:r6`** instead, leaving `r4` empty.
+- `x` (a `u32`) takes `r3`.
+- `y` would naturally fall into `r4:r5` — but `r4` is **even**, so it's skipped.
+- `y` aligns up to **`r5:r6`** instead, leaving `r4` empty.
 
-So `return b + 5;` operates on `r5:r6`, not the `r4:r5` you might expect:
+So `return y + 10;` operates on `r5:r6`, not the `r4:r5` you might expect:
 
 ```asm
-li     r3, 5
+li     r3, 10
 li     r0, 0
-addc   r4, r6, r3     # low:  b_lo (r6) + 5
-adde   r3, r5, r0     # high: b_hi (r5) + 0 + carry
+addc   r4, r6, r3     # low:  y_lo (r6) + 10
+adde   r3, r5, r0     # high: y_hi (r5) + 0 + carry
 blr
 ```
 
@@ -43,7 +43,7 @@ register and the signature suddenly makes sense.
 
 ## Your task
 
-Write `aligned_64`, taking a `u32` then a `u64`, returning the `u64` plus 5.
+Write `aligned_64`, taking a `u32` then a `u64`, to reproduce the assembly above.
 
 <!-- starter -->
 ```c

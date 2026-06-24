@@ -20,22 +20,27 @@ the C **type** decides which one. For a signed `int`, MWCC emits **`cmpw`** —
 the signed word compare:
 
 ```asm
-cmpw  r3, r4      # signed compare: treats r3, r4 as signed
-li    r3, 200     # else value
-bgelr-            # if a >= b, return 200
-li    r3, 100     # then value
+cmpw  r3, r4      # signed word compare
+li    r3, 200     # speculative load
+bgelr-            # conditional return
+li    r3, 100     # fall-through value
 blr
 ```
 
 `cmpw` orders operands the way you'd expect for signed numbers: `-1` is *less
-than* `1`. The condition test `bgelr` ("branch if greater-or-equal") reads the
-signed ordering. This lesson is one half of a pair — the next swaps the types to
-unsigned and watches the opcode change.
+than* `1`. The branch mnemonic encodes the *negation* of the taken condition.
+In the pattern above, the branch exits on one side and the fall-through handles
+the other — the two `li` constants give you the two possible return values.
+This lesson is one half of a pair — the next swaps the types to unsigned and
+watches the opcode change.
+
+To reconstruct the C: figure out which condition causes the `bgelr-` to fire
+(it exits early when that condition holds), then match the `li` values to the
+two arms.
 
 ## Your task
 
-Write `pick_signed` taking two signed `int`s: return `100` if `a < b`,
-otherwise `200`.
+Write `pick_signed`, taking two signed `int`s, to reproduce the assembly above.
 
 <!-- starter -->
 ```c

@@ -17,25 +17,30 @@ hints:
 # Sign-bit instructions
 
 Two tiny, single-instruction operations round out the chapter. Floating-point
-**negation** is `fneg` (it just flips the sign bit), and **absolute value** is
-`fabs` (it clears the sign bit). The single-precision intrinsic `__fabsf` lowers
-straight to `fabs`:
+**negation** is `fneg` (it flips the sign bit), and **absolute value** is
+`fabs` (it clears the sign bit). Used separately, each is one instruction:
 
 ```asm
-fabs f0, f1        # |x|  (clear sign bit)
-fneg f1, f0        # -|x| (flip sign bit)
+# absval(f32 v):
+fabs  f1, f1       # clear sign bit
+blr
+
+# negate(f32 v):
+fneg  f1, f1       # flip sign bit
 blr
 ```
 
+The single-precision intrinsic `__fabsf` lowers straight to `fabs`.
+
 Unlike `fadds`/`fmuls`, the sign-bit instructions have **no `s` variant**: they
 appear as `fabs`/`fneg` even on an `f32`. This is one of the few exceptions to
-the single/double suffix rule from earlier — flipping a sign bit is bit-identical
-at single and double precision, so there's nothing to round and no need for a
-separate form.
+the single/double suffix rule from earlier — flipping or clearing a sign bit is
+bit-identical at single and double precision, so there is nothing to round and no
+need for a separate form.
 
-So `-__fabsf(x)` is "absolute value, then negate", and you see the two sign-bit
-ops back to back. Neither rounds or touches the magnitude bits — they're as cheap
-as a register move.
+When you see both instructions back to back, consider which sign-bit operation
+comes first and which comes second — they are not commutative. The C expression
+that produces each one in sequence should be clear from the order.
 
 ## Your task
 

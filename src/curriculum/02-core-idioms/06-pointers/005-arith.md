@@ -12,23 +12,36 @@ hints:
   - "`p + 3` compiles to `addi r3, r3, 12`."
 ---
 
-# `p + 3` is not `+ 3`
+# `p + n` is not `+ n`
 
-Adding to a pointer doesn't add a raw number — it advances by **whole
-elements**. For an `int*`, `p + 3` moves forward `3 * 4 = 12` bytes. With a
-*constant* offset MWCC folds the scaled distance into an `addi`:
+Adding to a pointer does not add a raw byte count — it advances by **whole
+elements**. The compiler multiplies the integer you wrote by `sizeof(*p)` before
+it touches a register. For a *constant* offset, that multiplication happens at
+compile time and the scaled result is encoded directly in an `addi`.
+
+Here is a function that steps forward five elements in an `int` array:
+
+```c
+int* advance5(int* p) {
+    return p + 5;
+}
+```
 
 ```asm
-addi r3, r3, 12   # p + 3, scaled by sizeof(int)
+addi r3, r3, 20   # advance p by 5 * sizeof(int) = 20 bytes
 blr
 ```
 
-The result is the new address, returned in `r3`. This is why `p + 3` and
-`&p[3]` are the same thing: both produce the address `p + 12 bytes`. The element
-size silently multiplies every pointer offset you write. The decompilation
-implication: since both forms emit identical assembly, you *can't* tell from the
-output which one the author wrote — pick whichever reads more naturally in
-context (`&arr[i]` for array-shaped data, `p + n` for pointer walks).
+`sizeof(int)` is 4, so 5 elements = 20 bytes, and that number lands directly in
+the `addi` immediate. To read this backward from disassembly: take the
+immediate, divide by the element size, and you have the element count.
+
+Also note: `p + n` and `&p[n]` compile to identical assembly — both describe
+the address of the nth element. You cannot tell from the output which form the
+author used; pick whichever reads more naturally in context.
+
+Now look at the target assembly for `advance3`. What immediate does the `addi`
+use, and what pointer step does that represent?
 
 ## Your task
 

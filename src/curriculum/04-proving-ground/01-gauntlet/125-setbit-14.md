@@ -13,8 +13,21 @@ hints:
 
 # Set bit 14
 
-Setting a single bit is `x |= 0x4000`. A mask that fits the
-`ori` immediate becomes one **`ori`**; a high mask uses `oris`.
+Setting a single bit uses a bitwise OR against a mask with only that bit
+active. When the mask value fits in 16 bits, MWCC emits a single **`ori`**
+instruction. When the set bit is in the upper 16 bits of the word, MWCC uses
+**`oris`** instead.
+
+For example, setting bit 7 (mask `0x0080`) produces:
+
+```
+ori     r3,r3,128
+blr
+```
+
+The immediate 128 (= 0x80) is the mask for bit 7. Identify the bit number
+in the target assembly, figure out the corresponding mask, and use OR to
+produce it.
 
 ## Your task
 Write `setb` on a `u32`, returning `x` with bit 14 set.

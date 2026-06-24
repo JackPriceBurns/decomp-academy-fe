@@ -14,28 +14,29 @@ hints:
 
 # Inequality flips the recipe
 
-`a != b` can't reuse the `cntlzw` trick directly — it needs a *non-zero* test
-instead of a *zero* test. MWCC computes the difference both ways, ORs them, and
-extracts the sign bit of the combination:
+The equality recipe from the previous lesson used `cntlzw` to detect a zero
+result. Testing for a non-zero result needs a different idiom — MWCC computes
+the difference between the two inputs in *both directions*, ORs them together,
+and extracts the top bit of the combination:
 
 ```asm
-subf r5, r3, r4    # b - a
-subf r0, r4, r3    # a - b
-or   r0, r5, r0    # nonzero (with bit 31 set somewhere) iff a != b
+subf r5, r3, r4    # one direction
+subf r0, r4, r3    # the other direction
+or   r0, r5, r0    # combine
 srwi r3, r0, 31    # pull bit 31 down to 0/1
 blr
 ```
 
-ORing `b - a` with `a - b` guarantees the top bit is set whenever the two
-differ (at least one of the two subtractions has bit 31 set), and is exactly
-zero when they match. The final `srwi r3, r0, 31` isolates that sign bit as a
-clean `0`/`1`. (Edge case: when `a - b` wraps to `INT_MIN`, `b - a` wraps to
-`INT_MIN` too, but the OR is still `INT_MIN` so bit 31 stays set and the result
-is still correct.)
+ORing two subtractions computed in opposite directions guarantees bit 31 is set
+whenever the two inputs differ (at least one subtraction overflows into bit 31),
+and the OR is exactly zero when they match. The final `srwi r3, r0, 31` isolates
+that sign bit as a clean `0`/`1`. (Edge case: when one difference wraps to
+`INT_MIN`, the other wraps to `INT_MIN` too, so the OR is still `INT_MIN` and
+bit 31 stays set — the result is still correct.)
 
 ## Your task
 
-Write `not_equal` to match the target assembly above.
+Write `not_equal`, taking two `int`s, to reproduce the assembly above.
 
 <!-- starter -->
 ```c

@@ -28,44 +28,68 @@ typedef struct { f32 health; f32 maxHealth; } Actor;
 extern f32 lbl_zero;
 ```
 
-A floating compare that feeds a branch becomes `fcmpo` plus a conditional jump,
-and "replace the value" is the register-move `fmr`. No memory round-trips
-between the clamps — the candidate stays live in `f1`:
+**Float compare and branch.** A float comparison that feeds a conditional
+overwrite compiles to `fcmpo` plus a conditional jump over a `fmr`. The jump
+uses the *opposite* condition of the `if` — the branch skips the body when the
+test is *false*, so `if (x < y)` becomes `fcmpo` + `bge-` (branch if
+not-less-than).
+
+**`fmr` is "assign this float register".** A `fmr` surrounded by `fcmpo`/branch
+on one side and the next statement on the other is almost always one arm of a
+clamp. No store/reload between clamps — the candidate value stays live in a float
+register across both checks.
+
+**Named label vs literal zero.** Using `0.0f` in C lets the compiler synthesize
+the constant from its own pool, producing a different `lfs` source and different
+register assignment. When the assembly shows `lfs fN, lbl_zero`, the C must
+reference the named extern.
+
+For a comparable function clamping a vehicle's speed between `lbl_zero` and
+`v->maxSpeed`:
 
 ```asm
-lfs     f0, 0(r3)          # a->health
-lfs     f2, lbl_zero
-fadds   f1, f0, f1         # h = health + amount
-fcmpo   cr0, f1, f2        # h < 0 ?
+lfs     f0, 0(r3)          # v->speed
+lfs     f2, lbl_zero(0)
+fadds   f1, f0, f1         # s = speed + delta
+fcmpo   cr0, f1, f2        # s < lbl_zero ?
 bge-    .lo_ok
-fmr     f1, f2             #   h = 0
+fmr     f1, f2             #   s = lbl_zero
 .lo_ok:
-lfs     f0, 4(r3)          # a->maxHealth
-fcmpo   cr0, f1, f0        # h > max ?
+lfs     f0, 4(r3)          # v->maxSpeed
+fcmpo   cr0, f1, f0        # s > maxSpeed ?
 ble-    .hi_ok
-fmr     f1, f0             #   h = max
+fmr     f1, f0             #   s = maxSpeed
 .hi_ok:
-stfs    f1, 0(r3)          # a->health = h
+stfs    f1, 0(r3)          # v->speed = s
 blr
 ```
 
-Two things to internalize. First, `h < lbl_zero` compiles to `fcmpo` + `bge-`
-(the *opposite* condition skips the assignment) — that inversion is normal.
-Second, `fmr` is just "this float now equals that one"; a lone `fmr` guarded by
-a float compare is almost always a clamp arm.
+Now apply those rules to the actual target:
 
-One trap: the floor here is the *external* `lbl_zero`, not the literal `0.0f`.
-The original loads the floor from a named label (`lfs f2, lbl_zero`); writing
-`0.0f` instead makes MWCC synthesize the zero from its own constant pool — a
-different load (and a different register assignment) that looks cleaner but will
-not match. Always use `lbl_zero` where the data tells you the constant lived in
-a named symbol.
+```asm
+lfs     f0, 0(r3)
+lfs     f2, lbl_zero(0)
+fadds   f1, f0, f1
+fcmpo   cr0, f1, f2
+bge-    .lo_ok
+fmr     f1, f2
+.lo_ok:
+lfs     f0, 4(r3)
+fcmpo   cr0, f1, f0
+ble-    .hi_ok
+fmr     f1, f0
+.hi_ok:
+stfs    f1, 0(r3)
+blr
+```
+
+Read the load offsets to identify which struct fields are the floor, the ceiling,
+and the store target. Identify the step before the first compare to find the
+initial arithmetic.
 
 ## Your task
 
-With the struct above, write `actor_clampHealth`: compute
-`a->health + amount`, clamp it below by `lbl_zero` and above by
-`a->maxHealth`, then store it back into `a->health`.
+With the struct above, write `actor_clampHealth` to reproduce the assembly above.
 
 <!-- starter -->
 ```c

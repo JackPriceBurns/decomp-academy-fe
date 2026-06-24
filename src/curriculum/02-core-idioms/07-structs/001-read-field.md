@@ -15,25 +15,32 @@ hints:
 # A struct is just an offset into memory
 
 A pointer to a struct arrives in `r3` like any other pointer. Reading a field is
-a single **load at the field's byte offset**. Given:
+a single **load at the field's byte offset**: `lwz rD, off(rA)` loads the word
+at address `rA + off`. Each `int` field is 4 bytes wide, so fields are laid out
+at offsets 0, 4, 8, … in declaration order with no padding between `int` members.
+
+To ground the idea, consider a three-field integer struct:
 
 ```c
-typedef struct { int x; int y; } Point;
+typedef struct { int x; int y; int z; } Vec3i;
+
+int Vec3i_getZ(Vec3i* v) {
+    return v->z;
+}
 ```
 
-`x` lives at offset 0 and `y` at offset 4 (each `int` is 4 bytes). So
-`p->y` is a word load four bytes past the base:
+`z` is the third field: `x` at 0, `y` at 4, `z` at 8. The compiler emits:
 
 ```asm
-lwz  r3, 4(r3)   # load p->y
+lwz     r3,8(r3)    # load v->z at offset 8
 blr
 ```
 
-That `4(r3)` is the whole story — `lwz rD, off(rA)` means "load the word at
-`rA + off`". When you see a bare `lwz r3, 4(r3)`, it's tempting to read it as
-`*(int*)((char*)p + 4)`, but that bare offset is really a clue: the original was
-almost certainly a **named field** of a struct, and recovering that name and
-offset is the job.
+The offset in the instruction directly encodes which field is being read. In
+decompilation, recovering the *name* of the field from that offset is the job.
+
+Now apply the same reasoning to a two-field struct — figure out which field
+sits at the offset used in the target assembly.
 
 ## Your task
 

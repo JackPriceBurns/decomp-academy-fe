@@ -18,24 +18,33 @@ hints:
 char u8;` — and shows up everywhere in GameCube code. The matching signed and
 wider types are `s8`, `u16`/`s16`, `u32`/`s32`.)
 
-The scaling factor *is* the element size. A `u8` is one byte, so scaling `i` by
-1 is a no-op — there's no shift at all. The index register goes straight into
-the indexed byte load `lbzx rD, rA, rB` (*load byte and zero*, indexed):
+In the previous lesson, a variable index required a `slwi` to scale it by the
+element size before the indexed load. The shift amount equals `log2(sizeof(T))`.
+For `u8`, `sizeof(u8)` is 1 — shifting by 0 is a no-op. So no shift appears at
+all; the index register goes straight into the indexed load.
+
+Here is a function that writes through a `u8` pointer with a variable index:
+
+```c
+void set_byte(u8* p, int i, u8 v) {
+    p[i] = v;
+}
+```
 
 ```asm
-lbzx r3, r3, r4   # r3 = p[i], zero-extended
+stbx  r5, r3, r4  # store byte v at p + i
 blr
 ```
 
-`lbzx` zero-extends the byte into the full register, which is exactly what an
-unsigned `u8` wants. When you only load and store a byte, `u8` is the natural
-choice; using `char` would bring in a sign-extending `extsb` the compiler
-wouldn't otherwise need. That gives you a diagnostic rule when reading
-disassembly: `lbzx` (or `lbz`) *alone* with no following `extsb` is strong
-evidence the original type was unsigned. An `lbzx` followed by `extsb` points to
-a signed `char`/`s8` *being widened* — the `extsb` shows up only when a signed
-byte is promoted to a wider type, so a signed byte kept narrow still loads with a
-bare `lbzx`.
+No `slwi` before the `stbx` — because `i * 1 = i`. The store variant `stbx`
+and the load variant `lbzx` both work the same way: two registers, no shift.
+
+`lbzx` zero-extends the byte into the full destination register, which is what
+an unsigned `u8` produces. A diagnostic rule when reading disassembly:
+`lbzx` alone, with no following `extsb`, is strong evidence the original type
+was unsigned. An `lbzx` followed by `extsb` points to a signed `char`/`s8`
+being widened — the `extsb` shows up only when a signed byte is promoted to a
+wider type.
 
 ## Your task
 

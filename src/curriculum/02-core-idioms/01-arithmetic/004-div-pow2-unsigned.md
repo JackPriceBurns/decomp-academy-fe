@@ -16,18 +16,24 @@ hints:
 # Dividing unsigned is just a shift
 
 For an **unsigned** value, dividing by a power of two is a logical right shift —
-`srwi`, again an extended form of `rlwinm`:
+`srwi`, again an extended form of `rlwinm`. No rounding correction is needed
+because unsigned division truncates toward zero and the high bits are simply
+discarded.
+
+For example, `udiv8(n) = n / 8` compiles to:
 
 ```asm
-srwi r3, r3, 2    # x >> 2 == x / 4 (unsigned)
+srwi r3, r3, 3    # n >> 3  ==  n / 8 (unsigned)
 blr
 ```
 
-No rounding correction is needed because unsigned division truncates toward zero
-and the high bits are simply discarded. **Signed** division by a power of two is
-much trickier — it has to round toward zero for negatives, so MWCC emits a
-`srawi`/`addze` correction pair rather than a plain shift, which the next lesson
-walks through.
+The shift amount is the base-2 logarithm of the divisor: `2^3 = 8`, so the
+shift is 3. Look at the shift amount in the target assembly and work backwards:
+`2^N` gives you the divisor.
+
+**Signed** division by a power of two is much trickier — it has to round toward
+zero for negatives, so MWCC emits a `srawi`/`addze` correction pair rather than
+a plain shift, which the next lesson walks through.
 
 ## Your task
 

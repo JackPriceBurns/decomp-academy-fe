@@ -13,9 +13,22 @@ hints:
 
 # Test bit 15
 
-Extracting one bit as a 0/1 value is `(x >> 15) & 1`. MWCC folds the shift
-and the mask into a single **`rlwinm`** that rotates bit 15 down to the
-bottom and keeps only it (bit 0 collapses to a `clrlwi`).
+Pulling a single bit out as a 0/1 result requires shifting the target bit
+down to position 0 and masking off everything above it. MWCC folds both
+steps into one **`rlwinm`** — a rotate-left-word-immediate-then-mask that
+moves the bit to the LSB and zeros all others simultaneously.
+
+For example, extracting bit 5 from `x` produces:
+
+```
+rlwinm  r3,r3,27,31,31
+blr
+```
+
+The rotation value 27 equals 32 − 5, placing bit 5 at the LSB; the mask
+`31,31` keeps only that position. Use the rotation amount in the target
+`rlwinm` to determine which bit is being tested, then write the C expression
+that extracts it.
 
 ## Your task
 Write `testb` on a `u32`, returning bit 15 of `x` as 0 or 1.

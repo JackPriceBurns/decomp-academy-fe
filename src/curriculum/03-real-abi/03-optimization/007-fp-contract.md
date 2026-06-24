@@ -19,11 +19,14 @@ hints:
 
 The Gekko has a **fused multiply-add**: `fmadds f1, fA, fC, fB` computes
 `fA*fC + fB` in a single instruction (and a single rounding step). When
-**`fp_contract`** is **on** — our default — MWCC contracts an `a*b + c` pattern
-into exactly that:
+**`fp_contract`** is **on** — our default — MWCC contracts a multiply-then-add
+pattern into exactly that.
+
+Consider `scaleshift(f32 x, f32 scale, f32 offset)` — multiply `x` by a
+scale then add an offset. With `fp_contract` **on**:
 
 ```asm
-fmadds f1, f1, f2, f3   # a*b + c, fused
+fmadds f1, f1, f2, f3   # x*scale + offset, fused
 blr
 ```
 
@@ -31,8 +34,8 @@ Turn `fp_contract` **off** and the compiler is forbidden from fusing; you get
 the multiply and the add as **two** instructions with two roundings:
 
 ```asm
-fmuls f0, f1, f2        # a*b
-fadds f1, f3, f0        # + c
+fmuls f0, f1, f2        # x*scale
+fadds f1, f3, f0        # + offset
 blr
 ```
 
@@ -47,7 +50,8 @@ pragma rather than guessing at a different expression.
 ## Your task
 
 Write `madd(f32 a, f32 b, f32 c)` so it compiles to the separate `fmuls` and
-`fadds` above — not the fused `fmadds`.
+`fadds` above — not the fused `fmadds`. Look at the function signature to
+determine what arithmetic to express.
 
 <!-- starter -->
 ```c

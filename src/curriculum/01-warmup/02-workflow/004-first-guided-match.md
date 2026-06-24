@@ -31,22 +31,23 @@ Let's run the loop for real on a tiny function. Here's the target asm:
 immediate* — it shifts `r3` left by 2 bits. Then `blr` returns. One argument
 arrives in `r3`, and the result leaves in `r3`.
 
-**What does shifting left by 2 do?** Shifting an integer left by 2 bits multiplies
-it by 4 (each left shift doubles). So this function takes its argument and
-returns it times 4.
+**What does `slwi` mean arithmetically?** Each left-shift by one bit doubles the
+value. So shifting left by 3 bits multiplies by 8. As a concrete example,
+`n * 8` compiles to:
 
-**Now the key move — write plausible C, not asm.** A 2002 developer would *not*
-write `x << 2` to mean "times four"; they'd write what they meant:
-
-```c
-return x * 4;
+```asm
+slwi    r3,r3,3
+blr
 ```
 
-Won't that emit a multiply? No — and this is the whole point of letting the
-compiler be the authority. MWCC knows that multiplying by a power of two is a
-shift, so `x * 4` compiles to exactly `slwi r3,r3,2`. The clean, readable C
-*is* the matching C. You don't have to obfuscate to match; you have to write what
-the original author wrote and trust the compiler to lower it.
+**Now the key move — write plausible C, not asm.** A 2002 developer would *not*
+write a manual shift to express a multiplication; they'd write what they meant.
+MWCC knows that multiplying by a power of two is a shift, so the clean,
+readable C *is* the matching C. You don't have to obfuscate to match; you have
+to write what the original author wrote and trust the compiler to lower it.
+
+The target shifts by 2 bits, not 3. Work out which multiplier that corresponds
+to, write the multiplication, and let MWCC pick the instruction.
 
 **Compile and diff.** If your two instructions are `slwi r3,r3,2` then `blr`,
 you're at 100%. If not, the first diverging line tells you what to reconsider.

@@ -13,8 +13,16 @@ hints:
 
 # Set bit 9
 
-Setting a single bit is `x |= 0x200`. A mask that fits the
-`ori` immediate becomes one **`ori`**; a high mask uses `oris`.
+Setting a bit requires ORing the value with a mask that has only that bit high. If the mask fits in the 16-bit `ori` immediate, MWCC emits a single **`ori`**; a mask in the upper 16 bits uses `oris` instead.
+
+For example, setting bit 7 (`0x80`) compiles to:
+
+```
+ori     r3,r3,128
+blr
+```
+
+The immediate is the decimal value of the mask (128 = 0x80). Identify the bit position from the assembly's immediate, then write the OR expression that sets exactly that bit.
 
 ## Your task
 Write `setb` on a `u32`, returning `x` with bit 9 set.

@@ -15,12 +15,27 @@ hints:
 
 # Load a `u8` at byte offset 0
 
-A typed field access compiles to a single load with the field's displacement.
-A `u8` field reads with **`lbz`** at displacement 0. The *type* picks the load opcode; the *offset* picks the displacement.
+When you access a struct field, the compiler emits a single load instruction. Two things determine which instruction:
+
+- **Type** → chooses the opcode (`lbz` for an unsigned byte, `lwz` for a 32-bit word, etc.)
+- **Byte offset** → becomes the displacement in the instruction
+
+Consider this struct and accessor:
 
 ```c
-typedef struct { u8 field; } S;
+typedef struct { u8 _pad[8]; u8 val; } T;
+u8 get_val(T* p) { return p->val; }
 ```
+
+MWCC produces:
+
+```asm
+get_val:
+  lbz  r3,8(r3)
+  blr
+```
+
+`val` is a `u8` (byte) at byte offset 8, so the instruction is `lbz` with displacement `8`. The layout of `S` in your exercise is different — look at the displacement in the target assembly to work out where the field sits.
 
 ## Your task
 Write `read` to reproduce the assembly above.

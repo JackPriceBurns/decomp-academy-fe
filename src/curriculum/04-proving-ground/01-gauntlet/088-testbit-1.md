@@ -13,9 +13,29 @@ hints:
 
 # Test bit 1
 
-Extracting one bit as a 0/1 value is `(x >> 1) & 1`. MWCC folds the shift
-and the mask into a single **`rlwinm`** that rotates bit 1 down to the
-bottom and keeps only it (bit 0 collapses to a `clrlwi`).
+To test whether a particular bit is set, shift it down to position 0 and
+mask off all other bits. MWCC folds both steps into one **`rlwinm`**: it
+rotates the target bit to the least-significant position and zeroes
+everything else with a single mask.
+
+For example, testing bit 7:
+
+```c
+u32 test_example(u32 x) {
+    return (x >> 7) & 1;
+}
+```
+
+```asm
+test_example:
+    rlwinm  r3,r3,25,31,31
+    blr
+```
+
+The rotation is `32 - 7 = 25`; the mask `31,31` retains only the new LSB.
+
+Look at the assembly for `testb` below and identify which bit position is
+being tested from the rotation amount, then write the matching C expression.
 
 ## Your task
 Write `testb` on a `u32`, returning bit 1 of `x` as 0 or 1.

@@ -22,25 +22,26 @@ typedef struct { f32 x; f32 y; f32 z; } Vec3;
 typedef struct { int id; Vec3 pos; } Entity;
 ```
 
-`id` is at offset 0, so `pos` begins at offset 4, and inside it `y` is one
-`f32` (4 bytes) further along — offset 8 overall. Because it's an `f32`, the load
-is `lfs` (load floating single) into a float register:
+`id` is at offset 0, so `pos` begins at offset 4 (past the 4-byte `int`). Inside
+`Vec3`, each field is 4 bytes: `x` at +0, `y` at +4, `z` at +8. Add those to
+the start of `pos` to get the absolute offsets inside `Entity`.
+
+Two field accesses (e.g. `.pos` then `.z`) collapse into a **single** load with
+one displacement. For instance, accessing `e->pos.z` loads from offset 12:
 
 ```asm
-lfs  f1, 8(r3)   # load e->pos.y
+lfs  f1, 12(r3)
 blr
 ```
 
-Two field accesses (`pos` then `.y`) collapse into a **single** `8(r3)`. The
-arithmetic is just a sum of offsets: `offsetof(Entity, pos) = 4` (past the 4-byte
-`int id`) plus `offsetof(Vec3, y) = 4` (past one `f32`), giving `4 + 4 = 8`. Run
-that addition yourself on any nested struct and the "weird" offset stops being a
-mystery. When you see one load with such an offset, suspect a nested struct
-rather than a flat one.
+The arithmetic is `offsetof(Entity, pos) + offsetof(Vec3, z) = 4 + 8 = 12`.
+Run that addition on any nested struct access and the "weird" offset stops being a
+mystery. When you see one `lfs` with a non-trivial offset, suspect a nested
+struct rather than a flat one — count the bytes to confirm.
 
 ## Your task
 
-With the structs above, write `Entity_getPosY` to reproduce the assembly above.
+With the structs above, write `Entity_getPosY` to reproduce the target assembly.
 
 <!-- starter -->
 ```c

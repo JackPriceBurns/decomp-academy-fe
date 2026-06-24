@@ -18,23 +18,29 @@ Floating-point arguments do **not** share the `r3`–`r10` integer registers.
 They have their own bank: the first eight `float`/`double` arguments go in
 **`f1`, `f2`, … `f8`**, and a floating-point result comes back in **`f1`**.
 
-Single-precision `f32` math uses the `...s` ("single") forms, so summing three
-floats is two `fadds`:
+Single-precision `f32` math uses the `...s` ("single") variants. For example,
+subtracting one `f32` from another compiles to a single `fsubs`:
 
 ```asm
-fadds f0, f1, f2   # a + b  (into scratch f0)
-fadds f1, f3, f0   # + c, result in the return reg f1
+fsubs  f1,f1,f2
 blr
 ```
 
-The compiler uses `f0` as its float scratch register — it is caller-saved and
-the compiler reaches for it first when it needs a temporary. Notice the final
-result lands in `f1`, the float return register — the mirror of `r3` on the
-integer side.
+That is `fsub2(f32 a, f32 b) { return a - b; }`. The result lands directly in
+`f1` — the float return register, which mirrors `r3` on the integer side.
+
+When a third `f32` argument joins the operation, `f3` holds it. Because there
+are now two operations, the compiler needs a temporary: it uses `f0`, a
+caller-saved scratch register it reaches for first. The two-instruction
+sequence therefore ends with the final result in `f1`.
+
+Now look at the target assembly for `fadd3`. There are two `fadds` instructions.
+Trace the registers to figure out which operands each one combines, and what
+single C expression produces that two-step sequence.
 
 ## Your task
 
-Write `fadd3`, taking three `f32`s, to match the target assembly above.
+Write `fadd3`, taking three `f32`s, to match the target assembly.
 
 <!-- starter -->
 ```c

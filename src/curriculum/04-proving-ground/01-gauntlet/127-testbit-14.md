@@ -13,9 +13,23 @@ hints:
 
 # Test bit 14
 
-Extracting one bit as a 0/1 value is `(x >> 14) & 1`. MWCC folds the shift
-and the mask into a single **`rlwinm`** that rotates bit 14 down to the
-bottom and keeps only it (bit 0 collapses to a `clrlwi`).
+To isolate a single bit as a 0/1 integer, you right-shift the value so the
+target bit lands in bit 0, then AND with 1 to discard everything else. MWCC
+fuses both operations into one **`rlwinm`** — it rotates the chosen bit into
+the LSB and masks all others to zero in a single instruction.
+
+For example, extracting bit 5 from `x` produces:
+
+```
+rlwinm  r3,r3,27,31,31
+blr
+```
+
+The rotation amount (27 = 32 − 5) brings bit 5 to position 31 (the LSB);
+the mask `31,31` zeros every other bit.
+
+Your function tests a *different* bit. Inspect the rotation amount in the
+target `rlwinm` to find the bit position, then write the C that produces it.
 
 ## Your task
 Write `testb` on a `u32`, returning bit 14 of `x` as 0 or 1.

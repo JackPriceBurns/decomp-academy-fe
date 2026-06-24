@@ -17,13 +17,18 @@ hints:
 
 C's `&&` and `||` are **short-circuit**: the second operand is only evaluated if
 the first didn't already decide the answer. That laziness shows up directly as
-*two separate compares with branches between them*. For `a > 0 && b > 0`:
+*two separate compares with branches between them*.
+
+With `&&`, the *first* failing test jumps straight to the false exit — the
+second operand is skipped. Here is a `&&` function that tests whether both
+arguments are negative:
 
 ```asm
+# both_negative(int a, int b): return 1 if a < 0 && b < 0
 cmpwi r3, 0
-ble-  .false     # a <= 0 -> whole && is false, skip the b test
+bge-  .false     # a >= 0 -> whole && is false, skip the b test
 cmpwi r4, 0
-ble-  .false     # b <= 0 -> false
+bge-  .false     # b >= 0 -> false
 li    r3, 1      # both passed
 blr
 .false:
@@ -31,15 +36,15 @@ li    r3, 0
 blr
 ```
 
-With `&&`, the *first* failing test jumps straight to the false exit — `b` is
-never compared when `a <= 0`. `||` inverts the logic: the first *passing* test
-jumps to the true exit. The same `a > 0 || b > 0` compiles to:
+`||` inverts the logic: the first *passing* test jumps to the true exit. Here
+is a `||` function that tests whether either argument is at least 10:
 
 ```asm
-cmpwi r3, 0
-bgt-  .true      # a > 0 -> short-circuit, the || is already true
-cmpwi r4, 0
-ble-  .false     # last test still gates: b <= 0 -> false
+# either_large(int a, int b): return 1 if a >= 10 || b >= 10
+cmpwi r3, 10
+bge-  .true      # a >= 10 -> short-circuit, the || is already true
+cmpwi r4, 10
+blt-  .false     # last test still gates: b < 10 -> false
 .true:
 li    r3, 1
 blr
@@ -55,7 +60,7 @@ compares and reading which branch each one takes reconstructs the exact
 
 ## Your task
 
-Write `both_positive`: return `1` if `a > 0` **and** `b > 0`, otherwise `0`.
+Write `both_positive`: return `1` if both arguments satisfy a positive condition, otherwise `0`.
 
 <!-- starter -->
 ```c

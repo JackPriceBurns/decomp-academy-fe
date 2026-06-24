@@ -22,16 +22,18 @@ The moment a function **calls** something, its shape changes completely. A call
 so before our function can call out, it must save its *own* return address
 somewhere safe. That somewhere is a **stack frame**.
 
+Consider `frame_ex(s32 x) { return process(x) - 5; }`:
+
 ```asm
-stwu r1, -16(r1)   # PROLOGUE: push a 16-byte frame (r1 is the stack pointer)
-mflr r0            # r0 = our return address (the link register)
-stw  r0, 20(r1)    # save it into the caller's frame, above our own
-bl   compute       # call compute(x) — this trashes lr, but we saved it
-lwz  r0, 20(r1)    # EPILOGUE: reload our return address
-addi r3, r3, 1     # compute(x) + 1
-mtlr r0            # restore lr
-addi r1, r1, 16    # pop the frame
-blr                # return
+stwu   r1,-16(r1)   # PROLOGUE: push a 16-byte frame (r1 is the stack pointer)
+mflr   r0           # r0 = our return address (the link register)
+stw    r0,20(r1)    # save it into the caller's frame, above our own
+bl     process      # call process(x) — this trashes lr, but we saved it
+lwz    r0,20(r1)    # EPILOGUE: reload our return address
+addi   r3,r3,-5     # adjust the return value
+mtlr   r0           # restore lr
+addi   r1,r1,16     # pop the frame
+blr                 # return
 ```
 
 Every non-leaf function wears this prologue/epilogue. `stwu r1, -N(r1)` both
@@ -54,10 +56,14 @@ and the frame is laid out like this:
 That is why the return address is stored at `20(r1)`: it lives in the *caller's*
 LR save slot, which sits `16 + 4` bytes above our new stack pointer.
 
+Now look at the target assembly for `wrapper`. The prologue and epilogue match
+the pattern above exactly. Focus on the instruction between the `bl` and the
+`lwz` — that is the only real work.
+
 ## Your task
 
-Write `wrapper`, which calls `compute(x)` and returns its result **plus one**.
-`compute` is declared for you. Expect a full prologue and epilogue around the
+Write `wrapper`, which calls `compute(x)` and returns a value derived from the
+result. `compute` is declared for you. Expect a full prologue and epilogue around the
 `bl`.
 
 <!-- starter -->

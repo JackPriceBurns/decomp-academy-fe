@@ -22,30 +22,30 @@ outer counter `i` only advances after the inner loop completes. Each shape is th
 same pre-tested loop you already know:
 
 ```asm
-li   r6, 0          # s = 0
-li   r4, 0          # i = 0
+li   r6, 0          # accumulator = 0
+li   r4, 0          # outer index = 0
 b    otest
 obody:
-li   r5, 0          # j = 0   (reset every outer pass)
+li   r5, 0          # inner index = 0 (reset each outer pass)
 b    itest
 ibody:
-mullw r0, r4, r5    # i * j
-addi r5, r5, 1      # j++
-add  r6, r6, r0     # s += i*j
+mullw r0, r4, r5    # variable product
+addi r5, r5, 1      # advance inner index
+add  r6, r6, r0     # accumulate
 itest:
-cmpw r5, r3         # j < n ?
+cmpw r5, r3         # inner bound test
 blt+ ibody
-addi r4, r4, 1      # i++
+addi r4, r4, 1      # advance outer index
 otest:
-cmpw r4, r3         # i < n ?
+cmpw r4, r3         # outer bound test
 blt+ obody
 mr   r3, r6
 blr
 ```
 
-The product `i * j` is a *variable* multiply, so it lands on `mullw` (no shift
-trick is possible). The giveaway for nesting is that inner-counter reset (`li r5,
-0`) sitting inside the outer body.
+The `mullw` appears because the inner body computes a *variable* product (no
+constant to shift by). The giveaway for nesting is that inner-counter reset
+(`li r5, 0`) sitting inside the outer body.
 
 > `#pragma optimization_level 1` keeps both loops rolled.
 

@@ -77,11 +77,10 @@ mismatches even though the logic is identical.
 
 ## Your task
 
-With the structs above, write `spellstone_step`. If `state->state == 2`, set
-`rotY = 0`, `rotX += 0x100`, `rotZ = 0`. Then if `GameBit_Get(def->completeEvent)`
-is nonzero, OR `0x4000` into `flags` and call `Obj_RemoveFromUpdateList(obj)`;
-otherwise call `ObjHits_DisableObject` when `state->state == 0`, else
-`ObjHits_EnableObject`. Keep `(s16)` on the flag write.
+With the structs above, write `spellstone_step` to match the assembly above.
+Pay attention to which rotation fields change and by how much, the direction of
+the `GameBit_Get` branch and which event it reads, and the `(s16)` on the flag
+write.
 
 <!-- starter -->
 ```c

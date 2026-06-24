@@ -36,8 +36,8 @@ eight (`a`–`h`) arrived in `r3`–`r10` and, being unused, produce no code.
 
 ## Your task
 
-Write `ninth`, taking nine `int`s and returning the **ninth** one (`i`). It
-should load `i` from the stack with `lwz r3, 8(r1)`.
+Write `ninth`, taking nine `int`s. Reproduce the assembly above — a single
+`lwz` from `8(r1)` followed by `blr`.
 
 <!-- starter -->
 ```c

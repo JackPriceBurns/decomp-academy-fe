@@ -14,24 +14,28 @@ hints:
 
 # A longer running total
 
-Stretch the chain to four operands: `a + b - c + d` is three operations, so
-three arithmetic instructions, each feeding the next. The partial result rides
-along in `r0` and only moves into `r3` on the last step:
+Four operands means three operations, so three arithmetic instructions. A partial
+result accumulates in `r0`, threading from one instruction into the next, with
+the final instruction writing `r3` to return.
+
+Consider `delta(p, q, r, s)`, which chains two subtracts before an add:
 
 ```asm
-add  r0, r3, r4   # r0 = a + b
-subf r0, r5, r0   # r0 = r0 - r5  =  (a + b) - c
-add  r3, r6, r0   # r3 = d + ((a + b) - c)
+subf r0, r4, r3   # r0 = r3 - r4  =  p - q
+subf r0, r5, r0   # r0 = r0 - r5  =  (p - q) - r
+add  r3, r6, r0   # r3 = s + ((p - q) - r)
 blr
 ```
 
-Read it as a single accumulator threading through three instructions: `add`
-seeds `r0` with `a + b`, `subf` takes `c` away (reversed operands as always:
-`subf r0, r5, r0` is `r0 - r5`), and the final `add` folds in the fourth
-argument `d` from `r6` and lands the answer in `r3`.
+Each instruction takes the previous result in `r0` and applies the next
+operation. The `subf` reversal applies throughout — `subf rD, rA, rB` is
+always `rB − rA` — so the last `r0` written becomes the *minuend* in the
+following `subf`. Count the instructions to know how many operations there are,
+then decode each one individually to read the chain left-to-right.
 
-Once you see the pattern — one instruction per operation, the result register
-threaded from each into the next — chains of any length read the same way.
+For the target in this lesson, note which registers hold which arguments
+(`r3`→`a`, `r4`→`b`, `r5`→`c`, `r6`→`d`) and trace the accumulator through
+each instruction to reconstruct the expression.
 
 ## Your task
 

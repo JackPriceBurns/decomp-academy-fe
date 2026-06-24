@@ -19,22 +19,26 @@ first time you'll see a real **compare-and-branch**. The comparison no longer
 produces a number — it sets the condition register, and a branch reads it:
 
 ```asm
-cmpw  r3, r4      # compare a against b, set cr0
-li    r3, 20      # assume the else value first
-bnelr-            # if a != b, return now with 20
-li    r3, 10      # otherwise overwrite with the then value
+cmpw  r3, r4      # compare a and b, set cr0
+li    r3, 20      # speculative load of one return value
+bnelr-            # conditional return
+li    r3, 10      # fall-through: load the other return value
 blr
 ```
 
 First, that trailing `-` on `bnelr-` is a branch-prediction hint, not an
-operand. Then two things to notice. MWCC **speculatively loads the else value**
-(`20`) before the branch, so the equal case is the one that falls through and
-reloads. And `bnelr` is a *conditional return* — "branch to link register if
-not equal" — collapsing an entire else-arm into one instruction.
+operand. Two things to notice. MWCC **speculatively loads one constant** before
+the branch, and a *conditional return* (`bnelr` — "branch to link register if
+not equal") collapses an entire else-arm into one instruction.
+
+To read the pattern: the `cmpw` sets cr0; the first `li` seeds a speculative
+result; the conditional `blr`-style branch either exits early or falls through;
+the second `li` then applies for the other case. The branch mnemonic tells you
+*when* the function exits early, and therefore which `li` belongs to which arm.
 
 ## Your task
 
-Write `pick`: return `10` when `a == b`, otherwise `20`.
+Write `pick`, taking two `int`s, to reproduce the assembly above.
 
 <!-- starter -->
 ```c

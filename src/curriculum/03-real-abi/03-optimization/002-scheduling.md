@@ -57,11 +57,11 @@ produces the shape.
 
 ## Your task
 
-The body is the same `combine2(int *p)` returning
-`(p[0] + p[1]) * (p[2] + p[3])` — but this time **reproduce the unscheduled,
-source-order form** (the first listing above). You can't get there by rewriting
-the C; the lever is the pragma. Put `#pragma scheduling off` before the
-function so the loads stay next to the adds that consume them.
+Write `combine2(int *p)` to reproduce the unscheduled, source-order assembly
+(the first listing above) — same integer computation as the previous lesson,
+but with loads sitting next to the adds that consume them. You can't get there
+by rewriting the C; the lever is the pragma. Put `#pragma scheduling off`
+before the function so the compiler emits instructions in source order.
 
 <!-- starter -->
 ```c

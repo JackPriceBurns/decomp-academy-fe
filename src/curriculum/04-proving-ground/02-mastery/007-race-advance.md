@@ -59,11 +59,7 @@ regenerates this exact pivot structure for you.
 
 ## Your task
 
-With the structs above, write `race_advance` switching on `s->phase`:
-- **0:** if `GameBit_Get(0x10)`, `GameBit_Set(0x11, 1)` and go to phase 1.
-- **1:** `GameBit_Set(0x12, 0)`, go to phase 2, `s16toFloat(&s->timer, 0x708)`.
-- **2:** if `timerCountDown(&s->timer)`, go to phase 3.
-- **3:** and **default:** go to phase 0.
+Write `race_advance` taking a `RaceObject* obj`. Switch on `s->phase` with cases 0 through 3 and a `default`, reading `s` from `obj->state`. Match the comparison tree and all per-case behaviour shown in the assembly above.
 
 <!-- starter -->
 ```c

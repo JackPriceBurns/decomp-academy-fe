@@ -15,19 +15,32 @@ hints:
 # Writing to memory
 
 The mirror image of a load is a **store**. `stw rS, off(rA)` — *store word* —
-writes the 32-bit value in `rS` to the address `rA + off`. Note the operand
-order: the *source register comes first*, the address second — the reverse of
-how you read `*p = v` in C.
+writes the 32-bit value in `rS` to the address `rA + off`.
 
-With the pointer in `r3` and the value in `r4`:
+Two things to notice about the operand order: the *source register* (`rS`) comes
+first, and the address (`off(rA)`) comes second. This is the reverse of how you
+read a C assignment left-to-right. In `stw r4, 4(r3)`, register `r4` holds the
+value being written and `r3` holds the base address.
+
+Here is a function that writes to the second element of an array:
+
+```c
+void write_second(int* p, int v) {
+    p[1] = v;
+}
+```
 
 ```asm
-stw  r4, 0(r3)    # *p = v
+stw  r4, 4(r3)    # write v to p + 4 bytes
 blr
 ```
 
-A store produces no result, so the function just returns. The same
-base + displacement addressing mode from the load applies here too.
+A store produces no result, so there is nothing to return — the function just
+falls through to `blr`. The same base + displacement addressing mode used by
+loads applies here too.
+
+Now look at the target assembly for `store_int`. What displacement is used, and
+which registers carry the pointer and the value?
 
 ## Your task
 

@@ -14,26 +14,41 @@ hints:
 
 # Branch on the pointer itself
 
-A NULL check tests the pointer against zero before dereferencing. Since NULL is
-address `0`, `if (p)` is an unsigned compare against `0` feeding a branch. When
-it's zero, the function skips the load and returns `0`:
+NULL is address `0`, so `if (p)` and `if (p != NULL)` both compile to an
+unsigned compare of the pointer register against `0`. MWCC uses `cmplwi` (compare
+logical word immediate — unsigned) rather than `cmpwi` because addresses are
+unsigned quantities.
+
+The branch hint suffixes `-` and `+` are static prediction bits baked into the
+branch encoding, not condition modifiers. `beq-` means "branch if equal, predicted
+*unlikely*". `bne+` means "branch if not equal, predicted *likely*". In a NULL
+guard the early-out path is expected to be rare, so the taken-when-NULL branch
+gets a `-`. Two `blr` instructions appear because each return path ends
+independently.
+
+Here is the same pattern guarding a `u32*` load:
+
+```c
+u32 safe_read_u32(u32* p) {
+    if (p) {
+        return *p;
+    }
+    return 0;
+}
+```
 
 ```asm
-cmplwi r3, 0          # p == NULL ?
-beq-   ret0           # if so, jump to the zero return
-lwz    r3, 0(r3)      # else *p
+cmplwi  r3,0
+beq-    10 <safe_read_u32+0x10>
+lwz     r3,0(r3)
 blr
-ret0:
-li     r3, 0          # return 0
+li      r3,0
 blr
 ```
 
-The `beq-` carries a branch hint (the `-`) predicting the pointer is usually
-*non*-NULL — MWCC assumes the early-out is the rare path. The `-`/`+` suffix is
-a static prediction bit baked into the branch's encoding, not a condition
-modifier: `-` marks the branch as *unlikely* taken, `+` as *likely*. You'll see
-`bne+`, `blt+`, `beq-` and friends throughout real disassembly. Two `blr`s,
-one per return path.
+The `beq-` jumps over the load when `p` is zero. Notice there are two `blr`
+instructions — one per return path. Now apply the same logic to a function that
+guards an `int*` load.
 
 ## Your task
 

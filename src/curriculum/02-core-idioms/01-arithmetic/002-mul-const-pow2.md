@@ -17,16 +17,22 @@ hints:
 Compilers replace expensive operations with cheap equivalent ones — **strength
 reduction**. Multiplying by a power of two becomes a left shift, which on
 PowerPC is the `rlwinm` rotate instruction (MWCC prints it via the `slwi`
-extended mnemonic):
+extended mnemonic).
+
+For example, `times16(n) = n * 16` compiles to:
 
 ```asm
-slwi r3, r3, 3    # x << 3  == x * 8
+slwi r3, r3, 4    # n << 4  ==  n * 16
 blr
 ```
 
-If you wrote `x * 8` *or* `x << 3` you'd get the same instruction — they're
-identical to the compiler. Recognizing that `* 8` is "really" a shift is a core
-decompiler instinct.
+The shift amount is the base-2 logarithm of the multiplier: `2^4 = 16`, so the
+shift is 4. If you write `n * 16` *or* `n << 4` in C you get the same
+instruction — they are identical to the compiler.
+
+Look at the shift amount in the target assembly and ask: what power of two does
+that correspond to? That's your multiplier. Either `* N` or `<< log2(N)` will
+match — pick whichever reads more naturally as C.
 
 ## Your task
 

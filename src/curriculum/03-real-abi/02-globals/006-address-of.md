@@ -57,8 +57,9 @@ land here — which is exactly what this lesson exercises.
 
 ## Your task
 
-`extern int gPalette[];` is provided. Write `getPalette`, returning the array's
-address (`gPalette` decays to a pointer). Expect the `lis @ha` / `addi @l` pair.
+`extern int gPalette[];` is provided. Write `getPalette` to reproduce the
+`lis @ha` / `addi @l` pair above — the two-instruction sequence that materializes
+a non-SDA address.
 
 <!-- starter -->
 ```c

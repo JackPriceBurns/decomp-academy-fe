@@ -21,19 +21,19 @@ A `break` gives a loop a *second* exit. This linear search runs a counted loop
 same `mr r3, r6` that returns the index `i`:
 
 ```asm
-li   r6, 0          # i = 0
+li   r6, 0          # index = 0
 mtctr r4            # CTR = n
 cmpwi r4, 0
 ble- done           # n <= 0: skip loop entirely
 body:
-lwz  r0, 0(r3)      # a[i]
-cmpw r5, r0         # a[i] == k ?
-beq- done           # break: jump out early
+lwz  r0, 0(r3)      # load current element
+cmpw r5, r0         # test condition
+beq- done           # early exit
 addi r3, r3, 4      # advance pointer
-addi r6, r6, 1      # i++
+addi r6, r6, 1      # increment index
 bdnz+ body          # otherwise keep counting
 done:
-mr   r3, r6         # return i (the found index, or n)
+mr   r3, r6         # return index
 blr
 ```
 

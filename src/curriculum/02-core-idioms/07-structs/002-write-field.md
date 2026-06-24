@@ -14,23 +14,33 @@ hints:
 
 # Storing into a field
 
-Writing a field mirrors reading it: a **store at the field's offset**. The store
-instruction `stw rS, off(rA)` writes `rS` to `rA + off`. With:
+Writing a field mirrors reading it: a **store at the field's byte offset**. The
+store instruction `stw rS, off(rA)` writes the contents of `rS` to address
+`rA + off`. No load is needed — a store overwrites the whole field. Note the
+operand order: **source register first, then the address**, the opposite mental
+model from `lwz`.
+
+Arguments arrive in registers in order: the struct pointer goes into `r3`, and
+the first value argument into `r4`.
+
+For a three-field struct, writing the third field (offset 8) looks like this:
 
 ```c
-typedef struct { int x; int y; } Point;
+typedef struct { int x; int y; int z; } Vec3i;
+
+void Vec3i_setZ(Vec3i* v, int val) {
+    v->z = val;
+}
 ```
 
-the value to store arrives in `r4` (the second argument) and the struct base in
-`r3`. Setting `p->y = v` is:
-
 ```asm
-stw  r4, 4(r3)   # p->y = v
+stw     r4,8(r3)    # v->z = val
 blr
 ```
 
-No load is needed — we overwrite the whole field. The order of operands in
-`stw` is **source first, then address**, the opposite mental model from `lwz`.
+The offset `8` tells you it's the third `int` field. Now determine which field
+of a two-field struct corresponds to the offset used in the target assembly, and
+write the equivalent setter.
 
 ## Your task
 

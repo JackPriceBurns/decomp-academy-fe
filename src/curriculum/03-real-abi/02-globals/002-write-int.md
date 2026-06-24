@@ -30,8 +30,8 @@ R_PPC_EMB_SDA21   g
 
 Same relocation (`R_PPC_EMB_SDA21`), same base register — only the opcode flips
 from load (`lwz`) to store (`stw`). No address has to be materialized first;
-that's the whole point of the SDA. If you ever see a bare `stw rX, sym@sda21(r13)`
-with nothing computing an address beforehand, the C was simply `sym = value;`.
+that's the whole point of the SDA. A bare `stw rX, sym@sda21(r13)` with no
+preceding address computation is the signature of a direct global write.
 
 ## Your task
 

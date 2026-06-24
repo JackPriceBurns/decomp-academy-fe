@@ -14,9 +14,17 @@ hints:
 
 # Clear bit 6
 
-Write the clear as `x &= ~0x40`. Because the *complement* of a
-single bit is a contiguous run of ones, MWCC emits a single **`rlwinm`** (clear
-one bit) rather than a two-immediate `andi` — the idiom from the bitwise chapter.
+To force a single bit low without disturbing others, AND the value with a mask that has every bit set *except* the target. The C idiom uses the bitwise complement operator `~` applied to a single-bit mask.
+
+Because the complement of a single-bit mask is always a contiguous run of ones (a "clear-one-bit" mask), MWCC can encode it as a single **`rlwinm`** rather than a two-instruction sequence.
+
+For example, clearing bit 4 compiles to:
+
+```asm
+rlwinm  r3,r3,0,28,26
+```
+
+The rotation is 0 (no shift needed); the `MB`/`ME` fields define a mask that covers all bits except bit 4. For a different target bit, the mask bounds change — but the instruction is always a single `rlwinm`.
 
 ## Your task
 Write `clrb` on a `u32`, returning `x` with bit 6 cleared.

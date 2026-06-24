@@ -19,16 +19,20 @@ hints:
 A `do { } while ()` loop always runs its body **at least once**, so the compiler
 doesn't need the pre-test. That leading `b test` from the `for`/`while` shape
 *disappears*. What's left is the tightest possible loop: body, test, branch back
-— a single conditional branch and nothing else:
+— a single conditional branch and nothing else.
+
+Here is `squares(n)` — summing 1 through `n` — written as a `do`/`while`. There
+is no pre-test branch; the body runs immediately and the compare appears only at
+the bottom:
 
 ```asm
-li   r4, 0          # i = 0
+li   r4, 1          # i = 1
 li   r0, 0          # s = 0
 body:
 add  r0, r0, r4     # s += i
 addi r4, r4, 1      # i++
-cmpw r4, r3         # i < n ?
-blt+ body           # only branch in the whole loop
+cmpw r4, r3         # i <= n ?
+ble+ body           # only branch in the whole loop
 mr   r3, r0
 blr
 ```
@@ -36,7 +40,9 @@ blr
 Because this form is so clean, MWCC at full `-O4,p` is happy to leave it rolled —
 no `#pragma` needed here. When you spot a loop with **no pre-test branch at the
 top**, the original was almost certainly a `do`/`while` — or a loop where the
-author had reason to guarantee the body would run.
+author had reason to guarantee the body would run. Notice that `sum` starts its
+induction variable at 0, not 1, so the initializer and test condition in your
+answer will differ from this example.
 
 > **A caution on semantics.** A `do`/`while` runs the body even when the guard
 > is false on entry. For this sum that happens to be harmless — `n == 0` runs

@@ -17,10 +17,12 @@ hints:
 
 A bitwise **AND** against a constant *mask* keeps the bits that are set in the
 mask and clears the rest. When the mask has scattered (non-contiguous) bits,
-MWCC reaches for the immediate-AND instruction **`andi.`**:
+MWCC reaches for the immediate-AND instruction **`andi.`**.
+
+For example, masking `n` with `0x0A` (decimal 10, bits 1 and 3 set) produces:
 
 ```asm
-andi.  r3, r3, 18    # r3 = x & 0x12
+andi.  r3, r3, 10
 blr
 ```
 
@@ -29,9 +31,17 @@ mask the low half-word directly. Second, the trailing **dot** means it also
 updates condition register `cr0` as a side effect — MWCC uses `andi.` even when
 nobody reads the flags, simply because it's the only immediate AND PowerPC has.
 
-(Watch out: a *contiguous* mask like `0xF0` takes a different path — covered in
-"Testing Whether a Bit Is Set". For now we use `0x12`, whose bits don't form a
-run.)
+(Watch out: a *contiguous* mask takes a different path — covered in "Testing
+Whether a Bit Is Set". `0x0A` has non-contiguous bits, so it takes the `andi.`
+path.)
+
+Now look at the target below. The immediate value encodes the mask constant.
+Convert the decimal immediate back to the mask and write the C expression.
+
+```asm
+andi.  r3, r3, 18
+blr
+```
 
 ## Your task
 

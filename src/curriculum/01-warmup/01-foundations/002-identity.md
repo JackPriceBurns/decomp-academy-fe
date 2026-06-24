@@ -14,21 +14,24 @@ hints:
 # Where do arguments come from?
 
 The GC ABI passes the first integer argument in **`r3`** — the *same* register
-used for the return value. So a function that just returns its argument has
-nothing to do: the value is already sitting in `r3`.
+used for the return value. That means some functions have nothing at all for
+the compiler to emit except the return instruction itself.
 
 ```asm
-blr              # r3 already holds x — just return
+blr
 ```
 
-That single `blr` is a perfect, if anticlimactic, match. Later integer and
-pointer arguments go in `r4`, `r5`, `r6` … up to `r10`. Floating-point
-arguments are separate: they use `f1`–`f8` and don't consume an integer
-register slot.
+That single `blr` is a complete, valid function. Later integer and pointer
+arguments go in `r4`, `r5`, `r6` … up to `r10`. Floating-point arguments are
+separate: they use `f1`–`f8` and don't consume an integer register slot.
+
+When you see only a `blr` and no instructions that touch `r3`, ask yourself:
+what relationship between the input and output would make any computation
+unnecessary?
 
 ## Your task
 
-Write `identity`, which takes an `int x` and returns it unchanged.
+Write `identity`, taking an `int x`, to reproduce the assembly above.
 
 <!-- starter -->
 ```c

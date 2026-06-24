@@ -15,31 +15,35 @@ hints:
 
 # A guard that compiles to no branch at all
 
-`if (x < 0) return 0;` looks like it needs a comparison and a jump. But
-clamping a signed value up to zero is a classic branchless trick MWCC knows by
-heart, built from an arithmetic shift and an *and-with-complement*:
+Some `if`/`else` patterns look like they need a comparison and a jump, but
+MWCC recognises certain shapes and collapses them into pure data flow. Clamping
+a signed value against zero is one such shape — no `cmpwi`, no branch, just two
+instructions:
 
 ```asm
-srawi r0, r3, 31   # r0 = all 1s if x < 0, else all 0s (sign mask)
-andc  r3, r3, r0   # r3 = x AND (NOT mask) -> 0 if x<0, else x
+srawi r0, r3, 31   # arithmetic shift right 31: produces a sign mask in r0
+andc  r3, r3, r0   # r3 = r3 AND (NOT r0)
 blr
 ```
 
-`srawi r0, r3, 31` smears the sign bit across the whole word, producing
-`0xFFFFFFFF` for negatives and `0` for non-negatives. `andc` then masks `x`
-against the *inverse*: negatives become `0`, everything else passes through
-untouched. No `cmpwi`, no branch — pure data flow.
+`srawi r0, r3, 31` is an **arithmetic right shift by 31**. Because the shift is
+*arithmetic*, it sign-extends: for a negative input the result is `0xFFFFFFFF`
+(all ones); for a non-negative input the result is `0` (all zeros). This
+produces a *sign mask* in `r0`.
+
+`andc rD, rA, rB` computes `rA AND (NOT rB)`. When the mask is all-ones,
+`NOT rB` is all-zeros, so `rA AND 0 = 0`. When the mask is all-zeros, `NOT rB`
+is all-ones, so `rA AND ~0 = rA` — the original value passes through unchanged.
 
 Why branchless? MWCC recognises the clamp shape when both paths return a value
 derived from the *same* register, and folds it into this `srawi`/`andc` pair.
-The single-return form `return x < 0 ? 0 : x;` is recognised identically. Beware
-that the logically equivalent inversion `if (x >= 0) return x; return 0;` falls
-*outside* the recognised pattern and compiles to a different sequence — source
-form can decide codegen.
+Beware that writing the logically equivalent `if (x >= 0) return x; return 0;`
+falls *outside* the recognised pattern and compiles to a different sequence —
+source form can decide codegen.
 
 ## Your task
 
-Write `clamp_low`: return `0` if `x < 0`, otherwise return `x`.
+Write `clamp_low`, taking a single `int`, to reproduce the assembly above.
 
 <!-- starter -->
 ```c

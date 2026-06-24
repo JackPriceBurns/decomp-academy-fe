@@ -22,21 +22,22 @@ To find `a[i].field`, the compiler computes the element address as
 typedef struct { int x; int y; int z; } Vec3i;   // sizeof == 12
 ```
 
-`a[i].z` becomes "multiply the index by 12, add to the base, then load at
-offset 8":
+To reach any element, the index is multiplied by the struct size. The first
+field (offset 0 from the element) can be loaded with an indexed `lwzx` after the
+multiply, since no additional displacement is needed:
 
 ```asm
-mulli r0, r4, 12   # i * sizeof(Vec3i)
-add   r3, r3, r0   # &a[i]
-lwz   r3, 8(r3)    # .z
+mulli  r0, r4, 12   # i * sizeof(Vec3i)
+lwzx   r3, r3, r0   # load field at offset 0 of &a[i]
 blr
 ```
 
-That **`mulli` by a non-power-of-two struct size is a dead giveaway** for an array
-of structs. (If the struct size were a power of two — say 8 — you'd see `slwi`
-instead, e.g. `slwi r0, r4, 3`.) When you spot a `mulli`/`slwi` feeding an
-`add` then a load, reconstruct the element type from the multiplier: the constant
-*is* `sizeof`.
+That **`mulli` by a non-power-of-two struct size is a dead giveaway** for an
+array of structs. (If the struct size were a power of two — say 8 — you'd see
+`slwi` instead, e.g. `slwi r0, r4, 3`.) When you spot a `mulli`/`slwi` feeding
+an `add` then a load, reconstruct the element type from the multiplier: the
+constant *is* `sizeof`. The subsequent load displacement tells you which field
+within the element is accessed.
 
 ## Your task
 

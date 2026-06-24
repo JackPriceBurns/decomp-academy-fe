@@ -19,21 +19,22 @@ hints:
 
 At `-O4,p` MWCC aggressively **CSEs** (common-subexpression eliminates) memory
 reads: if you load the same global twice with nothing changing it in between,
-it loads **once** and reuses the value. A plain global summed with itself:
+it loads **once** and reuses the value. Consider a plain global `g_frame` summed
+with itself:
 
 ```asm
-lwz r0, g_plain@sda21(r2)   # ONE load...
+lwz r0, g_frame@sda21(r2)   # ONE load...
 add r3, r0, r0              # ...reused for both operands
 blr
 ```
 
-Mark that same global **`volatile`** and the rule inverts. `volatile` means
-"every access is observable — never fold, never cache, never reorder." So two
-reads in the source become **two real loads** in the asm:
+Mark `g_frame` **`volatile`** and the rule inverts. `volatile` means "every
+access is observable — never fold, never cache, never reorder." The compiler
+must issue a real load *every time* the source reads it:
 
 ```asm
-lwz r3, g_counter@sda21(r2) # first read
-lwz r0, g_counter@sda21(r2) # SECOND read -- not CSE'd
+lwz r3, g_frame@sda21(r2)   # first read
+lwz r0, g_frame@sda21(r2)   # second read — not CSE'd
 add r3, r3, r0
 blr
 ```
@@ -47,9 +48,8 @@ otherwise do, which is exactly what hardware-register code depends on.
 
 ## Your task
 
-Write `twice_vol` to reproduce the assembly above, using the provided
-`volatile int g_counter`. Two `lwz` of the same global is the expected result —
-not the CSE'd single load you'd see without `volatile`.
+Write `twice_vol` using the provided `volatile int g_counter` to reproduce the
+assembly above.
 
 <!-- starter -->
 ```c

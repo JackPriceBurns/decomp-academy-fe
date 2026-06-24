@@ -80,15 +80,12 @@ before the call.
 
 ## Your task
 
-With the structs above, write `mine_resetToIdle` reproducing the sequence:
-call `Obj_GetPlayerObject()`; stop sfx `0x2e9` and `0x2e8`, play `0xf1`; zero
-`velocityX`/`velocityZ` from `lbl_zero` (`velocityY` is deliberately **not**
-zeroed in the original — only X and Z); `storeZeroToFloatParam(&state->renderTimer)`
-then `s16toFloat(&state->renderTimer, 10)`; set `mode = 0`; enable hits and mark
-position dirty; zero `resetTimer`; `fn_lightUpdate(obj, lbl_light)`; spawn the
-explosion with scale `(triggerDistance - lbl_bias) * lbl_distScale + lbl_base`
-and args `1,1,0,1,0,1,0`; enable hits again; and if `effectHandle != NULL`, free
-it via `&state->effectHandle`.
+With the structs above, write `mine_resetToIdle` to match the target assembly.
+Read the full function: identify the sfx call order, which velocity fields get
+zeroed (and which does not), the timer reset sequence, the fused scale expression
+feeding `spawnExplosion`, why `ObjHits_EnableObject` appears twice, and the
+NULL-guarded free at the end. Reconstruct the call sequence and struct writes
+from the assembly itself.
 
 <!-- starter -->
 ```c

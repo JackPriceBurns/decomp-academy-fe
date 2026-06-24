@@ -14,9 +14,18 @@ hints:
 
 # Clear bit 9
 
-Write the clear as `x &= ~0x200`. Because the *complement* of a
-single bit is a contiguous run of ones, MWCC emits a single **`rlwinm`** (clear
-one bit) rather than a two-immediate `andi` — the idiom from the bitwise chapter.
+Clearing a single bit means keeping every bit intact except one, which you express by ANDing with the complement of a power-of-two mask. The `~` operator generates a value with exactly one 0 bit and the rest 1s, which is what MWCC needs to emit a single **`rlwinm`** instruction.
+
+For example, clearing bit 5 (`~0x20`) compiles to:
+
+```
+rlwinm  r3,r3,0,27,25
+blr
+```
+
+The rotate is 0 (no actual rotate); the two mask bounds select every bit *except* bit 5. The `rlwinm` encodes the single-bit hole directly, so no `andi` or `andis` is needed.
+
+From the target `rlwinm`'s mask bounds, determine which bit the instruction is zeroing.
 
 ## Your task
 Write `clrb` on a `u32`, returning `x` with bit 9 cleared.

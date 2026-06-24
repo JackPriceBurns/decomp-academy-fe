@@ -75,12 +75,11 @@ exit, so pick whichever reads clearest.
 
 ## Your task
 
-With the structs above, write `tank_hitDetect`. Read `collider` and `def`. Only
-when `collider != NULL` **and** `collider->hitObj != NULL` **and**
-`hitObj->objType == 0x38c`: call `ObjHits_DisableObject(obj)`, set `fadeTimer` to
-`0xfa` and `triggered` to `1`, call `GameBit_Set(def->hitEvent, 1)` only if
-`hitEvent != -1`, then copy `hitObj`'s position onto `obj` with `lbl_yBias` added
-to `Y`.
+With the structs above, write `tank_hitDetect` to match the assembly above.
+Read `collider` and `def` up front. Trace the three-way guard chain, determine
+what work the innermost block performs on `obj`'s fields and which helper calls
+it makes, and reconstruct the `hitEvent != -1` optional-event guard and the
+biased position copy.
 
 <!-- starter -->
 ```c

@@ -15,21 +15,31 @@ hints:
 
 # One instruction, no zero needed
 
-To negate a value PowerPC has a dedicated **`neg rD, rA`** (`rD = -rA`). It does
-*not* subtract from a zero register the way some architectures would:
+Some architectures negate a value by subtracting it from zero. PowerPC instead
+provides a dedicated **`neg rD, rA`** instruction (`rD = -rA`). It does the job
+in one step without a zero register.
+
+For example, a function that takes two `int`s and returns the negation of the
+second one compiles to:
 
 ```asm
-neg  r3, r3
+neg  r3, r4
 blr
 ```
 
-This is your first taste of a recurring theme: MWCC almost always reaches for the
-**single dedicated instruction** when one exists, rather than composing the
+Here `rA = r4` (the second argument) and the result `rD = -rA` lands in `r3`
+ready to return.
+
+This is your first taste of a recurring theme: MWCC almost always reaches for
+the **single dedicated instruction** when one exists, rather than composing the
 operation from smaller pieces. Recognizing those idioms is most of the game.
+
+Apply the formula — `rD = -rA` — to the target assembly to work out which C
+expression matches it.
 
 ## Your task
 
-Write `negate` to match the target assembly.
+Write `negate`, taking an `int x`, to match the target assembly.
 
 <!-- starter -->
 ```c

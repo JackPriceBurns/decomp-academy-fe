@@ -20,7 +20,7 @@ a dedicated **`lha`** (*load halfword algebraic*) that sign-extends a halfword a
 it loads:
 
 ```asm
-lha  r3, 0(r3)   # r3 = (s32) p[0], sign-extended
+lha  r3, 0(r3)   # halfword, sign-extended into r3
 blr
 ```
 
@@ -37,8 +37,8 @@ blr
 
 ## Your task
 
-Write `load_s16`, taking an `s16*` and returning `p[0]` widened to `int`. Because
-the result is used as a 32-bit `int`, the load must sign-extend.
+Write `load_s16`, taking an `s16*` and returning the pointed-to value widened to
+`int`. Because the result is used as a 32-bit `int`, the load must sign-extend.
 
 <!-- starter -->
 ```c

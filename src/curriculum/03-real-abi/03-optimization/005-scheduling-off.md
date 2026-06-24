@@ -44,8 +44,10 @@ function in real decomp.
 
 ## Your task
 
-Write the body of `combine3(int *p)` returning `(p[0]+p[1]) * (p[2]+p[3])`.
-With scheduling off, it must match the un-batched, source-order load layout.
+Write the body of `combine3(int *p)` to match the un-batched, source-order
+assembly above. Read which array slots pair with which `add`, and what the
+final `mullw` combines. With scheduling off the compiler emits in source order,
+so the layout of the loads tells you the layout of the C.
 
 <!-- starter -->
 ```c

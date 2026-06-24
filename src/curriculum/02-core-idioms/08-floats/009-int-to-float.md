@@ -18,14 +18,15 @@ hints:
 
 PowerPC's only integer/float conversion hardware is `fctiwz` (float → int). To go
 the *other* way, MWCC uses a famous bit-twiddling trick. It builds a double whose
-bit pattern is `0x43300000:(x ^ 0x80000000)` and then subtracts the matching bias
-constant `0x4330000000000000`, leaving the integer value as a float:
+bit pattern is `0x43300000:(n ^ 0x80000000)` and then subtracts the matching bias
+constant `0x4330000000000000`, leaving the integer value as a float. Here is what
+that looks like for a function `int_to_single(int n)`:
 
 ```asm
 xoris r3, r3, 0x8000   # flip the sign bit (handle signedness)
 lis   r0, 0x4330       # high half of the magic double
 lfd   f1, ...          # load the bias constant 0x4330000000000000
-stw   r3, 12(r1)       # assemble  0x43300000:(x ^ 0x80000000) on the stack
+stw   r3, 12(r1)       # assemble 0x43300000:(n ^ 0x80000000) on the stack
 stw   r0, 8(r1)
 lfd   f0, 8(r1)        # reload it as a double
 fsubs f1, f0, f1       # subtract the bias → the converted value
@@ -33,13 +34,14 @@ blr
 ```
 
 PowerPC is **big-endian**, so the high word sits at the *lower* address: `8(r1)`
-holds `0x43300000` and `12(r1)` holds `x ^ 0x80000000`. The two `stw`s together
-lay down the 8-byte double `0x43300000:(x ^ 0x80000000)`, which `lfd f0, 8(r1)`
+holds `0x43300000` and `12(r1)` holds `n ^ 0x80000000`. The two `stw`s together
+lay down the 8-byte double `0x43300000:(n ^ 0x80000000)`, which `lfd f0, 8(r1)`
 then reads back.
 
-You don't write any of this — `(f32)x` produces the whole dance. When you see the
+You don't write any of this manually. When you see the
 `xoris … 0x4330 … lfd … stw/stw … lfd … fsubs` pattern in disassembly, that's the
-signature of a cast from `int` to floating point.
+signature of an integer-to-float conversion in C. A single C operator produces
+the whole sequence.
 
 ## Your task
 

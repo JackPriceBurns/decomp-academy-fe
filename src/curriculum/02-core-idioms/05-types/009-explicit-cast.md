@@ -17,23 +17,26 @@ hints:
 
 A cast isn't always free. Casting a wide signed value *down* to a signed narrow
 type and back up forces the value through that narrow range, which means
-sign-extending from the cast width. `(s8)x` keeps the low byte but re-spreads its
-sign bit, exactly **`extsb`**:
+sign-extending from the cast width.
+
+For example, a function that narrows an `int` to a signed halfword range:
 
 ```asm
-extsb r3, r3        # (s8) x, then widened back to int
+extsh r3, r3        # narrow to s16 width, sign bit re-spread
 blr
 ```
 
-The halfword cast `(s16)x` is the same idea one size up — **`extsh`** (*extend
-sign halfword*):
+**`extsh`** (*extend sign halfword*) keeps the low 16 bits but replicates bit 15
+into the top 16 — the register result is a sign-extended 32-bit value. The
+byte-width equivalent is **`extsb`** (*extend sign byte*), which replicates bit 7
+into the top 24 bits:
 
 ```asm
-extsh r3, r3        # (s16) x
+extsb r3, r3        # narrow to s8 width, sign bit re-spread
 blr
 ```
 
-So a lone `extsb` or `extsh` in the disassembly often comes straight from an
+A lone `extsb` or `extsh` in the disassembly often comes straight from an
 explicit narrowing cast in the source, not from a load.
 
 ## Your task

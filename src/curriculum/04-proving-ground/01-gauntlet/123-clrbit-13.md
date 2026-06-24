@@ -14,9 +14,15 @@ hints:
 
 # Clear bit 13
 
-Write the clear as `x &= ~0x2000`. Because the *complement* of a
-single bit is a contiguous run of ones, MWCC emits a single **`rlwinm`** (clear
-one bit) rather than a two-immediate `andi` — the idiom from the bitwise chapter.
+To force a single bit to 0, AND the value with a mask that has every bit set *except* the target. The C complement operator `~` produces that pattern from a single-bit constant. Because the complement of one bit is a contiguous run of ones, MWCC encodes the whole operation as a single **`rlwinm`** rather than a multi-instruction AND. For example, clearing bit 5 compiles to:
+
+```
+clr_ex:
+  rlwinm  r3,r3,0,27,25
+  blr
+```
+
+The `rlwinm` encodes a rotate of 0 with a bit-range mask that leaves everything intact except the target bit. Apply the same idiom for the bit number in the title.
 
 ## Your task
 Write `clrb` on a `u32`, returning `x` with bit 13 cleared.

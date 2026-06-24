@@ -20,7 +20,7 @@ A register is 32 bits wide, but memory comes in bytes, halfwords, and words. The
 the upper 24 bits:
 
 ```asm
-lbz  r3, 0(r3)   # r3 = (u32) p[0], high 24 bits = 0
+lbz  r3, 0(r3)   # one byte, zero-extended into r3
 blr
 ```
 

@@ -13,9 +13,15 @@ hints:
 
 # Test bit 6
 
-Extracting one bit as a 0/1 value is `(x >> 6) & 1`. MWCC folds the shift
-and the mask into a single **`rlwinm`** that rotates bit 6 down to the
-bottom and keeps only it (bit 0 collapses to a `clrlwi`).
+To isolate a single bit as a 0 or 1, you shift the value right until that bit lands in bit position 0, then mask everything else away. MWCC folds both operations into a single **`rlwinm`** instruction.
+
+For example, extracting bit 2 compiles to:
+
+```asm
+rlwinm  r3,r3,30,31,31
+```
+
+The rotation amount is `32 - 2 = 30` (left-rotate by 30 is the same as right-shift by 2), and the mask `31,31` keeps only the lowest bit. For a different bit position, the rotation and mask bounds change accordingly.
 
 ## Your task
 Write `testb` on a `u32`, returning bit 6 of `x` as 0 or 1.

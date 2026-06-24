@@ -13,9 +13,18 @@ hints:
 
 # Test bit 8
 
-Extracting one bit as a 0/1 value is `(x >> 8) & 1`. MWCC folds the shift
-and the mask into a single **`rlwinm`** that rotates bit 8 down to the
-bottom and keeps only it (bit 0 collapses to a `clrlwi`).
+Isolating a single bit as a 0/1 integer requires two operations: shift the target bit down to position 0, then mask away everything above it. MWCC can fold both into a single **`rlwinm`** that rotates and masks in one step.
+
+For example, extracting bit 5 compiles to:
+
+```
+rlwinm  r3,r3,27,31,31
+blr
+```
+
+The rotate amount (27 = 32 − 5) brings bit 5 to position 31 (the least-significant bit), and the mask `31,31` keeps only that position. The disassembler may show this as `clrlwi` in some contexts, but the encoding is the same `rlwinm` form.
+
+Examine the rotate amount in the target `rlwinm` to determine which bit is being tested.
 
 ## Your task
 Write `testb` on a `u32`, returning bit 8 of `x` as 0 or 1.

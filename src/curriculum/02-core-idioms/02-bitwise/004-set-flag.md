@@ -20,17 +20,26 @@ hints:
 
 Game code is full of flag words where each bit means something — *visible*,
 *active*, *dirty*. To **set** one flag you OR in a single-bit mask, usually
-written with the compound assignment `x |= mask`:
+written with the compound assignment `x |= mask`.
+
+For example, setting bit 3 (`0x08`) compiles to a single `ori`:
 
 ```asm
-ori  r3, r3, 64    # x |= 0x40
+ori  r3, r3, 8
 blr
 ```
 
-Because `0x40` is a single bit inside the low 16, this collapses to one `ori`.
-The whole point of `|=` is that it preserves every *other* flag — only the named
-bit changes. Seeing a lone `ori` with a power-of-two immediate is a strong tell
-that the original C was `flags |= SOME_FLAG;`.
+The whole point of `|=` is that it preserves every *other* flag — only the
+targeted bit changes. A lone `ori` with a power-of-two immediate is a strong
+tell that the original C was `flags |= SOME_FLAG;`.
+
+The target below uses a different flag bit. Identify which power-of-two the
+immediate represents, then write the compound assignment that sets it.
+
+```asm
+ori  r3, r3, 64
+blr
+```
 
 ## Your task
 

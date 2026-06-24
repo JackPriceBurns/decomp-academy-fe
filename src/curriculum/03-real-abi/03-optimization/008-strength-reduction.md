@@ -27,30 +27,33 @@ remainder loop at the end.)
 Don't be alarmed when your output runs to dozens of instructions: MWCC emits a
 prologue that picks the eight-wide path when `n` is large, an unrolled body that
 stores eight elements per pass — still a `mulli` per element there — under a
-`bdnz`, and then the short tail loop below
-that handles the leftover `0..7` elements one at a time. It's the tail loop where
-the strength-reduced `+= 12` is cleanest, so that's what we show.
+`bdnz`, and then the short tail loop that handles the leftover `0..7` elements
+one at a time. It's in the tail loop where the strength-reduced increment is
+cleanest to read.
 
-For `dst[i] = i * 12`, the tail loop shows the reduced form clearly:
+Consider `score(int *dst, int n)` — a similar loop that writes `i * 8` into
+each slot. Its tail loop looks like this:
 
 ```asm
 L:
   stw   r6, 0(r3)     # store the running product
-  addi  r6, r6, 12    # product += 12  (was i*12, now just +12)
+  addi  r6, r6, 8     # product += 8  (was i*8, now just +8)
   addi  r3, r3, 4     # dst pointer also strength-reduced (+= 4)
   bdnz+ L
 ```
 
-There is no `mulli` in that loop body at all — both the value `i*12` and the
-address `&dst[i]` became cheap induction variables incremented by a constant.
+There is no `mulli` in that loop body at all — both the accumulated value and
+the address became cheap induction variables incremented by a constant.
 When you see a loop bumping a register by a fixed stride with no multiply in
 sight, that's strength reduction, and the original C almost certainly used a
-multiply or array index that *looked* expensive.
+multiply or array index that *looked* expensive. The constant added each
+iteration tells you the original stride; match it to the register increment
+you see in the target asm and you can work backward to the source expression.
 
 ## Your task
 
-Write `fill(int *dst, int n)` that sets `dst[i] = i * 12` for `i` in
-`0..n-1`. Write the obvious multiply; `-O4,p` strength-reduces it for you.
+Write `fill(int *dst, int n)` to reproduce the assembly above. Use the
+natural loop-and-multiply form; let `-O4,p` handle the reduction.
 
 <!-- starter -->
 ```c

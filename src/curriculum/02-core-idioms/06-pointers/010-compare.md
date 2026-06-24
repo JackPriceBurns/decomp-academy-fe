@@ -14,22 +14,34 @@ hints:
 
 # Equality without a branch
 
-Two pointers are equal when their addresses are equal, so `a == b` is really an
-integer equality. Returning that comparison as a `BOOL` (in the GameCube SDK
-headers `BOOL` is just a typedef for `int`, with `TRUE == 1` and `FALSE == 0`,
-so it carries no special compiler semantics) without branching, MWCC reaches for
-a clever trick: subtract, then count leading zeros.
+Two pointers are equal when their addresses are the same integer. MWCC avoids
+a branch for this by using a three-instruction idiom: subtract the two addresses,
+count the leading zero bits of the result, then shift right.
+
+The key instruction is `cntlzw rD, rA` — *count leading zeros word*. It counts
+how many of the 32 bits, starting from the most significant, are zero. That count
+is 32 only when the input is exactly zero; for any non-zero input it is at most
+31.
+
+Here is the same idiom applied to `u8*` pointers with different operand names:
+
+```c
+BOOL at_same_byte(u8* p, u8* q) {
+    return p == q;
+}
+```
 
 ```asm
-subf   r0, r3, r4     # subf rD,rA,rB = rB - rA, i.e. r4 - r3 (zero iff equal)
-cntlzw r0, r0         # count leading zero bits (32 iff the value was 0)
-srwi   r3, r0, 5      # 32 >> 5 == 1# anything < 32 >> 5 == 0
+subf    r0,r3,r4    # r4 - r3 (zero iff addresses equal)
+cntlzw  r0,r0       # 32 iff zero, ≤ 31 otherwise
+srwi    r3,r0,5     # 32 >> 5 = 1 (true); anything else >> 5 = 0 (false)
 blr
 ```
 
-`cntlzw` returns 32 only when its input is exactly zero; shifting that by 5
-maps 32 → 1 and every other count → 0. So this three-instruction idiom is the
-branchless "are these equal?" — recognize it as `a == b`.
+`subf rD,rA,rB` computes `rB − rA` (note: *not* `rA − rB`). After the
+subtract, a zero result means the inputs were equal. `cntlzw` turns that zero
+into 32, and shifting right by 5 maps 32 → 1 while collapsing all smaller counts
+to 0. Recognize this three-instruction sequence as a branchless `==`.
 
 ## Your task
 

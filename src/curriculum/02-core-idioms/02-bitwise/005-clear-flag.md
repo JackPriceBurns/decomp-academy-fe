@@ -16,30 +16,31 @@ hints:
 
 # Why clearing a bit is *not* an `andi.`
 
-To **clear** a single flag you AND with the *inverse* mask. The natural C is
-`x &= ~0x80`. You might expect an `andi.` like the earlier AND lesson — but watch
-what actually comes out:
+To **clear** a single flag you AND with the *inverse* mask. You might expect an
+`andi.` like the earlier AND lesson — but look at what MWCC actually produces when
+clearing bit 6 (the `0x40` bit) of a value:
 
 ```asm
-rlwinm  r3, r3, 0, 25, 23    # x & ~0x80
+rlwinm  r3,r3,0,26,24
 blr
 ```
 
 That's **`rlwinm`** (rotate-left-word-immediate-then-AND-with-mask), *not*
-`andi.`. The reason is decisive: `~0x80` is `0xFFFFFF7F`, a 32-bit constant.
-`andi.` only has a **16-bit** immediate and could never express the high bits, so
+`andi.`. The reason is decisive: bit-complement masks are 32-bit constants.
+`andi.` only has a **16-bit** immediate and cannot express the high bits, so
 MWCC uses `rlwinm` with a rotate of 0 and a mask that spans everything except the
-one bit being cleared. To derive that mask yourself: `~0x80` is `0xFFFFFF7F`, so
-the only cleared bit is the one in `0x80`. PowerPC numbers bits from the MSB
-(bit 0 = `0x80000000`, bit 31 = `0x1`), which puts `0x80` at **bit 24**. The mask
-`[MB,ME] = [25,23]` therefore *wraps around* the word, covering bits 25-31 and
-0-23 — everything except bit 24.
+one bit being cleared.
 
-**This is a key MWCC idiom.** Write `x &= ~0x80` and you get `rlwinm`. If you had
-instead written `x &= 0xFF7F`, you'd get an `andi.` — but note that isn't a
-stylistic alternative: `0xFF7F` is `0x0000FF7F`, which also zeroes every bit above
-bit 15, unlike `~0x80` (`0xFFFFFF7F`). So it's both the wrong instruction *and* the
-wrong result — the source you write decides the instruction.
+To read the mask back: PowerPC numbers bits from the MSB (bit 0 = `0x80000000`,
+bit 31 = `0x1`). Bit 6 of the value (`0x40`) sits at **PPC bit 25**. The `[MB,ME]
+= [26,24]` mask *wraps around* the word, covering bits 26-31 and 0-24 — every bit
+except bit 25.
+
+**This is a key MWCC idiom.** Using `~` gives a 32-bit constant that forces
+`rlwinm`. Writing a literal constant instead (e.g. `0xFFFFFFBF`) would also clear
+only bit 25, but the *shape* of the source expression is what drives instruction
+selection. The assembly in your target uses different operands — work out which bit
+is being cleared, express that in C, and `rlwinm` will appear.
 
 ## Your task
 
