@@ -1,37 +1,7 @@
 import { LessonSource } from "@/lib/lessons/types";
-import { foundations } from "./lessons/foundations";
-import { workflow } from "./lessons/workflow";
-import { arithmetic } from "./lessons/arithmetic";
-import { bitwise } from "./lessons/bitwise";
-import { control } from "./lessons/control";
-import { loops } from "./lessons/loops";
-import { types } from "./lessons/types";
-import { pointers } from "./lessons/pointers";
-import { structs } from "./lessons/structs";
-import { floats } from "./lessons/floats";
-import { abi } from "./lessons/abi";
-import { globals } from "./lessons/globals";
-import { optimization } from "./lessons/optimization";
-import { advanced } from "./lessons/advanced";
-import { gauntlet } from "./lessons/gauntlet";
-import { mastery } from "./lessons/mastery";
+import lessons from "./generated/lessons.json";
 
-// Order matters: this is the canonical lesson order within the curriculum.
-export const ALL_LESSON_SOURCES: LessonSource[] = [
-  ...foundations,
-  ...workflow,
-  ...arithmetic,
-  ...bitwise,
-  ...control,
-  ...loops,
-  ...types,
-  ...pointers,
-  ...structs,
-  ...floats,
-  ...abi,
-  ...globals,
-  ...optimization,
-  ...advanced,
-  ...gauntlet,
-  ...mastery,
-];
+// Canonical lesson sources, compiled from the Markdown tree under
+// src/curriculum/<chapter>/*.md by scripts/build-curriculum.mjs (run on
+// predev/prebuild). Already in canonical order (chapter order, then in-chapter).
+export const ALL_LESSON_SOURCES = lessons as unknown as LessonSource[];

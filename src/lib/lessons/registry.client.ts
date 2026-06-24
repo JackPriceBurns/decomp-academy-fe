@@ -1,10 +1,9 @@
 // Client-safe, slim view of the lesson list. Carries only the metadata the
 // browser needs for navigation and progress — no briefs, solutions, or any
-// server-only imports.
-import { ALL_LESSON_SOURCES } from "@/curriculum";
+// server-only imports. The slim list is compiled from the Markdown tree by
+// scripts/build-curriculum.mjs and is already in canonical order.
+import slim from "@/curriculum/generated/lessons.client.json";
 import { CHAPTERS } from "@/curriculum/chapters";
-
-const chapterOrder = new Map(CHAPTERS.map((c) => [c.id, c.order]));
 
 export interface LessonMeta {
   id: string;
@@ -16,21 +15,6 @@ export interface LessonMeta {
   concept?: boolean;
 }
 
-export const LESSONS: LessonMeta[] = [...ALL_LESSON_SOURCES]
-  .sort((a, b) => {
-    const ca = chapterOrder.get(a.chapter) ?? 999;
-    const cb = chapterOrder.get(b.chapter) ?? 999;
-    if (ca !== cb) return ca - cb;
-    return a.order - b.order;
-  })
-  .map((l) => ({
-    id: l.id,
-    title: l.title,
-    chapter: l.chapter,
-    order: l.order,
-    difficulty: l.difficulty,
-    concepts: l.concepts,
-    concept: l.concept,
-  }));
+export const LESSONS = slim as unknown as LessonMeta[];
 
 export { CHAPTERS };

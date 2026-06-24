@@ -6,3 +6,6 @@ out
 .env*.local
 /scratch
 *.tsbuildinfo
+
+# Generated from the Markdown lesson tree by scripts/build-curriculum.mjs
+src/curriculum/generated/
