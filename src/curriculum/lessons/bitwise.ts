@@ -31,7 +31,7 @@ run.)
 
 ## Your task
 
-Write \`mask_bits\`, taking a \`u32 x\` and returning \`x & 0x12\`.
+Write \`mask_bits\` to match the target.
 `,
     symbol: "mask_bits",
     starter: `u32 mask_bits(u32 x) {
@@ -79,7 +79,7 @@ pair when the mask outgrows the bottom 16 bits.
 
 ## Your task
 
-Write \`set_bits\`, taking a \`u32 x\` and returning \`x | 0x12\`.
+Write \`set_bits\` to match the target.
 `,
     symbol: "set_bits",
     starter: `u32 set_bits(u32 x) {
@@ -120,7 +120,7 @@ register alone.
 
 ## Your task
 
-Write \`toggle_bit\`, taking a \`u32 x\` and returning \`x ^ 0x40\`.
+Write \`toggle_bit\` to match the target.
 `,
     symbol: "toggle_bit",
     starter: `u32 toggle_bit(u32 x) {
@@ -162,7 +162,7 @@ that the original C was \`flags |= SOME_FLAG;\`.
 
 ## Your task
 
-Write \`set_flag\`, taking a \`u32 x\`, performing \`x |= 0x40\`, and returning \`x\`.
+Write \`set_flag\` so it compiles to the \`ori\` above.
 `,
     symbol: "set_flag",
     starter: `u32 set_flag(u32 x) {
@@ -218,7 +218,7 @@ wrong result — the source you write decides the instruction.
 
 ## Your task
 
-Write \`clear_flag\`, taking a \`u32 x\`, performing \`x &= ~0x80\`, and returning \`x\`.
+Write \`clear_flag\` so it compiles to the \`rlwinm\` above.
 `,
     symbol: "clear_flag",
     starter: `u32 clear_flag(u32 x) {
@@ -265,7 +265,7 @@ two instructions.
 
 ## Your task
 
-Write \`test_bit\`, taking a \`u32 x\` and returning \`x & 0x80\`.
+Write \`test_bit\` to reproduce the assembly above.
 `,
     symbol: "test_bit",
     starter: `u32 test_bit(u32 x) {
@@ -310,7 +310,7 @@ whichever matches the original's intent.)
 
 ## Your task
 
-Write \`shl4\`, taking a \`u32 x\` and returning \`x << 4\`.
+Write \`shl4\` so it compiles to the \`slwi\` above.
 `,
     symbol: "shl4",
     starter: `u32 shl4(u32 x) {
@@ -353,7 +353,7 @@ entirely (the next lesson).
 
 ## Your task
 
-Write \`lsr3\`, taking a \`u32 x\` and returning \`x >> 3\`.
+Write \`lsr3\` so it compiles to the \`srwi\` above.
 `,
     symbol: "lsr3",
     starter: `u32 lsr3(u32 x) {
@@ -399,7 +399,7 @@ lesson.)
 
 ## Your task
 
-Write \`asr3\`, taking an \`s32 x\` and returning \`x >> 3\`.
+Write \`asr3\` so it compiles to the \`srawi\` above.
 `,
     symbol: "asr3",
     starter: `s32 asr3(s32 x) {
@@ -444,7 +444,7 @@ count lives in a register instead of the instruction. Seeing \`slw\`/\`srw\`/\`s
 
 ## Your task
 
-Write \`shl_var\`, taking an \`int x\` and an \`int n\`, returning \`x << n\`.
+Write \`shl_var\` to match the target.
 `,
     symbol: "shl_var",
     starter: `int shl_var(int x, int n) {
@@ -490,7 +490,7 @@ whenever you see a rotate amount paired with a low-bit mask, read it back as
 
 ## Your task
 
-Write \`extract_nibble\`, taking a \`u32 x\` and returning \`(x >> 4) & 0xF\`.
+Write \`extract_nibble\` to reproduce the assembly above.
 `,
     symbol: "extract_nibble",
     starter: `u32 extract_nibble(u32 x) {

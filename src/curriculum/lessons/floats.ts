@@ -69,7 +69,7 @@ than 64-bit double.
 
 ## Your task
 
-Write \`mul_f\`, returning \`a * b\` for two \`f32\`s.
+Write \`mul_f\` to match the \`fmuls\` above.
 `,
     symbol: "mul_f",
     starter: `f32 mul_f(f32 a, f32 b) {
@@ -110,7 +110,7 @@ one fewer idiom to memorize.
 
 ## Your task
 
-Write \`sub_f\`, returning \`a - b\` for two \`f32\`s.
+Write \`sub_f\` to compile to the \`fsubs\` above.
 `,
     symbol: "sub_f",
     starter: `f32 sub_f(f32 a, f32 b) {
@@ -151,7 +151,7 @@ You only get \`fdivs\` when the divisor is a runtime value.
 
 ## Your task
 
-Write \`div_f\`, returning \`a / b\` for two \`f32\`s.
+Write \`div_f\` to match the \`fdivs\` above.
 `,
     symbol: "div_f",
     starter: `f32 div_f(f32 a, f32 b) {
@@ -196,7 +196,7 @@ don't hand-write the \`0.25f\`.
 
 ## Your task
 
-Write \`quarter\`, taking an \`f32 x\` and returning \`x / 4.0f\`.
+Write \`quarter\` taking an \`f32 x\` so it compiles to the \`lfs\` + \`fmuls\` above.
 `,
     symbol: "quarter",
     starter: `f32 quarter(f32 x) {
@@ -238,7 +238,7 @@ to recover the original C declarations.
 
 ## Your task
 
-Write \`add_d\`, returning \`a + b\` for two \`f64\`s.
+Write \`add_d\` to compile to the \`fadd\` above.
 `,
     symbol: "add_d",
     starter: `f64 add_d(f64 a, f64 b) {
@@ -294,7 +294,7 @@ precision and the \`frsp\` disappears.
 
 ## Your task
 
-Write \`halve\` that takes an \`f32 x\` and returns \`x * 0.5f\` — with **no \`frsp\`**.
+Write \`halve\` to reproduce the assembly above — with **no \`frsp\`**.
 Use \`f32\` throughout and the \`0.5f\` literal (note the \`f\` suffix).
 `,
     symbol: "halve",
@@ -340,7 +340,7 @@ the expression.
 
 ## Your task
 
-Write \`quarter\` taking an \`f32 x\` and returning \`x * 0.25f\`.
+Write \`quarter\` taking an \`f32 x\` to match the target assembly above.
 `,
     symbol: "quarter",
     starter: `f32 quarter(f32 x) {
@@ -386,8 +386,8 @@ vice versa. The double-precision cousin is \`fmadd\` (no \`s\`); related forms a
 
 ## Your task
 
-Write \`fma3\` taking three \`f32\`s and returning \`a * b + c\`. Write it as the plain
-expression — let the compiler fuse it.
+Write \`fma3\` taking three \`f32\`s so it compiles to the \`fmadds\` above. Write it
+as a plain expression — let the compiler fuse it.
 `,
     symbol: "fma3",
     starter: `f32 fma3(f32 a, f32 b, f32 c) {
@@ -440,7 +440,7 @@ signature of a cast from \`int\` to floating point.
 
 ## Your task
 
-Write \`i2f\` taking an \`int x\` and returning \`(f32)x\`.
+Write \`i2f\` taking an \`int x\` to reproduce the assembly above.
 `,
     symbol: "i2f",
     starter: `f32 i2f(int x) {
@@ -486,7 +486,7 @@ round-toward-zero \`fctiwz\` matches C's truncating conversion semantics.
 
 ## Your task
 
-Write \`f2i\` taking an \`f32 x\` and returning \`(int)x\`.
+Write \`f2i\` taking an \`f32 x\` to match the target assembly above.
 `,
     symbol: "f2i",
     starter: `int f2i(f32 x) {
@@ -591,8 +591,7 @@ as a register move.
 
 ## Your task
 
-Write \`negabs\` taking an \`f32 x\` and returning \`-__fabsf(x)\` (negative absolute
-value).
+Write \`negabs\` taking an \`f32 x\` to compile to the two sign-bit instructions above.
 `,
     symbol: "negabs",
     starter: `f32 negabs(f32 x) {

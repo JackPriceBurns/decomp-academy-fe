@@ -30,7 +30,7 @@ The trick: \`cntlzw\` returns **32** only for an all-zero word, and \`32 >> 5\` 
 
 ## Your task
 
-Write \`is_equal\`, returning \`a == b\` as an \`int\`.
+Write \`is_equal\` so it compiles to the \`subf\` / \`cntlzw\` / \`srwi\` idiom above.
 `,
     symbol: "is_equal",
     starter: `int is_equal(int a, int b) {
@@ -78,7 +78,7 @@ is still correct.)
 
 ## Your task
 
-Write \`not_equal\`, returning \`a != b\`.
+Write \`not_equal\` to match the target assembly above.
 `,
     symbol: "not_equal",
     starter: `int not_equal(int a, int b) {

@@ -32,7 +32,7 @@ the moment you read fields out of a struct, so keep it in mind.
 
 ## Your task
 
-Write \`load_u8\`, which takes a \`u8*\` and returns the first byte \`p[0]\`.
+Write \`load_u8\` to match the target assembly above.
 `,
     symbol: "load_u8",
     starter: `u8 load_u8(u8* p) {
@@ -72,7 +72,7 @@ whole job in one instruction. Memorize the family: \`lbz\` for unsigned bytes,
 
 ## Your task
 
-Write \`load_u16\`, which takes a \`u16*\` and returns \`p[0]\`.
+Write \`load_u16\` to match the target assembly above.
 `,
     symbol: "load_u16",
     starter: `u16 load_u16(u16* p) {
@@ -163,7 +163,7 @@ The pointer \`p\` is in \`r3\`, the value \`v\` is in \`r4\`. \`stb\` silently *
 
 ## Your task
 
-Write \`store_u8\`, taking a \`u8*\` and a \`u8\` value, writing the value to \`p[0]\`.
+Write \`store_u8\` so it compiles to the \`stb\` above.
 `,
     symbol: "store_u8",
     starter: `void store_u8(u8* p, u8 v) {
@@ -203,7 +203,7 @@ where sign-extension happens, never the store.
 
 ## Your task
 
-Write \`store_u16\`, taking a \`u16*\` and a \`u16\` value, writing it to \`p[0]\`.
+Write \`store_u16\` so it compiles to the \`sth\` above.
 `,
     symbol: "store_u16",
     starter: `void store_u16(u16* p, u16 v) {
@@ -367,7 +367,7 @@ clrlwi r3, r3, 16   = x & 0xFFFF   (keep low 16 bits)
 
 ## Your task
 
-Write \`low_byte\`, taking an \`int x\` and returning \`x & 0xFF\` as a \`u8\`.
+Write \`low_byte\` to reproduce the \`clrlwi\` assembly above.
 `,
     symbol: "low_byte",
     starter: `u8 low_byte(int x) {
@@ -416,8 +416,7 @@ explicit narrowing cast in the source, not from a load.
 
 ## Your task
 
-Write \`as_s8\`, taking an \`int x\` and returning \`(s8)x\` as an \`int\`. Expect a
-single \`extsb\`.
+Write \`as_s8\` so it compiles to the single \`extsb\` above.
 `,
     symbol: "as_s8",
     starter: `int as_s8(int x) {
@@ -580,8 +579,7 @@ byte.**
 
 ## Your task
 
-Write \`bump\`, taking a \`u8*\` and incrementing \`p[0]\` in place. Expect exactly
-\`lbz\` / \`addi\` / \`stb\` with no \`extsb\`.
+Write \`bump\` to match the target. Expect exactly \`lbz\` / \`addi\` / \`stb\` with no \`extsb\`.
 `,
     symbol: "bump",
     starter: `void bump(u8* p) {

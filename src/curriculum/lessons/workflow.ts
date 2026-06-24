@@ -274,8 +274,8 @@ you're at 100%. If not, the first diverging line tells you what to reconsider.
 
 ## Your task
 
-Write \`scale\`, which takes an \`int x\` and returns \`x\` multiplied by 4. Write the
-*meaning* (\`x * 4\`), compile, and confirm it lowers to \`slwi\`.
+Write \`scale\` so it compiles to the \`slwi\` above. Write the *meaning*, let MWCC
+pick the instruction, and confirm you get a 100% match.
 `,
     symbol: "scale",
     starter: `int scale(int x) {

@@ -34,7 +34,7 @@ offset is the job.
 
 ## Your task
 
-With the \`Point\` struct above, write \`Point_getY\` returning \`p->y\`.
+With the \`Point\` struct above, write \`Point_getY\` to match the target.
 `,
     symbol: "Point_getY",
     context: `typedef struct { int x; int y; } Point;`,
@@ -128,7 +128,7 @@ loaded without arithmetic — \`char\` would drag in a spurious \`extsb\` sign-e
 
 ## Your task
 
-With the \`Color\` struct above, write \`Color_getG\` returning \`c->g\`.
+With the \`Color\` struct above, write \`Color_getG\` to match the target.
 `,
     symbol: "Color_getG",
     context: `typedef struct { u8 r; u8 g; u8 b; u8 a; } Color;`,
@@ -224,7 +224,7 @@ pushed it forward — the gap is invisible in the C but very visible in the asm.
 
 ## Your task
 
-With the \`S\` struct above, write \`S_getCount\` returning \`s->count\`.
+With the \`S\` struct above, write \`S_getCount\` so it compiles to the \`lhz\` above.
 `,
     symbol: "S_getCount",
     context: `typedef struct { u8 tag; u16 count; } S;`,
@@ -277,7 +277,7 @@ rather than a flat one.
 
 ## Your task
 
-With the structs above, write \`Entity_getPosY\` returning \`e->pos.y\`.
+With the structs above, write \`Entity_getPosY\` to reproduce the assembly above.
 `,
     symbol: "Entity_getPosY",
     context: `typedef struct { f32 x; f32 y; f32 z; } Vec3;
@@ -331,7 +331,7 @@ instead, e.g. \`slwi r0, r4, 3\`.) When you spot a \`mulli\`/\`slwi\` feeding an
 
 ## Your task
 
-With \`Vec3i\` above, write \`getZ\` returning \`a[i].z\`.
+With \`Vec3i\` above, write \`getZ\` to match the target.
 `,
     symbol: "getZ",
     context: `typedef struct { int x; int y; int z; } Vec3i;`,
@@ -382,7 +382,7 @@ spelling, and the one to prefer when you recover this load.
 
 ## Your task
 
-With \`FloatBits\` above, write \`floatRawBits\` returning \`u->bits\`.
+With \`FloatBits\` above, write \`floatRawBits\` to match the target.
 `,
     symbol: "floatRawBits",
     context: `typedef union { f32 f; u32 bits; } FloatBits;`,
@@ -549,7 +549,7 @@ bitfield**.
 
 ## Your task
 
-With \`Pixel\` above, write \`Pixel_getG\` returning \`p->g\`.
+With \`Pixel\` above, write \`Pixel_getG\` so it compiles to the \`rlwinm\` above.
 `,
     symbol: "Pixel_getG",
     context: `typedef struct { u32 r : 5; u32 g : 6; u32 b : 5; u32 a : 16; } Pixel;`,
@@ -672,7 +672,7 @@ argument \`a\` is already in \`r3\`, so no extra setup is needed before the call
 
 ## Your task
 
-With \`Actor\` above, write \`Actor_run\` that calls \`a->update(a)\`.
+With \`Actor\` above, write \`Actor_run\` to reproduce the assembly above.
 `,
     symbol: "Actor_run",
     context: `typedef struct Actor {

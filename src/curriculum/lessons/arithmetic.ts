@@ -24,7 +24,7 @@ here. Multiplying by a *constant* is a different story — that's the next lesso
 
 ## Your task
 
-Write \`mul2\`, returning \`a * b\`.
+Write \`mul2\` so it compiles to the \`mullw\` above.
 `,
     symbol: "mul2",
     starter: `int mul2(int a, int b) {
@@ -66,7 +66,7 @@ decompiler instinct.
 
 ## Your task
 
-Write \`times8\`, returning \`x * 8\`.
+Write \`times8\` to match the target.
 `,
     symbol: "times8",
     starter: `int times8(int x) {
@@ -105,7 +105,7 @@ adds when that's cheaper — but for many small values it just emits \`mulli\`.)
 
 ## Your task
 
-Write \`times12\`, returning \`x * 12\`.
+Write \`times12\` so it compiles to the \`mulli\` above.
 `,
     symbol: "times12",
     starter: `int times12(int x) {
@@ -150,7 +150,7 @@ walks through.
 (\`u32\` is the GameCube SDK's typedef for \`unsigned int\` — it's pre-declared for
 you here, not a built-in C type.)
 
-Write \`udiv4\` taking a \`u32 x\` and returning \`x / 4\`.
+Write \`udiv4\` taking a \`u32 x\` to reproduce the assembly above.
 `,
     symbol: "udiv4",
     starter: `u32 udiv4(u32 x) {
@@ -196,7 +196,7 @@ case.
 
 ## Your task
 
-Write \`sdiv4\`, taking a signed \`int x\` and returning \`x / 4\`.
+Write \`sdiv4\`, taking a signed \`int x\`, to reproduce the \`srawi\`/\`addze\` pair above.
 `,
     symbol: "sdiv4",
     starter: `int sdiv4(int x) {
@@ -236,7 +236,7 @@ instruction*.
 
 ## Your task
 
-Write \`div2\`, returning \`a / b\` for signed \`int\`s.
+Write \`div2\` for signed \`int\`s to match the target.
 `,
     symbol: "div2",
     starter: `int div2(int a, int b) {
@@ -282,7 +282,7 @@ original C was a \`%\` operator.
 
 ## Your task
 
-Write \`mod2\`, returning \`a % b\` for signed \`int\`s.
+Write \`mod2\` for signed \`int\`s to reproduce the assembly above.
 `,
     symbol: "mod2",
     starter: `int mod2(int a, int b) {
@@ -329,7 +329,7 @@ source's. Predicting these small reorderings is exactly what matching trains.
 
 ## Your task
 
-Write \`add3\`, returning \`a + b + c\`.
+Write \`add3\` to match the target.
 `,
     symbol: "add3",
     starter: `int add3(int a, int b, int c) {
@@ -370,7 +370,7 @@ arithmetic expression that produced them. That reverse-mapping is the whole job.
 
 ## Your task
 
-Write \`affine\`, returning \`x * 4 + 1\`.
+Write \`affine\` to reproduce the assembly above.
 `,
     symbol: "affine",
     starter: `int affine(int x) {

@@ -373,8 +373,8 @@ scheduler before you suspect an exotic source expression.
 
 ## Your task
 
-Write \`dot2(f32 *a, f32 *b)\` returning \`a[0]*b[0] + a[1]*b[1]\`. Write it as the
-plain sum of two products and let the scheduler interleave.
+Write \`dot2(f32 *a, f32 *b)\` to match the interleaved \`fmuls\`/\`fmadds\` assembly
+above. Write it as the plain sum of two products and let the scheduler interleave.
 `,
     symbol: "dot2",
     starter: `f32 dot2(f32 *a, f32 *b) {
@@ -430,8 +430,8 @@ pragma rather than guessing at a different expression.
 
 ## Your task
 
-Write \`madd(f32 a, f32 b, f32 c)\` returning \`a*b + c\`. With \`fp_contract off\`
-in force, it must compile to a separate \`fmuls\` and \`fadds\` — not \`fmadds\`.
+Write \`madd(f32 a, f32 b, f32 c)\` so it compiles to the separate \`fmuls\` and
+\`fadds\` above — not the fused \`fmadds\`.
 `,
     symbol: "madd",
     starter: `#pragma fp_contract off
@@ -552,8 +552,8 @@ or pointer writes where the compiler can't prove that.
 
 ## Your task
 
-Write \`reuse(int a, int b)\` returning \`(a / b) + (a / b) * 7\`. Even though you
-write \`a / b\` twice, the result must contain a single \`divw\`.
+Write \`reuse(int a, int b)\` to match the assembly above — a single \`divw\` whose
+result feeds both the add and the \`mulli\`.
 `,
     symbol: "reuse",
     starter: `int reuse(int a, int b) {

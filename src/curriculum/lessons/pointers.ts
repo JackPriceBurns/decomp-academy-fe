@@ -28,7 +28,7 @@ displacement is \`0\` because we want the very first word.
 
 ## Your task
 
-Write \`load_int\`, which takes an \`int* p\` and returns \`*p\`.
+Write \`load_int\` to match the target assembly above.
 `,
     symbol: "load_int",
     starter: `int load_int(int* p) {
@@ -71,8 +71,7 @@ base + displacement addressing mode from the load applies here too.
 
 ## Your task
 
-Write \`store_int\`, which takes an \`int* p\` and an \`int v\` and performs
-\`*p = v\`.
+Write \`store_int\` so it compiles to the \`stw\` above.
 `,
     symbol: "store_int",
     starter: `void store_int(int* p, int v) {
@@ -112,7 +111,7 @@ byte displacement \`8\`. Reading disassembly, you divide back — a displacement
 
 ## Your task
 
-Write \`third\`, which takes an \`int* p\` and returns \`p[2]\`.
+Write \`third\` to reproduce the assembly above.
 `,
     symbol: "third",
     starter: `int third(int* p) {
@@ -154,8 +153,7 @@ reads back as "the third \`int\`".
 
 ## Your task
 
-Write \`set_third\`, which takes an \`int* p\` and an \`int v\` and performs
-\`p[2] = v\`.
+Write \`set_third\` to match the target assembly above.
 `,
     symbol: "set_third",
     starter: `void set_third(int* p, int v) {
@@ -198,7 +196,7 @@ context (\`&arr[i]\` for array-shaped data, \`p + n\` for pointer walks).
 
 ## Your task
 
-Write \`advance3\`, which takes an \`int* p\` and returns the pointer \`p + 3\`.
+Write \`advance3\` so it compiles to the \`addi\` above.
 `,
     symbol: "advance3",
     starter: `int* advance3(int* p) {
@@ -247,7 +245,7 @@ the friendlier \`slwi r0, r4, 2\` — they're the same shift.
 
 ## Your task
 
-Write \`at\`, which takes an \`int* p\` and an \`int i\` and returns \`p[i]\`.
+Write \`at\` to match the target assembly above.
 `,
     symbol: "at",
     starter: `int at(int* p, int i) {
@@ -298,7 +296,7 @@ bare \`lbzx\`.
 
 ## Your task
 
-Write \`byte_at\`, which takes a \`u8* p\` and an \`int i\` and returns \`p[i]\`.
+Write \`byte_at\` so it compiles to the \`lbzx\` above.
 `,
     symbol: "byte_at",
     starter: `u8 byte_at(u8* p, int i) {
@@ -341,7 +339,7 @@ Swap to \`u16\` and the only change is \`lhax\` → \`lhzx\`. The shift of 1 tel
 
 ## Your task
 
-Write \`half_at\`, which takes an \`s16* p\` and an \`int i\` and returns \`p[i]\`.
+Write \`half_at\` to match the target assembly above.
 `,
     symbol: "half_at",
     starter: `s16 half_at(s16* p, int i) {

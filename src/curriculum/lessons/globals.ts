@@ -37,7 +37,7 @@ global is \`extern\` or defined in this file, the access looks identical.
 ## Your task
 
 Declare nothing yourself — \`extern int gFrameCount;\` is already provided. Write
-\`readFrameCount\`, returning \`gFrameCount\`.
+\`readFrameCount\` to match the target assembly above.
 `,
     symbol: "readFrameCount",
     context: `extern int gFrameCount;`,
@@ -83,8 +83,8 @@ with nothing computing an address beforehand, the C was simply \`sym = value;\`.
 
 ## Your task
 
-\`extern int gScore;\` is provided. Write \`setScore\`, which takes an \`int v\` and
-assigns it to \`gScore\` (no return value).
+\`extern int gScore;\` is provided. Write \`setScore\`, taking an \`int v\`, so it
+compiles to the \`stw\` above (no return value).
 `,
     symbol: "setScore",
     context: `extern int gScore;`,
@@ -134,8 +134,8 @@ sibling of the \`stw\` from the previous lesson.
 
 ## Your task
 
-\`extern u8 gPlayerHealth;\` is provided. Write \`readHealth\`, returning
-\`gPlayerHealth\`. Keep the return type \`u8\` so the load stays \`lbz\`.
+\`extern u8 gPlayerHealth;\` is provided. Write \`readHealth\` to match the target.
+Keep the return type \`u8\` so the load stays \`lbz\`.
 `,
     symbol: "readHealth",
     context: `extern u8 gPlayerHealth;`,
@@ -188,7 +188,7 @@ pool — just one load.
 
 ## Your task
 
-\`extern f32 gGravity;\` is provided. Write \`readGravity\`, returning \`gGravity\`.
+\`extern f32 gGravity;\` is provided. Write \`readGravity\` to reproduce the \`lfs\` assembly above.
 `,
     symbol: "readGravity",
     context: `extern f32 gGravity;`,
@@ -365,8 +365,8 @@ CodeWarrior output — don't read it as significant.
 
 ## Your task
 
-\`extern int gScores[];\` is provided. Write \`getScore\`, taking an \`int i\` and
-returning \`gScores[i]\`.
+\`extern int gScores[];\` is provided. Write \`getScore\`, taking an \`int i\`, so it
+compiles to the indexed array load above.
 `,
     symbol: "getScore",
     context: `extern int gScores[];`,

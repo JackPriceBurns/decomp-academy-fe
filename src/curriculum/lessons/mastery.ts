@@ -1098,10 +1098,9 @@ and that is exactly the edit the real match made.
 ## Your task
 
 With the structs above, write \`tumbler_integrateSpin\` under \`#pragma peephole off\`.
-For each of X, Y, Z, integrate the rate into the angle:
-\`spin = (s16)((f32)(int)rate * timeDelta + (f32)(int)spin)\`. Cast directly on the
-store value — do **not** route through an \`int\` local, or the \`extsh\` masks will
-reappear and break the match.
+For each of X, Y, Z, integrate the rate into the angle to match the assembly above.
+Cast directly on the store value — do **not** route through an \`int\` local, or the
+\`extsh\` masks will reappear and break the match.
 `,
     symbol: "tumbler_integrateSpin",
     context: `typedef struct { s16 spinX; s16 spinY; s16 spinZ; } GameObject;

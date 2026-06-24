@@ -76,8 +76,7 @@ has no register left and must spill to the stack — a case you'll meet later.
 
 ## Your task
 
-Write \`pick5\`, taking five \`int\`s and returning \`a + e\` (the first plus the
-fifth).
+Write \`pick5\`, taking five \`int\`s, so it compiles to the \`add\` above.
 `,
     symbol: "pick5",
     starter: `int pick5(int a, int b, int c, int d, int e) {
@@ -123,7 +122,7 @@ integer side.
 
 ## Your task
 
-Write \`fadd3\`, taking three \`f32\`s and returning \`a + b + c\`.
+Write \`fadd3\`, taking three \`f32\`s, to match the target assembly above.
 `,
     symbol: "fadd3",
     starter: `f32 fadd3(f32 a, f32 b, f32 c) {
@@ -169,7 +168,7 @@ ever preserving \`r0\` itself.)
 
 ## Your task
 
-Write \`leaf\`, taking two \`int\`s and returning \`a * b + 1\`. It calls nothing, so
+Write \`leaf\`, taking two \`int\`s, to reproduce the assembly above. It calls nothing, so
 expect no stack frame.
 `,
     symbol: "leaf",
@@ -287,7 +286,7 @@ our own return value belongs, so the epilogue can return it directly.
 
 ## Your task
 
-Write \`forward\`, which returns \`combine(x, x + 1)\`. \`combine\` is declared for
+Write \`forward\`, which calls \`combine\` with the arguments marshalled as shown above. \`combine\` is declared for
 you.
 `,
     symbol: "forward",
@@ -476,7 +475,7 @@ caller's frame. Don't go looking for that pattern; this compiler never emits it.
 
 ## Your task
 
-Write \`call_it\`, which returns \`helper(x)\`. \`helper\` is declared for you. Expect
+Write \`call_it\` to match the target. \`helper\` is declared for you. Expect
 the call surrounded only by the prologue and epilogue.
 `,
     symbol: "call_it",

@@ -34,8 +34,8 @@ function returns. You'll see \`blr\` at the end of almost everything.
 
 ## Your task
 
-The target on the right is exactly those two instructions. Write the C function
-\`answer\` that returns **42**. Hit **Compile & Check** (or ⌘/Ctrl + Enter).
+The target on the right is exactly those two instructions. Write \`answer\` to
+match them. Hit **Compile & Check** (or ⌘/Ctrl + Enter).
 `,
     symbol: "answer",
     starter: `int answer(void) {
@@ -158,7 +158,7 @@ looking backwards.
 
 ## Your task
 
-Write \`sub2\`, returning \`a - b\`.
+Write \`sub2\` to reproduce the \`subf\` assembly above.
 `,
     symbol: "sub2",
     starter: `int sub2(int a, int b) {
@@ -200,7 +200,7 @@ pattern later will save you some confusion.
 
 ## Your task
 
-Write \`increment\`, returning \`x + 1\`.
+Write \`increment\` so it compiles to the \`addi\` above.
 `,
     symbol: "increment",
     starter: `int increment(int x) {
@@ -240,7 +240,7 @@ operation from smaller pieces. Recognizing those idioms is most of the game.
 
 ## Your task
 
-Write \`negate\`, returning \`-x\`.
+Write \`negate\` to match the target assembly.
 `,
     symbol: "negate",
     starter: `int negate(int x) {

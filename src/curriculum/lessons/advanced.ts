@@ -307,7 +307,7 @@ instruction, it just makes the C readable and the intent obvious.
 
 ## Your task
 
-Write \`is_running(struct Actor *a)\` returning \`a->state == STATE_RUN\`. The
+Write \`is_running(struct Actor *a)\` to match the assembly above. The
 \`State\` enum and \`Actor\` struct are provided. Confirm for yourself that
 replacing \`STATE_RUN\` with the literal \`2\` produces the same asm.
 `,
@@ -368,9 +368,9 @@ otherwise do, which is exactly what hardware-register code depends on.
 
 ## Your task
 
-Write \`twice_vol\` returning \`g_counter + g_counter\`, where \`g_counter\` is the
-provided \`volatile int\`. Because it's volatile, expect **two** \`lwz\` of the same
-global, not a CSE'd single load.
+Write \`twice_vol\` to reproduce the assembly above, using the provided
+\`volatile int g_counter\`. Two \`lwz\` of the same global is the expected result —
+not the CSE'd single load you'd see without \`volatile\`.
 `,
     symbol: "twice_vol",
     context: `extern volatile int g_counter;
@@ -427,9 +427,8 @@ pointer \`volatile\`, not bolting on a workaround.
 
 ## Your task
 
-Write \`read_status\` that reads \`*(vu32*)0xCC003000\` into two locals \`a\` and
-\`b\` and returns \`a + b\`. The \`vu32\` typedef is part of the shared preamble.
-Both reads must survive as separate \`lwz\`.
+Write \`read_status\` to match the assembly above. The \`vu32\` typedef is part
+of the shared preamble. Both loads must survive as separate \`lwz\`.
 `,
     symbol: "read_status",
     starter: `int read_status(void) {
