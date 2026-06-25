@@ -8,8 +8,10 @@ concepts:
   - arguments
 symbol: fourth
 hints:
-  - Arguments map to r3, r4, r5, r6 in order — the 4th is in r6.
-  - "`return d;` copies r6 into r3: `mr r3, r6`."
+  - Arguments map to r3, r4, r5, r6 in order — read the `mr`'s source register
+    and count to find its position.
+  - A single `mr r3, rN` copies the Nth argument into the return register; no
+    other work is needed.
 ---
 
 # Where the arguments live

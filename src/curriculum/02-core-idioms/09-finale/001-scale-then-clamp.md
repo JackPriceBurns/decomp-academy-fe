@@ -1,9 +1,9 @@
 ---
-id: synthesis-scale-then-clamp
-title: "Synthesis: Scale, Then Clamp"
+id: finale-scale-then-clamp
+title: "Scale, Then Clamp"
 difficulty: 2
 concepts:
-  - synthesis
+  - finale
   - arithmetic
   - clamp
   - control

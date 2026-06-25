@@ -10,7 +10,7 @@ symbol: mul_64
 hints:
   - A 64-bit product expands inline into a recognizable burst of mullw/mulhwu plus adds.
   - "One `mulhwu` (high half of low×low) and three `mullw`s, summed together — that whole block is one `a * b`."
-  - Just write `a * b` on two `u64` parameters.
+  - The whole burst is one ordinary single-operator combination of the two parameters; the compiler expands it for you.
 ---
 
 # The multiply burst

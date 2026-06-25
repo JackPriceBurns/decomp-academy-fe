@@ -10,7 +10,7 @@ symbol: shl_64
 hints:
   - A variable 64-bit shift has no single instruction, so it calls a helper just like division.
   - "Look for `bl __shl2i`; the shift amount is moved into r5 (`mr r5,r6`) before the call."
-  - Just write `a << b` on two `u64` parameters.
+  - The helper name (`__shl2i` vs `__shr2u`) tells you the shift direction; the operands are the two parameters.
 ---
 
 # Shifting a value wider than the shifter

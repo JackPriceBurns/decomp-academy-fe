@@ -1,9 +1,9 @@
 ---
-id: synthesis-masked-guarded-sum
-title: "Synthesis: A Masked, Guarded Accumulator"
+id: finale-masked-guarded-sum
+title: "A Masked, Guarded Accumulator"
 difficulty: 2
 concepts:
-  - synthesis
+  - finale
   - loops
   - bitwise
   - mask

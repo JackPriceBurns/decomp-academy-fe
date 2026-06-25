@@ -1,9 +1,9 @@
 ---
-id: synthesis-build-a-bitmask
-title: "Synthesis: Building a Bitmask in a Loop"
+id: finale-build-a-bitmask
+title: "Building a Bitmask in a Loop"
 difficulty: 3
 concepts:
-  - synthesis
+  - finale
   - loops
   - control
   - bitwise

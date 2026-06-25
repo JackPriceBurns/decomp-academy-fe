@@ -28,10 +28,10 @@ Two reads of the same hardware register therefore stay two reads. For example,
 reading `0xCC005000` (the DMA controller) twice and adding the results:
 
 ```asm
-lis r4, -13312       # build the high half of the address (0xCC000000)
-lwz r3, 20480(r4)   # first read of the register (0x5000 = 20480)
-lwz r0, 20480(r4)   # second read — volatile keeps it
-add r3, r3, r0
+lis r3, -13312       # build the high half of the address (0xCC000000)
+lwz r0, 20480(r3)   # first read of the register (0x5000 = 20480)
+lwz r3, 20480(r3)   # second read — volatile keeps it
+add r3, r0, r3
 blr
 ```
 

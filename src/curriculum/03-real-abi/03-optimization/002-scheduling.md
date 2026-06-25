@@ -55,6 +55,10 @@ numbers. When a target's order looks "interleaved" like this, it's the
 scheduler — not a clue about the source. Your C stays simple; the scheduler
 produces the shape.
 
+Here you meet the `#pragma scheduling off` lever for the first time, used on a
+single function. Lesson 5 returns to it as a discipline — bracketing a *region*
+with a matching `off`/`reset` pair — but the mechanism is the one you see now.
+
 ## Your task
 
 Write `combine2(int *p)` to reproduce the unscheduled, source-order assembly

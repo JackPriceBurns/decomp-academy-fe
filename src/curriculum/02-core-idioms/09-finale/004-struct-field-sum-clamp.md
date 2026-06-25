@@ -1,9 +1,9 @@
 ---
-id: synthesis-struct-field-sum-clamp
-title: "Synthesis: Sum a Struct Field, Then Clamp"
+id: finale-struct-field-sum-clamp
+title: "Sum a Struct Field, Then Clamp"
 difficulty: 3
 concepts:
-  - synthesis
+  - finale
   - structs
   - arrays
   - loops

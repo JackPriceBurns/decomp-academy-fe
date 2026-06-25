@@ -10,7 +10,7 @@ symbol: lt_64
 hints:
   - A branchless u64 `a < b` is built from the subtract-with-borrow pair plus a trick to extract the borrow.
   - "`subfc`/`subfe` do the 64-bit subtract; a second `subfe r3,r4,r4` materializes the borrow bit, and `neg` turns it into 0/1."
-  - Return type is `int`; both parameters are `u64`. Write `return a < b;`.
+  - Return type is `int`; both parameters are `u64`. The body is a single relational comparison of the two.
 ---
 
 # Turning a 64-bit subtract into a boolean

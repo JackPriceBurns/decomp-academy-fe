@@ -10,7 +10,7 @@ symbol: and_64
 hints:
   - AND/OR/XOR have no carry between halves, so each is just the 32-bit op done twice.
   - "`and r4,r4,r6` then `and r3,r3,r5` — low pair, then high pair."
-  - Just write `a & b` on two `u64` parameters.
+  - The instruction mnemonic (`and`/`or`/`xor`) names the single operator the source used.
 ---
 
 # No carry, no fingerprint

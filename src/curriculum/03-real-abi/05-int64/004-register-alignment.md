@@ -10,7 +10,7 @@ symbol: aligned_64
 hints:
   - A u64 argument must start on an *odd* register number, so a preceding u32 can leave a gap.
   - "With `u32 a` in r3, the `u64 b` skips r4 and occupies r5:r6 — so the body works on r5/r6, not r4/r5."
-  - The C is just `return b + 5;` — the lesson is *which registers* that touches.
+  - The body is a single add of a small constant onto the second parameter — the lesson is *which registers* that touches.
 ---
 
 # Why a register sometimes gets skipped

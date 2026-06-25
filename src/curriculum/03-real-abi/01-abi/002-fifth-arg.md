@@ -8,8 +8,9 @@ concepts:
   - arguments
 symbol: pick5
 hints:
-  - The 5th argument arrives in r7.
-  - "`a + e` is `add r3, r3, r7` with no setup needed."
+  - The 5th argument arrives in r7; r3 holds the 1st.
+  - The `add` reads two argument registers directly — map each to its parameter,
+    no setup needed.
 ---
 
 # Counting up to r7

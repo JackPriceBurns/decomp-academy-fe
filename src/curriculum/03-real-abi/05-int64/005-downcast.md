@@ -8,7 +8,7 @@ concepts:
   - detection
 symbol: add_64_downcast
 hints:
-  - The math is 64-bit even though the return type is u32 — add two u64s, return u32.
+  - The operands are 64-bit even though the return type is narrow; the truncation happens in the cast, not the arithmetic.
   - "MWCC still emits `addc` on the low word, then just `mr r3,r4` to deliver it — the carry instruction gives away the hidden 64-bit add."
   - Return type is `u32`; both parameters are `u64`.
 ---

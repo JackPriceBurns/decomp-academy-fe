@@ -60,9 +60,9 @@ float-to-byte path looks like.
 <!-- starter -->
 ```c
 void worldUpdate(void) {
-    // 1) bump gCounter
-    // 2) gLerpT = gSrcA
-    // 3) gColor = (u8)(s32)(gSrcA * gSrcB)
+    // 1) advance the counter global by one
+    // 2) copy one float global into another
+    // 3) truncate the product of the two float globals into the byte global
 }
 ```
 

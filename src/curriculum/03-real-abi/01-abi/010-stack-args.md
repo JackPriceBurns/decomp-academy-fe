@@ -9,8 +9,9 @@ concepts:
 symbol: ninth
 hints:
   - Only the first 8 integer arguments get registers (r3-r10); the 9th spills to
-    the stack.
-  - "`return i;` loads the spilled argument: `lwz r3, 8(r1)`."
+    the stack at `8(r1)`.
+  - The single `lwz r3, 8(r1)` fetches the spilled argument — work out which
+    parameter position it is and return it.
 ---
 
 # The ninth argument has no register

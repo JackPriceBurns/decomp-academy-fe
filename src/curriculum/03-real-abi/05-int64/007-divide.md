@@ -10,7 +10,7 @@ symbol: div_64
 hints:
   - PowerPC has no 64-bit divide instruction, so the compiler emits a call to a runtime helper.
   - "Look for `bl __div2u` wrapped in a stack-saving prologue/epilogue (mflr/stw … lwz/mtlr)."
-  - Just write `a / b` on two `u64` parameters.
+  - The helper name (`__div2u` vs `__mod2u`) tells you which single operator the source used.
 ---
 
 # When there's no instruction for it

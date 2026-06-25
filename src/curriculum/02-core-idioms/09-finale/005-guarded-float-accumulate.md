@@ -1,9 +1,9 @@
 ---
-id: synthesis-guarded-float-accumulate
-title: "Synthesis: A Guarded Float Accumulator"
+id: finale-guarded-float-accumulate
+title: "A Guarded Float Accumulator"
 difficulty: 3
 concepts:
-  - synthesis
+  - finale
   - floats
   - loops
   - pointers
