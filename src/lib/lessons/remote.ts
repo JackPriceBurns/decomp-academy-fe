@@ -1,13 +1,13 @@
 // Where compilation happens:
-//   - COMPILE_API_URL set to a URL      -> proxy to that compile service
-//   - COMPILE_API_URL unset or "local"  -> compile locally against ../sfa
+//   - NEXT_PUBLIC_API_URL set    -> proxy to that API's compile endpoints (/target, /check)
+//   - NEXT_PUBLIC_API_URL unset  -> compile locally against ../sfa (dev only)
 //
-// In production (e.g. Amplify), set COMPILE_API_URL to the deployed compile
-// service's address. The proxy runs server-side only (API routes), so the
-// service can be plain HTTP and lesson solutions never reach the browser.
+// The compile/grading service lives behind the same custom domain as the auth +
+// progress API, so it reuses NEXT_PUBLIC_API_URL. The proxy runs server-side only
+// (API routes), so lesson solutions never reach the browser.
 export function compileApiUrl(): string | null {
-  const env = process.env.COMPILE_API_URL?.trim();
-  if (!env || env === "local") return null;
+  const env = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!env) return null;
   return env.replace(/\/+$/, "");
 }
 
