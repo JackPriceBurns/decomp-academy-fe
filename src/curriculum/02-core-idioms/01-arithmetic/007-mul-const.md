@@ -14,19 +14,26 @@ hints:
 # `mulli` for constant multiplies
 
 A multiply by a non-power-of-two constant uses the **immediate** multiply
-`mulli rD, rA, imm`:
+`mulli rD, rA, imm`, where the multiplier rides along inside the instruction.
+
+For example, `times6(n) = n * 6` compiles to:
 
 ```asm
-mulli r3, r3, 12
+mulli r3, r3, 6
 blr
 ```
 
-(For some constants MWCC will instead synthesize the product from shifts and
-adds when that's cheaper — but for many small values it just emits `mulli`.)
+The immediate field *is* the constant — read it straight out of the
+instruction. (For some constants MWCC will instead synthesize the product from
+shifts and adds when that's cheaper — but for many small values it just emits
+`mulli`.)
+
+Look at the immediate on the `mulli` in the target assembly: that value is your
+multiplier.
 
 ## Your task
 
-Write `times12` so it compiles to the `mulli` above.
+Write `times12` to reproduce the target assembly.
 
 <!-- starter -->
 ```c

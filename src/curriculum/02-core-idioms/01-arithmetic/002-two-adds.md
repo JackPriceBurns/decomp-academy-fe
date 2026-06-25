@@ -35,13 +35,14 @@ arithmetic effect. Here it parks `a` out of the way so the compiler can pair
 mathematically identical to summing left-to-right; only the grouping changed.
 
 When you see an `mr` at the top of a function, look for the operand it saves —
-it will show up again in a later `add`. The final instruction count tells you
-how many operations the expression contains; the registers tell you which
-arguments are involved.
+it will show up again in a later `add`. The instruction count tells you how many
+operations the expression contains; the registers tell you which arguments are
+involved. Trace each `add`'s sources back to the argument registers
+(`r3`→`a`, `r4`→`b`, `r5`→`c`) to recover the expression.
 
 ## Your task
 
-Write `add3`, returning the sum of three `int`s.
+Write `add3`, taking three `int`s, to reproduce the target assembly.
 
 <!-- starter -->
 ```c
