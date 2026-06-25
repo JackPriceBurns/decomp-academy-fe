@@ -107,6 +107,12 @@ for (const tierEntry of subdirs(root)) {
         chapter: chId,
         order: parseFloat(m[1]),
       });
+      // Stable key a learner's progress is filed under. `lessonSlug` strips the
+      // numeric order prefix, so pure RENUMBERING is safe (the key is unchanged).
+      // But the tier slug, chapter slug, and the lesson's frontmatter `id` all
+      // feed the hash — renaming a tier/chapter folder, moving a lesson between
+      // chapters, or editing `id` mints a NEW progressId and orphans existing
+      // completion (there is no migration/alias map). Treat these as breaking.
       lesson.progressId = uuidv5(`${tierId}/${chId}/${lessonSlug(lesson.id, chId)}`);
       lessons.push(lesson);
     }

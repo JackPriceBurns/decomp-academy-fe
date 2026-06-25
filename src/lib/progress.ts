@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/auth/api";
+import { api, ApiError } from "@/lib/auth/api";
 import { LESSONS } from "@/lib/lessons/registry.client";
 
 // Legacy anonymous storage (kept as the signed-out backend + migration source).
@@ -20,6 +20,27 @@ function resolveId(id: string): string {
   return SLUG_TO_PID.get(id) ?? id;
 }
 
+// The most recent of two ISO timestamps (ISO-8601 sorts lexically).
+function latest(a?: string, b?: string): string | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  return a > b ? a : b;
+}
+
+// Pick which side's saved code to keep when folding two records for the same
+// lesson. The code should follow the *higher-scoring* side (its source is the
+// one that actually achieved that score); ties go to `local` as the freshest
+// edit. Truthiness checks ensure an empty string never shadows real code.
+function chooseCode(
+  local?: LessonProgress,
+  server?: LessonProgress,
+): string | undefined {
+  const lBest = local?.bestPercent ?? 0;
+  const sBest = server?.bestPercent ?? 0;
+  if (sBest > lBest) return server?.code || local?.code;
+  return local?.code || server?.code;
+}
+
 function normalizeKeys(ls: Lessons): Lessons {
   const out: Lessons = {};
   for (const [k, v] of Object.entries(ls)) {
@@ -30,13 +51,13 @@ function normalizeKeys(ls: Lessons): Lessons {
       continue;
     }
     // A legacy slug row and its progressId row can coexist mid-migration — fold
-    // them: highest score wins, prefer whichever already has code.
+    // them: highest score wins, and the code follows the higher-scoring side.
     const best = Math.max(prev.bestPercent ?? 0, v.bestPercent ?? 0);
     out[id] = {
       bestPercent: best,
       completed: best >= 100,
-      code: prev.code ?? v.code,
-      updatedAt: prev.updatedAt ?? v.updatedAt,
+      code: chooseCode(prev, v),
+      updatedAt: latest(prev.updatedAt, v.updatedAt),
     };
   }
   return out;
@@ -63,6 +84,28 @@ let ready = false;
 // before the provider effect (which runs after child effects) has configured us.
 let primed = false;
 
+// True only while runConfigureAuthed is reconciling. Lessons the learner *solves*
+// during that async window are collected here so finalize can fold them into the
+// reconciled snapshot — otherwise `lessons = result` would drop a completion the
+// learner just earned. We track bestPercent only (never code), so an auto-seeded
+// starter save can't clobber the account's source.
+let reconciling = false;
+const reconcileWrites = new Set<string>();
+
+// Set once an authed write is rejected for auth reasons (401/403). We mirror the
+// in-memory map back to localStorage and ask the auth layer to re-check the
+// session, so a silently-expired login degrades to anonymous persistence rather
+// than dropping every subsequent write. Guarded so it fires at most once.
+let authLost = false;
+
+// Per-document id, used to claim the cross-tab reconcile lock.
+const TAB_ID =
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`;
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 function notify() {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("decomp-progress"));
@@ -74,12 +117,18 @@ function notify() {
 function readLocal(): Lessons {
   if (typeof window === "undefined") return {};
   const out: Lessons = {};
+  // Two independent try blocks: a corrupt LEGACY_KEY (solved percentages) must
+  // not also throw away the separately-stored per-lesson code blobs, or vice versa.
   try {
     const raw = localStorage.getItem(LEGACY_KEY);
     const solved: Record<string, number> = raw ? JSON.parse(raw).solved ?? {} : {};
     for (const [id, pct] of Object.entries(solved)) {
       out[id] = { bestPercent: pct, completed: pct >= 100 };
     }
+  } catch {
+    /* ignore corrupt solved blob */
+  }
+  try {
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (!k?.startsWith(CODE_PREFIX)) continue;
@@ -112,6 +161,16 @@ function writeLocalCode(id: string, code: string) {
   }
 }
 
+// Copy the whole in-memory map back into localStorage. Used when an authed
+// session is lost mid-flight: the upcoming downgrade to anon reads from
+// localStorage, so we prime it here to avoid blanking the learner's view.
+function mirrorAllToLocal() {
+  for (const [id, l] of Object.entries(lessons)) {
+    if ((l.bestPercent ?? 0) > 0) writeLocalBest(id, l.bestPercent);
+    if (l.code) writeLocalCode(id, l.code);
+  }
+}
+
 function primeLocal() {
   if (primed || ready) return;
   lessons = readLocal();
@@ -135,6 +194,36 @@ function clearLocal() {
   }
 }
 
+/* ----------------------------- write failures ---------------------------- */
+
+// An authed write that fails to land would otherwise vanish on reload, because
+// the local mirror was cleared after sign-in. Re-mirror the affected lesson to
+// localStorage for durability, and — if the failure is an auth rejection —
+// degrade the whole session to local persistence (see onAuthLost).
+function handleWriteError(id: string, err: unknown) {
+  const l = lessons[id];
+  if (l) {
+    if ((l.bestPercent ?? 0) > 0) writeLocalBest(id, l.bestPercent);
+    if (l.code) writeLocalCode(id, l.code);
+  }
+  if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+    onAuthLost();
+  }
+}
+
+function onAuthLost() {
+  if (authLost) return;
+  authLost = true;
+  // Preserve everything so the imminent downgrade to anon (which re-reads
+  // localStorage) keeps the learner's progress instead of blanking it.
+  mirrorAllToLocal();
+  if (typeof window !== "undefined") {
+    // AuthContext listens for this and re-validates the session; a genuinely
+    // expired login then flips status → "anon" → configureAnon().
+    window.dispatchEvent(new Event("decomp-auth-expired"));
+  }
+}
+
 /* --------------------------------- server -------------------------------- */
 
 // Debounced per-lesson code PUTs so autosave-on-keystroke doesn't hammer the API.
@@ -143,14 +232,14 @@ function putCodeServer(id: string, code: string) {
   clearTimeout(codeTimers[id]);
   codeTimers[id] = setTimeout(() => {
     api(`/progress/${id}`, { method: "PUT", body: JSON.stringify({ code }) }).catch(
-      () => {},
+      (e) => handleWriteError(id, e),
     );
   }, 800);
 }
 
 function putBestServer(id: string, bestPercent: number) {
   api(`/progress/${id}`, { method: "PUT", body: JSON.stringify({ bestPercent }) }).catch(
-    () => {},
+    (e) => handleWriteError(id, e),
   );
 }
 
@@ -166,6 +255,8 @@ export function recordResult(lessonId: string, percent: number) {
     bestPercent: percent,
     completed: percent >= 100,
   };
+  // A real solve earned mid-reconcile must survive finalize's snapshot swap.
+  if (reconciling) reconcileWrites.add(id);
   notify();
   if (mode === "authed") putBestServer(id, percent);
   else if (mode === "anon") writeLocalBest(id, percent);
@@ -241,8 +332,8 @@ function hasData(ls: Lessons): boolean {
   );
 }
 
-// Lossless union: the higher bestPercent always wins; prefer this device's code
-// (the freshest edit here), falling back to the account's.
+// Lossless union: the higher bestPercent always wins, and the code follows the
+// higher-scoring side (ties to this device, the freshest edit).
 function mergeProgress(local: Lessons, server: Lessons): Lessons {
   const out: Lessons = {};
   for (const id of new Set([...Object.keys(local), ...Object.keys(server)])) {
@@ -252,8 +343,8 @@ function mergeProgress(local: Lessons, server: Lessons): Lessons {
     out[id] = {
       bestPercent: best,
       completed: best >= 100,
-      code: l?.code ?? s?.code,
-      updatedAt: s?.updatedAt,
+      code: chooseCode(l, s),
+      updatedAt: latest(l?.updatedAt, s?.updatedAt),
     };
   }
   return out;
@@ -302,12 +393,86 @@ async function finalize(
     onProgress?: (done: number, total: number) => void;
   },
 ) {
-  const pushedOk = opts.push ? await pushAll(result, opts.onProgress) : true;
-  lessons = result;
+  // Fold in any completions earned while we were reconciling (mode was already
+  // "authed", so these PUT to the server during the window, but `result` was
+  // computed from a snapshot taken before them). bestPercent only — never code.
+  const merged: Lessons = { ...result };
+  for (const id of reconcileWrites) {
+    const cur = lessons[id];
+    if (!cur) continue;
+    const best = Math.max(cur.bestPercent ?? 0, merged[id]?.bestPercent ?? 0);
+    merged[id] = {
+      ...(merged[id] ?? {}),
+      bestPercent: best,
+      completed: best >= 100,
+    };
+  }
+
+  const pushedOk = opts.push ? await pushAll(merged, opts.onProgress) : true;
+
+  // Solves earned during the reconcile window must reach the server even on the
+  // no-push paths (adopt-account / already-synced / a lesson finished while we
+  // waited on another tab's lock). Idempotent when pushAll already sent them.
+  if (mode === "authed") {
+    for (const id of reconcileWrites) {
+      const best = merged[id]?.bestPercent ?? 0;
+      if (best > 0) putBestServer(id, best);
+    }
+  }
+
+  lessons = merged;
   primed = true;
   ready = true;
   if (opts.clear !== false && pushedOk) clearLocal();
   notify();
+}
+
+/* ------------------------- cross-tab reconcile lock ---------------------- */
+// Two tabs signing in at once would each prompt the merge dialog and each fire
+// their own upload. We serialize with a localStorage lock: the tab holding it
+// reconciles (prompt + upload + clearLocal); other tabs wait, then find local
+// already cleared and silently adopt the server — no second prompt.
+
+const RECONCILE_LOCK = "decomp-reconcile-lock";
+const LOCK_TTL_MS = 60_000;
+
+function tryAcquireLock(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    const raw = localStorage.getItem(RECONCILE_LOCK);
+    if (raw) {
+      const held = JSON.parse(raw) as { t: number; id: string };
+      if (held.id !== TAB_ID && Date.now() - held.t < LOCK_TTL_MS) return false;
+    }
+    localStorage.setItem(RECONCILE_LOCK, JSON.stringify({ t: Date.now(), id: TAB_ID }));
+    // Re-read to resolve a same-instant race between tabs (best-effort).
+    const back = JSON.parse(localStorage.getItem(RECONCILE_LOCK) || "{}");
+    return back.id === TAB_ID;
+  } catch {
+    return true; // storage unavailable → don't block reconciliation
+  }
+}
+
+async function acquireReconcileLock(): Promise<void> {
+  // Wait out another tab's reconcile, but never longer than the lock TTL (in
+  // case the holder was closed mid-prompt and left a stale lock behind).
+  const deadline = Date.now() + LOCK_TTL_MS + 5_000;
+  while (Date.now() < deadline) {
+    if (tryAcquireLock()) return;
+    await sleep(300);
+  }
+}
+
+function releaseReconcileLock() {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(RECONCILE_LOCK);
+    if (!raw) return;
+    const held = JSON.parse(raw) as { id: string };
+    if (held.id === TAB_ID) localStorage.removeItem(RECONCILE_LOCK);
+  } catch {
+    /* ignore */
+  }
 }
 
 /* ------------------------------ configuration ---------------------------- */
@@ -316,6 +481,9 @@ async function finalize(
 export function configureAnon() {
   mode = "anon";
   authInflight = null;
+  authLost = false;
+  reconciling = false;
+  reconcileWrites.clear();
   if (pending || sync) {
     pending = null;
     sync = null;
@@ -338,75 +506,99 @@ export function configureAuthed(): Promise<void> {
 }
 
 async function runConfigureAuthed() {
-  mode = "authed";
-  const local = readLocal();
+  reconciling = true;
+  reconcileWrites.clear();
+  authLost = false;
 
-  let server: Lessons = {};
+  // Serialize reconciliation across tabs (see the lock section above).
+  await acquireReconcileLock();
   try {
-    const res = await api<{ lessons: Lessons }>("/progress");
-    // Upgrade any legacy slug-keyed rows to the progressId keyspace so they line
-    // up with `local` (also normalized) and with the keys we PUT going forward.
-    server = normalizeKeys(res.lessons ?? {});
-  } catch {
-    // Couldn't reach the account: keep the local view rather than blank it, and
-    // don't clear local — there's nothing to safely reconcile against.
-    await finalize(local, { push: false, clear: false });
-    return;
-  }
+    mode = "authed";
+    const local = readLocal();
 
-  // Nothing local to lose → adopt the account (the signed-in source of truth).
-  if (!hasData(local)) {
-    await finalize(server, { push: false, clear: false });
-    return;
-  }
-  // Empty account → first-time upload, no conflict worth a prompt.
-  if (!hasData(server)) {
-    await finalize(mergeProgress(local, server), { push: true });
-    return;
-  }
-  // Already in sync → nothing to choose.
-  if (sameProgress(local, server)) {
-    await finalize(server, { push: false });
-    return;
-  }
+    let server: Lessons = {};
+    try {
+      const res = await api<{ lessons: Lessons }>("/progress");
+      // Upgrade any legacy slug-keyed rows to the progressId keyspace so they
+      // line up with `local` (also normalized) and the keys we PUT going forward.
+      server = normalizeKeys(res.lessons ?? {});
+    } catch {
+      // Couldn't reach the account: keep the local view rather than blank it, and
+      // don't clear local — there's nothing to safely reconcile against.
+      await finalize(local, { push: false, clear: false });
+      return;
+    }
 
-  // Genuine divergence → let the learner decide.
-  const strategy = await promptUser(local, server);
-  const result =
-    strategy === "server"
-      ? server
-      : strategy === "local"
-        ? local
-        : mergeProgress(local, server);
-  const push = strategy !== "server";
+    // Nothing local to lose → adopt the account (the signed-in source of truth).
+    if (!hasData(local)) {
+      await finalize(server, { push: false, clear: false });
+      return;
+    }
+    // Empty account → first-time upload, no conflict worth a prompt.
+    if (!hasData(server)) {
+      await finalize(mergeProgress(local, server), { push: true });
+      return;
+    }
+    // Already in sync → nothing to choose.
+    if (sameProgress(local, server)) {
+      await finalize(server, { push: false });
+      return;
+    }
 
-  // Keep the dialog mounted through the upload so it can show a progress bar;
-  // tear it down only once the queue has drained.
-  await finalize(result, {
-    push,
-    onProgress: (done, total) => {
-      sync = { done, total };
-      notifyReconcile();
-    },
-  });
-  pending = null;
-  sync = null;
-  notifyReconcile();
+    // Genuine divergence → let the learner decide.
+    const strategy = await promptUser(local, server);
+    const result =
+      strategy === "server"
+        ? server
+        : strategy === "local"
+          ? local
+          : mergeProgress(local, server);
+    const push = strategy !== "server";
+
+    // Keep the dialog mounted through the upload so it can show a progress bar;
+    // tear it down only once the queue has drained.
+    await finalize(result, {
+      push,
+      onProgress: (done, total) => {
+        sync = { done, total };
+        notifyReconcile();
+      },
+    });
+    pending = null;
+    sync = null;
+    notifyReconcile();
+  } finally {
+    reconciling = false;
+    reconcileWrites.clear();
+    releaseReconcileLock();
+  }
 }
 
 /* --------------------------------- hook ---------------------------------- */
+
+// Re-read localStorage into the in-memory map when another tab changes it. Only
+// meaningful in anon mode (in authed mode the server is the backend); keeps two
+// signed-out tabs from drifting out of sync.
+function syncFromStorage() {
+  if (mode !== "anon") return;
+  lessons = readLocal();
+}
 
 export function useProgress() {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     primeLocal();
     setTick((n) => n + 1);
-    const handler = () => setTick((n) => n + 1);
-    window.addEventListener("decomp-progress", handler);
-    window.addEventListener("storage", handler);
+    const onLocal = () => setTick((n) => n + 1);
+    const onStorage = () => {
+      syncFromStorage();
+      setTick((n) => n + 1);
+    };
+    window.addEventListener("decomp-progress", onLocal);
+    window.addEventListener("storage", onStorage);
     return () => {
-      window.removeEventListener("decomp-progress", handler);
-      window.removeEventListener("storage", handler);
+      window.removeEventListener("decomp-progress", onLocal);
+      window.removeEventListener("storage", onStorage);
     };
   }, []);
 

@@ -58,6 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   }, [refresh]);
 
+  // The progress store dispatches this when an authed write is rejected for auth
+  // reasons (a silently-expired session). Re-validate so a dead login downgrades
+  // to "anon" — at which point ProgressProvider switches to local persistence.
+  useEffect(() => {
+    const handler = () => void refresh();
+    window.addEventListener("decomp-auth-expired", handler);
+    return () => window.removeEventListener("decomp-auth-expired", handler);
+  }, [refresh]);
+
   return (
     <Ctx.Provider value={{ status, user, refresh, signOut }}>{children}</Ctx.Provider>
   );

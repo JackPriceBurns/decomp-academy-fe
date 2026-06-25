@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { IconArrowMerge, IconCloud, IconDeviceLaptop } from "@tabler/icons-react";
 import { Button, Logo, ProgressBar } from "@/components/ui";
 import {
@@ -65,6 +66,9 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 export function ProgressMergeDialog() {
   const { reconcile, sync, resolve } = useReconcile();
+  // Latch the choice so a double-click (or a second button) can't resolve twice
+  // or fire a second upload before the dialog flips to the syncing view.
+  const [chosen, setChosen] = useState(false);
 
   // Once a choice is made the store keeps us mounted (pending stays set) and
   // reports the sequential upload via `sync`; show the progress bar then.
@@ -96,7 +100,11 @@ export function ProgressMergeDialog() {
   const local = summarize(reconcile.local);
   const server = summarize(reconcile.server);
 
-  const choose = (s: MergeStrategy) => resolve(s);
+  const choose = (s: MergeStrategy) => {
+    if (chosen) return;
+    setChosen(true);
+    resolve(s);
+  };
 
   return (
     <Shell>
@@ -129,13 +137,27 @@ export function ProgressMergeDialog() {
       </div>
 
       <div className="space-y-2">
-        <Button onClick={() => choose("merge")} className="w-full">
+        <Button
+          onClick={() => choose("merge")}
+          disabled={chosen}
+          className="w-full"
+        >
           <IconArrowMerge size={15} /> Merge — keep the best of both
         </Button>
-        <Button variant="ghost" onClick={() => choose("local")} className="w-full">
+        <Button
+          variant="ghost"
+          onClick={() => choose("local")}
+          disabled={chosen}
+          className="w-full"
+        >
           <IconDeviceLaptop size={15} /> Keep this device&apos;s progress
         </Button>
-        <Button variant="ghost" onClick={() => choose("server")} className="w-full">
+        <Button
+          variant="ghost"
+          onClick={() => choose("server")}
+          disabled={chosen}
+          className="w-full"
+        >
           <IconCloud size={15} /> Use my account&apos;s progress
         </Button>
       </div>
