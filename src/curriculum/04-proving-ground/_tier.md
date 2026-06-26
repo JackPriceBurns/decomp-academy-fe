@@ -1,4 +1,4 @@
 ---
 title: Proving ground
-blurb: Endless reps, then real functions
+blurb: Real Star Fox Adventures functions, start to finish
 ---
