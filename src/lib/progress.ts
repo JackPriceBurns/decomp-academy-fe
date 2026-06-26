@@ -57,6 +57,7 @@ function normalizeKeys(ls: Lessons): Lessons {
       bestPercent: best,
       completed: best >= 100,
       code: chooseCode(prev, v),
+      solvedWithoutHints: mergeNoHints(prev.solvedWithoutHints, v.solvedWithoutHints),
       updatedAt: latest(prev.updatedAt, v.updatedAt),
     };
   }
@@ -67,7 +68,15 @@ export interface LessonProgress {
   bestPercent: number; // 0–100, highest ever achieved (never decreases)
   completed: boolean; // bestPercent >= 100
   code?: string; // the learner's last saved C source
+  solvedWithoutHints?: boolean; // earned the "no hints" badge on a completing solve
   updatedAt?: string;
+}
+
+// "No hints" is an earned-on-any-side badge: a single hint-free solve wins.
+function mergeNoHints(a?: boolean, b?: boolean): boolean | undefined {
+  if (a === true || b === true) return true;
+  if (a === false || b === false) return false;
+  return undefined;
 }
 
 type Lessons = Record<string, LessonProgress>;
@@ -121,9 +130,15 @@ function readLocal(): Lessons {
   // not also throw away the separately-stored per-lesson code blobs, or vice versa.
   try {
     const raw = localStorage.getItem(LEGACY_KEY);
-    const solved: Record<string, number> = raw ? JSON.parse(raw).solved ?? {} : {};
+    const blob = raw ? JSON.parse(raw) : {};
+    const solved: Record<string, number> = blob.solved ?? {};
+    const noHints: Record<string, boolean> = blob.noHints ?? {};
     for (const [id, pct] of Object.entries(solved)) {
-      out[id] = { bestPercent: pct, completed: pct >= 100 };
+      out[id] = {
+        bestPercent: pct,
+        completed: pct >= 100,
+        ...(id in noHints ? { solvedWithoutHints: noHints[id] } : {}),
+      };
     }
   } catch {
     /* ignore corrupt solved blob */
@@ -145,9 +160,13 @@ function readLocal(): Lessons {
 function writeLocalBest(id: string, pct: number) {
   try {
     const raw = localStorage.getItem(LEGACY_KEY);
-    const solved: Record<string, number> = raw ? JSON.parse(raw).solved ?? {} : {};
+    const blob = raw ? JSON.parse(raw) : {};
+    const solved: Record<string, number> = blob.solved ?? {};
+    const noHints: Record<string, boolean> = blob.noHints ?? {};
     solved[id] = pct;
-    localStorage.setItem(LEGACY_KEY, JSON.stringify({ solved }));
+    const flag = lessons[id]?.solvedWithoutHints;
+    if (flag !== undefined) noHints[id] = flag;
+    localStorage.setItem(LEGACY_KEY, JSON.stringify({ solved, noHints }));
   } catch {
     /* ignore quota errors */
   }
@@ -238,22 +257,35 @@ function putCodeServer(id: string, code: string) {
 }
 
 function putBestServer(id: string, bestPercent: number) {
-  api(`/progress/${id}`, { method: "PUT", body: JSON.stringify({ bestPercent }) }).catch(
-    (e) => handleWriteError(id, e),
+  const body: { bestPercent: number; solvedWithoutHints?: boolean } = { bestPercent };
+  const flag = lessons[id]?.solvedWithoutHints;
+  if (flag !== undefined) body.solvedWithoutHints = flag;
+  api(`/progress/${id}`, { method: "PUT", body: JSON.stringify(body) }).catch((e) =>
+    handleWriteError(id, e),
   );
 }
 
 /* ------------------------------- public API ------------------------------ */
 
-export function recordResult(lessonId: string, percent: number) {
+export function recordResult(
+  lessonId: string,
+  percent: number,
+  opts?: { noHints?: boolean },
+) {
   primeLocal();
   const id = resolveId(lessonId);
   const prev = lessons[id]?.bestPercent ?? 0;
   if (percent <= prev) return; // bestPercent only moves up (server enforces this too)
+  const completed = percent >= 100;
   lessons[id] = {
     ...lessons[id],
     bestPercent: percent,
-    completed: percent >= 100,
+    completed,
+    // The badge is decided at the first completing solve; later re-solves
+    // early-return above, so it never gets overwritten by a post-refresh re-run.
+    ...(completed && opts?.noHints !== undefined
+      ? { solvedWithoutHints: opts.noHints }
+      : {}),
   };
   // A real solve earned mid-reconcile must survive finalize's snapshot swap.
   if (reconciling) reconcileWrites.add(id);
@@ -282,6 +314,13 @@ export function loadCode(lessonId: string): string | null {
 export function totalSolved(): number {
   primeLocal();
   return Object.values(lessons).filter((l) => l.bestPercent >= 100).length;
+}
+
+// Whether the lesson's recorded completion was earned without revealing hints.
+// Read from the persisted store so a re-run after refresh can't fake the badge.
+export function solvedWithoutHints(lessonId: string): boolean {
+  primeLocal();
+  return lessons[resolveId(lessonId)]?.solvedWithoutHints === true;
 }
 
 /* ---------------------------- reconciliation ----------------------------- */
@@ -344,6 +383,7 @@ function mergeProgress(local: Lessons, server: Lessons): Lessons {
       bestPercent: best,
       completed: best >= 100,
       code: chooseCode(l, s),
+      solvedWithoutHints: mergeNoHints(l?.solvedWithoutHints, s?.solvedWithoutHints),
       updatedAt: latest(l?.updatedAt, s?.updatedAt),
     };
   }
@@ -372,9 +412,10 @@ async function pushAll(
   onProgress?.(0, entries.length);
   for (let i = 0; i < entries.length; i++) {
     const [id, l] = entries[i];
-    const body: { bestPercent?: number; code?: string } = {};
+    const body: { bestPercent?: number; code?: string; solvedWithoutHints?: boolean } = {};
     if ((l.bestPercent ?? 0) > 0) body.bestPercent = l.bestPercent;
     if (l.code) body.code = l.code;
+    if (l.solvedWithoutHints !== undefined) body.solvedWithoutHints = l.solvedWithoutHints;
     try {
       await api(`/progress/${id}`, { method: "PUT", body: JSON.stringify(body) });
     } catch {

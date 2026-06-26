@@ -30,7 +30,14 @@ import {
   type Seg,
 } from "@/lib/objdiff/client";
 import { Difficulty } from "./CurriculumMap";
-import { loadCode, recordResult, saveCode, totalSolved, useProgress } from "@/lib/progress";
+import {
+  loadCode,
+  recordResult,
+  saveCode,
+  solvedWithoutHints,
+  totalSolved,
+  useProgress,
+} from "@/lib/progress";
 import { AccountMenu } from "./AccountMenu";
 
 const CodeEditor = dynamic(() => import("./CodeEditor").then((m) => m.CodeEditor), {
@@ -197,13 +204,16 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
         setTargetRows(vm?.targetRows ?? null);
         const exact = vm?.exact ?? false;
         const pct = vm?.matchPercent ?? 0;
-        // Capture "first ever solve" and "no help used" before we record this run.
+        // Capture "first ever solve" before we record (recordResult bumps the count).
         const firstEver = exact && totalSolved() === 0;
-        const noHints = exact && hintsShown === 0 && !showSolution;
+        const sessionNoHints = exact && hintsShown === 0 && !showSolution;
+        // Pre-compiling the starter on open is not a solve attempt — don't record it.
+        if (!initial) recordResult(lesson.id, exact ? 100 : pct, { noHints: sessionNoHints });
+        // Show the badge from the persisted truth, not the live counter, so a
+        // re-run after refresh (hintsShown reset to 0) can't resurrect it.
+        const noHints = exact && solvedWithoutHints(lesson.id);
         setCheck({ status: exact ? "match" : "close", matchPercent: pct, vm, firstEver, noHints });
         setTab("diff");
-        // Pre-compiling the starter on open is not a solve attempt — don't record it.
-        if (!initial) recordResult(lesson.id, exact ? 100 : pct);
       } catch {
         if (loadIdRef.current !== myRun) return;
         setCheck({ status: "error", message: "Network error talking to the compiler." });
