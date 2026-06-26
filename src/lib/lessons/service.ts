@@ -94,13 +94,13 @@ export async function checkLesson(
     });
     if (!d?.ok) {
       if (d?.compileError) {
-        await recordCompile(lessonId, false);
+        await recordCompile(lesson.progressId, false);
         return { ok: false, compileError: d.compileError };
       }
       // A service/infra error isn't a failed compile, so it isn't counted.
       return { ok: false, error: d?.error || "Compile service error." };
     }
-    await recordCompile(lessonId, true);
+    await recordCompile(lesson.progressId, true);
     if (!d.objBase64) {
       return { ok: false, error: "Compile service returned no object file." };
     }
@@ -110,11 +110,12 @@ export async function checkLesson(
   }
 }
 
-// Best-effort per-lesson compile counter on the main API. Never let a stats
-// write change or fail a check.
-async function recordCompile(lessonId: string, compiled: boolean): Promise<void> {
+// Best-effort per-lesson compile counter on the main API, keyed by the lesson's
+// stable progressId (the same key its progress uses). Never let a stats write
+// change or fail a check.
+async function recordCompile(progressId: string, compiled: boolean): Promise<void> {
   try {
-    await fetch(`${API_URL}/stats/${encodeURIComponent(lessonId)}`, {
+    await fetch(`${API_URL}/stats/${encodeURIComponent(progressId)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ok: compiled }),
