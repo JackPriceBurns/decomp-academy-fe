@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { IconChartBar, IconArrowLeft } from "@tabler/icons-react";
+import { IconChartBar, IconArrowLeft, IconMessage } from "@tabler/icons-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 
-const NAV = [{ href: "/admin", label: "Lesson stats", icon: IconChartBar }];
+const NAV = [
+  { href: "/admin", label: "Lesson stats", icon: IconChartBar },
+  { href: "/admin/feedback", label: "Feedback", icon: IconMessage },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { status, user } = useAuth();

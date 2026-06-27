@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { ProgressProvider } from "@/lib/auth/ProgressProvider";
+import { EngagementPrompts } from "@/components/EngagementPrompts";
 
 const sans = Inter({
   subsets: ["latin"],
@@ -64,7 +65,10 @@ export default function RootLayout({
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <ProgressProvider>{children}</ProgressProvider>
+          <ProgressProvider>
+            {children}
+            <EngagementPrompts />
+          </ProgressProvider>
         </AuthProvider>
         {/* Cloudflare Web Analytics */}
         <Script

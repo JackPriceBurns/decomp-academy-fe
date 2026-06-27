@@ -17,6 +17,7 @@ import {
   IconTerminal2,
   IconBook2,
   IconStack2,
+  IconHelpCircle,
 } from "@tabler/icons-react";
 import { ObjDiff, ObjOverview, preloadGlossary } from "./AsmDiff";
 import { GlossaryProse } from "./GlossaryProse";
@@ -39,6 +40,7 @@ import {
   useProgress,
 } from "@/lib/progress";
 import { AccountMenu } from "./AccountMenu";
+import { FeedbackDialog } from "./FeedbackDialog";
 
 const CodeEditor = dynamic(() => import("./CodeEditor").then((m) => m.CodeEditor), {
   ssr: false,
@@ -508,39 +510,58 @@ function ConceptView({ lesson }: { lesson: LessonDTO }) {
 }
 
 function TopBar({ lesson }: { lesson: LessonDTO }) {
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   return (
-    <header className="flex items-center gap-3 border-b border-line bg-bg-soft px-4 py-2.5">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
-      >
-        <IconArrowLeft size={16} /> Curriculum
-      </Link>
-      <div className="mx-1 h-5 w-px bg-line" />
-      <h1 className="truncate text-sm font-semibold text-content-primary">{lesson.title}</h1>
-      <div className="ml-auto flex items-center gap-1.5">
-        {lesson.prev ? (
-          <Link
-            href={`/lesson/${lesson.prev.id}`}
-            className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-xs text-content-secondary transition hover:bg-bg-softer"
-            title={lesson.prev.title}
-          >
-            <IconArrowLeft size={14} /> Prev
-          </Link>
-        ) : null}
-        {lesson.next ? (
-          <Link
-            href={`/lesson/${lesson.next.id}`}
-            className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-xs text-content-secondary transition hover:bg-bg-softer"
-            title={lesson.next.title}
-          >
-            Next <IconArrowRight size={14} />
-          </Link>
-        ) : null}
+    <>
+      <header className="flex items-center gap-3 border-b border-line bg-bg-soft px-4 py-2.5">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
+        >
+          <IconArrowLeft size={16} /> Curriculum
+        </Link>
         <div className="mx-1 h-5 w-px bg-line" />
-        <AccountMenu />
-      </div>
-    </header>
+        <h1 className="truncate text-sm font-semibold text-content-primary">{lesson.title}</h1>
+        <div className="ml-auto flex items-center gap-1.5">
+          {lesson.prev ? (
+            <Link
+              href={`/lesson/${lesson.prev.id}`}
+              className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-xs text-content-secondary transition hover:bg-bg-softer"
+              title={lesson.prev.title}
+            >
+              <IconArrowLeft size={14} /> Prev
+            </Link>
+          ) : null}
+          {lesson.next ? (
+            <Link
+              href={`/lesson/${lesson.next.id}`}
+              className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-xs text-content-secondary transition hover:bg-bg-softer"
+              title={lesson.next.title}
+            >
+              Next <IconArrowRight size={14} />
+            </Link>
+          ) : null}
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            title="Feedback on this lesson"
+            aria-label="Feedback on this lesson"
+            className="inline-flex items-center justify-center rounded-md border border-line px-2 py-1.5 text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
+          >
+            <IconHelpCircle size={16} />
+          </button>
+          <div className="mx-1 h-5 w-px bg-line" />
+          <AccountMenu />
+        </div>
+      </header>
+      <FeedbackDialog
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        source="lesson"
+        lessonId={lesson.id}
+        lessonTitle={lesson.title}
+        heading="Lesson feedback"
+      />
+    </>
   );
 }
 
