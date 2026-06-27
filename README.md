@@ -1,27 +1,76 @@
-# Decomp Academy — Master MWCC GC/2.0
+# Decomp Academy
 
-An interactive course that takes you from *never having read a register* to
-matching real **Star Fox Adventures** functions, instruction for instruction.
-You write C; the **real Metrowerks CodeWarrior GC/2.0 compiler** grades it live.
+**Learn to decompile GameCube (PowerPC) assembly back into byte-matching C — graded live by the real Metrowerks CodeWarrior GC/2.0 compiler.**
+
+[![Live: decomp-academy.dev](https://img.shields.io/badge/live-decomp--academy.dev-6d28d9)](https://decomp-academy.dev)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+
+🎮 **Try it at [decomp-academy.dev](https://decomp-academy.dev)** — 254 free, interactive lessons, in the browser, no signup required to start.
+
+Decomp Academy teaches **matching decompilation**: the craft of recovering original
+C source from a compiled binary so faithfully that it *re-compiles to the same
+machine code*, instruction for instruction. You read the PowerPC assembly the
+retail compiler produced, write C, and the real 2001 **Metrowerks CodeWarrior
+GC/2.0** compiler (`mwcceppc.exe`) compiles and diffs your code against the
+target. When every byte matches, the function is solved — even a single extra
+instruction counts as a miss.
+
+It takes you from *never having read a register* all the way to matching
+authentic **Star Fox Adventures** functions.
+
+## Who it's for
+
+- Programmers curious how C actually compiles down to PowerPC, and how compilers work
+- Contributors to GameCube & Wii **decompilation projects** who want to get faster at matching
+- Anyone learning **reverse engineering** who prefers hands-on, graded practice over theory
+
+## How it works
+
+1. **Read the assembly** — the real PowerPC the retail compiler emitted.
+2. **Write the C** — reconstruct the source; hints and a reference solution are a click away.
+3. **The compiler grades it** — the actual MWCC GC/2.0 compiles your code and diffs it byte-for-byte.
 
 ## Curriculum
 
-364 lessons across 17 chapters, strictly progressive:
+254 lessons across 18 chapters, grouped into four strictly-progressive tiers:
 
-1. **Foundations** — registers, return values, reading MWCC output
-2. **The Decomp Loop** — match %, objdump, diffing, diagnosing a near-match
-3. **Integer Arithmetic** · 4. **Bitwise & Shifts** · 5. **Control Flow**
-   (signed vs unsigned compares) · 6. **Loops** · 7. **Types & Width**
-   (the `u8`-not-`char` rule) · 8. **Pointers** · 9. **Structs, Unions & Bitfields**
-   · 10. **Floating Point** (frsp, fmadds) · 11. **Functions & the ABI**
-   (stack frames, declaration-order register coloring)
-12. **Globals, the SDA & Pools** — `@sda21`, `@ha`/`@l`, literal pools
-13. **Optimization & Scheduling** — peephole, scheduling, the `#pragma` toggles
-14. **Advanced Idioms** — paired-singles, switch jump tables, enums, `volatile`
-15. **64-bit Integers** — `long long` register pairing, carry chains (`addc`/`adde`),
-    downcast fingerprints, and the divide/shift intrinsics
-16. **Practice Gauntlet** — ~160 generated drills for endless reps
-17. **Real-World Mastery** — 10 authentic SFA capstones, up to ~80 instructions
+- **Warm-up — learn to read the machine.** Foundations (registers, return values,
+  reading MWCC output) · The Decomp Loop (match %, objdump, diffing a near-match).
+- **Core idioms — every shape C compiles into.** Integer arithmetic · bitwise &
+  shifts · control flow (signed vs unsigned compares) · loops · types & width (the
+  `u8`-not-`char` rule) · pointers & memory · structs, unions & bitfields · floating
+  point (`frsp`, `fmadds`) · whole-function capstones.
+- **The real ABI — frames, globals, optimizer, 64-bit.** Functions & the ABI (stack
+  frames, declaration-order register coloring) · globals, the SDA & pools (`@sda21`,
+  `@ha`/`@l`) · optimization & scheduling (`-O4,p`, peephole, the `#pragma` toggles) ·
+  advanced idioms (paired-singles, switch jump tables, `volatile`) · 64-bit integers
+  (carry chains, register pairing, downcast fingerprints).
+- **Proving ground — real functions, start to finish.** Authentic Star Fox Adventures
+  functions, from warm-ups to full capstones.
+
+A live **[playground](https://decomp-academy.dev/playground)** compiles arbitrary C
+through MWCC GC/2.0 so you can inspect the assembly it emits, and a
+**[glossary](https://decomp-academy.dev/glossary)** defines the PowerPC, ABI, and
+compiler vocabulary you'll meet along the way.
+
+## Credits & related projects
+
+Lessons draw on real functions from open-source GameCube decompilation projects:
+[Star Fox Adventures](https://github.com/zcanann/SFA-Decomp) ·
+[Pikmin 2](https://github.com/projectPiki/pikmin2) ·
+[Metroid Prime](https://github.com/PrimeDecomp/prime) ·
+[Mario Party 4](https://github.com/mariopartyrd/marioparty4).
+
+Part of the wider decompilation community —
+[decomp.me](https://decomp.me) ·
+[decomp.dev](https://decomp.dev) ·
+[the decomp wiki](https://wiki.decomp.dev). Instruction-level diffing is powered by
+[objdiff](https://github.com/encounter/objdiff).
+
+## Tech
+
+Next.js (App Router) frontend, with the real MWCC GC/2.0 toolchain in the grading
+loop and `objdiff` for byte-accurate assembly diffing.
 
 ## Running it locally
 
@@ -74,8 +123,7 @@ src/curriculum/
 ```
 
 - Every folder is named `NN-<id>`. The `NN` prefix orders siblings *within* its
-  parent only — chapters restart at `01` inside each tier. The global chapter
-  number shown on the site (e.g. mastery = 17) is computed automatically.
+  parent only — chapters restart at `01` inside each tier.
 - A **lesson** `.md` has YAML frontmatter (`id`, `title`, `difficulty`,
   `concepts`, `symbol`, `hints`) followed by the explanation and a
   `<!-- starter -->` / `<!-- solution -->` C block.
