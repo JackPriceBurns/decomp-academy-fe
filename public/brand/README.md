@@ -20,7 +20,7 @@ Open **`brand-sheet.html`** in a browser for a visual overview of the whole kit.
 
 ## Typography
 
-- **Monogram `{dA}`** — Poppins ExtraBold (outlined).
+- **Monogram `{dA}`** — Poppins SemiBold (outlined).
 - **Wordmark `decomp academy`** — Poppins SemiBold (outlined).
 - The braces are bespoke vector strokes (not a font glyph) with a mirrored, inward-and-down
   lavender "echo" that nods to the decompilation/layers theme.
