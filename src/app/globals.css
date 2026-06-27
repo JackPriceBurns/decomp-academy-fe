@@ -62,13 +62,15 @@ html, body {
   padding: 0.08em 0.35em;
   color: theme(colors.accent.grad);
 }
+.prose-lesson .table-wrap {
+  margin: 0.9rem 0;
+  overflow-x: auto;
+}
 .prose-lesson table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0.9rem 0;
   font-size: 0.84rem;
-  display: block;
-  overflow-x: auto;
+  table-layout: auto;
 }
 .prose-lesson th,
 .prose-lesson td {
