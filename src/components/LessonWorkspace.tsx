@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -142,6 +143,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   // to replace it with their saved code.
   const seededRef = useRef(code);
   const { ready: progressReady } = useProgress();
+  const router = useRouter();
 
   const run = useCallback(
     async (opts?: { initial?: boolean }) => {
@@ -324,6 +326,15 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   if (lesson.concept) return <ConceptView lesson={lesson} />;
 
   const hasResult = check.status !== "idle";
+  // The current on-screen code is the verified match, so the primary action is
+  // "Next lesson" rather than recompiling. ⌘↵ follows the button: advance instead
+  // of re-running an already-solved exercise.
+  const solved =
+    check.status === "match" &&
+    selectedSymbol === lesson.symbol &&
+    code === checkedCodeRef.current;
+  const nextHref = lesson.next ? `/lesson/${lesson.next.id}` : "/";
+  const onRun = () => (solved ? router.push(nextHref) : run());
 
   return (
     <div className="flex min-h-screen flex-col bg-bg lg:h-screen">
@@ -412,14 +423,14 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
               >
                 <IconRefresh size={14} /> Reset
               </button>
-              {check.status === "match" && selectedSymbol === lesson.symbol && code === checkedCodeRef.current ? (
+              {solved ? (
                 <Link
-                  href={lesson.next ? `/lesson/${lesson.next.id}` : "/"}
+                  href={nextHref}
                   className="inline-flex items-center gap-1.5 rounded-md bg-good px-3.5 py-1.5 text-xs font-semibold text-bg transition hover:bg-good-soft active:scale-[0.97]"
                 >
                   <IconCheck size={14} />
                   {lesson.next ? "Next lesson" : "Finish"}
-                  <IconArrowRight size={14} className="transition group-hover:translate-x-0.5" />
+                  <kbd className="ml-1 rounded bg-black/20 px-1 text-2xs">⌘↵</kbd>
                 </Link>
               ) : (
                 <button
@@ -444,7 +455,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
               mobilePane === "result" ? "hidden" : "block"
             }`}
           >
-            <CodeEditor value={code} onChange={setCode} onRun={() => run()} />
+            <CodeEditor value={code} onChange={setCode} onRun={onRun} />
           </div>
 
           <ResultPanel
