@@ -167,7 +167,7 @@ export function CurriculumMap({ chapters, tiers }: { chapters: ChapterLite[]; ti
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <div className="border-t border-line-soft">
+                        <div className="border-t border-line theme-light:border-line-faint">
                           {chapter.lessons.map((l) => {
                             const pct = bestPercent(l.id);
                             const ok = pct >= 100;
