@@ -13,14 +13,14 @@ hints:
   - A middle rung can collapse to `li` + `bltlr-`/`blelr-` (a conditional return).
 ---
 
-# Falling down a ladder of tests
+# A ladder of tests
 
-An `if` / `else if` / `else` chain is a **ladder**: each rung is a compare, and
-failing it drops you to the next rung. The first rung that holds returns; the
-final `else` is whatever's left after every test failed. In assembly this is a
-straight run of compares, each branching past the rung's body.
+An `if` / `else if` / `else` chain is just a ladder. Each rung, a compare. Fail
+it and you're on the next rung down. First rung to hold wins and returns; the
+final `else` catches whatever nothing else matched. Assembly keeps that shape
+almost verbatim, one compare after another, each jumping past the body it guards.
 
-Consider `temp_zone(t)`, returning `5`, `3`, or `1` for three temperature bands:
+Take `temp_zone(t)`, three bands and three answers, `5`, `3`, or `1`.
 
 ```asm
 cmpwi r3,30        # top rung
@@ -35,16 +35,17 @@ li    r3,3         # otherwise the middle band
 blr
 ```
 
-The first rung exits with its own `blr` when it holds. The middle rung is
-tidier: MWCC speculatively loads the *bottom* band's value, and `bltlr-` returns
-it immediately if the value falls below 20 — otherwise execution falls through
-to the middle band's `li`. One compare, one conditional return, two outcomes.
+Top rung's the easy one. Compare holds, out you go through `blr`. The middle
+rung is sneakier. MWCC stashes the bottom band's value before testing anything,
+then `bltlr-` flings it back the moment the input drops under 20. Doesn't drop?
+You land on the middle band's `li`. One compare, one early exit, two bands
+covered.
 
-Notice the return values here (`5`, `3`, `1`) are deliberately *not* evenly
-spaced. When a ladder's outputs form a neat arithmetic run, MWCC sometimes
-replaces the branches with arithmetic; irregular outputs keep the honest
-compare-per-rung shape you see above. Read each rung's compare and branch to
-recover the threshold and which band sits on each side.
+Those answers, `5`, `3`, `1`, sit at uneven gaps on purpose. Give MWCC an even
+run and it might throw the branches away and compute the thing outright. Lumpy
+values keep the compare-per-rung shape you see above. So take the rungs one at a
+time. Each compare-and-branch pair tells you the threshold, and which band falls
+on which side.
 
 ## Your task
 

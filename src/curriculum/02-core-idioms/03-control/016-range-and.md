@@ -15,12 +15,13 @@ hints:
 
 # Both bounds, one value, one &&
 
-Lesson 11 joined two operands with `&&`. A **range test** is the special case
-where both halves test the *same* value against different bounds: `lo <= x &&
-x <= hi`. Because it's still `&&`, it still short-circuits — but now both
-compares read the same register, so you'll see one value probed twice.
+Back in lesson 11 we glued two operands together with `&&`. A **range test** is
+the tidy special case of that. Both halves poke at the *same* value, just
+against different bounds, `lo <= x && x <= hi`. It's still `&&`, so it still
+short-circuits. The twist is that both compares now read one register, so you
+watch a single value get probed twice.
 
-Consider `within_bounds(x)`, true exactly when `x` lies in `[10, 20]`:
+Take `within_bounds(x)`, true exactly when `x` sits inside `[10, 20]`:
 
 ```asm
 cmpwi r3,10        # x vs the low bound
@@ -34,14 +35,14 @@ li    r3,0
 blr
 ```
 
-The tell-tale of a range check is two `cmpwi`s against the *same register* whose
-failing branches both land on the *same* false exit. The first compare is the
-lower bound, the second the upper; each branches away the moment the value
-escapes that side. Only when both are satisfied does control reach the `li r3,1`.
+How do you spot a range check? Two `cmpwi`s on the *same register*, and both
+failing branches drop to the *same* false exit. The first compare guards the low
+bound, the second the high. Each one bails the instant the value slips past its
+side. Reach `li r3,1` and you know both held.
 
-Read the two constants as the inclusive-or-exclusive bounds (the branch
-mnemonic — `blt` vs `ble`, `bgt` vs `bge` — tells you which), and rebuild the
-single `&&` expression that gates the `1`.
+The two constants are your bounds, inclusive or exclusive depending on the
+branch. `blt` vs `ble`, `bgt` vs `bge`, that distinction is what tells you. From
+there, rebuild the one `&&` expression that lets the `1` through.
 
 ## Your task
 

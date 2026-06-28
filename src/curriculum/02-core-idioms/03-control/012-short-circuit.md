@@ -15,13 +15,14 @@ hints:
 
 # Two compares, lazily evaluated
 
-C's `&&` and `||` are **short-circuit**: the second operand is only evaluated if
-the first didn't already decide the answer. That laziness shows up directly as
-*two separate compares with branches between them*.
+`&&` and `||` are lazy in C. The right-hand operand runs only if the left one
+left the answer open. That shows up in asm as *two compares with branches wedged
+between them*.
 
-With `&&`, the *first* failing test jumps straight to the false exit — the
-second operand is skipped. Here is a `&&` function that tests whether both
-arguments are negative:
+Take `&&` first. The instant a test fails, control bails to the false exit and
+the right-hand operand never executes. In the listing below, `r3` is checked and
+a `bge-` to `.false` fires the moment it isn't negative, so `r4` is never looked
+at once the first half has lost.
 
 ```asm
 # both_negative(int a, int b): return 1 if a < 0 && b < 0
@@ -36,8 +37,9 @@ li    r3, 0
 blr
 ```
 
-`||` inverts the logic: the first *passing* test jumps to the true exit. Here
-is a `||` function that tests whether either argument is at least 10:
+`||` flips that around. Now a *passing* test is the one that jumps, straight to
+the true exit. Below, a single argument hitting 10 declares the whole thing true
+via a `bge-` to `.true`, leaving the second `cmpwi` unreached.
 
 ```asm
 # either_large(int a, int b): return 1 if a >= 10 || b >= 10
@@ -53,10 +55,10 @@ li    r3, 0
 blr
 ```
 
-Note only the *early* operand jumps to true on success; the final compare still
-falls through to the true path and branches to false on failure. Counting the
-compares and reading which branch each one takes reconstructs the exact
-`&&`/`||` expression.
+The tail has a wrinkle worth catching. Only the leading operand can shortcut to
+true. The final compare gets none, falls through onto the true path, and diverts
+to false only on failure. Count the `cmpwi`, follow the branch leaving each, and
+the `&&`/`||` behind them is yours to rebuild.
 
 ## Your task
 

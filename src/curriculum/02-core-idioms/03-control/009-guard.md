@@ -15,10 +15,11 @@ hints:
 
 # Bailing out before the real work
 
-A **guard clause** checks a precondition and returns early so the rest of the
-function can assume it holds. Because the two arms do genuinely different work
-(return a constant vs. perform a computation), MWCC keeps a real branch here
-rather than going branchless:
+A **guard clause** tests a precondition up front and returns early, so
+everything past it can take that condition for granted. The two arms here do
+genuinely different work. One hands back a constant, the other runs a
+calculation. That gap is why MWCC keeps an actual branch instead of folding it
+away.
 
 ```asm
 cmpwi r4, 0       # test the second argument
@@ -30,16 +31,15 @@ divw  r3, r3, r4  # main computation
 blr
 ```
 
-Two `blr` instructions is the giveaway: each arm has its own exit. The guard's
-body sits inline right after the branch; the "real" code follows at the `bne-`
-target. Spotting a lone compare whose *taken* branch jumps *over* a small return
-block is the fingerprint of an early-return guard.
+The giveaway is the pair of `blr` instructions, one exit per arm. Sitting right
+after the branch is the guard body, inline, while the main path waits over at
+the `bne-` target. See a single compare whose taken branch leaps *over* a short
+return block and you're looking at an early-return guard.
 
-To decode this pattern: identify which register is being tested and against what
-value; note that `bne-` *skips past* the inline return when the register is
-non-zero; and identify what computation runs at the branch target. The sentinel
-`li` value and the operation after the branch target are both visible in the
-assembly.
+Reading it is mechanical. Find the register under test and the value it meets in
+`cmpwi r4, 0`. Watch `bne-` jump *past* the inline return when that register is
+non-zero. Then check what runs at the target, here a `divw`. The sentinel `li`
+and the computation after the label are both right there in the listing.
 
 ## Your task
 

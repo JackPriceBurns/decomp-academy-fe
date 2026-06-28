@@ -15,12 +15,13 @@ hints:
 
 # Two guards, stacked
 
-So far each control-flow lesson tested a single condition. Real code stacks
-them. The simplest stack is a **two-sided clamp**: push a value up to a floor,
-then down to a ceiling. The two checks are independent and run one after the
-other — the assembly is just lesson 4's clamp followed by its mirror image.
+One condition was enough for every lesson before this. Most real functions aren't
+that tidy. Stacking shows up everywhere, and the cleanest case to learn it on is
+a **two-sided clamp**, which pushes a value up to a floor and then trims it down
+to a ceiling. Neither test depends on the other. Lay them end to end and the
+assembly is simply lesson 4's clamp followed by its mirror image.
 
-Consider `clamp_volume(v)`, which holds a value inside `[10, 50]`:
+Take `clamp_volume(v)`, pinning a value into `[10, 50]`:
 
 ```asm
 cmpwi r3,10        # below the floor?
@@ -37,15 +38,16 @@ mr    r3,r0
 blr
 ```
 
-The first compare guards the floor and exits early with its own `blr` when the
-value is too low. Everything past that point already knows the value is at or
-above the floor, so the second compare only has to cap it: it speculatively
-loads the ceiling into `r0`, then `bgt-` decides whether to keep that ceiling or
-copy the original value through. The two `mr`s funnel the winner into `r3`.
+The opening compare is the floor guard. A value that arrives too low returns
+immediately through its own `blr`. After that the code can assume the value sits
+at or above the floor, leaving the second compare to worry only about the
+ceiling. It parks the ceiling in `r0` up front, then `bgt-` decides between
+keeping that ceiling and letting the original value pass. The two `mr`s shove
+whichever value wins into `r3`.
 
-Read the two constants and the two branch directions: the first pair is the
-*lower* bound, the second pair the *upper*. Reconstruct each guard from the
-compare it sits on.
+The rest is just reading. Pick out the two constants and the way each branch
+turns. One pair marks the *lower* bound, the other the *upper*, and every guard
+falls back out of the compare it rides on.
 
 ## Your task
 

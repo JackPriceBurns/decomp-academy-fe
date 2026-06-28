@@ -16,14 +16,15 @@ hints:
 
 # Guarding with more than one condition
 
-Lesson 8's guard bailed out on a single bad input. Real preconditions usually
-have several. Joining them with `||` — "bail if this *or* that is wrong" — gives
-a guard whose two compares both branch to the *same* sentinel block, and whose
-fall-through runs the real computation. It's the `||` shape of lesson 16, but
-now one arm does genuine work instead of returning a constant.
+One bad input was enough to send lesson 8's guard packing. Most functions want
+more reassurance than that, screening two or three things before they commit to
+any work. That's what `||` buys you here. Both compares branch to the *same*
+sentinel block, and only the path that clears every check reaches the real math.
+The branch shape itself is lesson 16's. The one twist is that the surviving arm
+now computes something instead of parroting a constant.
 
-Consider `safe_avg(sum, count)`: it refuses a non-positive count or a negative
-sum, otherwise divides:
+Take `safe_avg(sum, count)`. Count zero or negative? Sum below zero? Either way
+it refuses the call. Otherwise, it divides.
 
 ```asm
 cmpwi r4,0         # count <= 0 ?
@@ -38,15 +39,17 @@ divw  r3,r3,r4     # the real computation
 blr
 ```
 
-Two compares feed one shared `.bail` block — that shared early-return target is
-what marks both branches as halves of a single `||` guard. The *first* failing
-condition jumps straight to the sentinel; the *last* condition, if it passes,
-falls through to the real work. The instruction at `.work` (here `divw`) tells
-you what the function actually computes once its inputs are trusted.
+Notice both compares funnel into the one `.bail` block. That shared early-return
+target is what gives them away as two halves of a single `||` guard. Whichever
+condition trips *first* heads straight for the sentinel. The *last* condition, if
+it holds, drops through to the real work. Read the instruction at `.work`, a
+`divw` in this case, and you know what the function does once its inputs check
+out.
 
-Your target guards two different conditions and finishes with a different
-operation. Identify the two compares, confirm they share one bailout, read the
-sentinel value, and recover the computation at the fall-through.
+Your version screens two conditions of its own and finishes on its own
+operation. Follow each compare to wherever it lands. Once you've watched them
+meet at a single bailout, the sentinel hands you the rejected value and the
+instruction past the fall-through hands you the rest.
 
 ## Your task
 

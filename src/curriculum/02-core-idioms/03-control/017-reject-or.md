@@ -17,13 +17,14 @@ hints:
 
 # The complement: || rejects
 
-A range *accepts* the inside with `&&`; the complement *rejects* the outside
-with `||`. `x < lo || x > hi` is true when the value escapes either bound, so the
-first half that holds already decides the answer — and that's exactly where `||`
-short-circuits. Watch how the two compares can even use different forms.
+Where a range *accepts* what's inside with `&&`, the complement *rejects* what's
+outside with `||`. Write `x < lo || x > hi` and it's true the moment the value
+escapes either bound, so the first half to hold settles the whole thing. That's
+the spot where `||` short-circuits. And keep an eye on the two compares here,
+because they don't even have to share a form.
 
-Consider `rejected(x, lo)`, true when `x` falls below a *variable* floor or above
-a fixed ceiling of 255:
+Take `rejected(x, lo)`. It's true when `x` dips below a *variable* floor, or
+climbs above a fixed ceiling of 255.
 
 ```asm
 cmpw  r3,r4        # x vs lo (both registers -> cmpw)
@@ -38,16 +39,16 @@ li    r3,0
 blr
 ```
 
-The first operand compares two registers, so it's `cmpw`; the second compares
-against a literal, so it's `cmpwi` — the operand kind chooses the form, exactly
-as in the earlier compare lessons. With `||`, the *first passing* test jumps to
-the reject path; only the last test falls through into accept. That asymmetry —
-early operands branching to one label, the final operand to the other — is the
-fingerprint of `||`.
+Two registers in the first compare, so it's `cmpw`. A literal in the second, so
+it's `cmpwi`. The operand kind picks the form, same rule as the earlier compare
+lessons. Now for the `||` twist. The *first passing* test jumps off to the
+reject path, and only the final test falls through into accept. Early operands
+head for one label, the last one for the other. That lopsided shape is how you
+fingerprint an `||`.
 
-Your target rejects with the same `||` shape but a different pair of bounds. Read
-which compare jumps where to recover the two conditions and the value each path
-returns.
+Your target rejects with that same `||` skeleton, just a different pair of
+bounds. Trace which compare jumps where, and you'll pull out both conditions plus
+the value waiting on each path.
 
 ## Your task
 

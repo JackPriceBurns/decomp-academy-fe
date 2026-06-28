@@ -15,17 +15,18 @@ hints:
 
 # The mirror image
 
-Recall how `max` works: compare `r3` and `r4`, then conditionally copy the
-larger into the return register using a pair of `mr` instructions. The `min`
-idiom has the same two-`mr` skeleton — the **only** difference is a single bit
-in the branch condition.
+You already saw `max`. Compare `r3` against `r4`, then conditionally copy the
+larger of the two into the return register with a pair of `mr` instructions.
+`min` reuses that exact two-`mr` skeleton. The only thing that moves is a single
+bit in the branch condition.
 
-`max` uses `ble-` (branch if ≤ to skip the copy), which means "if `a` is
-already ≤ `b`, keep `b`". Flipping to `bge-` (branch if ≥) inverts the
-selection: "if `a` is already ≥ `b`, keep `b`" — but now `a < b` is the case
-where we stage `a` for the result, so we're returning the *smaller* value.
+In `max` the branch is `ble-`. It skips the copy whenever `a` is already ≤ `b`,
+which leaves `b` sitting in place to be returned. Swap `ble-` for `bge-` and the
+choice inverts. The copy is now skipped when `a` is already ≥ `b`, so the case
+that stages `a` becomes `a < b`, and the value that survives to the end is the
+*smaller* one rather than the larger.
 
-To see the structural difference, here is the `max` assembly for reference:
+Here is the `max` listing once more, to hold up against your answer:
 
 ```asm
 cmpw r3, r4
@@ -36,9 +37,9 @@ mr   r3, r4
 blr
 ```
 
-Study that branch condition carefully. The `min` pattern is identical except
-for one mnemonic change — find what the branch condition must become so that
-the *smaller* argument ends up in `r3`.
+Look hard at that branch line. The `min` version is the same code with exactly
+one mnemonic changed. Work out what the condition has to become so the *smaller*
+argument is the one that lands in `r3`.
 
 ## Your task
 
