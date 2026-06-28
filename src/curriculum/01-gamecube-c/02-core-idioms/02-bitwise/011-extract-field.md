@@ -39,6 +39,16 @@ There's your whole shift-and-AND in a single instruction. Memorise the shape and
 you'll spot it everywhere: rotate by `r`, mask `[32-w, 31]`, and what you've
 really written is a right shift of `r` keeping the bottom `w` bits.
 
+One heads-up before you open the diff: the disassembler there doesn't print
+`rlwinm` for this shape. It uses the **extended mnemonic** `extrwi` (*extract
+word immediate*) — PowerPC's shorthand for exactly this extract-a-field rotate.
+Same 32-bit instruction, friendlier name; hover the line and the diff spells the
+underlying `rlwinm` back out. The worked example renders there as
+`extrwi r3, r3, 4, 20`, read as `extrwi rD, rS, n, b`: take the `n`-bit field
+(`4` wide) that begins at bit `b` (`20`, counted from the top — PowerPC numbers
+bit 0 as the most significant) and right-justify it. The width and position
+you'd otherwise decode out of the `rlwinm` are just named outright.
+
 Now your target. The rotate amount hands you the right-shift count, the mask
 `[MB,ME]` hands you the width, and the C falls out of the two.
 
