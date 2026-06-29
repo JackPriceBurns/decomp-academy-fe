@@ -30,7 +30,7 @@ export function AccountMenu() {
     return (
       <Link
         href="/login"
-        className="inline-flex items-center gap-1.5 rounded-md bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent transition hover:bg-accent/20"
+        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent transition hover:bg-accent/20"
       >
         <IconUserCircle size={16} /> Sign in
       </Link>

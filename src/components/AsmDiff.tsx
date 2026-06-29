@@ -1,6 +1,16 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import type {
   DiffRowVM,
   Overview,
@@ -271,12 +281,12 @@ const ROW_META: Record<RowKind, { bg: string; mark: string; markColor: string; l
 export function ObjDiff({ rows }: { rows: DiffRowVM[] }) {
   return (
     <InsnTipLayer>
-      {/* Side-by-side once there's room; unified single-column on phones. */}
+      {/* Side-by-side once there's room; stacked Target/Current panes on phones. */}
       <div className="hidden sm:block">
         <SideBySideDiff rows={rows} />
       </div>
       <div className="sm:hidden">
-        <UnifiedDiff rows={rows} />
+        <StackedDiff rows={rows} />
       </div>
     </InsnTipLayer>
   );
@@ -326,55 +336,118 @@ function SideBySideDiff({ rows }: { rows: DiffRowVM[] }) {
   );
 }
 
-// Interleaved single-column diff (objdiff/decomp.me-style) that fits a phone.
-function UnifiedDiff({ rows }: { rows: DiffRowVM[] }) {
+// Phones: two stacked panes — Target asm on top, Current asm below — instead of
+// a unified column, so each side reads like the desktop split. The panes are
+// equal height (flex-1) and their scroll is linked (vertical keeps the rows
+// aligned; horizontal too), so comparing line-for-line stays effortless.
+function StackedDiff({ rows }: { rows: DiffRowVM[] }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+  const botRef = useRef<HTMLDivElement>(null);
+
+  // The mobile page root is `min-h-screen` (not a fixed height), so flex/`h-full`
+  // can't bound these panes — a long diff would just grow the page and the panes
+  // would lose their independent, synced scroll. Pin the container to the space
+  // from our top down to the bottom of the *visible* viewport (visualViewport
+  // tracks the mobile address bar) so the two panes stay equal and each scrolls.
+  const [height, setHeight] = useState<number>();
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const measure = () => {
+      // `offsetParent` is null while the result pane is hidden (display:none) —
+      // its rect would read top:0 and we'd mis-size to the full viewport. The
+      // ResizeObserver re-fires once the pane is shown, when the rect is real.
+      if (el.offsetParent === null) return;
+      const vh = window.visualViewport?.height ?? window.innerHeight;
+      setHeight(Math.max(220, Math.floor(vh - el.getBoundingClientRect().top)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  // Setting one pane's scroll fires its own scroll event, which would echo back
+  // and fight the user; a one-frame lock breaks that feedback loop.
+  const lock = useRef(false);
+  const link = (src: HTMLDivElement | null, dst: HTMLDivElement | null) => {
+    if (!src || !dst || lock.current) return;
+    lock.current = true;
+    dst.scrollTop = src.scrollTop;
+    dst.scrollLeft = src.scrollLeft;
+    requestAnimationFrame(() => {
+      lock.current = false;
+    });
+  };
   return (
-    <div className="overflow-x-auto px-1 py-1 font-mono text-asm">
-      {rows.map((r, i) => {
-        const num = (
-          <span className="mr-2 inline-block w-6 select-none text-right tabular-nums text-content-ghost">
-            {i + 1}
-          </span>
-        );
-        if (r.kind === "none")
+    <div
+      ref={rootRef}
+      style={{ height }}
+      // Fallback height (≈ chrome above the diff) until the effect measures exactly.
+      className="flex h-[calc(100dvh-11rem)] min-h-0 flex-col font-mono text-asm"
+    >
+      <StackPane
+        label="Target asm"
+        rows={rows}
+        side="target"
+        scrollRef={topRef}
+        onScroll={() => link(topRef.current, botRef.current)}
+      />
+      <StackPane
+        label="Current asm"
+        rows={rows}
+        side="user"
+        scrollRef={botRef}
+        onScroll={() => link(botRef.current, topRef.current)}
+        className="border-t-2 border-line"
+      />
+    </div>
+  );
+}
+
+function StackPane({
+  label,
+  rows,
+  side,
+  scrollRef,
+  onScroll,
+  className = "",
+}: {
+  label: string;
+  rows: DiffRowVM[];
+  side: "target" | "user";
+  scrollRef: RefObject<HTMLDivElement | null>;
+  onScroll: () => void;
+  className?: string;
+}) {
+  return (
+    <div className={`flex min-h-0 flex-1 flex-col ${className}`}>
+      <div className="shrink-0 border-b border-line bg-bg-soft px-3 py-1.5 text-2xs font-semibold uppercase tracking-wider text-content-muted">
+        {label}
+      </div>
+      <div ref={scrollRef} onScroll={onScroll} className="min-h-0 flex-1 overflow-auto py-1">
+        {rows.map((r, i) => {
+          const meta = ROW_META[r.kind];
+          // Render every row on both sides (a null side shows "·" via Line) so the
+          // two panes have identical row counts/heights and the scroll stays synced.
+          const segs = side === "target" ? r.target : r.user;
           return (
-            <div key={i} className="whitespace-pre px-2 py-px">
-              {num}
-              <Line segs={r.target ?? r.user} />
+            <div key={i} className={`flex whitespace-pre px-2 ${meta.bg}`}>
+              <span className="mr-2 w-6 shrink-0 select-none text-right tabular-nums text-content-ghost">
+                {i + 1}
+              </span>
+              <Line segs={segs} />
             </div>
           );
-        if (r.kind === "delete")
-          return (
-            <div key={i} className="whitespace-pre bg-bad/[0.07] px-2 py-px">
-              {num}
-              <span className="mr-1 select-none text-bad">−</span>
-              <Line segs={r.target} />
-            </div>
-          );
-        if (r.kind === "insert")
-          return (
-            <div key={i} className="whitespace-pre bg-accent/[0.07] px-2 py-px">
-              {num}
-              <span className="mr-1 select-none text-accent">+</span>
-              <Line segs={r.user} />
-            </div>
-          );
-        // replace / op-mismatch / arg-mismatch: show target, then yours.
-        return (
-          <div key={i} className="bg-warn/[0.06]">
-            <div className="whitespace-pre px-2 py-px">
-              {num}
-              <span className="mr-1 select-none text-warn">−</span>
-              <Line segs={r.target} />
-            </div>
-            <div className="whitespace-pre px-2 py-px">
-              <span className="mr-2 inline-block w-6 select-none" />
-              <span className="mr-1 select-none text-warn">+</span>
-              <Line segs={r.user} />
-            </div>
-          </div>
-        );
-      })}
+        })}
+      </div>
     </div>
   );
 }

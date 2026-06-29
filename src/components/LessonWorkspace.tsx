@@ -40,8 +40,6 @@ import {
   totalSolved,
   useProgress,
 } from "@/lib/progress";
-import { AccountMenu } from "./AccountMenu";
-import { ThemeToggle } from "./ui";
 import { FeedbackDialog } from "./FeedbackDialog";
 import { lessonPath } from "@/lib/seo";
 
@@ -345,7 +343,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
       <TopBar lesson={lesson} />
       {/* Mobile pane switcher — each surface gets the full screen on a phone. */}
       <div className="flex border-b border-line bg-bg-soft lg:hidden">
-        {(["brief", "code", "result"] as const).map((p) => (
+        {(["brief", "result", "code"] as const).map((p) => (
           <button
             key={p}
             onClick={() => setMobilePane(p)}
@@ -356,7 +354,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
             }`}
           >
             <span className="inline-flex items-center gap-1.5">
-              {p === "brief" ? "Brief" : p === "code" ? "Code" : "Result"}
+              {p === "brief" ? "Brief" : p === "code" ? "Code" : "Assembly"}
               {p === "result" && hasResult && mobilePane !== "result" && (
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               )}
@@ -436,7 +434,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
                 >
                   <IconCheck size={14} />
                   {lesson.next ? "Next lesson" : "Finish"}
-                  <kbd className="ml-1 rounded bg-black/20 px-1 text-2xs">⌘↵</kbd>
+                  <kbd className="ml-1 hidden rounded bg-black/20 px-1 text-2xs sm:inline-block">⌘↵</kbd>
                 </Link>
               ) : (
                 <button
@@ -449,8 +447,8 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
                   ) : (
                     <IconPlayerPlayFilled size={13} />
                   )}
-                  Compile &amp; Check
-                  <kbd className="ml-1 rounded bg-black/20 px-1 text-2xs">⌘↵</kbd>
+                  Compile<span className="hidden sm:inline">&nbsp;&amp; Check</span>
+                  <kbd className="ml-1 hidden rounded bg-black/20 px-1 text-2xs sm:inline-block">⌘↵</kbd>
                 </button>
               )}
             </div>
@@ -533,13 +531,14 @@ function TopBar({ lesson }: { lesson: LessonDTO }) {
       <header className="flex items-center gap-3 border-b border-line bg-bg-soft px-4 py-2.5">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-sm text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
         >
-          <IconArrowLeft size={16} /> Curriculum
+          <IconArrowLeft size={16} />
+          <span className="hidden sm:inline">Curriculum</span>
         </Link>
         <div className="mx-1 h-5 w-px bg-line" />
-        <h1 className="truncate text-sm font-semibold text-content-primary">{lesson.title}</h1>
-        <div className="ml-auto flex items-center gap-1.5">
+        <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-content-primary">{lesson.title}</h1>
+        <div className="flex shrink-0 items-center gap-1.5">
           {lesson.prev ? (
             <Link
               href={lessonPath(lesson.course, lesson.prev.id)}
@@ -566,9 +565,6 @@ function TopBar({ lesson }: { lesson: LessonDTO }) {
           >
             <IconHelpCircle size={16} />
           </button>
-          <div className="mx-1 h-5 w-px bg-line" />
-          <ThemeToggle />
-          <AccountMenu />
         </div>
       </header>
       <FeedbackDialog
@@ -752,7 +748,12 @@ function ResultPanel({
         <TabButton active={tab === "diff"} onClick={() => setTab("diff")} icon={<IconGitCompare size={14} />}>
           Diff
         </TabButton>
-        <TabButton active={tab === "objects"} onClick={() => setTab("objects")} icon={<IconStack2 size={14} />}>
+        <TabButton
+          active={tab === "objects"}
+          onClick={() => setTab("objects")}
+          icon={<IconStack2 size={14} />}
+          className="hidden sm:inline-flex"
+        >
           Objects
         </TabButton>
         <TabButton active={tab === "console"} onClick={() => setTab("console")} icon={<IconTerminal2 size={14} />}>
@@ -929,16 +930,18 @@ function TabButton({
   onClick,
   icon,
   children,
+  className = "",
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition ${
+      className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition ${className} ${
         active
           ? "border-accent text-content-primary"
           : "border-transparent text-content-muted hover:text-content-secondary"

@@ -51,17 +51,23 @@ export default function Home() {
       <JsonLd data={courseLd()} />
       <nav className="sticky top-0 z-40 border-b border-line/70 bg-bg/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center gap-2 px-5 py-3">
-          <Logo size={28} />
-          <span className="font-bold tracking-tight text-content-primary">Decomp Academy</span>
+          <Logo size={28} className="shrink-0" />
+          {/* Below ~360px (iPhone SE) the wordmark is dropped — the {dA} logo
+              still carries the brand — so the bar never overflows. */}
+          <span className="hidden shrink-0 whitespace-nowrap font-bold tracking-tight text-content-primary min-[360px]:inline">
+            Decomp Academy
+          </span>
           <span className="ml-1 hidden rounded bg-bg-softer px-1.5 py-0.5 font-mono text-2xs font-medium text-content-muted sm:inline">
             MWCC GC/2.0
           </span>
-          <div className="ml-auto flex items-center gap-4 text-sm">
-            <Link href="/playground" className="text-content-secondary transition hover:text-content-primary">
+          <div className="ml-auto flex shrink-0 items-center gap-3 text-sm sm:gap-4">
+            {/* Secondary links live in the footer too, so drop them from the bar on
+                phones rather than overflow the row. */}
+            <Link href="/playground" className="hidden text-content-secondary transition hover:text-content-primary sm:block">
               Playground
             </Link>
 
-            <Link href="#curriculum" className="text-content-secondary transition hover:text-content-primary">
+            <Link href="#curriculum" className="hidden text-content-secondary transition hover:text-content-primary sm:block">
               Curriculum
             </Link>
 
