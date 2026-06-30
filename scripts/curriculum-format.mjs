@@ -144,9 +144,21 @@ export function parseTierFile(raw, { id, order, course }) {
   return { id, title: data.title, blurb: data.blurb, order, course };
 }
 
-/** Parse a _course.md file into a Course. Same shape as a tier (title + blurb);
- *  id and order come from the folder name (NN-<id>), supplied by the caller. */
+/** Parse a _course.md file into a Course. Same shape as a tier (title + blurb)
+ *  plus a `grader` selecting how its lessons compile; id and order come from the
+ *  folder name (NN-<id>), supplied by the caller. */
 export function parseCourseFile(raw, { id, order }) {
   const { data } = splitFrontmatter(raw);
-  return { id, title: data.title, blurb: data.blurb, order };
+  if (data.grader !== "remote" && data.grader !== "wasm-agbcc") {
+    throw new Error(
+      `Course "${id}" _course.md must set grader to "remote" or "wasm-agbcc" (got ${JSON.stringify(data.grader)})`,
+    );
+  }
+  return {
+    id,
+    title: data.title,
+    blurb: data.blurb,
+    grader: data.grader,
+    order,
+  };
 }
