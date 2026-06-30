@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { API_URL } from "@/lib/api-url";
+import { COMPILER_URL } from "@/lib/api-url";
 import { postJson } from "@/lib/lessons/remote";
 
 export const runtime = "nodejs";
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Code too long." }, { status: 413 });
   }
   try {
-    const result = await postJson(`${API_URL}/compile`, {
+    const result = await postJson(`${COMPILER_URL}/compile`, {
       code: body.code,
       context: body.context,
       extraFlags: body.extraFlags,

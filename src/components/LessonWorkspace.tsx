@@ -66,6 +66,9 @@ export interface LessonDTO {
   symbol: string;
   starter: string;
   solution: string;
+  /** Read-only struct/type preamble shown in a tab. Absent when the lesson has
+   *  no context, or deliberately hides it. */
+  context?: string;
   hints: string[];
   prev: { id: string; title: string } | null;
   next: { id: string; title: string } | null;
@@ -122,6 +125,9 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   const [selectedSymbol, setSelectedSymbol] = useState(lesson.symbol);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [tab, setTab] = useState<Tab>("diff");
+  // Which source the editor column shows: the learner's editable code, or the
+  // read-only context preamble. Only relevant when the lesson has context.
+  const [editorTab, setEditorTab] = useState<"code" | "context">("code");
   const [mobilePane, setMobilePane] = useState<"brief" | "code" | "result">("brief");
   const [hintsShown, setHintsShown] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
@@ -271,6 +277,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
     setHintsShown(0);
     setShowSolution(false);
     setTab("diff");
+    setEditorTab("code");
     setMobilePane("brief");
     if (lesson.concept) return;
     preloadObjdiff();
@@ -455,11 +462,37 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
           </div>
 
           <div
-            className={`min-h-[340px] flex-[1.2] border-b border-line lg:block lg:min-h-0 ${
-              mobilePane === "result" ? "hidden" : "block"
+            className={`min-h-[340px] flex-[1.2] flex-col border-b border-line lg:flex lg:min-h-0 ${
+              mobilePane === "result" ? "hidden" : "flex"
             }`}
           >
-            <CodeEditor value={code} onChange={setCode} onRun={onRun} />
+            {/* Source switcher — only when the lesson ships a context preamble.
+                Lets the learner read the struct/type definitions their code is
+                compiled against without cluttering the editor. */}
+            {lesson.context && (
+              <div className="flex flex-wrap items-center gap-1.5 border-b border-line bg-bg-soft/30 px-3 py-1.5">
+                <span className="mr-1 font-mono text-2xs uppercase tracking-wider text-content-faint">
+                  src
+                </span>
+                <SourceTab active={editorTab === "code"} onClick={() => setEditorTab("code")}>
+                  {lesson.symbol}.c
+                </SourceTab>
+                <SourceTab active={editorTab === "context"} onClick={() => setEditorTab("context")}>
+                  context
+                </SourceTab>
+              </div>
+            )}
+            {/* The editable buffer stays mounted (just hidden) when context is
+                showing, so the learner's edits, cursor and undo history survive
+                a peek at the definitions. */}
+            <div className={`min-h-0 flex-1 ${editorTab === "code" ? "" : "hidden"}`}>
+              <CodeEditor value={code} onChange={setCode} onRun={onRun} />
+            </div>
+            {editorTab === "context" && lesson.context && (
+              <div className="min-h-0 flex-1">
+                <CodeEditor value={lesson.context} readOnly />
+              </div>
+            )}
           </div>
 
           <ResultPanel
@@ -948,6 +981,31 @@ function TabButton({
       }`}
     >
       {icon}
+      {children}
+    </button>
+  );
+}
+
+// Pill toggle for the editor's source switcher (code ⇄ context). Same look as
+// the playground's function selector.
+function SourceTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded px-2 py-0.5 font-mono text-2xs transition ${
+        active
+          ? "bg-accent/15 text-accent ring-1 ring-inset ring-accent/30"
+          : "text-content-muted hover:bg-bg-softer hover:text-content-primary"
+      }`}
+    >
       {children}
     </button>
   );

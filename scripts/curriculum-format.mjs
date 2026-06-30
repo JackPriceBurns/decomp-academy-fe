@@ -6,7 +6,7 @@
 // File shape — src/curriculum/<chapter>/<NNN>-<slug>.md:
 //   ---
 //   <YAML frontmatter: id, title, difficulty, concepts, symbol, [concept],
-//    [extraFlags], hints>
+//    [hideContext], [extraFlags], hints>
 //   ---
 //   <brief markdown body — may contain its own ```asm / ```c illustrative fences>
 //
@@ -54,6 +54,7 @@ export function formatLesson(lesson) {
   // symbol/hints are absent for reading-only (concept) lessons; omit when empty.
   if (lesson.symbol) fm.symbol = lesson.symbol;
   if (lesson.concept) fm.concept = true;
+  if (lesson.hideContext) fm.hideContext = true;
   if (lesson.extraFlags && lesson.extraFlags.length) fm.extraFlags = lesson.extraFlags;
   if (lesson.hints && lesson.hints.length) fm.hints = lesson.hints;
 
@@ -122,6 +123,7 @@ export function parseLessonFile(raw, { chapter, order }) {
   };
   if (data.concept) lesson.concept = true;
   if (code.context != null) lesson.context = `${code.context}\n`;
+  if (data.hideContext) lesson.hideContext = true;
   if (data.extraFlags && data.extraFlags.length) lesson.extraFlags = data.extraFlags;
   return lesson;
 }

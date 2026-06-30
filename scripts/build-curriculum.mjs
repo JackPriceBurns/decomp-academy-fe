@@ -39,11 +39,9 @@ import {
 // id (and a lesson keeps the same id across cosmetic title tweaks).
 // Renaming/moving a lesson's course/tier/chapter/slug intentionally mints a new id.
 //
-// `legacyProgressId` is the pre-course id — uuidv5("<tier>/<chapter>/<slug>"),
-// without the course prefix. Introducing courses re-keyed every lesson, so we
-// ship the old id alongside the new one and the client folds any progress stored
-// under it into the new key (see src/lib/progress.ts). Once existing learners
-// have migrated, the legacy id (and that fold) can be dropped.
+// (The pre-course progressIds that existing data migrates *from* are a frozen
+// one-time snapshot in src/lib/lessons/legacy-progress-ids.json — no longer
+// recomputed here. See src/lib/progress.ts.)
 const PROGRESS_NAMESPACE = "1b671a64-40d5-491e-99b0-da01ff1f3341";
 function uuidv5(name) {
   const ns = Buffer.from(PROGRESS_NAMESPACE.replace(/-/g, ""), "hex");
@@ -155,11 +153,8 @@ for (const courseEntry of subdirs(root)) {
         // numeric order prefix, so pure RENUMBERING is safe (the key is unchanged).
         // But the course slug, tier slug, chapter slug, and the lesson's
         // frontmatter `id` all feed the hash — renaming any of those folders,
-        // moving a lesson between chapters, or editing `id` mints a NEW
-        // progressId. `legacyProgressId` (the pre-course hash) is kept so the
-        // client can migrate progress filed under the old key.
+        // moving a lesson between chapters, or editing `id` mints a NEW progressId.
         lesson.progressId = uuidv5(`${courseId}/${tierId}/${chId}/${slug}`);
-        lesson.legacyProgressId = uuidv5(`${tierId}/${chId}/${slug}`);
         lessons.push(lesson);
       }
     }
@@ -199,7 +194,6 @@ lessons.sort((a, b) => {
 const slim = lessons.map((l) => ({
   id: l.id,
   progressId: l.progressId,
-  legacyProgressId: l.legacyProgressId,
   course: l.course,
   title: l.title,
   chapter: l.chapter,

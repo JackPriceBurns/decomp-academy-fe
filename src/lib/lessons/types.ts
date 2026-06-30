@@ -42,12 +42,10 @@ export interface Chapter {
 export interface LessonSource {
   id: string;
   /** Deterministic UUIDv5 of "<course>/<tier>/<chapter>/<slug>" — the stable key
-   *  under which progress is stored on the server and in localStorage. */
+   *  under which progress is stored on the server and in localStorage. (The
+   *  pre-course id that progress migrates *from* lives in the frozen
+   *  src/lib/lessons/legacy-progress-ids.json, not on the lesson.) */
   progressId: string;
-  /** The pre-course progressId (uuidv5 of "<tier>/<chapter>/<slug>"). Kept so the
-   *  client can migrate progress filed under the old key; safe to drop once
-   *  existing learners have transitioned. See src/lib/progress.ts. */
-  legacyProgressId: string;
   /** id of the enclosing course. */
   course: string;
   /** id of the enclosing tier. Needed to disambiguate `chapter`, whose id is
@@ -71,6 +69,14 @@ export interface LessonSource {
   symbol: string;
   /** Extra preamble injected before the user code at compile time. */
   context?: string;
+  /**
+   * Hide the `context` preamble from the learner: no context tab in the
+   * workspace, and the preamble is NOT prepended to the learner's submission
+   * (so they must declare the types themselves). The reference target is still
+   * compiled with the context, so the goal asm is unchanged. Use sparingly, for
+   * lessons whose point is to reverse-engineer the struct/types.
+   */
+  hideContext?: boolean;
   /** Code the editor starts with. */
   starter: string;
   /** Authoritative reference C — compiled to produce the target asm. */

@@ -80,6 +80,9 @@ export default function LessonPage({
     symbol: lesson.symbol,
     starter: lesson.starter,
     solution: lesson.solution,
+    // The struct/type preamble, shown read-only in a workspace tab. Withheld
+    // (and never sent to the browser) when the lesson hides it on purpose.
+    context: lesson.context && !lesson.hideContext ? lesson.context : undefined,
     hints: lesson.hints,
     prev: prev ? { id: prev.id, title: prev.title } : null,
     next: next ? { id: next.id, title: next.title } : null,

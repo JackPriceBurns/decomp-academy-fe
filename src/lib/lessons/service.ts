@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { Instruction } from "@/lib/asm";
-import { API_URL } from "@/lib/api-url";
+import { API_URL, COMPILER_URL } from "@/lib/api-url";
 import { getLesson } from "./registry";
 import { LessonSource } from "./types";
 import { postJson } from "./remote";
@@ -46,7 +46,7 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
 
   // Ask the unified compile service for the authoritative target.
   try {
-    const d = await postJson(`${API_URL}/target`, {
+    const d = await postJson(`${COMPILER_URL}/target`, {
       solution: l.solution,
       symbol: l.symbol,
       context: l.context,
@@ -87,10 +87,10 @@ export async function checkLesson(
   // no concept of lessons — the per-lesson stat is recorded separately against
   // the main API below, once we know whether the code built.
   try {
-    const d = await postJson(`${API_URL}/check`, {
+    const d = await postJson(`${COMPILER_URL}/check`, {
       code,
       symbol: lesson.symbol,
-      context: lesson.context,
+      context: lesson.hideContext ? undefined : lesson.context,
       extraFlags: lesson.extraFlags,
     });
     if (!d?.ok) {

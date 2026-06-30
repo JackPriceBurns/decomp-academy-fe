@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/auth/api";
 import { LESSONS } from "@/lib/lessons/registry.client";
+import legacyProgressIds from "@/lib/lessons/legacy-progress-ids.json";
 
 // Legacy anonymous storage (kept as the signed-out backend + migration source).
 const LEGACY_KEY = "decomp-academy-progress-v1";
@@ -22,32 +23,23 @@ const SLUG_TO_PID = new Map(
 // `normalizeKeys` upgrades data stored under an OLD key shape to the current
 // progressId. Two old shapes exist, both predating courses (when slugs were
 // globally unique):
-//   - a bare slug (the pre-progressId scheme), and
-//   - a pre-course progressId (`legacyProgressId`, hashed without the course).
-// A bare-slug row can therefore be resolved with a global slug→pid map; on the
-// off chance a newer course reuses a slug, first-wins keeps the original (the
-// slim list is in curriculum order, so the original course is seen first).
+//   - a bare slug (the original, pre-progressId scheme), resolved against the
+//     live slug→pid map below, and
+//   - a pre-course progressId, resolved against the frozen table.
 const GLOBAL_SLUG_TO_PID = new Map<string, string>();
 for (const l of LESSONS) if (!GLOBAL_SLUG_TO_PID.has(l.id)) GLOBAL_SLUG_TO_PID.set(l.id, l.progressId);
 
-// Grace-period migration: introducing courses re-hashed every lesson's
-// progressId (the course id is now part of the hash). `legacyProgressId` is the
-// pre-course id, so rows the server/localStorage still hold under it map forward
-// to the current key. New writes always use the current progressId, so this
-// fold (and `legacyProgressId` itself) can be dropped once learners have
-// transitioned.
-//
-// `legacyProgressId` is hashed WITHOUT the course, so if a slug is duplicated
-// across courses (e.g. a course cloned from another) the same legacy id appears
-// in both. Legacy data predates courses — it can only belong to the ORIGINAL
-// course — so first-wins (the slim list is in curriculum order, original course
-// first) maps it back to that course, never a later clone. Skip blank ids.
-const LEGACY_PID_TO_PID = new Map<string, string>();
-for (const l of LESSONS) {
-  if (l.legacyProgressId && !LEGACY_PID_TO_PID.has(l.legacyProgressId)) {
-    LEGACY_PID_TO_PID.set(l.legacyProgressId, l.progressId);
-  }
-}
+// Frozen historical map: pre-course progressId (uuidv5 of "<tier>/<chapter>/
+// <slug>") → current course-scoped progressId. Adding courses re-hashed every
+// lesson, so server/localStorage rows still keyed by the old id fold forward
+// through this. It's a one-time snapshot generated from the pre-course hash and
+// committed verbatim — not recomputed from the live curriculum — so once no old
+// data remains, this table and the fold can just be deleted. A Map (not raw
+// object indexing) so a stored key like "toString" can't resolve to an inherited
+// Object.prototype member instead of passing through.
+const LEGACY_PID_TO_PID = new Map<string, string>(
+  Object.entries(legacyProgressIds as Record<string, string>),
+);
 
 // Map a STORED key — bare slug, pre-course progressId, or current progressId —
 // to the current progressId. Unknown keys pass through unchanged.

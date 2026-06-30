@@ -52,10 +52,12 @@ export function CodeEditor({
   value,
   onChange,
   onRun,
+  readOnly = false,
 }: {
   value: string;
-  onChange: (v: string) => void;
+  onChange?: (v: string) => void;
   onRun?: () => void;
+  readOnly?: boolean;
 }) {
   const { theme } = useTheme();
   const onRunRef = useRef(onRun);
@@ -83,9 +85,11 @@ export function CodeEditor({
       language="c"
       theme={themeName(theme)}
       value={value}
-      onChange={(v) => onChange(v ?? "")}
+      onChange={(v) => onChange?.(v ?? "")}
       onMount={handleMount}
       options={{
+        readOnly,
+        domReadOnly: readOnly,
         fontSize: 13,
         fontFamily: "var(--font-mono)",
         fontLigatures: true,
@@ -93,7 +97,7 @@ export function CodeEditor({
         scrollBeyondLastLine: false,
         padding: { top: 14, bottom: 14 },
         lineNumbersMinChars: 3,
-        renderLineHighlight: "line",
+        renderLineHighlight: readOnly ? "none" : "line",
         smoothScrolling: true,
         cursorBlinking: "smooth",
         tabSize: 4,

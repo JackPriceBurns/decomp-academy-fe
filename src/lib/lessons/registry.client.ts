@@ -10,8 +10,6 @@ export interface LessonMeta {
   id: string;
   /** Stable backend/storage key (UUIDv5); see LessonSource.progressId. */
   progressId: string;
-  /** Pre-course progressId, kept for grace-period migration (see progress.ts). */
-  legacyProgressId: string;
   /** id of the enclosing course. */
   course: string;
   title: string;
