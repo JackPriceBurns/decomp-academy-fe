@@ -57,9 +57,6 @@ export default function Home() {
           <span className="hidden shrink-0 whitespace-nowrap font-bold tracking-tight text-content-primary min-[360px]:inline">
             Decomp Academy
           </span>
-          <span className="ml-1 hidden rounded bg-bg-softer px-1.5 py-0.5 font-mono text-2xs font-medium text-content-muted sm:inline">
-            MWCC GC/2.0
-          </span>
           <div className="ml-auto flex shrink-0 items-center gap-3 text-sm sm:gap-4">
             {/* Secondary links live in the footer too, so drop them from the bar on
                 phones rather than overflow the row. */}
@@ -94,8 +91,8 @@ export default function Home() {
                 <span className="font-bold tracking-tight text-content-primary">Decomp Academy</span>
               </div>
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-content-muted">
-                Learn to decompile GameCube PowerPC assembly into byte-matching C — graded live
-                by the real Metrowerks CodeWarrior GC/2.0 compiler.
+                Learn matching decompilation of retro games — turn the original assembly back into
+                byte-matching C, graded live by the real compilers.
               </p>
               <div className="mt-4 flex flex-col gap-1.5">
                 <a
@@ -128,12 +125,12 @@ export default function Home() {
             {/* Open-source decomp projects the lessons draw from */}
             <FooterCol
               title="Decomp projects"
-              note="Lessons draw on real functions from open-source GameCube decompilations:"
+              note="Lessons draw on real functions from open-source retro-game decompilations:"
             >
               <FooterLink href="https://github.com/zcanann/SFA-Decomp" external>Star Fox Adventures</FooterLink>
               <FooterLink href="https://github.com/projectPiki/pikmin2" external>Pikmin 2</FooterLink>
               <FooterLink href="https://github.com/PrimeDecomp/prime" external>Metroid Prime</FooterLink>
-              <FooterLink href="https://github.com/mariopartyrd/marioparty4" external>Mario Party 4</FooterLink>
+              <FooterLink href="https://github.com/macabeus/kl-eod-decomp" external>Klonoa: Empire of Dreams</FooterLink>
             </FooterCol>
 
             {/* Community */}
@@ -145,8 +142,8 @@ export default function Home() {
           </div>
 
           <div className="mt-10 border-t border-line/60 pt-5 text-2xs leading-relaxed text-content-ghost">
-            Not affiliated with Nintendo, Rare, Retro Studios, or Hudson Soft. Star Fox Adventures,
-            Pikmin, Metroid Prime, and Mario Party are trademarks of their respective owners. Linked
+            Not affiliated with Nintendo, Rare, Retro Studios, or Bandai Namco. Star Fox Adventures,
+            Pikmin, Metroid Prime, and Klonoa are trademarks of their respective owners. Linked
             decompilation projects are independent and community-run.
           </div>
         </div>

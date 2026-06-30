@@ -25,7 +25,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://decomp-academy.dev"),
   title: {
-    default: "Decomp Academy — Learn GameCube Decompilation (MWCC GC/2.0)",
+    default: "Decomp Academy — Learn Matching Decompilation of Retro Games",
     template: "%s · Decomp Academy",
   },
   description: SITE_DESCRIPTION,
@@ -34,13 +34,14 @@ export const metadata: Metadata = {
     "decompilation",
     "matching decompilation",
     "learn to decompile",
+    "retro games",
+    "reverse engineering",
+    "assembly to C",
     "GameCube",
     "PowerPC",
-    "Gekko",
-    "reverse engineering",
-    "MWCC",
-    "Metrowerks CodeWarrior",
-    "assembly to C",
+    "Game Boy Advance",
+    "ARM",
+    "Thumb",
   ],
   alternates: { canonical: "/" },
   icons: {
@@ -57,16 +58,14 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Decomp Academy",
     url: "https://decomp-academy.dev",
-    title: "Decomp Academy — Learn GameCube Decompilation (MWCC GC/2.0)",
-    description:
-      "Learn to decompile GameCube PowerPC assembly into byte-matching C, graded live by the real MWCC GC/2.0 compiler.",
+    title: "Decomp Academy — Learn Matching Decompilation of Retro Games",
+    description: SITE_DESCRIPTION,
     images: [{ url: "/brand/png/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Decomp Academy — Learn GameCube Decompilation",
-    description:
-      "Learn to decompile GameCube PowerPC assembly into byte-matching C, graded live by the real MWCC GC/2.0 compiler.",
+    title: "Decomp Academy — Matching Decompilation of Retro Games",
+    description: SITE_DESCRIPTION,
     images: ["/brand/png/og-image.png"],
   },
 };

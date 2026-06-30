@@ -16,8 +16,9 @@ export function lessonPath(course: string, id: string): string {
 }
 
 export const SITE_DESCRIPTION =
-  "Learn to decompile GameCube PowerPC assembly into byte-matching C, graded " +
-  "live by the real Metrowerks CodeWarrior GC/2.0 compiler. Free, interactive lessons.";
+  "Learn matching decompilation of retro games: turn the original assembly back " +
+  "into byte-matching C, graded live by the real compilers. Free, interactive " +
+  "lessons for GameCube (PowerPC) and Game Boy Advance (ARM).";
 
 const ORGANIZATION = {
   "@type": "Organization",
@@ -48,7 +49,7 @@ export function courseLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Course",
-    name: "Decomp Academy — Learn GameCube Decompilation",
+    name: "Decomp Academy — Learn Retro-Game Decompilation",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     provider: ORGANIZATION,
@@ -58,14 +59,14 @@ export function courseLd() {
     about: [
       "Decompilation",
       "Reverse engineering",
-      "PowerPC assembly",
-      "GameCube",
+      "Retro games",
+      "Assembly",
     ],
     teaches: [
-      "Reading PowerPC (Gekko) assembly",
+      "Reading assembly (PowerPC, ARM/Thumb)",
       "Matching decompilation",
-      "Metrowerks CodeWarrior GC/2.0 (MWCC) code generation",
-      "The PowerPC EABI",
+      "How C compiles down to machine code",
+      "Application binary interfaces (ABI)",
       "C programming",
     ],
     hasCourseInstance: {

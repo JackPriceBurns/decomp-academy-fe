@@ -39,16 +39,16 @@ export function Hero({
       <div className="relative mx-auto grid max-w-5xl grid-cols-1 items-center gap-10 px-5 pb-16 pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:pt-20">
         <div>
           <h1 className="max-w-xl text-2xl font-bold leading-snug tracking-tight text-content-bright sm:text-3xl">
-            Learn to decompile GameCube assembly into{" "}
+            Decompile retro-game assembly into{" "}
             <span className="bg-gradient-to-r from-accent to-accent-grad bg-clip-text font-mono text-transparent">
               byte-matching C.
             </span>
           </h1>
           <p className="mt-4 max-w-xl leading-relaxed text-content-secondary">
-            Go from never having read a register to matching real{" "}
-            <span className="text-content">Star Fox Adventures</span> functions —
+            Go from never having read a register to matching real functions from{" "}
+            <span className="text-content">GameCube and Game Boy Advance</span> games —
             instruction for instruction. You write C, the{" "}
-            <span className="text-content">real 2001 compiler</span> grades it live.
+            <span className="text-content">original compiler</span> grades it live.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -81,16 +81,16 @@ export function Hero({
           {/* Trust strip — pull the real credibility out of the footer. */}
           <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-content-faint">
             <span className="inline-flex items-center gap-1.5">
-              <IconCheck size={13} className="text-good theme-light:text-good-soft" /> Graded by the real
-              <span className="font-mono text-content-muted">mwcceppc.exe</span>
+              <IconCheck size={13} className="text-good theme-light:text-good-soft" /> Graded by the
+              original compilers
             </span>
             <a
-              href="https://decomp.dev/zcanann/SFA-Decomp"
+              href="https://decomp.dev"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 transition hover:text-content-muted"
             >
-              <IconBrandGithub size={13} /> Functions from the live SFA-Decomp project
+              <IconBrandGithub size={13} /> Functions from real open-source decomps
             </a>
           </div>
         </div>
