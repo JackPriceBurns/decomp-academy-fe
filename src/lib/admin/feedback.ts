@@ -17,6 +17,10 @@ export interface FeedbackItem {
   email?: string;
   source?: string;
   createdAt: string;
+  /** When the learner was last emailed a reply (set by `replyToFeedback`). */
+  repliedAt?: string;
+  /** The latest reply that was emailed to the learner. */
+  replyMessage?: string;
 }
 
 export interface FeedbackRow extends FeedbackItem {
@@ -36,4 +40,17 @@ export async function getFeedback(): Promise<FeedbackRow[]> {
 
 export async function deleteFeedback(id: string): Promise<void> {
   await api(`/feedback/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+// Email the learner a reply and mark the row replied. Only valid for feedback
+// that has an email; the server 400s otherwise. Returns the server-stamped
+// `repliedAt` plus the stored reply so the caller can update its row in place.
+export async function replyToFeedback(
+  id: string,
+  message: string,
+): Promise<{ repliedAt: string; replyMessage: string }> {
+  return api<{ repliedAt: string; replyMessage: string }>(
+    `/feedback/${encodeURIComponent(id)}/reply`,
+    { method: "POST", body: JSON.stringify({ message }) },
+  );
 }

@@ -1,8 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { IconTrash, IconMail, IconMoodEmpty, IconX } from "@tabler/icons-react";
-import { getFeedback, deleteFeedback, type FeedbackRow } from "@/lib/admin/feedback";
+import {
+  IconTrash,
+  IconMail,
+  IconMoodEmpty,
+  IconX,
+  IconCornerUpLeft,
+  IconSend,
+  IconCheck,
+} from "@tabler/icons-react";
+import {
+  getFeedback,
+  deleteFeedback,
+  replyToFeedback,
+  type FeedbackRow,
+} from "@/lib/admin/feedback";
 import type { Sentiment } from "@/lib/feedback";
 
 const SENTIMENT_META: Record<Sentiment, { label: string; emoji: string; cls: string }> = {
@@ -65,6 +78,12 @@ export default function AdminFeedbackPage() {
     }
   };
 
+  // Patch the replied row in place so its "Replied" state survives filter changes.
+  const onReplied = (id: string, repliedAt: string, replyMessage: string) =>
+    setRows((rs) =>
+      rs ? rs.map((r) => (r.id === id ? { ...r, repliedAt, replyMessage } : r)) : rs,
+    );
+
   if (error) return <p className="text-red-400">Failed to load feedback: {error}</p>;
   if (!rows) return <p className="text-content-faint">Loading feedback…</p>;
 
@@ -121,59 +140,173 @@ export default function AdminFeedbackPage() {
         </div>
       ) : (
         <ul className="space-y-3">
-          {shown.map((r) => {
-            const meta = r.sentiment ? SENTIMENT_META[r.sentiment] : null;
-            return (
-              <li
-                key={r.id}
-                className="rounded-lg border border-line bg-bg-soft/40 px-4 py-3.5"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {meta && (
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-2xs font-semibold ${meta.cls}`}
-                        >
-                          {meta.emoji} {meta.label}
-                        </span>
-                      )}
-                      <span className="text-sm font-medium text-content-primary">{r.lesson}</span>
-                      {r.source && (
-                        <span className="rounded bg-bg-softer px-1.5 py-0.5 text-2xs text-content-faint">
-                          {r.source}
-                        </span>
-                      )}
-                      <span className="text-2xs text-content-faint">{ago(r.createdAt)}</span>
-                    </div>
-                    {r.message && (
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-content-secondary">
-                        {r.message}
-                      </p>
-                    )}
-                    {r.email && (
-                      <a
-                        href={`mailto:${r.email}`}
-                        className="mt-2 inline-flex items-center gap-1 text-2xs text-accent transition hover:underline"
-                      >
-                        <IconMail size={12} /> {r.email}
-                      </a>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => remove(r.id)}
-                    disabled={deleting === r.id}
-                    aria-label="Delete feedback"
-                    className="shrink-0 rounded-md p-1.5 text-content-faint transition hover:bg-bad/10 hover:text-bad disabled:opacity-50"
-                  >
-                    <IconTrash size={15} />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+          {shown.map((r) => (
+            <FeedbackCard
+              key={r.id}
+              row={r}
+              deleting={deleting === r.id}
+              onDelete={() => remove(r.id)}
+              onReplied={onReplied}
+            />
+          ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function FeedbackCard({
+  row: r,
+  deleting,
+  onDelete,
+  onReplied,
+}: {
+  row: FeedbackRow;
+  deleting: boolean;
+  onDelete: () => void;
+  onReplied: (id: string, repliedAt: string, replyMessage: string) => void;
+}) {
+  const meta = r.sentiment ? SENTIMENT_META[r.sentiment] : null;
+  const [composing, setComposing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const send = async () => {
+    const message = draft.trim();
+    if (!message) return;
+    setSending(true);
+    setErr(null);
+    try {
+      const { repliedAt, replyMessage } = await replyToFeedback(r.id, message);
+      onReplied(r.id, repliedAt, replyMessage);
+      setComposing(false);
+      setDraft("");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Couldn't send the reply.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <li className="rounded-lg border border-line bg-bg-soft/40 px-4 py-3.5">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {meta && (
+              <span
+                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-2xs font-semibold ${meta.cls}`}
+              >
+                {meta.emoji} {meta.label}
+              </span>
+            )}
+            <span className="text-sm font-medium text-content-primary">{r.lesson}</span>
+            {r.source && (
+              <span className="rounded bg-bg-softer px-1.5 py-0.5 text-2xs text-content-faint">
+                {r.source}
+              </span>
+            )}
+            <span className="text-2xs text-content-faint">{ago(r.createdAt)}</span>
+            {r.repliedAt && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-good/15 px-2 py-0.5 text-2xs font-semibold text-good theme-light:bg-good-soft/15 theme-light:text-good-soft">
+                <IconCheck size={11} /> Replied {ago(r.repliedAt)}
+              </span>
+            )}
+          </div>
+          {r.message && (
+            <p className="mt-2 whitespace-pre-wrap text-sm text-content-secondary">{r.message}</p>
+          )}
+
+          {/* Contact + reply affordances */}
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            {r.email ? (
+              <>
+                <a
+                  href={`mailto:${r.email}`}
+                  className="inline-flex items-center gap-1 text-2xs text-accent transition hover:underline"
+                >
+                  <IconMail size={12} /> {r.email}
+                </a>
+                {!composing && (
+                  <button
+                    onClick={() => {
+                      setErr(null);
+                      setComposing(true);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-2xs font-medium text-content-secondary transition hover:border-accent/40 hover:bg-accent/5 hover:text-accent"
+                  >
+                    <IconCornerUpLeft size={12} /> {r.repliedAt ? "Reply again" : "Reply"}
+                  </button>
+                )}
+              </>
+            ) : (
+              <span className="text-2xs italic text-content-faint">
+                Anonymous — no email to reply to
+              </span>
+            )}
+          </div>
+
+          {/* The reply we last sent (collapsed once a new compose starts) */}
+          {r.replyMessage && !composing && (
+            <div className="mt-2.5 rounded-md border border-line bg-bg-inset/50 px-3 py-2">
+              <p className="text-2xs font-semibold uppercase tracking-wide text-content-faint">
+                Your reply
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-xs text-content-secondary">
+                {r.replyMessage}
+              </p>
+            </div>
+          )}
+
+          {/* Inline composer */}
+          {composing && (
+            <div className="mt-2.5">
+              <textarea
+                autoFocus
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") send();
+                  if (e.key === "Escape" && !sending) setComposing(false);
+                }}
+                rows={4}
+                placeholder={`Write a reply to ${r.email}…`}
+                disabled={sending}
+                className="w-full resize-y rounded-md border border-line bg-bg-inset px-3 py-2 text-sm text-content-primary placeholder:text-content-faint focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/30 disabled:opacity-60"
+              />
+              {err && <p className="mt-1.5 text-xs text-bad">{err}</p>}
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  onClick={send}
+                  disabled={sending || !draft.trim()}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-on transition hover:bg-accent-hover active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <IconSend size={13} /> {sending ? "Sending…" : "Send reply"}
+                </button>
+                <button
+                  onClick={() => setComposing(false)}
+                  disabled={sending}
+                  className="rounded-md px-2.5 py-1.5 text-xs font-medium text-content-secondary transition hover:bg-bg-softer hover:text-content-primary disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <span className="ml-auto hidden text-2xs text-content-faint sm:block">
+                  ⌘↵ to send · emails {r.email}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+        <button
+          onClick={onDelete}
+          disabled={deleting}
+          aria-label="Delete feedback"
+          className="shrink-0 rounded-md p-1.5 text-content-faint transition hover:bg-bad/10 hover:text-bad disabled:opacity-50"
+        >
+          <IconTrash size={15} />
+        </button>
+      </div>
+    </li>
   );
 }
