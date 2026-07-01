@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { IconX, IconSend, IconLoader2, IconCircleCheckFilled } from "@tabler/icons-react";
-import { Button, Modal, cx } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { cx } from "@/components/ui/cx";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { submitFeedback, type FeedbackSource, type Sentiment } from "@/lib/feedback";
 

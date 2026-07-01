@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { IconDeviceFloppy, IconUserPlus } from "@tabler/icons-react";
-import { Logo, ButtonLink, Modal } from "@/components/ui";
+import { ButtonLink } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
+import { Modal } from "@/components/ui/Modal";
 import { totalSolved } from "@/lib/progress";
 
 // Shown once to an anonymous learner who has built up some progress, nudging

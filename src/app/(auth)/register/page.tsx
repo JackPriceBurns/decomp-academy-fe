@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconLoader2 } from "@tabler/icons-react";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import { AuthShell, AuthCard, Field, AuthError } from "@/components/auth/AuthCard";
 import { signUp, authMessage } from "@/lib/auth/cognito";
 

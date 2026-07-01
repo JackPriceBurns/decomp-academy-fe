@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { IconAlertTriangle, IconArrowLeft } from "@tabler/icons-react";
-import { Logo } from "@/components/ui";
+import { Logo } from "@/components/ui/Logo";
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return (

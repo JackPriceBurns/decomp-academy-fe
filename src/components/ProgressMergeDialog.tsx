@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { IconArrowMerge, IconCloud, IconDeviceLaptop } from "@tabler/icons-react";
-import { Button, Logo, ProgressBar } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useReconcile, type LessonProgress, type MergeStrategy } from "@/lib/progress";
 
 type Lessons = Record<string, LessonProgress>;

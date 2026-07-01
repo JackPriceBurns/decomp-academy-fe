@@ -11,7 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { useProgress } from "@/lib/progress";
 import { LESSONS } from "@/lib/lessons/registry.client";
-import { ProgressBar } from "@/components/ui";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { lessonPath } from "@/lib/seo";
 
 export function Hero({

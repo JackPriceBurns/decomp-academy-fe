@@ -22,7 +22,8 @@ import {
   type Seg,
 } from "@/lib/objdiff/client";
 import { AccountMenu } from "./AccountMenu";
-import { Logo, ThemeToggle } from "./ui";
+import { Logo } from "./ui/Logo";
+import { ThemeToggle } from "./ui/ThemeToggle";
 import { createScratch } from "@/lib/playground/decompme";
 import { EXAMPLES, type ExampleCategory, type PlaygroundExample } from "@/lib/playground/examples";
 

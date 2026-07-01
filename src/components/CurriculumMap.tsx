@@ -11,7 +11,7 @@ import {
   IconPlayerPlayFilled,
 } from "@tabler/icons-react";
 import { useProgress } from "@/lib/progress";
-import { ProgressBar } from "@/components/ui";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { lessonPath } from "@/lib/seo";
 
 interface LessonLite {

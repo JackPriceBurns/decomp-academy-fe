@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { GLOSSARY } from "@/lib/glossary";
-import { Logo, ThemeToggle } from "@/components/ui";
+import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { JsonLd } from "@/components/JsonLd";
 import { breadcrumbLd, definedTermSetLd, SITE_URL } from "@/lib/seo";
 
