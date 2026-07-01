@@ -1,12 +1,10 @@
-"use client";
-
 type Props = {
   active: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  text: string;
 };
 
-export function LessonSourceTab({ active, onClick, children }: Props) {
+export function LessonSourceTab({ active, onClick, text }: Props) {
   return (
     <button
       onClick={onClick}
@@ -16,7 +14,7 @@ export function LessonSourceTab({ active, onClick, children }: Props) {
           : "text-content-muted hover:bg-bg-softer hover:text-content-primary"
       }`}
     >
-      {children}
+      {text}
     </button>
   );
 }

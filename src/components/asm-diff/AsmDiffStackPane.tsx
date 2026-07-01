@@ -1,5 +1,3 @@
-"use client";
-
 import type { RefObject } from "react";
 import type { DiffRowVM } from "@/lib/objdiff/client";
 import { AsmDiffLine } from "./AsmDiffLine";

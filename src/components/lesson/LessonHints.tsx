@@ -1,5 +1,3 @@
-"use client";
-
 import { IconBulb } from "@tabler/icons-react";
 
 type Props = {
@@ -11,6 +9,7 @@ type Props = {
 
 export function LessonHints({ hints, shown, onReveal, onHide }: Props) {
   if (!hints.length) return null;
+
   return (
     <div className="mt-6 border-t border-line pt-4">
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-content-muted">
@@ -24,6 +23,7 @@ export function LessonHints({ hints, shown, onReveal, onHide }: Props) {
           </button>
         )}
       </div>
+
       <div className="space-y-2">
         {hints.slice(0, shown).map((h, i) => (
           <div
@@ -35,6 +35,7 @@ export function LessonHints({ hints, shown, onReveal, onHide }: Props) {
           </div>
         ))}
       </div>
+
       {shown < hints.length && (
         <button
           onClick={onReveal}

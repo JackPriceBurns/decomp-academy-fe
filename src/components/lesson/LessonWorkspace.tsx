@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IconCheck, IconPlayerPlayFilled, IconRefresh, IconLoader2 } from "@tabler/icons-react";
+import { IconCheck } from "@tabler/icons-react";
 import { preloadGlossary } from "@/components/asm-diff/glossary";
 import { GlossaryProse } from "@/components/glossary/GlossaryProse";
 import {
@@ -26,22 +25,21 @@ import {
 } from "@/lib/progress";
 import { lessonPath } from "@/lib/seo";
 import type { CheckState, LessonDTO, Tab } from "./types";
-export type { LessonDTO } from "./types";
 import { LessonConceptView } from "./LessonConceptView";
 import { LessonTopBar } from "./LessonTopBar";
 import { LessonHints } from "./LessonHints";
 import { LessonSolutionBox } from "./LessonSolutionBox";
 import { LessonSourceTab } from "./LessonSourceTab";
 import { LessonResultPanel } from "./LessonResultPanel";
+import { LazyCodeEditor } from "@/components/LazyCodeEditor";
+import { WorkspaceResetButton } from "@/components/workspace/WorkspaceResetButton";
+import { WorkspaceRunButton } from "@/components/workspace/WorkspaceRunButton";
 
-const CodeEditor = dynamic(() => import("@/components/CodeEditor").then((m) => m.CodeEditor), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full items-center justify-center text-sm text-content-faint">
-      <IconLoader2 className="mr-2 animate-spin" size={16} /> Loading editor…
-    </div>
-  ),
-});
+const PANE_LABEL: Record<"brief" | "code" | "result", string> = {
+  brief: "Brief",
+  code: "Code",
+  result: "Assembly",
+};
 
 export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   const [code, setCode] = useState(lesson.starter);
@@ -138,7 +136,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
         if (!initial) setTab("console");
       }
     },
-    [lesson.id, lesson.symbol, grader, lesson.context, hintsShown, showSolution],
+    [lesson.id, lesson.course, lesson.symbol, grader, lesson.context, hintsShown, showSolution],
   );
   const runRef = useRef(run);
   runRef.current = run;
@@ -209,10 +207,12 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
     });
   }, [
     lesson.id,
+    lesson.course,
     lesson.starter,
     lesson.symbol,
     lesson.concept,
     grader,
+    asmDialect,
     lesson.solution,
     lesson.context,
   ]);
@@ -225,7 +225,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
     codeRef.current = saved;
     seededRef.current = saved;
     void runRef.current({ initial: true });
-  }, [progressReady, lesson.id, lesson.concept]);
+  }, [progressReady, lesson.id, lesson.course, lesson.concept]);
 
   const reset = () => {
     setCode(lesson.starter);
@@ -263,7 +263,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
             }`}
           >
             <span className="inline-flex items-center gap-1.5">
-              {p === "brief" ? "Brief" : p === "code" ? "Code" : "Assembly"}
+              {PANE_LABEL[p]}
               {p === "result" && hasResult && mobilePane !== "result" && (
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               )}
@@ -271,6 +271,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
           </button>
         ))}
       </div>
+
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(20rem,440px)_minmax(0,1fr)]">
         <aside
           className={`min-h-0 flex-col border-r border-line bg-bg-soft/40 lg:flex ${
@@ -333,12 +334,8 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
             </span>
 
             <div className="ml-auto flex items-center gap-2">
-              <button
-                onClick={reset}
-                className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
-              >
-                <IconRefresh size={14} /> Reset
-              </button>
+              <WorkspaceResetButton onClick={reset} />
+
               {solved ? (
                 <Link
                   href={nextHref}
@@ -351,21 +348,16 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
                   </kbd>
                 </Link>
               ) : (
-                <button
-                  onClick={() => run()}
+                <WorkspaceRunButton
+                  running={check.status === "running"}
                   disabled={check.status === "running"}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-on transition hover:bg-accent-hover active:scale-[0.97] disabled:opacity-60"
+                  onClick={() => run()}
                 >
-                  {check.status === "running" ? (
-                    <IconLoader2 size={14} className="animate-spin" />
-                  ) : (
-                    <IconPlayerPlayFilled size={13} />
-                  )}
                   Compile<span className="hidden sm:inline">&nbsp;&amp; Check</span>
                   <kbd className="ml-1 hidden rounded bg-black/20 px-1 text-2xs sm:inline-block">
                     ⌘↵
                   </kbd>
-                </button>
+                </WorkspaceRunButton>
               )}
             </div>
           </div>
@@ -381,26 +373,27 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
                   src
                 </span>
 
-                <LessonSourceTab active={editorTab === "code"} onClick={() => setEditorTab("code")}>
-                  {lesson.symbol}.c
-                </LessonSourceTab>
+                <LessonSourceTab
+                  active={editorTab === "code"}
+                  onClick={() => setEditorTab("code")}
+                  text={`${lesson.symbol}.c`}
+                />
 
                 <LessonSourceTab
                   active={editorTab === "context"}
                   onClick={() => setEditorTab("context")}
-                >
-                  context
-                </LessonSourceTab>
+                  text="context"
+                />
               </div>
             )}
 
             <div className={`min-h-0 flex-1 ${editorTab === "code" ? "" : "hidden"}`}>
-              <CodeEditor value={code} onChange={setCode} onRun={onRun} />
+              <LazyCodeEditor value={code} onChange={setCode} onRun={onRun} />
             </div>
 
             {editorTab === "context" && lesson.context && (
               <div className="min-h-0 flex-1">
-                <CodeEditor value={lesson.context} readOnly />
+                <LazyCodeEditor value={lesson.context} readOnly />
               </div>
             )}
           </div>

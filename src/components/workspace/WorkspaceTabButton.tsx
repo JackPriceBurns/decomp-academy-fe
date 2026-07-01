@@ -1,14 +1,14 @@
-"use client";
+import { ComponentType } from "react";
 
 type Props = {
   active: boolean;
   onClick: () => void;
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  icon: ComponentType<{ size: number }>;
+  text: string;
   className?: string;
 };
 
-export function LessonTabButton({ active, onClick, icon, children, className = "" }: Props) {
+export function WorkspaceTabButton({ active, onClick, icon: Icon, text, className = "" }: Props) {
   return (
     <button
       onClick={onClick}
@@ -18,8 +18,8 @@ export function LessonTabButton({ active, onClick, icon, children, className = "
           : "border-transparent text-content-muted hover:text-content-secondary"
       }`}
     >
-      {icon}
-      {children}
+      <Icon size={14} />
+      {text}
     </button>
   );
 }

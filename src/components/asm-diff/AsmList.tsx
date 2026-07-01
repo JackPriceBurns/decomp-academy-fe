@@ -1,5 +1,3 @@
-"use client";
-
 import type { AsmDialect } from "@/lib/asm";
 import type { Seg } from "@/lib/objdiff/client";
 import { AsmDiffInsnTipLayer } from "./AsmDiffInsnTipLayer";

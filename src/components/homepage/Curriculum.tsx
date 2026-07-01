@@ -5,29 +5,7 @@ import { useState } from "react";
 import { CurriculumMap } from "./CurriculumMap";
 import { MatchLog, HeatLesson } from "./MatchLog";
 import { lessonPath } from "@/lib/seo";
-
-interface LessonLite {
-  id: string;
-  title: string;
-  order: number;
-  difficulty: number;
-  concepts: string[];
-  concept?: boolean;
-}
-interface ChapterLite {
-  id: string;
-  title: string;
-  blurb: string;
-  order: number;
-  tier: string;
-  lessons: LessonLite[];
-}
-interface TierLite {
-  id: string;
-  title: string;
-  blurb: string;
-  order: number;
-}
+import type { ChapterLite, TierLite } from "./curriculum-map/types";
 
 export interface CourseView {
   id: string;

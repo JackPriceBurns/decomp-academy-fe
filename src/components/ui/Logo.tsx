@@ -1,5 +1,3 @@
-"use client";
-
 import { BrandMark } from "@/components/BrandMark";
 import { cx } from "./cx";
 

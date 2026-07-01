@@ -11,6 +11,7 @@ type Props = { lesson: LessonDTO };
 
 export function LessonTopBar({ lesson }: Props) {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+
   return (
     <>
       <header className="flex items-center gap-3 border-b border-line bg-bg-soft px-4 py-2.5">
@@ -21,10 +22,13 @@ export function LessonTopBar({ lesson }: Props) {
           <IconArrowLeft size={16} />
           <span className="hidden sm:inline">Curriculum</span>
         </Link>
+
         <div className="mx-1 h-5 w-px bg-line" />
+
         <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-content-primary">
           {lesson.title}
         </h1>
+
         <div className="flex shrink-0 items-center gap-1.5">
           {lesson.prev ? (
             <Link
@@ -35,6 +39,7 @@ export function LessonTopBar({ lesson }: Props) {
               <IconArrowLeft size={14} /> Prev
             </Link>
           ) : null}
+
           {lesson.next ? (
             <Link
               href={lessonPath(lesson.course, lesson.next.id)}
@@ -44,6 +49,7 @@ export function LessonTopBar({ lesson }: Props) {
               Next <IconArrowRight size={14} />
             </Link>
           ) : null}
+
           <button
             onClick={() => setFeedbackOpen(true)}
             title="Feedback on this lesson"
@@ -54,6 +60,7 @@ export function LessonTopBar({ lesson }: Props) {
           </button>
         </div>
       </header>
+
       <FeedbackDialog
         open={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}

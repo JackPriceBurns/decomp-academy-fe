@@ -26,14 +26,7 @@ export default function Home() {
         })),
       }));
 
-    const heatLessons = chapters.flatMap((c) =>
-      c.lessons.map((l) => ({
-        id: l.id,
-        title: l.title,
-        difficulty: l.difficulty,
-        concept: l.concept,
-      })),
-    );
+    const heatLessons = chapters.flatMap((c) => c.lessons);
     return {
       id: course.id,
       title: course.title,
@@ -51,14 +44,14 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      <JsonLd data={courseLd()}/>
-      <Navbar/>
+      <JsonLd data={courseLd()} />
+      <Navbar />
       <Hero
         total={total}
         firstLesson={firstLesson ? { id: firstLesson.id, course: firstLesson.course } : undefined}
       />
-      <Curriculum courses={courses}/>
-      <Footer startHref={startHref}/>
+      <Curriculum courses={courses} />
+      <Footer startHref={startHref} />
     </main>
   );
 }

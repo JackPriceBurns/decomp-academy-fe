@@ -1,5 +1,3 @@
-"use client";
-
 import { Logo } from "@/components/ui/Logo";
 
 type Props = {

@@ -1,5 +1,3 @@
-"use client";
-
 import { IconBook2, IconCircleCheckFilled, IconCircleDashed } from "@tabler/icons-react";
 import { Difficulty } from "@/components/Difficulty";
 

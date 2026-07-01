@@ -1,5 +1,3 @@
-"use client";
-
 import { ObjDiff } from "@/components/asm-diff/ObjDiff";
 import type { AsmDialect } from "@/lib/asm";
 import type { DiffRowVM, Seg } from "@/lib/objdiff/client";
@@ -50,15 +48,16 @@ export function LessonDiffTab({
             returns to <span className="text-content-secondary">{lessonSymbol}</span>
           </div>
         )}
+
         <ObjDiff rows={check.vm.rows} dialect={dialect} />
       </>
     );
   }
 
   if (targetRows) {
-    const targetOnly: DiffRowVM[] = targetRows.map((segs) => ({
-      kind: "delete" as const,
-      target: segs,
+    const targetOnly: DiffRowVM[] = targetRows.map((t) => ({
+      kind: "delete",
+      target: t,
       user: null,
     }));
 

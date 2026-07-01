@@ -46,7 +46,7 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
 
   // Ask the unified compile service for the authoritative target.
   try {
-    const d = await postJson(`${COMPILER_URL}/target`, {
+    const d = await postJson<CompileResponse>(`${COMPILER_URL}/target`, {
       solution: l.solution,
       symbol: l.symbol,
       context: l.context,
@@ -56,11 +56,19 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
     if (!d.objBase64) {
       return { ok: false, error: "Compile service returned no target object file." };
     }
-    targetCache.set(key, { instructions: d.instructions, objBase64: d.objBase64 });
+    targetCache.set(key, { instructions: d.instructions ?? [], objBase64: d.objBase64 });
     return { ok: true, instructions: d.instructions, objBase64: d.objBase64 };
   } catch (e) {
     return { ok: false, error: "Could not reach the compile service." };
   }
+}
+
+interface CompileResponse {
+  ok?: boolean;
+  objBase64?: string;
+  instructions?: Instruction[];
+  error?: string;
+  compileError?: string;
 }
 
 export interface CheckResult {
@@ -87,7 +95,7 @@ export async function checkLesson(
   // no concept of lessons — the per-lesson stat is recorded separately against
   // the main API below, once we know whether the code built.
   try {
-    const d = await postJson(`${COMPILER_URL}/check`, {
+    const d = await postJson<CompileResponse>(`${COMPILER_URL}/check`, {
       code,
       symbol: lesson.symbol,
       context: lesson.hideContext ? undefined : lesson.context,

@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { IconDeviceFloppy, IconUserPlus } from "@tabler/icons-react";
 import { ButtonLink } from "@/components/ui/ButtonLink";

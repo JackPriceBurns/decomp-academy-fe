@@ -6,7 +6,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export function HomeFooterLink({ href, external, children }: Props) {
+export function FooterLink({ href, external, children }: Props) {
   const className = "text-content-muted transition hover:text-content";
   return (
     <li className="text-sm">

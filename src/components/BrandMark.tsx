@@ -1,8 +1,8 @@
 import type { SVGProps } from "react";
 
 type Props = {
-  height?: number
-  title?: string
+  height?: number;
+  title?: string;
 } & Omit<SVGProps<SVGSVGElement>, "height">;
 
 export function BrandMark({ height = 28, title = "Decomp Academy", ...props }: Props) {

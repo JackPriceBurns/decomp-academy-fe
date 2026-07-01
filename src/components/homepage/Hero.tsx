@@ -38,15 +38,13 @@ export function Hero({ total, firstLesson }: Props) {
         <div className="space-y-4">
           <h1 className="text-2xl font-bold tracking-tight text-content-bright sm:text-3xl">
             Decompile retro-game assembly into{" "}
-
-            <span className="text-accent font-mono">
-              byte-matching C.
-            </span>
+            <span className="text-accent font-mono">byte-matching C.</span>
           </h1>
 
           <p className="max-w-xl leading-relaxed text-content-secondary">
-            Go from never having read a register to matching real functions from GameCube and Game Boy Advance games —
-            instruction for instruction. You write C, the original compiler grades it live.
+            Go from never having read a register to matching real functions from GameCube and Game
+            Boy Advance games — instruction for instruction. You write C, the original compiler
+            grades it live.
           </p>
 
           <div className="flex flex-wrap items-center gap-3">

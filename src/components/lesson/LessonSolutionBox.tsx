@@ -22,10 +22,12 @@ export function LessonSolutionBox({ solution, shown, onToggle, onUse }: Props) {
         >
           <IconEye size={13} /> Hide reference solution
         </button>
+
         <div className="animate-slide-up-fade mt-2">
           <pre className="overflow-x-auto rounded-lg border border-line bg-bg-inset px-3 py-2.5 font-mono text-xs leading-relaxed text-content">
             {solution.trim()}
           </pre>
+
           <button
             onClick={onUse}
             className="mt-2 text-xs text-accent transition hover:text-accent-hover hover:underline"
@@ -44,6 +46,7 @@ export function LessonSolutionBox({ solution, shown, onToggle, onUse }: Props) {
           This reveals the full answer. Try the hints first — you&apos;ll learn far more by matching
           it yourself.
         </p>
+
         <div className="mt-2 flex items-center gap-2">
           <button
             onClick={() => {
@@ -54,6 +57,7 @@ export function LessonSolutionBox({ solution, shown, onToggle, onUse }: Props) {
           >
             Reveal anyway
           </button>
+
           <button
             onClick={() => setConfirming(false)}
             className="text-2xs text-content-muted transition hover:text-content"

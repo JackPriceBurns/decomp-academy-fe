@@ -1,5 +1,3 @@
-"use client";
-
 import type { OverviewSymbol } from "@/lib/objdiff/client";
 import { AsmDiffPct } from "./AsmDiffPct";
 import type { TipState } from "./tip-state";

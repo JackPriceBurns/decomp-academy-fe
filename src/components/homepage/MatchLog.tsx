@@ -5,13 +5,9 @@ import { IconFlame, IconTrophy, IconGitMerge } from "@tabler/icons-react";
 import { useProgress } from "@/lib/progress";
 import { MatchLogStat } from "./MatchLogStat";
 import { MatchLogCell } from "./MatchLogCell";
+import type { LessonLite } from "./curriculum-map/types";
 
-export interface HeatLesson {
-  id: string;
-  title: string;
-  difficulty: number;
-  concept?: boolean;
-}
+export type HeatLesson = Pick<LessonLite, "id" | "title" | "difficulty" | "concept">;
 
 type Props = {
   lessons: HeatLesson[];
@@ -33,7 +29,7 @@ export function MatchLog({ lessons, courseId }: Props) {
       } else if (pct > 0) attempted++;
     }
     return { solved, attempted, xp };
-  }, [lessons, bestPercent]);
+  }, [lessons, bestPercent, courseId]);
 
   const total = lessons.length;
   const milestones = [

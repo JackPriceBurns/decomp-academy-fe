@@ -1,16 +1,22 @@
-"use client";
-
 import { IconAlertTriangle, IconLoader2 } from "@tabler/icons-react";
 import type { CheckState } from "./types";
+import { WorkspaceConsolePre } from "@/components/workspace/WorkspaceConsolePre";
 
 function summarizeError(msg?: string): string | null {
-  if (!msg) return null;
+  if (!msg) {
+    return null;
+  }
+
   const lines = msg
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
+
   const idx = lines.findIndex((l) => /error|warning/i.test(l));
-  if (idx < 0) return null;
+  if (idx < 0) {
+    return null;
+  }
+
   for (const c of lines.slice(idx, idx + 3)) {
     const cleaned = c
       .replace(/\^/g, "")
@@ -18,8 +24,12 @@ function summarizeError(msg?: string): string | null {
       .replace(/^(Error|Warning):\s*/i, "")
       .replace(/\s+/g, " ")
       .trim();
-    if (/[a-z]{3,}/i.test(cleaned)) return cleaned.slice(0, 140);
+
+    if (/[a-z]{3,}/i.test(cleaned)) {
+      return cleaned.slice(0, 140);
+    }
   }
+
   return null;
 }
 
@@ -27,13 +37,16 @@ type Props = { check: CheckState; isErr: boolean };
 
 export function LessonConsole({ check, isErr }: Props) {
   const summary = isErr ? summarizeError(check.message) : null;
-  if (check.status === "running")
+
+  if (check.status === "running") {
     return (
       <div className="flex h-full items-center justify-center gap-2 text-xs text-content-faint">
         <IconLoader2 size={14} className="animate-spin text-accent" />
         Compiling…
       </div>
     );
+  }
+
   return (
     <div className="flex h-full flex-col">
       {summary && (
@@ -42,16 +55,16 @@ export function LessonConsole({ check, isErr }: Props) {
           <span className="font-medium text-content">{summary}</span>
         </div>
       )}
-      <pre
-        className={`flex-1 whitespace-pre-wrap px-4 py-3 font-mono text-xs leading-relaxed ${
-          isErr ? "text-bad-text" : "text-content-muted"
-        }`}
-      >
-        {check.message ||
+
+      <WorkspaceConsolePre
+        isErr={isErr}
+        text={
+          check.message ||
           (check.status === "match"
             ? "Compiled cleanly — perfect match."
-            : "No compiler output yet.")}
-      </pre>
+            : "No compiler output yet.")
+        }
+      />
     </div>
   );
 }

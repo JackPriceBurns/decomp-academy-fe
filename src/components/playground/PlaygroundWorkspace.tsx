@@ -1,18 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconArrowLeft,
-  IconPlayerPlayFilled,
-  IconLoader2,
-  IconRefresh,
   IconAlertTriangle,
   IconBinaryTree,
   IconTerminal2,
 } from "@tabler/icons-react";
-import { AsmList } from "@/components/asm-diff/AsmList";
 import { preloadGlossary } from "@/components/asm-diff/glossary";
 import {
   analyze,
@@ -30,18 +25,11 @@ import type { Status, Tab, ScratchState } from "./types";
 import { PlaygroundExampleSelect } from "./PlaygroundExampleSelect";
 import { PlaygroundCreateScratchButton } from "./PlaygroundCreateScratchButton";
 import { PlaygroundConsole } from "./PlaygroundConsole";
-import { PlaygroundTabButton } from "./PlaygroundTabButton";
-import { PlaygroundCentered } from "./PlaygroundCentered";
-import { PlaygroundEmpty } from "./PlaygroundEmpty";
-
-const CodeEditor = dynamic(() => import("@/components/CodeEditor").then((m) => m.CodeEditor), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full items-center justify-center text-sm text-content-faint">
-      <IconLoader2 className="mr-2 animate-spin" size={16} /> Loading editor…
-    </div>
-  ),
-});
+import { PlaygroundAsmTab } from "./PlaygroundAsmTab";
+import { LazyCodeEditor } from "@/components/LazyCodeEditor";
+import { WorkspaceTabButton } from "@/components/workspace/WorkspaceTabButton";
+import { WorkspaceResetButton } from "@/components/workspace/WorkspaceResetButton";
+import { WorkspaceRunButton } from "@/components/workspace/WorkspaceRunButton";
 
 const STORAGE_KEY = "decomp-playground-code";
 
@@ -237,25 +225,15 @@ export function PlaygroundWorkspace() {
               mwcceppc.exe -O4,p
             </span>
             <div className="ml-auto flex items-center gap-2">
-              <button
-                onClick={reset}
-                className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
-              >
-                <IconRefresh size={14} /> Reset
-              </button>
-              <button
-                onClick={() => run()}
+              <WorkspaceResetButton onClick={reset} />
+              <WorkspaceRunButton
+                running={status === "running"}
                 disabled={status === "running"}
-                className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-on transition hover:bg-accent-hover active:scale-[0.97] disabled:opacity-60"
+                onClick={() => run()}
               >
-                {status === "running" ? (
-                  <IconLoader2 size={14} className="animate-spin" />
-                ) : (
-                  <IconPlayerPlayFilled size={13} />
-                )}
                 Compile
                 <kbd className="ml-1 rounded bg-black/20 px-1 text-2xs">⌘↵</kbd>
-              </button>
+              </WorkspaceRunButton>
             </div>
           </div>
           {activeExample && (
@@ -270,26 +248,26 @@ export function PlaygroundWorkspace() {
             </div>
           )}
           <div className="min-h-[320px] flex-1 lg:min-h-0">
-            <CodeEditor value={code} onChange={setCode} onRun={() => run()} />
+            <LazyCodeEditor value={code} onChange={setCode} onRun={() => run()} />
           </div>
         </section>
 
         <section className="flex min-h-[40vh] flex-col bg-bg-inset/60 lg:min-h-0">
           <div className="flex items-center gap-1 border-b border-line bg-bg-soft/50 px-2">
-            <PlaygroundTabButton
+            <WorkspaceTabButton
               active={tab === "asm"}
               onClick={() => setTab("asm")}
-              icon={<IconBinaryTree size={14} />}
-            >
-              Disassembly
-            </PlaygroundTabButton>
-            <PlaygroundTabButton
+              icon={IconBinaryTree}
+              text="Disassembly"
+            />
+
+            <WorkspaceTabButton
               active={tab === "console"}
               onClick={() => setTab("console")}
-              icon={<IconTerminal2 size={14} />}
-            >
-              Console
-            </PlaygroundTabButton>
+              icon={IconTerminal2}
+              text="Console"
+            />
+
             <div className="ml-auto pr-1.5">
               <PlaygroundCreateScratchButton
                 scratch={scratch}
@@ -331,22 +309,7 @@ export function PlaygroundWorkspace() {
 
           <div className="min-h-0 flex-1 overflow-auto">
             {tab === "asm" ? (
-              status === "running" ? (
-                <PlaygroundCentered>
-                  <IconLoader2 size={14} className="animate-spin text-accent" /> Compiling with
-                  mwcceppc.exe…
-                </PlaygroundCentered>
-              ) : status === "compileError" || status === "error" ? (
-                <PlaygroundEmpty>Your code didn’t compile — see the Console tab.</PlaygroundEmpty>
-              ) : rows.length ? (
-                <AsmList rows={rows} />
-              ) : status === "ok" ? (
-                <PlaygroundEmpty>
-                  No functions in the output. Define a function to see its assembly.
-                </PlaygroundEmpty>
-              ) : (
-                <PlaygroundEmpty>Hit “Compile” to see the assembly.</PlaygroundEmpty>
-              )
+              <PlaygroundAsmTab status={status} rows={rows} />
             ) : (
               <PlaygroundConsole status={status} message={message} />
             )}

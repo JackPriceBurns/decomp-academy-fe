@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { lessonPath } from "@/lib/seo";
 import type { HeatLesson } from "./MatchLog";

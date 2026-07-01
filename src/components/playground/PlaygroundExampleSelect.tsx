@@ -1,5 +1,3 @@
-"use client";
-
 import { EXAMPLES, type ExampleCategory } from "@/lib/playground/examples";
 
 const CATEGORY_ORDER: ExampleCategory[] = [

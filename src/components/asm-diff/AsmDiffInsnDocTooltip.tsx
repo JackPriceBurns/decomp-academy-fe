@@ -1,5 +1,3 @@
-"use client";
-
 import type { InsnTipState } from "./context";
 
 type Props = { tip: InsnTipState };

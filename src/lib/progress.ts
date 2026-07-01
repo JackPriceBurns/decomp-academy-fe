@@ -671,10 +671,12 @@ export function useProgress() {
   // changes — the callbacks must change identity, not just close over live data.
   const isSolved = useCallback(
     (course: string, id: string) => (lessons[resolveId(course, id)]?.bestPercent ?? 0) >= 100,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tick],
   );
   const bestPercent = useCallback(
     (course: string, id: string) => lessons[resolveId(course, id)]?.bestPercent ?? 0,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tick],
   );
 

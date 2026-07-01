@@ -1,10 +1,8 @@
-"use client";
-
 import { IconGitCompare, IconStack2, IconTerminal2 } from "@tabler/icons-react";
 import type { AsmDialect } from "@/lib/asm";
 import type { Overview, Seg } from "@/lib/objdiff/client";
 import type { CheckState, Tab } from "./types";
-import { LessonTabButton } from "./LessonTabButton";
+import { WorkspaceTabButton } from "@/components/workspace/WorkspaceTabButton";
 import { LessonMatchMeter } from "./LessonMatchMeter";
 import { LessonConsole } from "./LessonConsole";
 import { LessonDiffTab } from "./LessonDiffTab";
@@ -39,37 +37,36 @@ export function LessonResultPanel({
   dialect,
   className = "",
 }: Props) {
-  const isErr = check.status === "compileError" || check.status === "error";
   return (
     <div
       className={`min-h-[260px] flex-[1] flex-col theme-light:bg-white/50 bg-bg-inset/60 lg:min-h-0 ${className}`}
     >
-      <div className="flex items-center gap-1 border-b border-line bg-bg-soft/50 px-2">
-        <LessonTabButton
-          active={tab === "diff"}
-          onClick={() => setTab("diff")}
-          icon={<IconGitCompare size={14} />}
-        >
-          Diff
-        </LessonTabButton>
-        <LessonTabButton
-          active={tab === "objects"}
-          onClick={() => setTab("objects")}
-          icon={<IconStack2 size={14} />}
-          className="hidden sm:inline-flex"
-        >
-          Objects
-        </LessonTabButton>
-        <LessonTabButton
-          active={tab === "console"}
-          onClick={() => setTab("console")}
-          icon={<IconTerminal2 size={14} />}
-        >
-          Console
-        </LessonTabButton>
-        <div className="ml-auto pr-2">
-          <LessonMatchMeter check={check} />
+      <div className="flex items-center justify-between border-b border-line bg-bg-soft/50 px-2">
+        <div className="space-x-2">
+          <WorkspaceTabButton
+            active={tab === "diff"}
+            onClick={() => setTab("diff")}
+            icon={IconGitCompare}
+            text="Diff"
+          />
+
+          <WorkspaceTabButton
+            active={tab === "objects"}
+            onClick={() => setTab("objects")}
+            icon={IconStack2}
+            text="Objects"
+            className="hidden sm:inline-flex"
+          />
+
+          <WorkspaceTabButton
+            active={tab === "console"}
+            onClick={() => setTab("console")}
+            icon={IconTerminal2}
+            text="Console"
+          />
         </div>
+
+        <LessonMatchMeter check={check} />
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto">
@@ -84,6 +81,7 @@ export function LessonResultPanel({
             onDismissBanner={onDismissBanner}
           />
         )}
+
         {tab === "objects" && (
           <LessonObjectsTab
             overview={overview}
@@ -91,7 +89,13 @@ export function LessonResultPanel({
             onSelectSymbol={onSelectSymbol}
           />
         )}
-        {tab === "console" && <LessonConsole check={check} isErr={isErr} />}
+
+        {tab === "console" && (
+          <LessonConsole
+            check={check}
+            isErr={check.status === "compileError" || check.status === "error"}
+          />
+        )}
       </div>
     </div>
   );

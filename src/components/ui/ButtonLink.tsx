@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { cx } from "./cx";

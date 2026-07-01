@@ -31,9 +31,9 @@ export function HeroMatchPreview() {
     <div className="animate-slide-up-fade overflow-hidden rounded-xl theme-light:bg-white bg-bg-inset/90 theme-light:shadow-lg shadow-2xl ring-1 ring-white/5 backdrop-blur lg:translate-y-0">
       <div className="flex items-center gap-2 border-b border-line bg-bg-soft/80 px-3.5 py-2">
         <span className="flex gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-bad/70"/>
-          <span className="h-2.5 w-2.5 rounded-full bg-warn/70"/>
-          <span className="h-2.5 w-2.5 rounded-full bg-good/70 theme-light:bg-good-soft/70"/>
+          <span className="h-2.5 w-2.5 rounded-full bg-bad/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-warn/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-good/70 theme-light:bg-good-soft/70" />
         </span>
 
         <span className="ml-1 font-mono text-2xs text-content-muted">match Vec_Normalize</span>
@@ -47,7 +47,7 @@ export function HeroMatchPreview() {
         >
           {matched ? (
             <>
-              <IconCheck size={11}/> 100% byte-match
+              <IconCheck size={11} /> 100% byte-match
             </>
           ) : (
             <>87.5% — 2 instrs left</>

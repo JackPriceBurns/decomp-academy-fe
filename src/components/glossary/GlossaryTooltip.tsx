@@ -1,5 +1,3 @@
-"use client";
-
 import type { GlossTip } from "./GlossaryProse";
 
 type Props = { tip: GlossTip };

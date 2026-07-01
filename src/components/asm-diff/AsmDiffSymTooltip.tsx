@@ -1,5 +1,3 @@
-"use client";
-
 import type { TipState } from "./tip-state";
 
 type Props = { tip: NonNullable<TipState> };

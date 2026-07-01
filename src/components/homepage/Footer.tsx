@@ -1,7 +1,7 @@
 import { IconBrandGithub } from "@tabler/icons-react";
 import { Logo } from "@/components/ui/Logo";
-import { HomeFooterCol } from "./HomeFooterCol";
-import { HomeFooterLink } from "./HomeFooterLink";
+import { FooterCol } from "./FooterCol";
+import { FooterLink } from "./FooterLink";
 
 type Props = {
   startHref: string;
@@ -41,47 +41,47 @@ export function Footer({ startHref }: Props) {
             </div>
           </div>
 
-          <HomeFooterCol title="Learn">
-            <HomeFooterLink href={startHref}>Start training</HomeFooterLink>
-            <HomeFooterLink href="/playground">Playground</HomeFooterLink>
-            <HomeFooterLink href="/glossary">Glossary</HomeFooterLink>
-            <HomeFooterLink href="/#curriculum">Curriculum</HomeFooterLink>
-          </HomeFooterCol>
+          <FooterCol title="Learn">
+            <FooterLink href={startHref}>Start training</FooterLink>
+            <FooterLink href="/playground">Playground</FooterLink>
+            <FooterLink href="/glossary">Glossary</FooterLink>
+            <FooterLink href="/#curriculum">Curriculum</FooterLink>
+          </FooterCol>
 
-          <HomeFooterCol
+          <FooterCol
             title="Decomp projects"
             note="Lessons draw on real functions from open-source retro-game decompilations:"
           >
-            <HomeFooterLink href="https://github.com/zcanann/SFA-Decomp" external>
+            <FooterLink href="https://github.com/zcanann/SFA-Decomp" external>
               Star Fox Adventures
-            </HomeFooterLink>
+            </FooterLink>
 
-            <HomeFooterLink href="https://github.com/projectPiki/pikmin2" external>
+            <FooterLink href="https://github.com/projectPiki/pikmin2" external>
               Pikmin 2
-            </HomeFooterLink>
+            </FooterLink>
 
-            <HomeFooterLink href="https://github.com/PrimeDecomp/prime" external>
+            <FooterLink href="https://github.com/PrimeDecomp/prime" external>
               Metroid Prime
-            </HomeFooterLink>
+            </FooterLink>
 
-            <HomeFooterLink href="https://github.com/macabeus/kl-eod-decomp" external>
+            <FooterLink href="https://github.com/macabeus/kl-eod-decomp" external>
               Klonoa: Empire of Dreams
-            </HomeFooterLink>
-          </HomeFooterCol>
+            </FooterLink>
+          </FooterCol>
 
-          <HomeFooterCol title="Community">
-            <HomeFooterLink href="https://decomp.me" external>
+          <FooterCol title="Community">
+            <FooterLink href="https://decomp.me" external>
               decomp.me
-            </HomeFooterLink>
+            </FooterLink>
 
-            <HomeFooterLink href="https://decomp.dev" external>
+            <FooterLink href="https://decomp.dev" external>
               decomp.dev
-            </HomeFooterLink>
+            </FooterLink>
 
-            <HomeFooterLink href="https://wiki.decomp.dev" external>
+            <FooterLink href="https://wiki.decomp.dev" external>
               Decomp wiki
-            </HomeFooterLink>
-          </HomeFooterCol>
+            </FooterLink>
+          </FooterCol>
         </div>
 
         <div className="mt-10 border-t border-line/60 pt-5 text-2xs leading-relaxed text-content-ghost">

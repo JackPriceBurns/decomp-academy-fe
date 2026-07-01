@@ -1,5 +1,3 @@
-"use client";
-
 import { IconLoader2 } from "@tabler/icons-react";
 
 type Props = { label?: string };
@@ -13,6 +11,7 @@ export function LessonDiffSkeleton({ label }: Props) {
           <span>{label}</span>
         </div>
       )}
+
       <div className="space-y-2">
         {Array.from({ length: 7 }).map((_, i) => (
           <div

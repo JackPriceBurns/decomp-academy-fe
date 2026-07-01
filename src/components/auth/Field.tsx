@@ -1,5 +1,3 @@
-"use client";
-
 type Props = { label: string } & React.InputHTMLAttributes<HTMLInputElement>;
 
 export function Field({ label, ...props }: Props) {

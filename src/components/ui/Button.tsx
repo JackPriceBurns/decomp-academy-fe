@@ -1,5 +1,3 @@
-"use client";
-
 import type { ComponentProps } from "react";
 import { cx } from "./cx";
 import { BTN_BASE, BTN_SIZE, BTN_VARIANT, type ButtonBaseProps } from "./button-styles";

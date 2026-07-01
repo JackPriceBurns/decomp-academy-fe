@@ -1,5 +1,3 @@
-"use client";
-
 import { IconExternalLink, IconLoader2 } from "@tabler/icons-react";
 import type { ScratchState } from "./types";
 

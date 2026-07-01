@@ -4,7 +4,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export function HomeFooterCol({ title, note, children }: Props) {
+export function FooterCol({ title, note, children }: Props) {
   return (
     <div className="space-y-2">
       <h3 className="text-2xs font-semibold uppercase tracking-wider text-content-faint">
@@ -17,9 +17,7 @@ export function HomeFooterCol({ title, note, children }: Props) {
         </p>
       )}
 
-      <ul className="space-y-2">
-        {children}
-      </ul>
+      <ul className="space-y-2">{children}</ul>
     </div>
   );
 }

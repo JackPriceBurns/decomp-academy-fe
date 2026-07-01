@@ -1,5 +1,3 @@
-"use client";
-
 import type { DiffRowVM } from "@/lib/objdiff/client";
 import { AsmDiffLine } from "./AsmDiffLine";
 import { ROW_META } from "./row-meta";
