@@ -91,7 +91,9 @@ export function CurriculumBrowser({ courses }: { courses: CourseView[] }) {
               }`}
             >
               {c.title}
-              <span className={`ml-2 text-2xs tabular-nums ${active ? "opacity-80" : "opacity-60"}`}>
+              <span
+                className={`ml-2 text-2xs tabular-nums ${active ? "opacity-80" : "opacity-60"}`}
+              >
                 {c.heatLessons.length}
               </span>
             </button>
@@ -105,7 +107,12 @@ export function CurriculumBrowser({ courses }: { courses: CourseView[] }) {
         <MatchLog key={course.id} lessons={course.heatLessons} courseId={course.id} />
       </div>
 
-      <CurriculumMap key={course.id} chapters={course.chapters} tiers={course.tiers} courseId={course.id} />
+      <CurriculumMap
+        key={course.id}
+        chapters={course.chapters}
+        tiers={course.tiers}
+        courseId={course.id}
+      />
     </>
   );
 }

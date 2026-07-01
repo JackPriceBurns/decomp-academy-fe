@@ -3,9 +3,7 @@ import plugin from "tailwindcss/plugin";
 import { tailwindColors } from "./src/lib/theme";
 
 const config: Config = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       // Semantic colours are CSS-var references (see src/lib/theme.ts), so every

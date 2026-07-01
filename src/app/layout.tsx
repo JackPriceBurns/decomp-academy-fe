@@ -77,11 +77,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // data-theme defaults to dark for SSR; the pre-paint script (below) corrects
     // it from storage / OS preference before first paint. suppressHydrationWarning

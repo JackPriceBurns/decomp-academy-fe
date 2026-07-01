@@ -73,10 +73,7 @@ export function CodeEditor({
     monacoRef.current = monaco;
     defineThemes(monaco);
     monaco.editor.setTheme(themeName(theme));
-    ed.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
-      () => onRunRef.current?.(),
-    );
+    ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRunRef.current?.());
   }
 
   return (

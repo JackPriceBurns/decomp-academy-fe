@@ -3,11 +3,7 @@
 import { useState } from "react";
 import { IconArrowMerge, IconCloud, IconDeviceLaptop } from "@tabler/icons-react";
 import { Button, Logo, ProgressBar } from "@/components/ui";
-import {
-  useReconcile,
-  type LessonProgress,
-  type MergeStrategy,
-} from "@/lib/progress";
+import { useReconcile, type LessonProgress, type MergeStrategy } from "@/lib/progress";
 
 type Lessons = Record<string, LessonProgress>;
 
@@ -115,8 +111,8 @@ export function ProgressMergeDialog() {
             You have progress in two places
           </h1>
           <p className="mt-1 text-sm text-content-muted">
-            We found progress saved on this device and on your account. How would
-            you like to combine them?
+            We found progress saved on this device and on your account. How would you like to
+            combine them?
           </p>
         </div>
       </div>
@@ -137,11 +133,7 @@ export function ProgressMergeDialog() {
       </div>
 
       <div className="space-y-2">
-        <Button
-          onClick={() => choose("merge")}
-          disabled={chosen}
-          className="w-full"
-        >
+        <Button onClick={() => choose("merge")} disabled={chosen} className="w-full">
           <IconArrowMerge size={15} /> Merge — keep the best of both
         </Button>
         <Button
@@ -163,8 +155,8 @@ export function ProgressMergeDialog() {
       </div>
 
       <p className="mt-4 text-center text-xs text-content-faint">
-        Merge keeps your highest score on every lesson and prefers the code you
-        last wrote on this device.
+        Merge keeps your highest score on every lesson and prefers the code you last wrote on this
+        device.
       </p>
     </Shell>
   );

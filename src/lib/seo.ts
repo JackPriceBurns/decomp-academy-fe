@@ -56,12 +56,7 @@ export function courseLd() {
     inLanguage: "en",
     isAccessibleForFree: true,
     educationalLevel: "Beginner to Advanced",
-    about: [
-      "Decompilation",
-      "Reverse engineering",
-      "Retro games",
-      "Assembly",
-    ],
+    about: ["Decompilation", "Reverse engineering", "Retro games", "Assembly"],
     teaches: [
       "Reading assembly (PowerPC, ARM/Thumb)",
       "Matching decompilation",

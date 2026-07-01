@@ -44,21 +44,15 @@ export function authMessage(err: unknown): string {
 }
 
 export function signUp(email: string, password: string, name?: string): Promise<void> {
-  const attrs = name
-    ? [new CognitoUserAttribute({ Name: "name", Value: name })]
-    : [];
+  const attrs = name ? [new CognitoUserAttribute({ Name: "name", Value: name })] : [];
   return new Promise((resolve, reject) => {
-    userPool.signUp(email, password, attrs, [], (err) =>
-      err ? reject(err) : resolve(),
-    );
+    userPool.signUp(email, password, attrs, [], (err) => (err ? reject(err) : resolve()));
   });
 }
 
 export function confirmRegistration(email: string, code: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    user(email).confirmRegistration(code, true, (err) =>
-      err ? reject(err) : resolve(),
-    );
+    user(email).confirmRegistration(code, true, (err) => (err ? reject(err) : resolve()));
   });
 }
 
@@ -91,11 +85,7 @@ export function forgotPassword(email: string): Promise<void> {
   });
 }
 
-export function confirmPassword(
-  email: string,
-  code: string,
-  newPassword: string,
-): Promise<void> {
+export function confirmPassword(email: string, code: string, newPassword: string): Promise<void> {
   return new Promise((resolve, reject) => {
     user(email).confirmPassword(code, newPassword, {
       onSuccess: () => resolve(),

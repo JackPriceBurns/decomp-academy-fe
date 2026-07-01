@@ -101,7 +101,9 @@ export function CurriculumMap({
             <div className="mb-3 flex items-center gap-3">
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-md font-mono text-xs font-bold ${
-                  tierDone ? "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft" : "bg-accent/10 text-accent"
+                  tierDone
+                    ? "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft"
+                    : "bg-accent/10 text-accent"
                 }`}
               >
                 {toRoman(tier.order)}
@@ -143,7 +145,9 @@ export function CurriculumMap({
                     >
                       <div
                         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${
-                          done ? "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft" : "bg-accent/10 text-accent"
+                          done
+                            ? "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft"
+                            : "bg-accent/10 text-accent"
                         }`}
                       >
                         {done ? <IconCircleCheckFilled size={18} /> : globalIdx + 1}
@@ -195,13 +199,22 @@ export function CurriculumMap({
                                 className="group flex items-center gap-3 border-b border-line/50 px-5 py-3 last:border-0 transition hover:bg-bg-softer/40"
                               >
                                 {ok ? (
-                                  <IconCircleCheckFilled size={18} className="shrink-0 text-good-soft" />
+                                  <IconCircleCheckFilled
+                                    size={18}
+                                    className="shrink-0 text-good-soft"
+                                  />
                                 ) : l.concept ? (
                                   <IconBook2 size={18} className="shrink-0 text-content-faint" />
                                 ) : pct > 0 ? (
-                                  <IconCircleDashed size={18} className="shrink-0 text-warn theme-light:text-amber-500" />
+                                  <IconCircleDashed
+                                    size={18}
+                                    className="shrink-0 text-warn theme-light:text-amber-500"
+                                  />
                                 ) : (
-                                  <IconCircleDashed size={18} className="shrink-0 text-content-ghost" />
+                                  <IconCircleDashed
+                                    size={18}
+                                    className="shrink-0 text-content-ghost"
+                                  />
                                 )}
                                 <span className="flex-1 text-sm text-content transition group-hover:translate-x-0.5 group-hover:text-content-primary">
                                   {l.title}

@@ -30,7 +30,12 @@ export default function Home() {
         })),
       }));
     const heatLessons = chapters.flatMap((c) =>
-      c.lessons.map((l) => ({ id: l.id, title: l.title, difficulty: l.difficulty, concept: l.concept })),
+      c.lessons.map((l) => ({
+        id: l.id,
+        title: l.title,
+        difficulty: l.difficulty,
+        concept: l.concept,
+      })),
     );
     return {
       id: course.id,
@@ -60,11 +65,17 @@ export default function Home() {
           <div className="ml-auto flex shrink-0 items-center gap-3 text-sm sm:gap-4">
             {/* Secondary links live in the footer too, so drop them from the bar on
                 phones rather than overflow the row. */}
-            <Link href="/playground" className="hidden text-content-secondary transition hover:text-content-primary sm:block">
+            <Link
+              href="/playground"
+              className="hidden text-content-secondary transition hover:text-content-primary sm:block"
+            >
               Playground
             </Link>
 
-            <Link href="#curriculum" className="hidden text-content-secondary transition hover:text-content-primary sm:block">
+            <Link
+              href="#curriculum"
+              className="hidden text-content-secondary transition hover:text-content-primary sm:block"
+            >
               Curriculum
             </Link>
 
@@ -88,7 +99,9 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2">
                 <Logo size={24} />
-                <span className="font-bold tracking-tight text-content-primary">Decomp Academy</span>
+                <span className="font-bold tracking-tight text-content-primary">
+                  Decomp Academy
+                </span>
               </div>
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-content-muted">
                 Learn matching decompilation of retro games — turn the original assembly back into
@@ -116,7 +129,9 @@ export default function Home() {
 
             {/* Learn */}
             <FooterCol title="Learn">
-              <FooterLink href={firstLesson ? lessonPath(firstLesson.course, firstLesson.id) : "/"}>Start training</FooterLink>
+              <FooterLink href={firstLesson ? lessonPath(firstLesson.course, firstLesson.id) : "/"}>
+                Start training
+              </FooterLink>
               <FooterLink href="/playground">Playground</FooterLink>
               <FooterLink href="/glossary">Glossary</FooterLink>
               <FooterLink href="/#curriculum">Curriculum · {total} lessons</FooterLink>
@@ -127,17 +142,31 @@ export default function Home() {
               title="Decomp projects"
               note="Lessons draw on real functions from open-source retro-game decompilations:"
             >
-              <FooterLink href="https://github.com/zcanann/SFA-Decomp" external>Star Fox Adventures</FooterLink>
-              <FooterLink href="https://github.com/projectPiki/pikmin2" external>Pikmin 2</FooterLink>
-              <FooterLink href="https://github.com/PrimeDecomp/prime" external>Metroid Prime</FooterLink>
-              <FooterLink href="https://github.com/macabeus/kl-eod-decomp" external>Klonoa: Empire of Dreams</FooterLink>
+              <FooterLink href="https://github.com/zcanann/SFA-Decomp" external>
+                Star Fox Adventures
+              </FooterLink>
+              <FooterLink href="https://github.com/projectPiki/pikmin2" external>
+                Pikmin 2
+              </FooterLink>
+              <FooterLink href="https://github.com/PrimeDecomp/prime" external>
+                Metroid Prime
+              </FooterLink>
+              <FooterLink href="https://github.com/macabeus/kl-eod-decomp" external>
+                Klonoa: Empire of Dreams
+              </FooterLink>
             </FooterCol>
 
             {/* Community */}
             <FooterCol title="Community">
-              <FooterLink href="https://decomp.me" external>decomp.me</FooterLink>
-              <FooterLink href="https://decomp.dev" external>decomp.dev</FooterLink>
-              <FooterLink href="https://wiki.decomp.dev" external>Decomp wiki</FooterLink>
+              <FooterLink href="https://decomp.me" external>
+                decomp.me
+              </FooterLink>
+              <FooterLink href="https://decomp.dev" external>
+                decomp.dev
+              </FooterLink>
+              <FooterLink href="https://wiki.decomp.dev" external>
+                Decomp wiki
+              </FooterLink>
             </FooterCol>
           </div>
 
@@ -163,7 +192,9 @@ function FooterCol({
 }) {
   return (
     <div>
-      <h3 className="text-2xs font-semibold uppercase tracking-wider text-content-faint">{title}</h3>
+      <h3 className="text-2xs font-semibold uppercase tracking-wider text-content-faint">
+        {title}
+      </h3>
       {note && <p className="mt-2 text-2xs leading-relaxed text-content-ghost">{note}</p>}
       <ul className="mt-3 space-y-2 text-sm">{children}</ul>
     </div>

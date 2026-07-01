@@ -16,9 +16,7 @@ const codeKey = (id: string) => `${CODE_PREFIX}${id}`;
 // only unique within its course, so the component-facing lookup is keyed by
 // "<course>/<slug>".
 const courseSlugKey = (course: string, slug: string) => `${course}/${slug}`;
-const SLUG_TO_PID = new Map(
-  LESSONS.map((l) => [courseSlugKey(l.course, l.id), l.progressId]),
-);
+const SLUG_TO_PID = new Map(LESSONS.map((l) => [courseSlugKey(l.course, l.id), l.progressId]));
 
 // `normalizeKeys` upgrades data stored under an OLD key shape to the current
 // progressId. Two old shapes exist, both predating courses (when slugs were
@@ -27,7 +25,8 @@ const SLUG_TO_PID = new Map(
 //     live slug→pid map below, and
 //   - a pre-course progressId, resolved against the frozen table.
 const GLOBAL_SLUG_TO_PID = new Map<string, string>();
-for (const l of LESSONS) if (!GLOBAL_SLUG_TO_PID.has(l.id)) GLOBAL_SLUG_TO_PID.set(l.id, l.progressId);
+for (const l of LESSONS)
+  if (!GLOBAL_SLUG_TO_PID.has(l.id)) GLOBAL_SLUG_TO_PID.set(l.id, l.progressId);
 
 // Frozen historical map: pre-course progressId (uuidv5 of "<tier>/<chapter>/
 // <slug>") → current course-scoped progressId. Adding courses re-hashed every
@@ -64,10 +63,7 @@ function latest(a?: string, b?: string): string | undefined {
 // lesson. The code should follow the *higher-scoring* side (its source is the
 // one that actually achieved that score); ties go to `local` as the freshest
 // edit. Truthiness checks ensure an empty string never shadows real code.
-function chooseCode(
-  local?: LessonProgress,
-  server?: LessonProgress,
-): string | undefined {
+function chooseCode(local?: LessonProgress, server?: LessonProgress): string | undefined {
   const lBest = local?.bestPercent ?? 0;
   const sBest = server?.bestPercent ?? 0;
   if (sBest > lBest) return server?.code || local?.code;
@@ -283,8 +279,8 @@ const codeTimers: Record<string, ReturnType<typeof setTimeout>> = {};
 function putCodeServer(id: string, code: string) {
   clearTimeout(codeTimers[id]);
   codeTimers[id] = setTimeout(() => {
-    api(`/progress/${id}`, { method: "PUT", body: JSON.stringify({ code }) }).catch(
-      (e) => handleWriteError(id, e),
+    api(`/progress/${id}`, { method: "PUT", body: JSON.stringify({ code }) }).catch((e) =>
+      handleWriteError(id, e),
     );
   }, 800);
 }
@@ -317,9 +313,7 @@ export function recordResult(
     completed,
     // The badge is decided at the first completing solve; later re-solves
     // early-return above, so it never gets overwritten by a post-refresh re-run.
-    ...(completed && opts?.noHints !== undefined
-      ? { solvedWithoutHints: opts.noHints }
-      : {}),
+    ...(completed && opts?.noHints !== undefined ? { solvedWithoutHints: opts.noHints } : {}),
   };
   // A real solve earned mid-reconcile must survive finalize's snapshot swap.
   if (reconciling) reconcileWrites.add(id);
@@ -623,11 +617,7 @@ async function runConfigureAuthed() {
     // Genuine divergence → let the learner decide.
     const strategy = await promptUser(local, server);
     const result =
-      strategy === "server"
-        ? server
-        : strategy === "local"
-          ? local
-          : mergeProgress(local, server);
+      strategy === "server" ? server : strategy === "local" ? local : mergeProgress(local, server);
     const push = strategy !== "server";
 
     // Keep the dialog mounted through the upload so it can show a progress bar;

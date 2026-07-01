@@ -56,14 +56,26 @@ export function MatchLog({ lessons, courseId }: { lessons: HeatLesson[]; courseI
             <div className="mt-1 text-2xs text-content-muted">functions reconstructed</div>
           </div>
         </div>
-        <Stat icon={<IconFlame size={16} className="text-warn" />} value={attempted.toString()} label="in progress" />
-        <Stat icon={<IconTrophy size={16} className="text-accent" />} value={xp.toLocaleString()} label="XP" />
+        <Stat
+          icon={<IconFlame size={16} className="text-warn" />}
+          value={attempted.toString()}
+          label="in progress"
+        />
+        <Stat
+          icon={<IconTrophy size={16} className="text-accent" />}
+          value={xp.toLocaleString()}
+          label="XP"
+        />
         <div className="ml-auto inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
           {rank}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-[3px]" role="img" aria-label={`${solved} of ${total} lessons matched`}>
+      <div
+        className="flex flex-wrap gap-[3px]"
+        role="img"
+        aria-label={`${solved} of ${total} lessons matched`}
+      >
         {lessons.map((l) => {
           const pct = bestPercent(courseId, l.id);
           const cls =
@@ -71,8 +83,8 @@ export function MatchLog({ lessons, courseId }: { lessons: HeatLesson[]; courseI
               ? "bg-good theme-light:bg-good-soft hover:ring-good"
               : pct > 0
                 ? "bg-warn/70 theme-light:bg-amber-400 hover:ring-warn"
-                // Empty pip: a lighter gray in light mode.
-                : "bg-line-strong/70 theme-light:bg-line-faint hover:ring-accent";
+                : // Empty pip: a lighter gray in light mode.
+                  "bg-line-strong/70 theme-light:bg-line-faint hover:ring-accent";
           return (
             <Link
               key={l.id}

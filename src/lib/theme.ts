@@ -185,7 +185,13 @@ export const paletteLight: Palette = {
 // "#8b6cf0" -> "139 108 240" (space-separated channels for `rgb(... / α)`).
 function hexToChannels(hex: string): string {
   const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const full =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
   const n = parseInt(full, 16);
   return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
 }
@@ -193,7 +199,11 @@ function hexToChannels(hex: string): string {
 // Flatten a palette to { "bg": "#…", "bg-soft": "#…", "rot-0": "#…" }.
 // `DEFAULT` collapses onto its parent (bg.DEFAULT -> "bg"); array indices and
 // object keys append with a dash.
-function flatten(node: PaletteNode, prefix: string, out: Record<string, string>): Record<string, string> {
+function flatten(
+  node: PaletteNode,
+  prefix: string,
+  out: Record<string, string>,
+): Record<string, string> {
   if (typeof node === "string") {
     out[prefix] = node;
     return out;

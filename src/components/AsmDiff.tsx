@@ -145,7 +145,7 @@ function lookupInsn(
     // objdiff prints Thumb mnemonics verbatim — condition branches and the .word/
     // .hword data tokens are their own entries — so only tolerate a flag-setting
     // "s" suffix that some disassemblers add (e.g. adds -> add, lsls -> lsl).
-    return mnemonic.endsWith("s") ? map.get(mnemonic.slice(0, -1)) ?? null : null;
+    return mnemonic.endsWith("s") ? (map.get(mnemonic.slice(0, -1)) ?? null) : null;
   }
   let s = mnemonic.replace(/[+-]$/, "");
   if (s.endsWith(".")) s = s.slice(0, -1);
@@ -164,7 +164,11 @@ function lookupInsn(
 function usagePlaceholders(usage: string): string[] {
   const sp = usage.indexOf(" ");
   if (sp < 0) return [];
-  return usage.slice(sp + 1).split(",").map((p) => p.trim()).filter(Boolean);
+  return usage
+    .slice(sp + 1)
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
 }
 
 // The hovered instruction's actual operands, e.g. segs for "add r3, r3, r4" -> ["r3","r3","r4"].
@@ -177,7 +181,12 @@ function instructionOperands(segs: Seg[]): string[] {
     .join("")
     .replace(/~>/g, "")
     .trim();
-  return after ? after.split(",").map((p) => p.trim()).filter(Boolean) : [];
+  return after
+    ? after
+        .split(",")
+        .map((p) => p.trim())
+        .filter(Boolean)
+    : [];
 }
 
 // Substitute {placeholder} tokens in the description with this instruction's
@@ -226,11 +235,19 @@ const InsnTipContext = createContext<{
 } | null>(null);
 
 /** Wraps instruction lines so hovering one shows its meaning. */
-function InsnTipLayer({ dialect = "ppc", children }: { dialect?: AsmDialect; children: ReactNode }) {
+function InsnTipLayer({
+  dialect = "ppc",
+  children,
+}: {
+  dialect?: AsmDialect;
+  children: ReactNode;
+}) {
   const [map, setMap] = useState<Map<string, InsnDoc> | null>(glossaryMaps[dialect]);
   useEffect(() => {
     let alive = true;
-    loadGlossary(dialect).then((m) => alive && setMap(m)).catch(() => {});
+    loadGlossary(dialect)
+      .then((m) => alive && setMap(m))
+      .catch(() => {});
     return () => {
       alive = false;
     };
@@ -300,11 +317,36 @@ function Line({ segs }: { segs: Seg[] | null }) {
 // The faint row tints need a touch more alpha in light to read on white.
 const ROW_META: Record<RowKind, { bg: string; mark: string; markColor: string; label: string }> = {
   none: { bg: "", mark: "", markColor: "", label: "matches" },
-  replace: { bg: "bg-warn/[0.07] theme-light:bg-amber-50", mark: "≠", markColor: "text-warn", label: "differs" },
-  "op-mismatch": { bg: "bg-warn/[0.07] theme-light:bg-amber-50", mark: "≠", markColor: "text-warn", label: "opcode differs" },
-  "arg-mismatch": { bg: "bg-warn/[0.07] theme-light:bg-amber-50", mark: "≠", markColor: "text-warn", label: "operand differs" },
-  delete: { bg: "bg-bad/[0.07] theme-light:bg-red-50", mark: "−", markColor: "text-bad", label: "missing from your code" },
-  insert: { bg: "bg-accent/[0.07] theme-light:bg-emerald-50", mark: "+", markColor: "text-accent", label: "extra in your code" },
+  replace: {
+    bg: "bg-warn/[0.07] theme-light:bg-amber-50",
+    mark: "≠",
+    markColor: "text-warn",
+    label: "differs",
+  },
+  "op-mismatch": {
+    bg: "bg-warn/[0.07] theme-light:bg-amber-50",
+    mark: "≠",
+    markColor: "text-warn",
+    label: "opcode differs",
+  },
+  "arg-mismatch": {
+    bg: "bg-warn/[0.07] theme-light:bg-amber-50",
+    mark: "≠",
+    markColor: "text-warn",
+    label: "operand differs",
+  },
+  delete: {
+    bg: "bg-bad/[0.07] theme-light:bg-red-50",
+    mark: "−",
+    markColor: "text-bad",
+    label: "missing from your code",
+  },
+  insert: {
+    bg: "bg-accent/[0.07] theme-light:bg-emerald-50",
+    mark: "+",
+    markColor: "text-accent",
+    label: "extra in your code",
+  },
 };
 
 export function ObjDiff({ rows, dialect = "ppc" }: { rows: DiffRowVM[]; dialect?: AsmDialect }) {
@@ -621,8 +663,20 @@ export function ObjOverview({
   return (
     <div className="h-full font-mono text-asm">
       <div className="grid grid-cols-2 gap-px bg-line/50">
-        <ObjColumn title="Target object" sections={overview.target} selected={selected} onSelect={onSelect} setTip={setTip} />
-        <ObjColumn title="Base object" sections={overview.base} selected={selected} onSelect={onSelect} setTip={setTip} />
+        <ObjColumn
+          title="Target object"
+          sections={overview.target}
+          selected={selected}
+          onSelect={onSelect}
+          setTip={setTip}
+        />
+        <ObjColumn
+          title="Base object"
+          sections={overview.base}
+          selected={selected}
+          onSelect={onSelect}
+          setTip={setTip}
+        />
       </div>
       {tip && tip.sym.hover.length > 0 && <SymTooltip tip={tip} />}
     </div>

@@ -97,7 +97,10 @@ function ForgotForm() {
         </Button>
       </form>
       <p className="mt-5 text-center text-sm text-content-muted">
-        <Link href="/login" className="text-accent transition hover:text-accent-hover hover:underline">
+        <Link
+          href="/login"
+          className="text-accent transition hover:text-accent-hover hover:underline"
+        >
           Back to sign in
         </Link>
       </p>

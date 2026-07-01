@@ -46,8 +46,8 @@ export function Hero({
           </h1>
           <p className="mt-4 max-w-xl leading-relaxed text-content-secondary">
             Go from never having read a register to matching real functions from{" "}
-            <span className="text-content">GameCube and Game Boy Advance</span> games —
-            instruction for instruction. You write C, the{" "}
+            <span className="text-content">GameCube and Game Boy Advance</span> games — instruction
+            for instruction. You write C, the{" "}
             <span className="text-content">original compiler</span> grades it live.
           </p>
 
@@ -60,9 +60,17 @@ export function Hero({
               <IconArrowRight size={18} className="transition group-hover:translate-x-0.5" />
             </Link>
             <div className="flex items-center gap-5 rounded-lg bg-bg-soft/70 px-5 py-3 text-sm backdrop-blur">
-              <Stat icon={<IconBolt size={16} className="text-warn" />} label="Lessons" value={`${total}`} />
+              <Stat
+                icon={<IconBolt size={16} className="text-warn" />}
+                label="Lessons"
+                value={`${total}`}
+              />
               <div className="h-8 w-px bg-line" />
-              <Stat icon={<IconGitMerge size={16} className="text-good theme-light:text-good-soft" />} label="Solved" value={`${solvedCount}`} />
+              <Stat
+                icon={<IconGitMerge size={16} className="text-good theme-light:text-good-soft" />}
+                label="Solved"
+                value={`${solvedCount}`}
+              />
               <div className="h-8 w-px bg-line" />
               <div className="min-w-[7rem]">
                 <div className="mb-1 flex justify-between text-xs text-content-muted">
@@ -135,7 +143,9 @@ function MatchPreview() {
         <span className="ml-1 font-mono text-2xs text-content-muted">match Vec_Normalize</span>
         <span
           className={`ml-auto inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-semibold transition-colors duration-500 ${
-            matched ? "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft" : "bg-warn/15 theme-light:bg-amber-50 text-warn theme-light:text-amber-500"
+            matched
+              ? "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft"
+              : "bg-warn/15 theme-light:bg-amber-50 text-warn theme-light:text-amber-500"
           }`}
         >
           {matched ? (

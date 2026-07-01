@@ -230,7 +230,8 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
         const firstEver = exact && totalSolved() === 0;
         const sessionNoHints = exact && hintsShown === 0 && !showSolution;
         // Pre-compiling the starter on open is not a solve attempt — don't record it.
-        if (!initial) recordResult(lesson.course, lesson.id, exact ? 100 : pct, { noHints: sessionNoHints });
+        if (!initial)
+          recordResult(lesson.course, lesson.id, exact ? 100 : pct, { noHints: sessionNoHints });
         // Show the badge from the persisted truth, not the live counter, so a
         // re-run after refresh (hintsShown reset to 0) can't resurrect it.
         const noHints = exact && solvedWithoutHints(lesson.course, lesson.id);
@@ -362,9 +363,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   // "Next lesson" rather than recompiling. ⌘↵ follows the button: advance instead
   // of re-running an already-solved exercise.
   const solved =
-    check.status === "match" &&
-    selectedSymbol === lesson.symbol &&
-    code === checkedCodeRef.current;
+    check.status === "match" && selectedSymbol === lesson.symbol && code === checkedCodeRef.current;
   const nextHref = lesson.next ? lessonPath(lesson.course, lesson.next.id) : "/";
   const onRun = () => (solved ? router.push(nextHref) : run());
 
@@ -464,7 +463,9 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
                 >
                   <IconCheck size={14} />
                   {lesson.next ? "Next lesson" : "Finish"}
-                  <kbd className="ml-1 hidden rounded bg-black/20 px-1 text-2xs sm:inline-block">⌘↵</kbd>
+                  <kbd className="ml-1 hidden rounded bg-black/20 px-1 text-2xs sm:inline-block">
+                    ⌘↵
+                  </kbd>
                 </Link>
               ) : (
                 <button
@@ -478,7 +479,9 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
                     <IconPlayerPlayFilled size={13} />
                   )}
                   Compile<span className="hidden sm:inline">&nbsp;&amp; Check</span>
-                  <kbd className="ml-1 hidden rounded bg-black/20 px-1 text-2xs sm:inline-block">⌘↵</kbd>
+                  <kbd className="ml-1 hidden rounded bg-black/20 px-1 text-2xs sm:inline-block">
+                    ⌘↵
+                  </kbd>
                 </button>
               )}
             </div>
@@ -594,7 +597,9 @@ function TopBar({ lesson }: { lesson: LessonDTO }) {
           <span className="hidden sm:inline">Curriculum</span>
         </Link>
         <div className="mx-1 h-5 w-px bg-line" />
-        <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-content-primary">{lesson.title}</h1>
+        <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-content-primary">
+          {lesson.title}
+        </h1>
         <div className="flex shrink-0 items-center gap-1.5">
           {lesson.prev ? (
             <Link
@@ -727,8 +732,8 @@ function SolutionBox({
     return (
       <div className="animate-slide-up-fade mt-4 rounded-lg bg-warn/[0.09] px-3 py-2.5">
         <p className="text-xs text-content-secondary">
-          This reveals the full answer. Try the hints first — you&apos;ll learn far more
-          by matching it yourself.
+          This reveals the full answer. Try the hints first — you&apos;ll learn far more by matching
+          it yourself.
         </p>
         <div className="mt-2 flex items-center gap-2">
           <button
@@ -802,9 +807,15 @@ function ResultPanel({
     ? targetRows.map((segs) => ({ kind: "delete" as const, target: segs, user: null }))
     : null;
   return (
-    <div className={`min-h-[260px] flex-[1] flex-col theme-light:bg-white/50 bg-bg-inset/60 lg:min-h-0 ${className}`}>
+    <div
+      className={`min-h-[260px] flex-[1] flex-col theme-light:bg-white/50 bg-bg-inset/60 lg:min-h-0 ${className}`}
+    >
       <div className="flex items-center gap-1 border-b border-line bg-bg-soft/50 px-2">
-        <TabButton active={tab === "diff"} onClick={() => setTab("diff")} icon={<IconGitCompare size={14} />}>
+        <TabButton
+          active={tab === "diff"}
+          onClick={() => setTab("diff")}
+          icon={<IconGitCompare size={14} />}
+        >
           Diff
         </TabButton>
         <TabButton
@@ -815,7 +826,11 @@ function ResultPanel({
         >
           Objects
         </TabButton>
-        <TabButton active={tab === "console"} onClick={() => setTab("console")} icon={<IconTerminal2 size={14} />}>
+        <TabButton
+          active={tab === "console"}
+          onClick={() => setTab("console")}
+          icon={<IconTerminal2 size={14} />}
+        >
           Console
         </TabButton>
         <div className="ml-auto pr-2">
@@ -838,8 +853,8 @@ function ResultPanel({
             <>
               {selectedSymbol !== lessonSymbol && (
                 <div className="border-b border-line bg-bg-soft/60 px-3 py-1.5 font-mono text-2xs text-content-muted">
-                  viewing <span className="text-accent">{selectedSymbol}</span> · Compile &amp; Check returns to{" "}
-                  <span className="text-content-secondary">{lessonSymbol}</span>
+                  viewing <span className="text-accent">{selectedSymbol}</span> · Compile &amp;
+                  Check returns to <span className="text-content-secondary">{lessonSymbol}</span>
                 </div>
               )}
               <ObjDiff rows={check.vm.rows} dialect={dialect} />
@@ -866,7 +881,10 @@ function ResultPanel({
 // so we skip caret/location noise and surface the actual prose message.
 function summarizeError(msg?: string): string | null {
   if (!msg) return null;
-  const lines = msg.split("\n").map((l) => l.trim()).filter(Boolean);
+  const lines = msg
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
   const idx = lines.findIndex((l) => /error|warning/i.test(l));
   if (idx < 0) return null;
   for (const c of lines.slice(idx, idx + 3)) {
@@ -1068,7 +1086,12 @@ function MatchMeter({ check }: { check: CheckState }) {
       </span>
     );
   if (check.status === "close" && check.matchPercent !== undefined) {
-    const tone = pct >= 90 ? "text-good theme-light:text-good-soft" : pct >= 60 ? "text-warn theme-light:text-amber-400" : "text-bad theme-light:text-amber-600";
+    const tone =
+      pct >= 90
+        ? "text-good theme-light:text-good-soft"
+        : pct >= 60
+          ? "text-warn theme-light:text-amber-400"
+          : "text-bad theme-light:text-amber-600";
     return (
       <span className="inline-flex items-baseline gap-1.5 tabular-nums">
         <span className={`text-base font-bold ${tone}`}>{shown.toFixed(1)}%</span>

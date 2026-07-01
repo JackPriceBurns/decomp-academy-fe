@@ -33,8 +33,7 @@ export async function getFeedback(): Promise<FeedbackRow[]> {
   return items.map((f) => ({
     ...f,
     lesson:
-      f.lessonTitle ??
-      (f.lessonId ? TITLE_BY_PID.get(f.lessonId) ?? f.lessonId : "General"),
+      f.lessonTitle ?? (f.lessonId ? (TITLE_BY_PID.get(f.lessonId) ?? f.lessonId) : "General"),
   }));
 }
 

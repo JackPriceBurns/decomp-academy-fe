@@ -60,8 +60,7 @@ export function FeedbackDialog({
 
   if (!open) return null;
 
-  const prompt =
-    source === "lesson" ? "How's this lesson?" : "How's the course working for you?";
+  const prompt = source === "lesson" ? "How's this lesson?" : "How's the course working for you?";
   const placeholder =
     source === "lesson"
       ? "Anything confusing, broken, or missing here? (optional)"

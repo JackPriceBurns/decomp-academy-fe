@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 export type Theme = "dark" | "light";
 
@@ -67,9 +60,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState((prev) => (prev === actual ? prev : actual));
   }, []);
 
-  return (
-    <Context.Provider value={{ theme, toggle, setTheme: apply }}>{children}</Context.Provider>
-  );
+  return <Context.Provider value={{ theme, toggle, setTheme: apply }}>{children}</Context.Provider>;
 }
 
 export function useTheme(): ThemeCtx {

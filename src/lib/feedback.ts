@@ -33,7 +33,7 @@ export interface FeedbackPayload {
 export async function submitFeedback(p: FeedbackPayload): Promise<void> {
   const lessonId =
     p.lessonId && p.course
-      ? SLUG_TO_PID.get(`${p.course}/${p.lessonId}`) ?? p.lessonId
+      ? (SLUG_TO_PID.get(`${p.course}/${p.lessonId}`) ?? p.lessonId)
       : p.lessonId;
   const res = await fetch(`${API_URL}/feedback`, {
     method: "POST",

@@ -45,14 +45,7 @@ function b64ToBytes(b64: string): Uint8Array {
 // ---- View model the renderer consumes (plain data; no live wasm handles) ----
 
 export type SegColor =
-  | "normal"
-  | "dim"
-  | "bright"
-  | "replace"
-  | "data-flow"
-  | "delete"
-  | "insert"
-  | "rotating";
+  "normal" | "dim" | "bright" | "replace" | "data-flow" | "delete" | "insert" | "rotating";
 
 /** One rendered token of an instruction line. */
 export interface Seg {
@@ -198,7 +191,8 @@ function symbolIndent(rows: Array<InstructionDiffRow | null>): number {
   for (const row of rows) {
     if (!row) continue;
     for (const s of row.segments) {
-      if (s.text.tag === "spacing") return Number((s.text as { val?: number }).val) || DEFAULT_INDENT;
+      if (s.text.tag === "spacing")
+        return Number((s.text as { val?: number }).val) || DEFAULT_INDENT;
     }
   }
   return DEFAULT_INDENT;
@@ -228,11 +222,19 @@ function buildSymbolDiff(
   // per-side listings).
   const lRows: Array<InstructionDiffRow | null> = [];
   for (let i = 0; i < ln; i++) {
-    lRows.push(left && lSym ? (display.displayInstructionRow(left, lSym.id, i, cfg) as InstructionDiffRow) : null);
+    lRows.push(
+      left && lSym
+        ? (display.displayInstructionRow(left, lSym.id, i, cfg) as InstructionDiffRow)
+        : null,
+    );
   }
   const rRows: Array<InstructionDiffRow | null> = [];
   for (let i = 0; i < rn; i++) {
-    rRows.push(right && rSym ? (display.displayInstructionRow(right, rSym.id, i, cfg) as InstructionDiffRow) : null);
+    rRows.push(
+      right && rSym
+        ? (display.displayInstructionRow(right, rSym.id, i, cfg) as InstructionDiffRow)
+        : null,
+    );
   }
 
   const indent = symbolIndent([...lRows, ...rRows]);
@@ -346,8 +348,16 @@ export async function analyze(
         const sd = display.displaySymbol(objDiff, id);
         const isData = s.kind === "data" || s.kind === "bss" || s.kind === "common";
         if (!isData) codeNames.add(sd.info.name);
-        const hover = (display.symbolHover(objDiff, id) as Array<{ tag: string; val?: { label: string; value: string } }>)
-          .filter((h): h is { tag: string; val: { label: string; value: string } } => h.tag === "text" && !!h.val)
+        const hover = (
+          display.symbolHover(objDiff, id) as Array<{
+            tag: string;
+            val?: { label: string; value: string };
+          }>
+        )
+          .filter(
+            (h): h is { tag: string; val: { label: string; value: string } } =>
+              h.tag === "text" && !!h.val,
+          )
           .map((h) => ({ label: h.val.label, value: h.val.value }));
         return {
           name: sd.info.name,

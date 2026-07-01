@@ -45,11 +45,7 @@ import {
 const PROGRESS_NAMESPACE = "1b671a64-40d5-491e-99b0-da01ff1f3341";
 function uuidv5(name) {
   const ns = Buffer.from(PROGRESS_NAMESPACE.replace(/-/g, ""), "hex");
-  const bytes = createHash("sha1")
-    .update(ns)
-    .update(name, "utf8")
-    .digest()
-    .subarray(0, 16);
+  const bytes = createHash("sha1").update(ns).update(name, "utf8").digest().subarray(0, 16);
   bytes[6] = (bytes[6] & 0x0f) | 0x50; // version 5
   bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 variant
   const h = bytes.toString("hex");
@@ -103,7 +99,10 @@ for (const courseEntry of subdirs(root)) {
     if (!readdirSync(tierDir).includes("_tier.md")) continue; // not a tier folder
 
     const tm = tierEntry.name.match(DIR_RE);
-    if (!tm) throw new Error(`Tier folder missing "<order>-" prefix: ${courseEntry.name}/${tierEntry.name}`);
+    if (!tm)
+      throw new Error(
+        `Tier folder missing "<order>-" prefix: ${courseEntry.name}/${tierEntry.name}`,
+      );
     const tierId = tm[2];
     tiers.push(
       parseTierFile(readFileSync(join(tierDir, "_tier.md"), "utf8"), {
@@ -119,7 +118,10 @@ for (const courseEntry of subdirs(root)) {
       if (!files.includes("_chapter.md")) continue;
 
       const cm = chEntry.name.match(DIR_RE);
-      if (!cm) throw new Error(`Chapter folder missing "<order>-" prefix: ${tierEntry.name}/${chEntry.name}`);
+      if (!cm)
+        throw new Error(
+          `Chapter folder missing "<order>-" prefix: ${tierEntry.name}/${chEntry.name}`,
+        );
       const chId = cm[2];
       // Tiers and chapters are walked in sorted-prefix order, so a running counter
       // yields the global (per-course) chapter number; the local folder prefix
@@ -181,8 +183,8 @@ for (const l of lessons) {
 const courseOrder = new Map(courses.map((c) => [c.id, c.order]));
 const chapterOrder = new Map(chapters.map((c) => [`${c.course}/${c.id}`, c.order]));
 courses.sort((a, b) => a.order - b.order);
-tiers.sort((a, b) => (courseOrder.get(a.course) - courseOrder.get(b.course)) || a.order - b.order);
-chapters.sort((a, b) => (courseOrder.get(a.course) - courseOrder.get(b.course)) || a.order - b.order);
+tiers.sort((a, b) => courseOrder.get(a.course) - courseOrder.get(b.course) || a.order - b.order);
+chapters.sort((a, b) => courseOrder.get(a.course) - courseOrder.get(b.course) || a.order - b.order);
 lessons.sort((a, b) => {
   const co = (courseOrder.get(a.course) ?? 999) - (courseOrder.get(b.course) ?? 999);
   if (co) return co;
@@ -204,7 +206,8 @@ const slim = lessons.map((l) => ({
 }));
 
 mkdirSync(outDir, { recursive: true });
-const write = (name, data) => writeFileSync(join(outDir, name), `${JSON.stringify(data, null, 2)}\n`);
+const write = (name, data) =>
+  writeFileSync(join(outDir, name), `${JSON.stringify(data, null, 2)}\n`);
 write("courses.json", courses);
 write("tiers.json", tiers);
 write("chapters.json", chapters);

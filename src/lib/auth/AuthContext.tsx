@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api } from "./api";
 import { getIdToken, logout } from "./cognito";
 
@@ -68,9 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("decomp-auth-expired", handler);
   }, [refresh]);
 
-  return (
-    <Ctx.Provider value={{ status, user, refresh, signOut }}>{children}</Ctx.Provider>
-  );
+  return <Ctx.Provider value={{ status, user, refresh, signOut }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth(): AuthValue {

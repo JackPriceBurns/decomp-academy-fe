@@ -76,7 +76,7 @@ const remote: GraderProfile = {
     try {
       const response = await fetch(`/api/target?course=${course}&lesson=${lesson}`);
       const data = await response.json();
-      return (data?.ok && data.objBase64 ? (data.objBase64 as string) : null);
+      return data?.ok && data.objBase64 ? (data.objBase64 as string) : null;
     } catch {
       return null;
     }
@@ -104,7 +104,7 @@ const wasmAgbcc: GraderProfile = {
     // compiler, so target and learner objects are consistent by construction.
     try {
       const data = await compileToObject(solution, { context });
-      return (data.ok ? bytesToBase64(data.obj) : null);
+      return data.ok ? bytesToBase64(data.obj) : null;
     } catch {
       return null;
     }

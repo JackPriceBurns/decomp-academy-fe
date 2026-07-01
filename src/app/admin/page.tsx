@@ -29,7 +29,9 @@ export default function AdminStatsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getLessonStats().then(setRows).catch((e) => setError(e.message));
+    getLessonStats()
+      .then(setRows)
+      .catch((e) => setError(e.message));
   }, []);
 
   if (error) return <p className="text-red-400">Failed to load stats: {error}</p>;

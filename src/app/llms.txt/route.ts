@@ -58,7 +58,9 @@ export function GET() {
   for (const course of COURSES) {
     const courseChapters = chaptersWithLessons(course.id).filter((c) => c.lessons.length > 0);
     if (!courseChapters.length) continue;
-    const courseTiers = TIERS.filter((t) => t.course === course.id).sort((a, b) => a.order - b.order);
+    const courseTiers = TIERS.filter((t) => t.course === course.id).sort(
+      (a, b) => a.order - b.order,
+    );
 
     lines.push("", `### ${course.title} — ${course.blurb}`);
     for (const t of courseTiers) {

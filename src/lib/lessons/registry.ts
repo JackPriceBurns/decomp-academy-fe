@@ -40,7 +40,10 @@ export function lessonIndex(course: string, id: string): number {
 
 // prev/next stay within the lesson's own course — the global list is already
 // course-grouped, so we just clamp at the course boundary.
-export function adjacentLessons(course: string, id: string): {
+export function adjacentLessons(
+  course: string,
+  id: string,
+): {
   prev?: LessonSource;
   next?: LessonSource;
 } {

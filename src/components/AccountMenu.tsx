@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import {
-  IconUserCircle,
-  IconLogout,
-  IconChevronDown,
-  IconChartBar,
-} from "@tabler/icons-react";
+import { IconUserCircle, IconLogout, IconChevronDown, IconChartBar } from "@tabler/icons-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 export function AccountMenu() {
@@ -47,10 +42,7 @@ export function AccountMenu() {
       >
         <IconUserCircle size={18} className="shrink-0 text-accent" />
         <span className="hidden truncate sm:inline">{label}</span>
-        <IconChevronDown
-          size={14}
-          className={`shrink-0 transition ${open ? "rotate-180" : ""}`}
-        />
+        <IconChevronDown size={14} className={`shrink-0 transition ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div className="absolute right-0 z-50 mt-1.5 w-56 overflow-hidden rounded-lg border border-line bg-bg-soft shadow-xl shadow-black/30">

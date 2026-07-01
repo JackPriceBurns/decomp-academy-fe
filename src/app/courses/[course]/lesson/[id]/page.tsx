@@ -17,11 +17,7 @@ export function generateStaticParams() {
 
 // Per-lesson title + description, so every lesson is distinct to search engines
 // instead of inheriting the generic site-wide metadata.
-export function generateMetadata({
-  params,
-}: {
-  params: { course: string; id: string };
-}): Metadata {
+export function generateMetadata({ params }: { params: { course: string; id: string } }): Metadata {
   const lesson = getLesson(params.course, params.id);
   if (!lesson) return {};
 
@@ -52,11 +48,7 @@ export function generateMetadata({
   };
 }
 
-export default function LessonPage({
-  params,
-}: {
-  params: { course: string; id: string };
-}) {
+export default function LessonPage({ params }: { params: { course: string; id: string } }) {
   // Keyed by (course, id): a URL whose course/slug pair doesn't exist — a stale
   // or hand-typed link — resolves to nothing and 404s, rather than a wrong page.
   const lesson = getLesson(params.course, params.id);

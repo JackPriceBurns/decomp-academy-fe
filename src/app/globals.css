@@ -5,15 +5,20 @@
 /* Colours are CSS variables (RGB channels) defined per-theme in src/lib/theme.ts
    and injected in <head>. Raw CSS here references them as rgb(var(--token)). */
 
-html, body {
+html,
+body {
   background: rgb(var(--bg));
   color: rgb(var(--content));
   -webkit-font-smoothing: antialiased;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-::selection { background: rgb(var(--accent) / 0.32); }
+::selection {
+  background: rgb(var(--accent) / 0.32);
+}
 
 /* Visible, consistent keyboard focus everywhere (there was none before). */
 :focus-visible {
@@ -22,11 +27,15 @@ html, body {
   border-radius: 3px;
 }
 /* Don't double up the ring on the code editor's own focus model. */
-.monaco-editor :focus-visible { outline: none; }
+.monaco-editor :focus-visible {
+  outline: none;
+}
 
 /* Respect reduced-motion: collapse every animation/transition to a blink. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -35,27 +44,76 @@ html, body {
 }
 
 /* Thin custom scrollbars to match the IDE feel. */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgb(var(--line-strong)); border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: rgb(var(--content-ghost)); }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--line-strong));
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--content-ghost));
+}
 
 /* Markdown (lesson brief) styling. */
-.prose-lesson h1 { font-size: 1.35rem; font-weight: 700; color: rgb(var(--content-bright)); margin: 0 0 0.75rem; }
-.prose-lesson h2 { font-size: 1.05rem; font-weight: 650; color: rgb(var(--content-primary)); margin: 1.25rem 0 0.5rem; }
-.prose-lesson p { margin: 0.6rem 0; line-height: 1.65; color: rgb(var(--content-secondary)); }
-.prose-lesson ul { margin: 0.5rem 0; padding-left: 1.2rem; list-style: disc; color: rgb(var(--content-secondary)); }
-.prose-lesson ol { margin: 0.5rem 0; padding-left: 1.4rem; list-style: decimal; color: rgb(var(--content-secondary)); }
-.prose-lesson li { margin: 0.3rem 0; line-height: 1.6; }
-.prose-lesson li::marker { color: rgb(var(--accent)); font-weight: 600; }
-.prose-lesson strong { color: rgb(var(--content-primary)); font-weight: 650; }
-.prose-lesson a { color: rgb(var(--accent)); text-decoration: underline; text-underline-offset: 2px; }
+.prose-lesson h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: rgb(var(--content-bright));
+  margin: 0 0 0.75rem;
+}
+.prose-lesson h2 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: rgb(var(--content-primary));
+  margin: 1.25rem 0 0.5rem;
+}
+.prose-lesson p {
+  margin: 0.6rem 0;
+  line-height: 1.65;
+  color: rgb(var(--content-secondary));
+}
+.prose-lesson ul {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+  list-style: disc;
+  color: rgb(var(--content-secondary));
+}
+.prose-lesson ol {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
+  list-style: decimal;
+  color: rgb(var(--content-secondary));
+}
+.prose-lesson li {
+  margin: 0.3rem 0;
+  line-height: 1.6;
+}
+.prose-lesson li::marker {
+  color: rgb(var(--accent));
+  font-weight: 600;
+}
+.prose-lesson strong {
+  color: rgb(var(--content-primary));
+  font-weight: 650;
+}
+.prose-lesson a {
+  color: rgb(var(--accent));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .prose-lesson abbr[data-glossary] {
   cursor: help;
   text-decoration: underline dotted rgb(var(--content-faint));
   text-underline-offset: 3px;
 }
-.prose-lesson abbr[data-glossary]:hover { text-decoration-color: rgb(var(--accent)); }
+.prose-lesson abbr[data-glossary]:hover {
+  text-decoration-color: rgb(var(--accent));
+}
 .prose-lesson code {
   font-family: var(--font-mono);
   font-size: 0.82em;
@@ -92,7 +150,9 @@ html, body {
   background: rgb(var(--content) / 0.025);
 }
 .prose-lesson td code,
-.prose-lesson th code { font-size: 0.8em; }
+.prose-lesson th code {
+  font-size: 0.8em;
+}
 
 .prose-lesson blockquote {
   border-left: 3px solid rgb(var(--accent-soft));
@@ -103,7 +163,9 @@ html, body {
   color: rgb(var(--content-secondary));
   font-size: 0.92rem;
 }
-.prose-lesson blockquote code { font-size: 0.8em; }
+.prose-lesson blockquote code {
+  font-size: 0.8em;
+}
 
 .prose-lesson pre {
   background: rgb(var(--bg-inset));
@@ -115,8 +177,12 @@ html, body {
   scrollbar-gutter: stable;
 }
 /* Keep a faint always-visible track so a clipped asm line reads as scrollable. */
-.prose-lesson pre::-webkit-scrollbar { height: 8px; }
-.prose-lesson pre::-webkit-scrollbar-thumb { background: rgb(var(--line-strong)); }
+.prose-lesson pre::-webkit-scrollbar {
+  height: 8px;
+}
+.prose-lesson pre::-webkit-scrollbar-thumb {
+  background: rgb(var(--line-strong));
+}
 .prose-lesson pre code {
   background: none;
   border: none;
@@ -127,7 +193,7 @@ html, body {
 }
 
 .grid-dots {
-  background-image: radial-gradient(circle at 1px 1px, rgb(var(--accent) / 0.10) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgb(var(--accent) / 0.1) 1px, transparent 0);
   background-size: 22px 22px;
 }
 

@@ -43,10 +43,7 @@ function ConfirmForm() {
   }
 
   return (
-    <AuthCard
-      title="Verify your email"
-      subtitle="Enter the 6-digit code we just emailed you."
-    >
+    <AuthCard title="Verify your email" subtitle="Enter the 6-digit code we just emailed you.">
       <form onSubmit={onSubmit} className="space-y-3">
         <AuthError message={error} />
         {notice && (

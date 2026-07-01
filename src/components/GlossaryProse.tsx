@@ -13,13 +13,7 @@ interface GlossTip {
 // Renders pre-built lesson HTML and shows a tooltip when the pointer is over an
 // <abbr data-glossary> that renderMarkdown injected for a known acronym. Uses
 // event delegation so it costs nothing per term and survives re-renders.
-export function GlossaryProse({
-  html,
-  className,
-}: {
-  html: string;
-  className?: string;
-}) {
+export function GlossaryProse({ html, className }: { html: string; className?: string }) {
   const [tip, setTip] = useState<GlossTip | null>(null);
 
   const onMove = useCallback((e: React.MouseEvent<HTMLElement>) => {

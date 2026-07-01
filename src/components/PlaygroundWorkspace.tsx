@@ -154,7 +154,7 @@ export function PlaygroundWorkspace() {
       diffsRef.current = analysis.diffs;
       const names = codeSymbols(analysis.overview);
       setSymbols(names);
-      setSelected((prev) => (prev && analysis.diffs[prev] ? prev : names[0] ?? ""));
+      setSelected((prev) => (prev && analysis.diffs[prev] ? prev : (names[0] ?? "")));
       setStatus("ok");
       setTab("asm");
     } catch {
@@ -220,7 +220,11 @@ export function PlaygroundWorkspace() {
     if (!obj || !selected) return;
     setScratch({ state: "creating" });
     try {
-      const { url } = await createScratch({ code: codeRef.current, symbol: selected, objBase64: obj });
+      const { url } = await createScratch({
+        code: codeRef.current,
+        symbol: selected,
+        objBase64: obj,
+      });
       setScratch({ state: "done", url });
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
@@ -304,14 +308,26 @@ export function PlaygroundWorkspace() {
         {/* Output column */}
         <section className="flex min-h-[40vh] flex-col bg-bg-inset/60 lg:min-h-0">
           <div className="flex items-center gap-1 border-b border-line bg-bg-soft/50 px-2">
-            <TabButton active={tab === "asm"} onClick={() => setTab("asm")} icon={<IconBinaryTree size={14} />}>
+            <TabButton
+              active={tab === "asm"}
+              onClick={() => setTab("asm")}
+              icon={<IconBinaryTree size={14} />}
+            >
               Disassembly
             </TabButton>
-            <TabButton active={tab === "console"} onClick={() => setTab("console")} icon={<IconTerminal2 size={14} />}>
+            <TabButton
+              active={tab === "console"}
+              onClick={() => setTab("console")}
+              icon={<IconTerminal2 size={14} />}
+            >
               Console
             </TabButton>
             <div className="ml-auto pr-1.5">
-              <CreateScratchButton scratch={scratch} disabled={!canScratch} onClick={onCreateScratch} />
+              <CreateScratchButton
+                scratch={scratch}
+                disabled={!canScratch}
+                onClick={onCreateScratch}
+              />
             </div>
           </div>
 
@@ -323,7 +339,9 @@ export function PlaygroundWorkspace() {
 
           {tab === "asm" && symbols.length > 1 && (
             <div className="flex flex-wrap items-center gap-1.5 border-b border-line bg-bg-soft/30 px-3 py-1.5">
-              <span className="mr-1 font-mono text-2xs uppercase tracking-wider text-content-faint">fn</span>
+              <span className="mr-1 font-mono text-2xs uppercase tracking-wider text-content-faint">
+                fn
+              </span>
               {symbols.map((s) => (
                 <button
                   key={s}
@@ -347,7 +365,8 @@ export function PlaygroundWorkspace() {
             {tab === "asm" ? (
               status === "running" ? (
                 <Centered>
-                  <IconLoader2 size={14} className="animate-spin text-accent" /> Compiling with mwcceppc.exe…
+                  <IconLoader2 size={14} className="animate-spin text-accent" /> Compiling with
+                  mwcceppc.exe…
                 </Centered>
               ) : status === "compileError" || status === "error" ? (
                 <Empty>Your code didn’t compile — see the Console tab.</Empty>
@@ -477,7 +496,9 @@ function TabButton({
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-full items-center justify-center gap-2 text-xs text-content-faint">{children}</div>
+    <div className="flex h-full items-center justify-center gap-2 text-xs text-content-faint">
+      {children}
+    </div>
   );
 }
 

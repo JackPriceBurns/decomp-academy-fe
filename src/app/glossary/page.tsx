@@ -62,9 +62,9 @@ export default function GlossaryPage() {
             Decompilation glossary
           </h1>
           <p className="mt-3 max-w-2xl leading-relaxed text-content-secondary">
-            The PowerPC, ABI, and compiler vocabulary you run into while learning to
-            decompile GameCube games. Every term here is also auto-linked, with a hover
-            definition, throughout the{" "}
+            The PowerPC, ABI, and compiler vocabulary you run into while learning to decompile
+            GameCube games. Every term here is also auto-linked, with a hover definition, throughout
+            the{" "}
             <Link href="/" className="text-accent hover:underline">
               Decomp Academy lessons
             </Link>

@@ -42,7 +42,10 @@ export function ProgressBar({
   return (
     <div className={cx("overflow-hidden rounded-full bg-bg-inset", height, className)}>
       <div
-        className={cx("h-full rounded-full transition-[width] duration-700 ease-out-quint", barClassName)}
+        className={cx(
+          "h-full rounded-full transition-[width] duration-700 ease-out-quint",
+          barClassName,
+        )}
         style={{ width: `${w}%` }}
       />
     </div>
@@ -60,10 +63,8 @@ const BTN_BASE =
 const BTN_VARIANT: Record<ButtonVariant, string> = {
   primary:
     "bg-accent text-accent-on font-semibold shadow-lg shadow-accent/20 hover:bg-accent-hover hover:-translate-y-px active:translate-y-0",
-  ghost:
-    "bg-bg-softer/70 text-content-secondary hover:bg-bg-softer hover:text-content-primary",
-  dashed:
-    "bg-bg-softer/50 text-content-muted hover:bg-bg-softer hover:text-content",
+  ghost: "bg-bg-softer/70 text-content-secondary hover:bg-bg-softer hover:text-content-primary",
+  dashed: "bg-bg-softer/50 text-content-muted hover:bg-bg-softer hover:text-content",
   subtle: "bg-accent/10 text-accent hover:bg-accent/20",
 };
 
@@ -147,17 +148,9 @@ export function Badge({
 
 /* ----------------------------------- Card ---------------------------------- */
 
-export function Card({
-  className,
-  children,
-}: {
-  className?: string;
-  children: ReactNode;
-}) {
+export function Card({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={cx("overflow-hidden rounded-xl bg-bg-soft/70", className)}>
-      {children}
-    </div>
+    <div className={cx("overflow-hidden rounded-xl bg-bg-soft/70", className)}>{children}</div>
   );
 }
 

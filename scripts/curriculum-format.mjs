@@ -86,7 +86,8 @@ export function formatCourse(course) {
 }
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
-const CODE_BLOCK_RE = /<!--\s*(starter|solution|context)\s*-->\s*\n```[a-zA-Z0-9]*\n([\s\S]*?)\n```/g;
+const CODE_BLOCK_RE =
+  /<!--\s*(starter|solution|context)\s*-->\s*\n```[a-zA-Z0-9]*\n([\s\S]*?)\n```/g;
 
 /** Split raw file content into { data, body }. */
 function splitFrontmatter(raw) {
@@ -103,10 +104,12 @@ export function parseLessonFile(raw, { chapter, order }) {
   const { data, body } = splitFrontmatter(raw);
 
   const code = {};
-  const brief = body.replace(CODE_BLOCK_RE, (_, name, content) => {
-    code[name] = content;
-    return "";
-  }).trim();
+  const brief = body
+    .replace(CODE_BLOCK_RE, (_, name, content) => {
+      code[name] = content;
+      return "";
+    })
+    .trim();
 
   const lesson = {
     id: data.id,

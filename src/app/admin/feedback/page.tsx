@@ -19,7 +19,11 @@ import {
 import type { Sentiment } from "@/lib/feedback";
 
 const SENTIMENT_META: Record<Sentiment, { label: string; emoji: string; cls: string }> = {
-  good: { label: "Good", emoji: "👍", cls: "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft" },
+  good: {
+    label: "Good",
+    emoji: "👍",
+    cls: "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft",
+  },
   confusing: { label: "Confusing", emoji: "😕", cls: "bg-warn/15 text-warn" },
   bug: { label: "Bug", emoji: "🐞", cls: "bg-bad/15 text-bad" },
 };
@@ -50,7 +54,9 @@ export default function AdminFeedbackPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
-    getFeedback().then(setRows).catch((e) => setError(e.message));
+    getFeedback()
+      .then(setRows)
+      .catch((e) => setError(e.message));
   }, []);
 
   const counts = useMemo(() => {
