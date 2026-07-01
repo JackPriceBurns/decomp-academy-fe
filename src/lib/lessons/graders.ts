@@ -59,17 +59,27 @@ const remote: GraderProfile = {
   compilerLabel: "mwcceppc.exe -O4,p",
   preload() {},
   async compile({ course, lesson, code }) {
-    return fetch("/api/check", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ course, lesson, code }),
-    }).then((r) => r.json());
+    try {
+      const r = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course, lesson, code }),
+      });
+      return await r.json();
+    } catch {
+      // Network failure or a non-JSON response — resolve a normal CompileResult
+      // (like loadTarget/wasmAgbcc.compile) instead of rejecting the promise.
+      return { ok: false, error: "Couldn't reach the compile service." };
+    }
   },
-  loadTarget({ course, lesson }) {
-    return fetch(`/api/target?course=${course}&lesson=${lesson}`)
-      .then((r) => r.json())
-      .then((d) => (d?.ok && d.objBase64 ? (d.objBase64 as string) : null))
-      .catch(() => null);
+  async loadTarget({ course, lesson }) {
+    try {
+      const response = await fetch(`/api/target?course=${course}&lesson=${lesson}`);
+      const data = await response.json();
+      return (data?.ok && data.objBase64 ? (data.objBase64 as string) : null);
+    } catch {
+      return null;
+    }
   },
 };
 
@@ -89,12 +99,15 @@ const wasmAgbcc: GraderProfile = {
       return { ok: false, error: "Couldn't load the in-browser compiler." };
     }
   },
-  loadTarget({ solution, context }) {
+  async loadTarget({ solution, context }) {
     // The target is the reference solution compiled with the same in-browser
     // compiler, so target and learner objects are consistent by construction.
-    return compileToObject(solution, { context })
-      .then((r) => (r.ok ? bytesToBase64(r.obj) : null))
-      .catch(() => null);
+    try {
+      const data = await compileToObject(solution, { context });
+      return (data.ok ? bytesToBase64(data.obj) : null);
+    } catch {
+      return null;
+    }
   },
 };
 

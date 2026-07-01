@@ -107,21 +107,21 @@
     {
         "Name": "lsl",
         "DescriptiveName": "Logical Shift Left",
-        "Usage": "lsl Rd, Rm, #imm",
+        "Usage": "lsl Rd, Rm, #imm · lsl Rd, Rs",
         "Description": "Shifts {Rd} left, vacated low bits filled with zero — a left shift by N multiplies by 2^N.",
         "Modifiers": []
     },
     {
         "Name": "lsr",
         "DescriptiveName": "Logical Shift Right",
-        "Usage": "lsr Rd, Rm, #imm",
+        "Usage": "lsr Rd, Rm, #imm · lsr Rd, Rs",
         "Description": "Shifts {Rd} right, vacated high bits filled with zero — the unsigned divide by 2^N.",
         "Modifiers": []
     },
     {
         "Name": "asr",
         "DescriptiveName": "Arithmetic Shift Right",
-        "Usage": "asr Rd, Rm, #imm",
+        "Usage": "asr Rd, Rm, #imm · asr Rd, Rs",
         "Description": "Shifts {Rd} right copying the sign bit inward — the signed divide by 2^N (rounding toward minus infinity).",
         "Modifiers": []
     },
