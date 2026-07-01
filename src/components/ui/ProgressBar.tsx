@@ -3,18 +3,19 @@
 import { useEffect, useState } from "react";
 import { cx } from "./cx";
 
-// Fills from 0 → pct on mount so progress visibly grows (respects reduced-motion).
+type Props = {
+  pct: number;
+  className?: string;
+  barClassName?: string;
+  height?: string;
+};
+
 export function ProgressBar({
   pct,
   className,
   barClassName = "bg-good theme-light:bg-good-soft",
   height = "h-1.5",
-}: {
-  pct: number;
-  className?: string;
-  barClassName?: string;
-  height?: string;
-}) {
+}: Props) {
   const [w, setW] = useState(0);
   useEffect(() => {
     const reduce =

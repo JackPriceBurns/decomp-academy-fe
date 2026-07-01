@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IconLoader2 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/Button";
-import { AuthShell, AuthCard, Field, AuthError } from "@/components/auth/AuthCard";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Field } from "@/components/auth/Field";
+import { AuthError } from "@/components/auth/AuthError";
 import { confirmRegistration, resendCode, authMessage } from "@/lib/auth/cognito";
 
 function ConfirmForm() {

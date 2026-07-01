@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PlaygroundWorkspace } from "@/components/PlaygroundWorkspace";
+import { PlaygroundWorkspace } from "@/components/playground/PlaygroundWorkspace";
 
 export const metadata: Metadata = {
   title: "Playground · Decomp Academy",

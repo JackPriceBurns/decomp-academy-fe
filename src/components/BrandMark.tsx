@@ -1,14 +1,11 @@
-// AUTO-GENERATED from the brand kit ({dA} mark). Do not hand-edit (beyond the
-// letter fill); regenerate from public/brand. Brand-violet braces + lavender echo;
-// the letters use `currentColor` so they invert with the theme (the Logo wrapper
-// sets it to content-bright: near-white on dark, near-black on light).
 import type { SVGProps } from "react";
 
-export function BrandMark({
-  height = 28,
-  title = "Decomp Academy",
-  ...props
-}: { height?: number; title?: string } & Omit<SVGProps<SVGSVGElement>, "height">) {
+type Props = {
+  height?: number
+  title?: string
+} & Omit<SVGProps<SVGSVGElement>, "height">;
+
+export function BrandMark({ height = 28, title = "Decomp Academy", ...props }: Props) {
   return (
     <svg
       role="img"

@@ -4,18 +4,14 @@ import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { cx } from "./cx";
 
-// Centered, dismissable dialog shell: backdrop, Esc-to-close, and click-outside.
-export function Modal({
-  onClose,
-  labelledBy,
-  className,
-  children,
-}: {
+type Props = {
   onClose: () => void;
   labelledBy?: string;
   className?: string;
   children: ReactNode;
-}) {
+};
+
+export function Modal({ onClose, labelledBy, className, children }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();

@@ -4,7 +4,7 @@ import { adjacentLessons, getLesson, LESSONS } from "@/lib/lessons/registry";
 import { getChapter } from "@/curriculum/chapters";
 import { COURSE_BY_ID } from "@/curriculum/courses";
 import { renderMarkdown, stripMarkdown } from "@/lib/markdown";
-import { LessonWorkspace, LessonDTO } from "@/components/LessonWorkspace";
+import { LessonWorkspace, LessonDTO } from "@/components/lesson/LessonWorkspace";
 import { JsonLd } from "@/components/JsonLd";
 import { breadcrumbLd, lessonLd, lessonPath, SITE_URL } from "@/lib/seo";
 

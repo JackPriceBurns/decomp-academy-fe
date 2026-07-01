@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CurriculumMap } from "@/components/CurriculumMap";
-import { MatchLog, HeatLesson } from "@/components/MatchLog";
+import { CurriculumMap } from "./CurriculumMap";
+import { MatchLog, HeatLesson } from "./MatchLog";
 import { lessonPath } from "@/lib/seo";
 
 interface LessonLite {
@@ -33,23 +33,21 @@ export interface CourseView {
   id: string;
   title: string;
   blurb: string;
-  /** First lesson in curriculum order — the "jump back in" target. */
   firstLessonId?: string;
   tiers: TierLite[];
   chapters: ChapterLite[];
   heatLessons: HeatLesson[];
 }
 
-// The curriculum browser: a course selector (a segmented control, not a
-// dropdown) above the map, then the heatmap + chapter map for the selected
-// course. State lives here so switching courses is instant and client-only.
-export function CurriculumBrowser({ courses }: { courses: CourseView[] }) {
+type Props = { courses: CourseView[] };
+
+export function Curriculum({ courses }: Props) {
   const [selectedId, setSelectedId] = useState(courses[0]?.id);
   const course = courses.find((c) => c.id === selectedId) ?? courses[0];
   if (!course) return null;
 
   return (
-    <>
+    <section id="curriculum" className="mx-auto max-w-5xl scroll-mt-16 px-5 pb-24 pt-14">
       <div className="mb-4 flex items-baseline justify-between">
         <div>
           <h2 className="text-xl font-bold text-content-bright">The Curriculum</h2>
@@ -57,6 +55,7 @@ export function CurriculumBrowser({ courses }: { courses: CourseView[] }) {
             Read the asm · write the source · the compiler grades it byte-for-byte.
           </p>
         </div>
+
         {course.firstLessonId && (
           <Link
             href={lessonPath(course.id, course.firstLessonId)}
@@ -67,9 +66,6 @@ export function CurriculumBrowser({ courses }: { courses: CourseView[] }) {
         )}
       </div>
 
-      {/* Course selector, sitting under the heading. A single course still
-          renders as one highlighted tab, so the framing reads as "pick a track"
-          the moment more are added. */}
       <div
         role="tablist"
         aria-label="Course"
@@ -101,8 +97,6 @@ export function CurriculumBrowser({ courses }: { courses: CourseView[] }) {
         })}
       </div>
 
-      {/* key={course.id} remounts both on a course switch so CurriculumMap's
-          internal expand/resume state doesn't leak across courses. */}
       <div className="mb-8">
         <MatchLog key={course.id} lessons={course.heatLessons} courseId={course.id} />
       </div>
@@ -113,6 +107,6 @@ export function CurriculumBrowser({ courses }: { courses: CourseView[] }) {
         tiers={course.tiers}
         courseId={course.id}
       />
-    </>
+    </section>
   );
 }

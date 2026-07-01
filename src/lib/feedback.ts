@@ -35,6 +35,7 @@ export async function submitFeedback(p: FeedbackPayload): Promise<void> {
     p.lessonId && p.course
       ? (SLUG_TO_PID.get(`${p.course}/${p.lessonId}`) ?? p.lessonId)
       : p.lessonId;
+
   const res = await fetch(`${API_URL}/feedback`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -47,6 +48,7 @@ export async function submitFeedback(p: FeedbackPayload): Promise<void> {
       source: p.source,
     }),
   });
+
   if (!res.ok) {
     let message = "Couldn't send your feedback. Please try again.";
     try {

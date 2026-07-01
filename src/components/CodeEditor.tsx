@@ -8,9 +8,6 @@ import { useTheme, type Theme } from "@/lib/theme-context";
 
 const hx = (c: string) => c.replace("#", "");
 
-// One Monaco theme per app theme, both derived from the shared palette so the
-// editor's syntax colours always match the asm diff. The two keys differ only in
-// the few editor-chrome colours Monaco needs that aren't in the palette.
 function defineThemes(monaco: Monaco) {
   const build = (
     name: string,
@@ -48,23 +45,19 @@ function defineThemes(monaco: Monaco) {
 
 const themeName = (t: Theme) => (t === "light" ? "decomp-light" : "decomp-dark");
 
-export function CodeEditor({
-  value,
-  onChange,
-  onRun,
-  readOnly = false,
-}: {
+type Props = {
   value: string;
   onChange?: (v: string) => void;
   onRun?: () => void;
   readOnly?: boolean;
-}) {
+};
+
+export function CodeEditor({ value, onChange, onRun, readOnly = false }: Props) {
   const { theme } = useTheme();
   const onRunRef = useRef(onRun);
   onRunRef.current = onRun;
   const monacoRef = useRef<Monaco | null>(null);
 
-  // Re-point Monaco at the matching theme whenever the app theme changes.
   useEffect(() => {
     monacoRef.current?.editor.setTheme(themeName(theme));
   }, [theme]);

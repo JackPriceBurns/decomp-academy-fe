@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
 import { IconFlame, IconTrophy, IconGitMerge } from "@tabler/icons-react";
 import { useProgress } from "@/lib/progress";
-import { lessonPath } from "@/lib/seo";
+import { MatchLogStat } from "./MatchLogStat";
+import { MatchLogCell } from "./MatchLogCell";
 
 export interface HeatLesson {
   id: string;
@@ -13,9 +13,12 @@ export interface HeatLesson {
   concept?: boolean;
 }
 
-// Contribution-style grid of every lesson — instantly familiar to the
-// GitHub-native decomp audience, and turns "0/306" into a fillable canvas.
-export function MatchLog({ lessons, courseId }: { lessons: HeatLesson[]; courseId: string }) {
+type Props = {
+  lessons: HeatLesson[];
+  courseId: string;
+};
+
+export function MatchLog({ lessons, courseId }: Props) {
   const { bestPercent } = useProgress();
 
   const { solved, attempted, xp } = useMemo(() => {
@@ -56,12 +59,12 @@ export function MatchLog({ lessons, courseId }: { lessons: HeatLesson[]; courseI
             <div className="mt-1 text-2xs text-content-muted">functions reconstructed</div>
           </div>
         </div>
-        <Stat
+        <MatchLogStat
           icon={<IconFlame size={16} className="text-warn" />}
           value={attempted.toString()}
           label="in progress"
         />
-        <Stat
+        <MatchLogStat
           icon={<IconTrophy size={16} className="text-accent" />}
           value={xp.toLocaleString()}
           label="XP"
@@ -76,36 +79,14 @@ export function MatchLog({ lessons, courseId }: { lessons: HeatLesson[]; courseI
         role="img"
         aria-label={`${solved} of ${total} lessons matched`}
       >
-        {lessons.map((l) => {
-          const pct = bestPercent(courseId, l.id);
-          const cls =
-            pct >= 100
-              ? "bg-good theme-light:bg-good-soft hover:ring-good"
-              : pct > 0
-                ? "bg-warn/70 theme-light:bg-amber-400 hover:ring-warn"
-                : // Empty pip: a lighter gray in light mode.
-                  "bg-line-strong/70 theme-light:bg-line-faint hover:ring-accent";
-          return (
-            <Link
-              key={l.id}
-              href={lessonPath(courseId, l.id)}
-              title={`${l.title}${pct >= 100 ? " — matched" : pct > 0 ? ` — ${pct}%` : ""}`}
-              className={`h-2.5 w-2.5 rounded-[2px] ring-offset-1 ring-offset-bg-soft transition hover:ring-1 ${cls}`}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      {icon}
-      <div>
-        <div className="font-semibold leading-none tabular-nums text-content-primary">{value}</div>
-        <div className="mt-1 text-2xs text-content-muted">{label}</div>
+        {lessons.map((l) => (
+          <MatchLogCell
+            key={l.id}
+            courseId={courseId}
+            lesson={l}
+            pct={bestPercent(courseId, l.id)}
+          />
+        ))}
       </div>
     </div>
   );

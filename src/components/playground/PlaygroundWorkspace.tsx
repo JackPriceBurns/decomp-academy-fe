@@ -11,9 +11,9 @@ import {
   IconAlertTriangle,
   IconBinaryTree,
   IconTerminal2,
-  IconExternalLink,
 } from "@tabler/icons-react";
-import { AsmList, preloadGlossary } from "./AsmDiff";
+import { AsmList } from "@/components/asm-diff/AsmList";
+import { preloadGlossary } from "@/components/asm-diff/glossary";
 import {
   analyze,
   preloadObjdiff,
@@ -21,25 +21,20 @@ import {
   type Overview,
   type Seg,
 } from "@/lib/objdiff/client";
-import { AccountMenu } from "./AccountMenu";
-import { Logo } from "./ui/Logo";
-import { ThemeToggle } from "./ui/ThemeToggle";
+import { AccountMenu } from "@/components/AccountMenu";
+import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { createScratch } from "@/lib/playground/decompme";
-import { EXAMPLES, type ExampleCategory, type PlaygroundExample } from "@/lib/playground/examples";
+import { EXAMPLES, type PlaygroundExample } from "@/lib/playground/examples";
+import type { Status, Tab, ScratchState } from "./types";
+import { PlaygroundExampleSelect } from "./PlaygroundExampleSelect";
+import { PlaygroundCreateScratchButton } from "./PlaygroundCreateScratchButton";
+import { PlaygroundConsole } from "./PlaygroundConsole";
+import { PlaygroundTabButton } from "./PlaygroundTabButton";
+import { PlaygroundCentered } from "./PlaygroundCentered";
+import { PlaygroundEmpty } from "./PlaygroundEmpty";
 
-// Category display order in the examples dropdown; only non-empty groups render.
-const CATEGORY_ORDER: ExampleCategory[] = [
-  "Math",
-  "Vector",
-  "Matrix",
-  "Bits",
-  "Random",
-  "Game",
-  "Sorting",
-  "Memory",
-];
-
-const CodeEditor = dynamic(() => import("./CodeEditor").then((m) => m.CodeEditor), {
+const CodeEditor = dynamic(() => import("@/components/CodeEditor").then((m) => m.CodeEditor), {
   ssr: false,
   loading: () => (
     <div className="flex h-full items-center justify-center text-sm text-content-faint">
@@ -65,17 +60,6 @@ int sum_to(int n) {
 }
 `;
 
-type Status = "idle" | "running" | "ok" | "compileError" | "error";
-type Tab = "asm" | "console";
-type ScratchState =
-  | { state: "idle" }
-  | { state: "creating" }
-  | { state: "done"; url: string }
-  | { state: "error"; message: string };
-
-// The disassemblable (non-data) symbols of the just-compiled object, in object
-// order. The playground compiles the user's object into objdiff's "target" slot
-// (the proven target-only path), so we read overview.target.
 function codeSymbols(overview: Overview): string[] {
   const names: string[] = [];
   for (const sec of overview.target) {
@@ -99,12 +83,8 @@ export function PlaygroundWorkspace() {
 
   const codeRef = useRef(code);
   codeRef.current = code;
-  // Latest compiled object (base64) — uploaded to decomp.me on "Create scratch".
   const userB64Ref = useRef<string | null>(null);
-  // Per-symbol disassembly from the last analyze() pass; symbol switching is a
-  // pure lookup here (no recompile).
   const diffsRef = useRef<Analysis["diffs"]>({});
-  // Monotonic token: a stale in-flight compile must not clobber a newer one.
   const runIdRef = useRef(0);
 
   const run = useCallback(async () => {
@@ -139,8 +119,6 @@ export function PlaygroundWorkspace() {
 
       let analysis: Analysis;
       try {
-        // User object into the "target" slot (target-only objdiff pass) — its
-        // disassembly lands in diffs[name].targetRows + overview.target.
         analysis = await analyze(d.objBase64, null);
       } catch (e) {
         console.error("objdiff analysis failed", e);
@@ -168,32 +146,23 @@ export function PlaygroundWorkspace() {
   const runRef = useRef(run);
   runRef.current = run;
 
-  // On mount: warm objdiff + the glossary, restore the last edit, compile once so
-  // the assembly is visible immediately.
   useEffect(() => {
     preloadObjdiff();
-    // The playground compiles only GameCube PowerPC, so its glossary is the PPC one.
     preloadGlossary("ppc");
     let initial = DEFAULT_CODE;
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved && saved.trim()) initial = saved;
-    } catch {
-      /* private mode / disabled storage */
-    }
+    } catch {}
     setCode(initial);
     codeRef.current = initial;
     runRef.current();
   }, []);
 
-  // Persist the editor across reloads (a convenience; durable sharing is the
-  // "Create scratch" button). Namespaced so it never touches lesson progress.
   useEffect(() => {
     try {
       window.localStorage.setItem(STORAGE_KEY, code);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [code]);
 
   const reset = () => {
@@ -210,7 +179,7 @@ export function PlaygroundWorkspace() {
     if (!ex) return;
     setExampleId(id);
     setActiveExample(ex);
-    setSelected(ex.symbol); // headline function of the example
+    setSelected(ex.symbol);
     setCode(ex.code);
     codeRef.current = ex.code;
     runRef.current();
@@ -261,10 +230,9 @@ export function PlaygroundWorkspace() {
       </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-2">
-        {/* Editor column */}
         <section className="flex min-h-[48vh] flex-col border-b border-line lg:min-h-0 lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-2 border-b border-line bg-bg-soft/60 px-4 py-2">
-            <ExampleSelect value={exampleId} onPick={onPickExample} />
+            <PlaygroundExampleSelect value={exampleId} onPick={onPickExample} />
             <span className="hidden items-center gap-1 rounded bg-bg-softer px-1.5 py-0.5 font-mono text-2xs text-content-faint md:inline-flex">
               mwcceppc.exe -O4,p
             </span>
@@ -306,25 +274,24 @@ export function PlaygroundWorkspace() {
           </div>
         </section>
 
-        {/* Output column */}
         <section className="flex min-h-[40vh] flex-col bg-bg-inset/60 lg:min-h-0">
           <div className="flex items-center gap-1 border-b border-line bg-bg-soft/50 px-2">
-            <TabButton
+            <PlaygroundTabButton
               active={tab === "asm"}
               onClick={() => setTab("asm")}
               icon={<IconBinaryTree size={14} />}
             >
               Disassembly
-            </TabButton>
-            <TabButton
+            </PlaygroundTabButton>
+            <PlaygroundTabButton
               active={tab === "console"}
               onClick={() => setTab("console")}
               icon={<IconTerminal2 size={14} />}
             >
               Console
-            </TabButton>
+            </PlaygroundTabButton>
             <div className="ml-auto pr-1.5">
-              <CreateScratchButton
+              <PlaygroundCreateScratchButton
                 scratch={scratch}
                 disabled={!canScratch}
                 onClick={onCreateScratch}
@@ -365,148 +332,27 @@ export function PlaygroundWorkspace() {
           <div className="min-h-0 flex-1 overflow-auto">
             {tab === "asm" ? (
               status === "running" ? (
-                <Centered>
+                <PlaygroundCentered>
                   <IconLoader2 size={14} className="animate-spin text-accent" /> Compiling with
                   mwcceppc.exe…
-                </Centered>
+                </PlaygroundCentered>
               ) : status === "compileError" || status === "error" ? (
-                <Empty>Your code didn’t compile — see the Console tab.</Empty>
+                <PlaygroundEmpty>Your code didn’t compile — see the Console tab.</PlaygroundEmpty>
               ) : rows.length ? (
                 <AsmList rows={rows} />
               ) : status === "ok" ? (
-                <Empty>No functions in the output. Define a function to see its assembly.</Empty>
+                <PlaygroundEmpty>
+                  No functions in the output. Define a function to see its assembly.
+                </PlaygroundEmpty>
               ) : (
-                <Empty>Hit “Compile” to see the assembly.</Empty>
+                <PlaygroundEmpty>Hit “Compile” to see the assembly.</PlaygroundEmpty>
               )
             ) : (
-              <Console status={status} message={message} />
+              <PlaygroundConsole status={status} message={message} />
             )}
           </div>
         </section>
       </div>
-    </div>
-  );
-}
-
-function ExampleSelect({ value, onPick }: { value: string; onPick: (id: string) => void }) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onPick(e.target.value)}
-      title="Load a real function from an open GameCube decomp project"
-      className="max-w-[13rem] cursor-pointer rounded-md border border-line bg-bg-softer px-2 py-1.5 text-xs text-content-secondary transition hover:text-content-primary focus:outline-none focus:ring-1 focus:ring-accent"
-    >
-      <option value="">Load example…</option>
-      {CATEGORY_ORDER.map((cat) => {
-        const items = EXAMPLES.filter((e) => e.category === cat);
-        if (!items.length) return null;
-        return (
-          <optgroup key={cat} label={cat}>
-            {items.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.label} · {e.game}
-              </option>
-            ))}
-          </optgroup>
-        );
-      })}
-    </select>
-  );
-}
-
-function CreateScratchButton({
-  scratch,
-  disabled,
-  onClick,
-}: {
-  scratch: ScratchState;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  if (scratch.state === "done") {
-    return (
-      <a
-        href={scratch.url}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-md bg-good/15 theme-light:bg-good-soft/15 px-2.5 py-1 text-xs font-semibold text-good theme-light:text-good-soft transition hover:bg-good/25 theme-light:hover:bg-good-soft/25"
-      >
-        <IconExternalLink size={13} /> Open on decomp.me
-      </a>
-    );
-  }
-  const busy = scratch.state === "creating";
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled || busy}
-      title="Create a shareable scratch on decomp.me from this code"
-      className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs text-content-secondary transition hover:bg-bg-softer hover:text-content-primary disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {busy ? <IconLoader2 size={13} className="animate-spin" /> : <IconExternalLink size={13} />}
-      {busy ? "Creating…" : "Create scratch"}
-    </button>
-  );
-}
-
-function Console({ status, message }: { status: Status; message: string }) {
-  if (status === "running") {
-    return (
-      <Centered>
-        <IconLoader2 size={14} className="animate-spin text-accent" /> Compiling…
-      </Centered>
-    );
-  }
-  const isErr = status === "compileError" || status === "error";
-  return (
-    <pre
-      className={`h-full whitespace-pre-wrap px-4 py-3 font-mono text-xs leading-relaxed ${
-        isErr ? "text-bad-text" : "text-content-muted"
-      }`}
-    >
-      {message || (status === "ok" ? "Compiled cleanly." : "No compiler output yet.")}
-    </pre>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  icon,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition ${
-        active
-          ? "border-accent text-content-primary"
-          : "border-transparent text-content-muted hover:text-content-secondary"
-      }`}
-    >
-      {icon}
-      {children}
-    </button>
-  );
-}
-
-function Centered({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex h-full items-center justify-center gap-2 text-xs text-content-faint">
-      {children}
-    </div>
-  );
-}
-
-function Empty({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex h-full items-center justify-center px-6 text-center text-sm text-content-faint">
-      {children}
     </div>
   );
 }

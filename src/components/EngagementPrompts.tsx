@@ -13,14 +13,8 @@ import {
 import { FeedbackDialog } from "./FeedbackDialog";
 import { SignUpPrompt } from "./SignUpPrompt";
 
-// Routes where an interrupting popup would be unwelcome (auth flows, admin).
 const SUPPRESS_ON = ["/login", "/register", "/confirm", "/forgot-password", "/admin"];
 
-// Drives the one-time engagement popups. Mounted once near the root so it can
-// watch progress across the whole app: anonymous learners are nudged to save
-// their progress (sign up) at SIGNUP_PROMPT_AT; everyone is asked for feedback
-// at FEEDBACK_PROMPT_AT. Each kind shows at most once per device, and at most
-// one prompt fires per session so they never stack up.
 export function EngagementPrompts() {
   const { status } = useAuth();
   const pathname = usePathname();
@@ -47,8 +41,6 @@ export function EngagementPrompts() {
       if (firedRef.current || timerRef.current) return;
       const kind = pick();
       if (!kind) return;
-      // Small delay so a prompt triggered by *completing* a lesson lands just
-      // after the match celebration rather than on top of it.
       timerRef.current = setTimeout(() => {
         timerRef.current = null;
         if (firedRef.current || wasPromptSeen(kind)) return;

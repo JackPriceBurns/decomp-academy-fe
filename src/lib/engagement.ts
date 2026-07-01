@@ -1,12 +1,7 @@
 "use client";
 
-// One-time engagement prompts gated on how many lessons a learner has completed.
-// Anonymous learners get nudged to save their progress first (lower threshold);
-// everyone gets asked for feedback a little later. Each prompt is shown at most
-// once per device, tracked by a localStorage flag.
-
-export const SIGNUP_PROMPT_AT = 3; // anon: "save your progress" after N solved
-export const FEEDBACK_PROMPT_AT = 5; // everyone: "how's it going" after N solved
+export const SIGNUP_PROMPT_AT = 5; // anon: "save your progress" after N solved
+export const FEEDBACK_PROMPT_AT = 8; // everyone: "how's it going" after N solved
 
 export type PromptKind = "signup" | "feedback";
 

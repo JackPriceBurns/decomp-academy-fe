@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { IconX, IconSend, IconLoader2, IconCircleCheckFilled } from "@tabler/icons-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { cx } from "@/components/ui/cx";
+import { FeedbackSentimentButton } from "./FeedbackSentimentButton";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { submitFeedback, type FeedbackSource, type Sentiment } from "@/lib/feedback";
 
@@ -13,6 +13,17 @@ const SENTIMENTS: { key: Sentiment; label: string; emoji: string }[] = [
   { key: "confusing", label: "Confusing", emoji: "😕" },
   { key: "bug", label: "Bug", emoji: "🐞" },
 ];
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  source: FeedbackSource;
+  course?: string;
+  lessonId?: string;
+  lessonTitle?: string;
+  heading?: string;
+  subheading?: string;
+};
 
 export function FeedbackDialog({
   open,
@@ -23,16 +34,7 @@ export function FeedbackDialog({
   lessonTitle,
   heading = "Send feedback",
   subheading,
-}: {
-  open: boolean;
-  onClose: () => void;
-  source: FeedbackSource;
-  course?: string;
-  lessonId?: string;
-  lessonTitle?: string;
-  heading?: string;
-  subheading?: string;
-}) {
+}: Props) {
   const { status, user } = useAuth();
   const signedIn = status === "authed" && !!user;
 
@@ -42,7 +44,6 @@ export function FeedbackDialog({
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  // Reset whenever the dialog (re)opens, so a reused instance starts clean.
   useEffect(() => {
     if (open) {
       setSentiment(null);
@@ -53,7 +54,6 @@ export function FeedbackDialog({
     }
   }, [open]);
 
-  // Close shortly after a successful submit so the "thanks" lands but doesn't linger.
   useEffect(() => {
     if (state !== "done") return;
     const t = setTimeout(onClose, 1600);
@@ -131,21 +131,13 @@ export function FeedbackDialog({
             {SENTIMENTS.map((s) => {
               const active = sentiment === s.key;
               return (
-                <button
+                <FeedbackSentimentButton
                   key={s.key}
-                  type="button"
+                  emoji={s.emoji}
+                  label={s.label}
+                  active={active}
                   onClick={() => setSentiment(active ? null : s.key)}
-                  aria-pressed={active}
-                  className={cx(
-                    "flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-xs font-medium transition",
-                    active
-                      ? "border-accent bg-accent/10 text-content-primary"
-                      : "border-line bg-bg-inset text-content-muted hover:border-line-strong hover:text-content-secondary",
-                  )}
-                >
-                  <span className="text-xl leading-none">{s.emoji}</span>
-                  {s.label}
-                </button>
+                />
               );
             })}
           </div>

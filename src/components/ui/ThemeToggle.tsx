@@ -5,9 +5,11 @@ import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useTheme } from "@/lib/theme-context";
 import { cx } from "./cx";
 
-// Dark ⇄ light switch. Renders an inert placeholder until mounted to avoid a
-// hydration mismatch on the theme-dependent icon.
-export function ThemeToggle({ className }: { className?: string }) {
+type Props = {
+  className?: string;
+};
+
+export function ThemeToggle({ className }: Props) {
   const { theme, toggle } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { IconDeviceFloppy, IconUserPlus } from "@tabler/icons-react";
-import { ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Logo } from "@/components/ui/Logo";
 import { Modal } from "@/components/ui/Modal";
 import { totalSolved } from "@/lib/progress";
 
-// Shown once to an anonymous learner who has built up some progress, nudging
-// them to create an account before that browser-only progress can be lost.
-export function SignUpPrompt({ onClose }: { onClose: () => void }) {
+type Props = { onClose: () => void };
+
+export function SignUpPrompt({ onClose }: Props) {
   const solved = totalSolved();
   return (
     <Modal onClose={onClose} labelledBy="signup-prompt-title">

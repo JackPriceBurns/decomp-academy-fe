@@ -11,16 +11,18 @@ export function AccountMenu() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
+
     const onDoc = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
-  // Until auth resolves (and whenever signed out) just show Sign in — avoids a
-  // placeholder circle flashing in and then swapping to the button.
   if (status !== "authed" || !user) {
     return (
       <Link
@@ -32,7 +34,6 @@ export function AccountMenu() {
     );
   }
 
-  const label = user.email;
   return (
     <div className="relative" ref={ref}>
       <button
@@ -41,15 +42,17 @@ export function AccountMenu() {
         className="inline-flex max-w-[10rem] items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
       >
         <IconUserCircle size={18} className="shrink-0 text-accent" />
-        <span className="hidden truncate sm:inline">{label}</span>
+        <span className="hidden truncate sm:inline">{user.email}</span>
         <IconChevronDown size={14} className={`shrink-0 transition ${open ? "rotate-180" : ""}`} />
       </button>
+
       {open && (
         <div className="absolute right-0 z-50 mt-1.5 w-56 overflow-hidden rounded-lg border border-line bg-bg-soft shadow-xl shadow-black/30">
           <div className="border-b border-line px-3 py-2.5">
             <div className="text-2xs uppercase tracking-wide text-content-faint">Signed in as</div>
-            <div className="truncate text-sm text-content-primary">{label}</div>
+            <div className="truncate text-sm text-content-primary">{user.email}</div>
           </div>
+
           {user.isAdmin && (
             <Link
               href="/admin"
@@ -59,6 +62,7 @@ export function AccountMenu() {
               <IconChartBar size={15} /> Admin
             </Link>
           )}
+
           <button
             onClick={() => {
               setOpen(false);

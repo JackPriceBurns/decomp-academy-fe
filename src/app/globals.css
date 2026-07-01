@@ -192,19 +192,6 @@ body {
   line-height: 1.55;
 }
 
-.grid-dots {
-  background-image: radial-gradient(circle at 1px 1px, rgb(var(--accent) / 0.1) 1px, transparent 0);
-  background-size: 22px 22px;
-}
-
-/* Faint scrolling-disassembly texture for the hero backdrop. */
-.asm-rain {
-  font-family: var(--font-mono);
-  white-space: pre;
-  user-select: none;
-  pointer-events: none;
-}
-
 /* Shimmer skeleton fill. */
 .skeleton {
   position: relative;
