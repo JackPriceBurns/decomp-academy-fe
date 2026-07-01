@@ -1,0 +1,16 @@
+# Dependencies and build output
+node_modules
+.next
+out
+
+# Next-managed generated file
+next-env.d.ts
+
+# Generated from the Markdown lesson tree by scripts/build-curriculum.mjs
+src/curriculum/generated/
+
+# Authored lesson content — never reflow the Markdown or its asm/code blocks
+src/curriculum/**/*.md
+
+# Lockfile
+package-lock.json
