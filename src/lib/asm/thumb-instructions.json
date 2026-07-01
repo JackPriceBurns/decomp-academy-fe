@@ -1,0 +1,373 @@
+[
+    {
+        "Name": "mov",
+        "DescriptiveName": "Move",
+        "Usage": "mov Rd, src",
+        "Description": "Copies {src} (an immediate or another register) into {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mvn",
+        "DescriptiveName": "Move NOT",
+        "Usage": "mvn Rd, Rm",
+        "Description": "Writes the bitwise complement of {Rm} into {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "add",
+        "DescriptiveName": "Add",
+        "Usage": "add Rd, src",
+        "Description": "Adds {src} (an immediate or register) into {Rd}. Also seen as add Rd, Rn, Rm and add Rd, sp/pc, #imm.",
+        "Modifiers": []
+    },
+    {
+        "Name": "adc",
+        "DescriptiveName": "Add with Carry",
+        "Usage": "adc Rd, Rm",
+        "Description": "Adds {Rm} plus the carry flag into {Rd} — the high half of an add wider than 32 bits.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sub",
+        "DescriptiveName": "Subtract",
+        "Usage": "sub Rd, src",
+        "Description": "Subtracts {src} (an immediate or register) from {Rd}. Also seen as sub Rd, Rn, Rm and sub sp, #imm.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sbc",
+        "DescriptiveName": "Subtract with Carry",
+        "Usage": "sbc Rd, Rm",
+        "Description": "Subtracts {Rm} and the borrow (the inverted carry) from {Rd} — the high half of a wide subtract.",
+        "Modifiers": []
+    },
+    {
+        "Name": "neg",
+        "DescriptiveName": "Negate",
+        "Usage": "neg Rd, Rm",
+        "Description": "Writes 0 - {Rm} into {Rd} — two's-complement negation.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mul",
+        "DescriptiveName": "Multiply",
+        "Usage": "mul Rd, Rm",
+        "Description": "Multiplies {Rd} by {Rm} and keeps the low 32 bits in {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cmp",
+        "DescriptiveName": "Compare",
+        "Usage": "cmp Rn, src",
+        "Description": "Computes {Rn} - {src} and sets the condition flags without storing the result — the test before a conditional branch.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cmn",
+        "DescriptiveName": "Compare Negative",
+        "Usage": "cmn Rn, Rm",
+        "Description": "Sets the flags from {Rn} + {Rm} (a compare against a negated value), discarding the sum.",
+        "Modifiers": []
+    },
+    {
+        "Name": "tst",
+        "DescriptiveName": "Test",
+        "Usage": "tst Rn, Rm",
+        "Description": "Sets the flags from {Rn} AND {Rm}, discarding the result — tests whether selected bits are set.",
+        "Modifiers": []
+    },
+    {
+        "Name": "and",
+        "DescriptiveName": "Bitwise AND",
+        "Usage": "and Rd, Rm",
+        "Description": "Bitwise AND of {Rd} and {Rm}, written back to {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "orr",
+        "DescriptiveName": "Bitwise OR",
+        "Usage": "orr Rd, Rm",
+        "Description": "Bitwise OR of {Rd} and {Rm}, written back to {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "eor",
+        "DescriptiveName": "Exclusive OR",
+        "Usage": "eor Rd, Rm",
+        "Description": "Bitwise XOR of {Rd} and {Rm}, written back to {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bic",
+        "DescriptiveName": "Bit Clear",
+        "Usage": "bic Rd, Rm",
+        "Description": "Clears in {Rd} every bit that is set in {Rm} (AND with NOT {Rm}).",
+        "Modifiers": []
+    },
+    {
+        "Name": "lsl",
+        "DescriptiveName": "Logical Shift Left",
+        "Usage": "lsl Rd, Rm, #imm · lsl Rd, Rs",
+        "Description": "Shifts {Rd} left, vacated low bits filled with zero — a left shift by N multiplies by 2^N.",
+        "Modifiers": []
+    },
+    {
+        "Name": "lsr",
+        "DescriptiveName": "Logical Shift Right",
+        "Usage": "lsr Rd, Rm, #imm · lsr Rd, Rs",
+        "Description": "Shifts {Rd} right, vacated high bits filled with zero — the unsigned divide by 2^N.",
+        "Modifiers": []
+    },
+    {
+        "Name": "asr",
+        "DescriptiveName": "Arithmetic Shift Right",
+        "Usage": "asr Rd, Rm, #imm · asr Rd, Rs",
+        "Description": "Shifts {Rd} right copying the sign bit inward — the signed divide by 2^N (rounding toward minus infinity).",
+        "Modifiers": []
+    },
+    {
+        "Name": "ror",
+        "DescriptiveName": "Rotate Right",
+        "Usage": "ror Rd, Rs",
+        "Description": "Rotates {Rd} right by {Rs} bits, wrapping the low bits back into the top.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldr",
+        "DescriptiveName": "Load Register",
+        "Usage": "ldr Rd, [Rn, #off]",
+        "Description": "Loads the 32-bit word at the bracketed address into {Rd}. A [pc, #off] form reads a constant from the nearby literal pool.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldrb",
+        "DescriptiveName": "Load Register Byte",
+        "Usage": "ldrb Rd, [Rn, #off]",
+        "Description": "Loads one byte from memory, zero-extended to 32 bits, into {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldrh",
+        "DescriptiveName": "Load Register Halfword",
+        "Usage": "ldrh Rd, [Rn, #off]",
+        "Description": "Loads a 16-bit halfword from memory, zero-extended to 32 bits, into {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldrsb",
+        "DescriptiveName": "Load Register Signed Byte",
+        "Usage": "ldrsb Rd, [Rn, Rm]",
+        "Description": "Loads one byte from memory, sign-extended to 32 bits, into {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldrsh",
+        "DescriptiveName": "Load Register Signed Halfword",
+        "Usage": "ldrsh Rd, [Rn, Rm]",
+        "Description": "Loads a 16-bit halfword from memory, sign-extended to 32 bits, into {Rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldsb",
+        "DescriptiveName": "Load Signed Byte",
+        "Usage": "ldsb Rd, [Rn, Rm]",
+        "Description": "Loads one byte from memory, sign-extended to 32 bits, into {Rd} (assembler spelling of ldrsb).",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldsh",
+        "DescriptiveName": "Load Signed Halfword",
+        "Usage": "ldsh Rd, [Rn, Rm]",
+        "Description": "Loads a 16-bit halfword from memory, sign-extended to 32 bits, into {Rd} (assembler spelling of ldrsh).",
+        "Modifiers": []
+    },
+    {
+        "Name": "str",
+        "DescriptiveName": "Store Register",
+        "Usage": "str Rd, [Rn, #off]",
+        "Description": "Stores the 32-bit word in {Rd} to the bracketed address.",
+        "Modifiers": []
+    },
+    {
+        "Name": "strb",
+        "DescriptiveName": "Store Register Byte",
+        "Usage": "strb Rd, [Rn, #off]",
+        "Description": "Stores the low byte of {Rd} to memory.",
+        "Modifiers": []
+    },
+    {
+        "Name": "strh",
+        "DescriptiveName": "Store Register Halfword",
+        "Usage": "strh Rd, [Rn, #off]",
+        "Description": "Stores the low 16 bits of {Rd} to memory.",
+        "Modifiers": []
+    },
+    {
+        "Name": "push",
+        "DescriptiveName": "Push Registers",
+        "Usage": "push {reglist}",
+        "Description": "Pushes the listed registers onto the stack (lowest-numbered at the lowest address) — the prologue's register save, often including lr.",
+        "Modifiers": []
+    },
+    {
+        "Name": "pop",
+        "DescriptiveName": "Pop Registers",
+        "Usage": "pop {reglist}",
+        "Description": "Pops the listed registers off the stack — the epilogue's restore. Popping into pc (or popping the saved lr and bx-ing it) returns from the function.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldmia",
+        "DescriptiveName": "Load Multiple, Increment After",
+        "Usage": "ldmia Rn!, {reglist}",
+        "Description": "Loads consecutive words into the register list starting at the address in {Rn}, then advances {Rn} past them.",
+        "Modifiers": []
+    },
+    {
+        "Name": "stmia",
+        "DescriptiveName": "Store Multiple, Increment After",
+        "Usage": "stmia Rn!, {reglist}",
+        "Description": "Stores the register list to consecutive words starting at {Rn}, then advances {Rn} past them.",
+        "Modifiers": []
+    },
+    {
+        "Name": "b",
+        "DescriptiveName": "Branch",
+        "Usage": "b label",
+        "Description": "Jumps unconditionally to {label}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bl",
+        "DescriptiveName": "Branch with Link",
+        "Usage": "bl label",
+        "Description": "Calls {label}: saves the return address in lr, then jumps. This is a function call.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bx",
+        "DescriptiveName": "Branch and Exchange",
+        "Usage": "bx Rn",
+        "Description": "Jumps to the address in {Rn}, switching between ARM and Thumb from its low bit. `bx lr` is the standard function return.",
+        "Modifiers": []
+    },
+    {
+        "Name": "beq",
+        "DescriptiveName": "Branch if Equal",
+        "Usage": "beq label",
+        "Description": "Branches to {label} when the previous compare was equal (Z flag set).",
+        "Modifiers": []
+    },
+    {
+        "Name": "bne",
+        "DescriptiveName": "Branch if Not Equal",
+        "Usage": "bne label",
+        "Description": "Branches to {label} when the previous compare was not equal (Z flag clear).",
+        "Modifiers": []
+    },
+    {
+        "Name": "bcs",
+        "DescriptiveName": "Branch if Carry Set (Unsigned Higher or Same)",
+        "Usage": "bcs label",
+        "Description": "Branches to {label} when carry is set — an unsigned 'greater than or equal' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bcc",
+        "DescriptiveName": "Branch if Carry Clear (Unsigned Lower)",
+        "Usage": "bcc label",
+        "Description": "Branches to {label} when carry is clear — an unsigned 'less than' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bmi",
+        "DescriptiveName": "Branch if Minus",
+        "Usage": "bmi label",
+        "Description": "Branches to {label} when the result was negative (N flag set).",
+        "Modifiers": []
+    },
+    {
+        "Name": "bpl",
+        "DescriptiveName": "Branch if Plus",
+        "Usage": "bpl label",
+        "Description": "Branches to {label} when the result was zero or positive (N flag clear).",
+        "Modifiers": []
+    },
+    {
+        "Name": "bvs",
+        "DescriptiveName": "Branch if Overflow Set",
+        "Usage": "bvs label",
+        "Description": "Branches to {label} when signed overflow occurred (V flag set).",
+        "Modifiers": []
+    },
+    {
+        "Name": "bvc",
+        "DescriptiveName": "Branch if Overflow Clear",
+        "Usage": "bvc label",
+        "Description": "Branches to {label} when no signed overflow occurred (V flag clear).",
+        "Modifiers": []
+    },
+    {
+        "Name": "bhi",
+        "DescriptiveName": "Branch if Unsigned Higher",
+        "Usage": "bhi label",
+        "Description": "Branches to {label} on an unsigned 'greater than' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bls",
+        "DescriptiveName": "Branch if Unsigned Lower or Same",
+        "Usage": "bls label",
+        "Description": "Branches to {label} on an unsigned 'less than or equal' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bge",
+        "DescriptiveName": "Branch if Signed Greater or Equal",
+        "Usage": "bge label",
+        "Description": "Branches to {label} on a signed 'greater than or equal' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": "blt",
+        "DescriptiveName": "Branch if Signed Less Than",
+        "Usage": "blt label",
+        "Description": "Branches to {label} on a signed 'less than' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bgt",
+        "DescriptiveName": "Branch if Signed Greater Than",
+        "Usage": "bgt label",
+        "Description": "Branches to {label} on a signed 'greater than' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ble",
+        "DescriptiveName": "Branch if Signed Less or Equal",
+        "Usage": "ble label",
+        "Description": "Branches to {label} on a signed 'less than or equal' after a compare.",
+        "Modifiers": []
+    },
+    {
+        "Name": ".word",
+        "DescriptiveName": "Word (inline data)",
+        "Usage": ".word value",
+        "Description": "A 32-bit constant in the literal pool — typically an address or large immediate that a nearby `ldr Rd, [pc, ...]` loads.",
+        "Modifiers": []
+    },
+    {
+        "Name": ".hword",
+        "DescriptiveName": "Halfword (inline data)",
+        "Usage": ".hword value",
+        "Description": "A 16-bit constant emitted inline — often alignment padding or a packed halfword value.",
+        "Modifiers": []
+    },
+    {
+        "Name": ".byte",
+        "DescriptiveName": "Byte (inline data)",
+        "Usage": ".byte value",
+        "Description": "An 8-bit constant emitted inline in the instruction stream.",
+        "Modifiers": []
+    }
+]

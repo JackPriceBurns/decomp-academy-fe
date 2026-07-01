@@ -12,29 +12,30 @@ export function GET() {
 
   lines.push("# Decomp Academy", "");
   lines.push(
-    "> Decomp Academy is a free, interactive course that teaches you to " +
-      "decompile GameCube (PowerPC) assembly back into byte-matching C, graded " +
-      "live by the real Metrowerks CodeWarrior GC/2.0 compiler (mwcceppc.exe).",
+    "> Decomp Academy is a free, interactive course that teaches matching " +
+      "decompilation of retro games: read the original assembly, write C, and the " +
+      "real period compiler grades it byte for byte. Courses cover GameCube " +
+      "(PowerPC, Metrowerks CodeWarrior) and Game Boy Advance (ARM/Thumb, agbcc).",
     "",
   );
   lines.push(
-    'Decomp Academy teaches "matching decompilation": you read the PowerPC ' +
-      "assembly the retail compiler produced, write C, and the real 2001 " +
-      "Metrowerks CodeWarrior GC/2.0 compiler compiles and diffs your code " +
-      "against the target instruction by instruction. When every byte matches, " +
-      "the function is solved. The curriculum takes you from never having read a " +
-      "register to matching real Star Fox Adventures functions.",
+    'Decomp Academy teaches "matching decompilation": you read the assembly the ' +
+      "retail compiler produced, write C, and the original compiler compiles and " +
+      "diffs your code against the target instruction by instruction. When every " +
+      "byte matches, the function is solved. The curriculum takes you from never " +
+      "having read a register to matching real functions from games like Star Fox " +
+      "Adventures and Klonoa: Empire of Dreams.",
     "",
   );
   lines.push(
     "- Audience: programmers learning reverse engineering and decompilation, " +
-      "contributors to GameCube/Wii decompilation projects, and anyone curious " +
-      "how C compiles down to PowerPC.",
+      "contributors to retro-game decompilation projects, and anyone curious how " +
+      "C compiles down to machine code.",
     `- Format: ${LESSONS.length} hands-on lessons across ${COURSES.length} course${COURSES.length === 1 ? "" : "s"}, ` +
       "in the browser, free, with no signup required to start.",
-    "- Topics: PowerPC (Gekko) assembly, the PowerPC EABI, MWCC GC/2.0 code " +
-      "generation, integer/float/bitwise idioms, stack frames, globals, the " +
-      "optimizer, and complete real-game functions.",
+    "- Topics: PowerPC and ARM/Thumb assembly, application binary interfaces, " +
+      "compiler code generation, integer/float/bitwise idioms, stack frames, " +
+      "globals, the optimizer, and complete real-game functions.",
     "",
   );
 

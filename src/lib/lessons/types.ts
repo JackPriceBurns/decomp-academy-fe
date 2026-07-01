@@ -1,5 +1,10 @@
 import { Instruction } from "../asm";
 
+// How a course's lessons are compiled for grading:
+//  - "remote":     proxied to the MWCC compile service (PowerPC tracks).
+//  - "wasm-agbcc": compiled in-browser by the agbcc WASM module (GBA).
+export type GraderKind = "remote" | "wasm-agbcc";
+
 /** A self-contained learning track (e.g. "GameCube C"). Defined by a _course.md
  *  at src/curriculum/<NN>-<id>/ — order comes from the folder prefix. A learner
  *  picks one course; tiers/chapters/lessons all live under it. */
@@ -8,6 +13,10 @@ export interface Course {
   title: string;
   /** One-line summary shown on the course selector. */
   blurb: string;
+  /** Which grader compiles this course's lessons (see GraderKind). The grader
+   *  profile in src/lib/lessons/graders.ts derives the asm dialect, the in-app
+   *  compiler label, and how the target/learner code is compiled. */
+  grader: GraderKind;
   /** Display order. */
   order: number;
 }

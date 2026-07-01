@@ -1,7 +1,7 @@
 {
   "name": "Decomp Academy",
   "short_name": "Decomp",
-  "description": "Learn to decompile GameCube PowerPC assembly back into matching C.",
+  "description": "Learn matching decompilation of retro games — turn the original assembly back into byte-matching C.",
   "icons": [
     { "src": "favicon/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "favicon/icon-512.png", "sizes": "512x512", "type": "image/png" },

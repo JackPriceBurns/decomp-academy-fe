@@ -20,7 +20,7 @@ import {
   IconStack2,
   IconHelpCircle,
 } from "@tabler/icons-react";
-import { ObjDiff, ObjOverview, preloadGlossary } from "./AsmDiff";
+import { ObjDiff, ObjOverview, preloadGlossary, type AsmDialect } from "./AsmDiff";
 import { GlossaryProse } from "./GlossaryProse";
 import {
   analyze,
@@ -32,6 +32,8 @@ import {
   type Seg,
 } from "@/lib/objdiff/client";
 import { Difficulty } from "./CurriculumMap";
+import { GRADERS } from "@/lib/lessons/graders";
+import type { GraderKind } from "@/lib/lessons/types";
 import {
   loadCode,
   recordResult,
@@ -66,10 +68,13 @@ export interface LessonDTO {
   symbol: string;
   starter: string;
   solution: string;
-  /** Read-only struct/type preamble shown in a tab. Absent when the lesson has
-   *  no context, or deliberately hides it. */
+  /** Struct/type preamble: shown read-only in a tab, and (for the in-browser
+   *  agbcc grader) prepended to the learner's code at compile time. Absent when
+   *  the lesson has no context, or deliberately hides it. */
   context?: string;
   hints: string[];
+  /** How this lesson grades: "remote" (MWCC service) or "wasm-agbcc" (in-browser). */
+  grader: GraderKind;
   prev: { id: string; title: string } | null;
   next: { id: string; title: string } | null;
 }
@@ -153,6 +158,11 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   const { ready: progressReady } = useProgress();
   const router = useRouter();
 
+  // All per-platform behavior (compiler, target, asm dialect, header label)
+  // lives in the grader profile, so the workspace never branches on grader kind.
+  const grader = GRADERS[lesson.grader];
+  const asmDialect = grader.dialect;
+
   const run = useCallback(
     async (opts?: { initial?: boolean }) => {
       const initial = opts?.initial ?? false;
@@ -169,12 +179,12 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
       }
       saveCode(lesson.course, lesson.id, codeRef.current);
       try {
-        const res = await fetch("/api/check", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ course: lesson.course, lesson: lesson.id, code: codeAtRun }),
+        const d = await grader.compile({
+          course: lesson.course,
+          lesson: lesson.id,
+          code: codeAtRun,
+          context: lesson.context,
         });
-        const d = await res.json();
         if (loadIdRef.current !== myRun) return; // lesson changed mid-flight
         if (!d.ok) {
           if (d.compileError) {
@@ -232,7 +242,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
         if (!initial) setTab("console");
       }
     },
-    [lesson.id, lesson.symbol, hintsShown, showSolution],
+    [lesson.id, lesson.symbol, grader, lesson.context, hintsShown, showSolution],
   );
   const runRef = useRef(run);
   runRef.current = run;
@@ -281,29 +291,42 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
     setMobilePane("brief");
     if (lesson.concept) return;
     preloadObjdiff();
-    preloadGlossary();
+    preloadGlossary(asmDialect);
+    grader.preload();
 
-    fetch(`/api/target?course=${lesson.course}&lesson=${lesson.id}`)
-      .then((r) => r.json())
-      .then(async (d) => {
-        if (loadIdRef.current !== myLoad || !d.ok || !d.objBase64) return;
-        targetB64Ref.current = d.objBase64;
-        // Seed the Target asm tab + overview from the target alone, so they're
-        // visible during the brief compile of the learner's starter.
-        try {
-          const a = await analyze(d.objBase64, null, lesson.symbol);
-          if (loadIdRef.current === myLoad) {
-            diffsRef.current = a.diffs;
-            setOverview(a.overview);
-            setTargetRows(a.diffs[lesson.symbol]?.targetRows ?? null);
-          }
-        } catch (e) {
-          console.error("objdiff target analysis failed", e);
+    const loadTarget = grader.loadTarget({
+      course: lesson.course,
+      lesson: lesson.id,
+      solution: lesson.solution,
+      context: lesson.context,
+    });
+
+    loadTarget.then(async (targetB64) => {
+      if (loadIdRef.current !== myLoad || !targetB64) return;
+      targetB64Ref.current = targetB64;
+      // Seed the Target asm tab + overview from the target alone, so they're
+      // visible during the brief compile of the learner's starter.
+      try {
+        const a = await analyze(targetB64, null, lesson.symbol);
+        if (loadIdRef.current === myLoad) {
+          diffsRef.current = a.diffs;
+          setOverview(a.overview);
+          setTargetRows(a.diffs[lesson.symbol]?.targetRows ?? null);
         }
-        if (loadIdRef.current === myLoad) runRef.current({ initial: true });
-      })
-      .catch(() => {});
-  }, [lesson.id, lesson.starter, lesson.symbol, lesson.concept]);
+      } catch (e) {
+        console.error("objdiff target analysis failed", e);
+      }
+      if (loadIdRef.current === myLoad) runRef.current({ initial: true });
+    });
+  }, [
+    lesson.id,
+    lesson.starter,
+    lesson.symbol,
+    lesson.concept,
+    grader,
+    lesson.solution,
+    lesson.context,
+  ]);
 
   // When the progress store finishes hydrating after open (e.g. server progress
   // arrives on an authed hard-load), restore the saved code — but only if the
@@ -424,7 +447,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
             </span>
 
             <span className="hidden items-center gap-1 rounded bg-bg-softer px-1.5 py-0.5 font-mono text-2xs text-content-faint sm:inline-flex">
-              mwcceppc.exe -O4,p
+              {grader.compilerLabel}
             </span>
 
             <div className="ml-auto flex items-center gap-2">
@@ -506,6 +529,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
             lessonSymbol={lesson.symbol}
             bannerDismissed={bannerDismissed}
             onDismissBanner={() => setBannerDismissed(true)}
+            dialect={asmDialect}
             className={mobilePane === "code" ? "hidden lg:flex" : "flex"}
           />
         </section>
@@ -750,6 +774,7 @@ function ResultPanel({
   lessonSymbol,
   bannerDismissed,
   onDismissBanner,
+  dialect,
   className = "",
 }: {
   tab: Tab;
@@ -762,6 +787,7 @@ function ResultPanel({
   lessonSymbol: string;
   bannerDismissed: boolean;
   onDismissBanner: () => void;
+  dialect: AsmDialect;
   className?: string;
 }) {
   const isErr = check.status === "compileError" || check.status === "error";
@@ -800,7 +826,7 @@ function ResultPanel({
       <div className="min-h-0 flex-1 overflow-auto">
         {tab === "diff" &&
           (check.status === "running" && !check.vm ? (
-            <DiffSkeleton label="Compiling with mwcceppc.exe…" />
+            <DiffSkeleton label="Compiling…" />
           ) : showBanner ? (
             <MatchBanner
               percent={100}
@@ -816,10 +842,10 @@ function ResultPanel({
                   <span className="text-content-secondary">{lessonSymbol}</span>
                 </div>
               )}
-              <ObjDiff rows={check.vm.rows} />
+              <ObjDiff rows={check.vm.rows} dialect={dialect} />
             </>
           ) : targetOnly ? (
-            <ObjDiff rows={targetOnly} />
+            <ObjDiff rows={targetOnly} dialect={dialect} />
           ) : (
             <Empty>Hit “Compile &amp; Check” to diff your code against the target.</Empty>
           ))}
@@ -861,7 +887,7 @@ function Console({ check, isErr }: { check: CheckState; isErr: boolean }) {
     return (
       <div className="flex h-full items-center justify-center gap-2 text-xs text-content-faint">
         <IconLoader2 size={14} className="animate-spin text-accent" />
-        Compiling with mwcceppc.exe…
+        Compiling…
       </div>
     );
   return (

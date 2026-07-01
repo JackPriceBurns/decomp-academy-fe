@@ -19,6 +19,9 @@ import type {
   RowKind,
   Seg,
 } from "@/lib/objdiff/client";
+import type { AsmDialect } from "@/lib/asm";
+
+export type { AsmDialect };
 
 // Renders objdiff-wasm's instruction-level diff. objdiff colors each changed
 // segment itself (replace / delete / insert), so unlike the old token-LCS differ
@@ -89,12 +92,23 @@ interface InsnDoc {
 }
 type RawEntry = { Name: string; DescriptiveName: string; Usage: string; Description: string };
 
-let glossaryMap: Map<string, InsnDoc> | null = null;
-let glossaryPromise: Promise<Map<string, InsnDoc>> | null = null;
+const glossaryMaps: Record<AsmDialect, Map<string, InsnDoc> | null> = {
+  ppc: null,
+  "arm:thumb": null,
+};
+const glossaryPromises: Record<AsmDialect, Promise<Map<string, InsnDoc>> | null> = {
+  ppc: null,
+  "arm:thumb": null,
+};
 
-function loadGlossary(): Promise<Map<string, InsnDoc>> {
-  if (!glossaryPromise) {
-    glossaryPromise = import("@/lib/asm/ppc-instructions.json").then((m) => {
+function loadGlossary(dialect: AsmDialect): Promise<Map<string, InsnDoc>> {
+  let promise = glossaryPromises[dialect];
+  if (!promise) {
+    const data =
+      dialect === "arm:thumb"
+        ? import("@/lib/asm/thumb-instructions.json")
+        : import("@/lib/asm/ppc-instructions.json");
+    promise = data.then((m) => {
       const map = new Map<string, InsnDoc>();
       for (const e of m.default as RawEntry[]) {
         map.set(e.Name, {
@@ -104,24 +118,35 @@ function loadGlossary(): Promise<Map<string, InsnDoc>> {
           description: e.Description,
         });
       }
-      glossaryMap = map;
+      glossaryMaps[dialect] = map;
       return map;
     });
+    glossaryPromises[dialect] = promise;
   }
-  return glossaryPromise;
+  return promise;
 }
 
 /** Warm the instruction glossary ahead of the first hover. */
-export function preloadGlossary(): void {
-  void loadGlossary();
+export function preloadGlossary(dialect: AsmDialect): void {
+  void loadGlossary(dialect);
 }
 
 // Resolve a printed mnemonic to a glossary entry, tolerating the suffixes objdiff
 // prints: branch-prediction (+/-), record (.), overflow (o), and simplified branch
 // forms (bl/bla/ba -> b).
-function lookupInsn(map: Map<string, InsnDoc>, mnemonic: string): InsnDoc | null {
+function lookupInsn(
+  map: Map<string, InsnDoc>,
+  mnemonic: string,
+  dialect: AsmDialect,
+): InsnDoc | null {
   const direct = map.get(mnemonic);
   if (direct) return direct;
+  if (dialect === "arm:thumb") {
+    // objdiff prints Thumb mnemonics verbatim — condition branches and the .word/
+    // .hword data tokens are their own entries — so only tolerate a flag-setting
+    // "s" suffix that some disassemblers add (e.g. adds -> add, lsls -> lsl).
+    return mnemonic.endsWith("s") ? map.get(mnemonic.slice(0, -1)) ?? null : null;
+  }
   let s = mnemonic.replace(/[+-]$/, "");
   if (s.endsWith(".")) s = s.slice(0, -1);
   if (s.endsWith("o")) s = s.slice(0, -1);
@@ -201,18 +226,22 @@ const InsnTipContext = createContext<{
 } | null>(null);
 
 /** Wraps instruction lines so hovering one shows its meaning. */
-function InsnTipLayer({ children }: { children: ReactNode }) {
-  const [map, setMap] = useState<Map<string, InsnDoc> | null>(glossaryMap);
+function InsnTipLayer({ dialect = "ppc", children }: { dialect?: AsmDialect; children: ReactNode }) {
+  const [map, setMap] = useState<Map<string, InsnDoc> | null>(glossaryMaps[dialect]);
   useEffect(() => {
-    if (!map) loadGlossary().then(setMap).catch(() => {});
-  }, [map]);
+    let alive = true;
+    loadGlossary(dialect).then((m) => alive && setMap(m)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [dialect]);
   const [tip, setTip] = useState<InsnTipState | null>(null);
   const show = useCallback(
     (mnemonic: string, operands: string[], x: number, y: number) => {
-      const doc = map ? lookupInsn(map, mnemonic) : null;
+      const doc = map ? lookupInsn(map, mnemonic, dialect) : null;
       setTip(doc ? { x, y, doc, description: fillDescription(doc, operands) } : null);
     },
-    [map],
+    [map, dialect],
   );
   const hide = useCallback(() => setTip(null), []);
   const ctx = useMemo(() => ({ show, hide }), [show, hide]);
@@ -278,9 +307,9 @@ const ROW_META: Record<RowKind, { bg: string; mark: string; markColor: string; l
   insert: { bg: "bg-accent/[0.07] theme-light:bg-emerald-50", mark: "+", markColor: "text-accent", label: "extra in your code" },
 };
 
-export function ObjDiff({ rows }: { rows: DiffRowVM[] }) {
+export function ObjDiff({ rows, dialect = "ppc" }: { rows: DiffRowVM[]; dialect?: AsmDialect }) {
   return (
-    <InsnTipLayer>
+    <InsnTipLayer dialect={dialect}>
       {/* Side-by-side once there's room; stacked Target/Current panes on phones. */}
       <div className="hidden sm:block">
         <SideBySideDiff rows={rows} />
@@ -601,9 +630,9 @@ export function ObjOverview({
 }
 
 /** Plain single-column listing of one side's instructions (Target / Your asm tabs). */
-export function AsmList({ rows }: { rows: Seg[][] }) {
+export function AsmList({ rows, dialect = "ppc" }: { rows: Seg[][]; dialect?: AsmDialect }) {
   return (
-    <InsnTipLayer>
+    <InsnTipLayer dialect={dialect}>
       <div className="overflow-auto px-3 py-2 font-mono text-asm">
         {rows.map((segs, i) => (
           <div key={i} className="flex">

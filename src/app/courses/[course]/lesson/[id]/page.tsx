@@ -62,10 +62,12 @@ export default function LessonPage({
   const lesson = getLesson(params.course, params.id);
   if (!lesson) notFound();
 
+  const course = COURSE_BY_ID.get(lesson.course);
+  if (!course) notFound();
+
   const { prev, next } = adjacentLessons(lesson.course, lesson.id);
   const chapter = getChapter(lesson.course, lesson.tier, lesson.chapter);
   const chapterTitle = chapter?.title ?? lesson.chapter;
-  const course = COURSE_BY_ID.get(lesson.course);
 
   const dto: LessonDTO = {
     id: lesson.id,
@@ -80,10 +82,12 @@ export default function LessonPage({
     symbol: lesson.symbol,
     starter: lesson.starter,
     solution: lesson.solution,
-    // The struct/type preamble, shown read-only in a workspace tab. Withheld
-    // (and never sent to the browser) when the lesson hides it on purpose.
+    // The struct/type preamble. Shown read-only in a workspace tab, and — for
+    // the in-browser agbcc grader — fed to the client-side compile. Withheld
+    // (never sent to the browser) when the lesson hides it on purpose.
     context: lesson.context && !lesson.hideContext ? lesson.context : undefined,
     hints: lesson.hints,
+    grader: course.grader,
     prev: prev ? { id: prev.id, title: prev.title } : null,
     next: next ? { id: next.id, title: next.title } : null,
   };
@@ -103,7 +107,7 @@ export default function LessonPage({
           }),
           breadcrumbLd([
             { name: "Decomp Academy", url: SITE_URL },
-            ...(course ? [{ name: course.title, url: `${SITE_URL}/#curriculum` }] : []),
+            { name: course.title, url: `${SITE_URL}/#curriculum` },
             { name: chapterTitle, url: `${SITE_URL}/#curriculum` },
             { name: lesson.title, url: `${SITE_URL}${lessonPath(lesson.course, lesson.id)}` },
           ]),

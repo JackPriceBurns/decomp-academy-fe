@@ -171,7 +171,8 @@ export function PlaygroundWorkspace() {
   // the assembly is visible immediately.
   useEffect(() => {
     preloadObjdiff();
-    preloadGlossary();
+    // The playground compiles only GameCube PowerPC, so its glossary is the PPC one.
+    preloadGlossary("ppc");
     let initial = DEFAULT_CODE;
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
