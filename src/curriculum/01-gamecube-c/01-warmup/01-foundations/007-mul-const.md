@@ -14,8 +14,9 @@ hints:
 
 # `mulli` for constant multiplies
 
-A multiply by a non-power-of-two constant uses the **immediate** multiply
-`mulli rD, rA, imm`, where the multiplier rides along inside the instruction.
+Multiplying by a constant has its own instruction: the **immediate** multiply
+`mulli rD, rA, imm`, with the multiplier riding along inside the instruction
+itself — no separate load.
 
 For example, `times6(n) = n * 6` compiles to:
 
@@ -24,10 +25,10 @@ mulli r3, r3, 6
 blr
 ```
 
-The immediate field *is* the constant — read it straight out of the
-instruction. (For some constants MWCC will instead synthesize the product from
-shifts and adds when that's cheaper — but for many small values it just emits
-`mulli`.)
+The immediate field *is* the constant — read it straight out of the instruction.
+
+(One kind of constant escapes `mulli`: a power of two, which the compiler turns
+into a cheaper shift instead. That's a story for a later chapter.)
 
 Look at the immediate on the `mulli` in the target assembly: that value is your
 multiplier.

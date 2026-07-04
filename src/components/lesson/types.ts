@@ -17,6 +17,9 @@ export interface LessonDTO {
   context?: string;
   hints: string[];
   grader: GraderKind;
+  /** Optimisation preset for this lesson (undefined = the grader default), used
+   *  to label the compiler command in the header. */
+  opt?: string;
   prev: { slug: string; title: string } | null;
   next: { slug: string; title: string } | null;
 }

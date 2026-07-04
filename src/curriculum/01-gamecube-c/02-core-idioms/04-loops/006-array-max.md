@@ -24,7 +24,7 @@ branch if non-zero") carried the loop. Search the body all you like, you won't
 find a counter compare.
 
 ```asm
-addi r0, r4, -1     # trip count = n - 1
+subi r0, r4, 1      # trip count = n - 1
 addi r5, r3, 4      # pointer past first element
 lwz  r3, 0(r3)      # load seed value
 mtctr r0            # CTR = n - 1

@@ -15,9 +15,10 @@ hints:
 
 # Strength reduction
 
-Multiplying by a power of two never actually multiplies. The compiler rewrites
-it as a left shift, which is cheaper and gives the identical answer. That rewrite
-has a name, **strength reduction**, and you'll see it constantly. The shift
+A constant multiply usually becomes `mulli`. A **power of two** is the exception:
+it never multiplies at all. The compiler rewrites it as a left shift, which is
+cheaper and gives the identical answer. That rewrite has a name, **strength
+reduction**, and you'll see it constantly. The shift
 instruction itself is `rlwinm`, though MWCC dresses it up as the `slwi` extended
 mnemonic.
 

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // proxy server-side (rather than calling the API directly) to mirror /api/check
 // and to keep the limit enforcement in one place.
 export async function POST(req: NextRequest) {
-  let body: { code?: string; context?: string; extraFlags?: string[]; withTypes?: boolean };
+  let body: { code?: string; context?: string; withTypes?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
     const result = await postJson(`${COMPILER_URL}/compile`, {
       code: body.code,
       context: body.context,
-      extraFlags: body.extraFlags,
       withTypes: body.withTypes ?? true,
     });
     return NextResponse.json(result);

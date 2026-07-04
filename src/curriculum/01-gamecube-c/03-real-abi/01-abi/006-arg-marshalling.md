@@ -25,7 +25,7 @@ derived from it second:
 ```asm
 stwu   r1,-16(r1)
 mflr   r0
-addi   r4,r3,-2    # build 2nd argument in r4 before the call
+subi   r4,r3,2     # build 2nd argument in r4 before the call
 stw    r0,20(r1)
 bl     merge       # merge(x, x - 2)
 lwz    r0,20(r1)

@@ -35,8 +35,9 @@ export interface TargetArgs {
 export interface GraderProfile {
   /** Instruction set the diff/glossary should render. */
   dialect: AsmDialect;
-  /** Compiler + flags shown in the workspace header. */
-  compilerLabel: string;
+  /** Compiler + flags shown in the workspace header, for the lesson's opt preset
+   *  (undefined = the default). */
+  compilerLabel: (opt?: string) => string;
   /** Warm up heavy assets (the WASM compiler) ahead of the first compile. */
   preload(): void;
   /** Compile the learner's code. */
@@ -56,7 +57,7 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 const remote: GraderProfile = {
   dialect: "ppc",
-  compilerLabel: "mwcceppc.exe -O4,p",
+  compilerLabel: (opt) => `mwcceppc.exe -${opt ?? "O4,p"}`,
   preload() {},
   async compile({ course, lesson, code }) {
     try {
@@ -85,7 +86,7 @@ const remote: GraderProfile = {
 
 const wasmAgbcc: GraderProfile = {
   dialect: "arm:thumb",
-  compilerLabel: "agbcc -O2",
+  compilerLabel: () => "agbcc -O2",
   preload() {
     preloadAgbcc();
   },

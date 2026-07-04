@@ -12,7 +12,7 @@ hints:
   - Loop `for (; n > 0; n--)` and accumulate `s += n` — reuse `n` itself as the
     counter.
   - Counting down lets the test be `cmpwi r3, 0` instead of a register compare.
-  - The decrement is `addi r3, r3, -1`; the test is `bgt+`.
+  - The decrement is `subi r3, r3, 1`; the test is `bgt+`.
 ---
 
 # Compare against zero, not a bound
@@ -33,7 +33,7 @@ li   r4, 0          # s = 0
 b    test
 body:
 slwi r0, r3, 1      # m * 2
-addi r3, r3, -1     # m--
+subi r3, r3, 1     # m--
 add  r4, r4, r0     # s += m * 2
 test:
 cmpwi r3, 0         # m > 0 ?  (compare against immediate 0)
@@ -45,7 +45,7 @@ blr
 That's why heaps of hand-tuned 2002 game code counts down, because `cmpwi rX, 0`
 spends no register on a limit. Your `sum` runs a plainer body, no multiply
 anywhere. The surrounding loop, though, keeps the bones you already know: a
-pre-test `b`, a decrement through `addi r3,r3,-1`, and a `cmpwi r3,0`.
+pre-test `b`, a decrement through `subi r3,r3,1`, and a `cmpwi r3,0`.
 
 > Seeing a count-down in the asm does **not** prove the developer wrote one.
 > Optimizers will quietly rewrite a count-up loop into count-down form for this

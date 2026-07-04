@@ -330,7 +330,7 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
             </span>
 
             <span className="hidden items-center gap-1 rounded bg-bg-softer px-1.5 py-0.5 font-mono text-2xs text-content-faint sm:inline-flex">
-              {grader.compilerLabel}
+              {grader.compilerLabel(lesson.opt)}
             </span>
 
             <div className="ml-auto flex items-center gap-2">

@@ -24,12 +24,11 @@ addi r3, r3, 5    # r3 = r3 + 5
 blr
 ```
 
-Because that immediate field is signed and 16 bits wide, the very same `addi`
-also subtracts. Want `n - 3`? You get `addi r3, r3, -3`, and not a single extra
-instruction. The wrinkle is how far it reaches. Sixteen signed bits cover -32768
-up to 32767; ask for anything beyond and the compiler splits the work across
-`lis` plus `addi`. Won't happen in this exercise, but file the shape away,
-because it will trip you up later otherwise.
+That immediate field is signed and 16 bits wide, so it reaches from -32768 up to
+32767; ask for a constant beyond that and the compiler splits the work across
+`lis` plus `addi`. Won't happen in this exercise, but file the shape away. And
+because the field is signed, the very same `addi` can *subtract* too — that's the
+next lesson.
 
 Whatever immediate the target `addi` carries is the constant you are after.
 

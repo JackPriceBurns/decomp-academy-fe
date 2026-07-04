@@ -36,8 +36,8 @@ void AudioBlock_copy(AudioBlock* out, AudioBlock* in) {
 
 ```asm
 li     r0, 8         # 8 loop iterations
-addi   r5, r3, -4    # bias destination pointer back by 4...
-addi   r4, r4, -4    # ...and source, so the update-form +8 lands right
+subi   r5, r3, 4     # bias destination pointer back by 4...
+subi   r4, r4, 4     # ...and source, so the update-form +8 lands right
 mtctr  r0
 .loop:
 lwz    r3, 4(r4)     # grab a word

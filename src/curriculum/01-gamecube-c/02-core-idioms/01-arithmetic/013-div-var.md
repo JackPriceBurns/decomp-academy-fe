@@ -15,9 +15,9 @@ hints:
 
 # When it really is a divide
 
-When the divisor is a *variable*, none of the shift tricks apply. The compiler
-has to fall back on real hardware division, **`divw rD, rA, rB`** (signed divide
-word):
+When the divisor is a *variable*, none of the constant-divisor tricks apply —
+not the power-of-two shift, not the reciprocal multiply. The compiler has to fall
+back on real hardware division, **`divw rD, rA, rB`** (signed divide word):
 
 ```asm
 divw r3, r3, r4

@@ -32,7 +32,7 @@ mflr   r0           # r0 = our return address (the link register)
 stw    r0,20(r1)    # save it into the caller's frame, above our own
 bl     process      # call process(x) — this trashes lr, but we saved it
 lwz    r0,20(r1)    # EPILOGUE: reload our return address
-addi   r3,r3,-5     # adjust the return value
+subi   r3,r3,5      # adjust the return value
 mtlr   r0           # restore lr
 addi   r1,r1,16     # pop the frame
 blr                 # return

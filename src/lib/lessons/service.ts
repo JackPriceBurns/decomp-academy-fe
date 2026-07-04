@@ -23,7 +23,7 @@ function targetKey(l: LessonSource): string {
   h.update("\0");
   h.update(l.symbol);
   h.update("\0");
-  h.update((l.extraFlags || []).join(" "));
+  h.update(l.opt || "");
   return h.digest("hex");
 }
 
@@ -50,7 +50,7 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
       solution: l.solution,
       symbol: l.symbol,
       context: l.context,
-      extraFlags: l.extraFlags,
+      opt: l.opt,
     });
     if (!d?.ok) return { ok: false, error: d?.error || "Compile service error." };
     if (!d.objBase64) {
@@ -99,7 +99,7 @@ export async function checkLesson(
       code,
       symbol: lesson.symbol,
       context: lesson.hideContext ? undefined : lesson.context,
-      extraFlags: lesson.extraFlags,
+      opt: lesson.opt,
     });
     if (!d?.ok) {
       if (d?.compileError) {

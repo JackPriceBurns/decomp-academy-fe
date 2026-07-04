@@ -51,6 +51,10 @@ const root = join(here, "..", "src", "curriculum");
 const outDir = join(root, "generated");
 
 const ORDER_PREFIX = /^([0-9.]+)-/;
+// Optimisation presets the compile service accepts — a validated allow-list (the
+// API rejects free-form flags, since forwarding them was a file-read risk). A
+// lesson's frontmatter `opt` must be one of these; omitting it means the default.
+const ALLOWED_OPT = new Set(["O0", "O1", "O2,p", "O2,s", "O3,p", "O3,s", "O4,p", "O4,s"]);
 // Tier/chapter folders are "<order>-<id>" (e.g. 03-real-abi, 02-globals); the id
 // is what data references. A folder prefix orders siblings *within* its parent
 // only — chapter folders restart at 01 inside each tier. The global chapter
@@ -177,6 +181,11 @@ for (const l of lessons) {
     throw new Error(`Duplicate lesson id "${l.id}" (${l.slug}). Lesson ids must be globally unique.`);
   }
   seenIds.add(l.id);
+  if (l.opt && !ALLOWED_OPT.has(l.opt)) {
+    throw new Error(
+      `Lesson "${l.slug}" has invalid opt "${l.opt}". Allowed: ${[...ALLOWED_OPT].join(", ")}.`,
+    );
+  }
 }
 
 // Canonical order: course order, then chapter order, then in-chapter order.

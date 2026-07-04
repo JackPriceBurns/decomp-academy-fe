@@ -14,7 +14,7 @@ hints:
     `lwz r5, 0(r3)`."
   - "`state` is a `u8` field, so read it with `lbz` into `oldState` *before*
     overwriting it."
-  - "`return oldState != 1;` is the branchless `subfic`/`addi`/`or`/`srwi`
+  - "`return oldState != 1;` is the branchless `subfic`/`subi`/`or`/`srwi`
     quartet — let the compiler write it."
 ---
 
@@ -45,12 +45,12 @@ the return value below.
 
 **Branchless `!= k`.** When a function returns a `u8`-sourced `!= k` comparison
 directly, MWCC avoids a branch and instead uses a four-instruction sequence:
-`subfic`/`addi`/`or`/`srwi`. As an example, a setter that returns `oldMode != 2`
+`subfic`/`subi`/`or`/`srwi`. As an example, a setter that returns `oldMode != 2`
 (where `oldMode` came from `lbz`) compiles to:
 
 ```asm
 subfic  r3,r6,2
-addi    r0,r6,-2
+subi    r0,r6,2
 or      r0,r3,r0
 srwi    r3,r0,31
 ```
@@ -74,7 +74,7 @@ fadds   f0, f1, f0
 stfs    f0, 8(r3)
 .skip:
 subfic  r3, r6, 1
-addi    r0, r6, -1
+subi    r0, r6, 1
 or      r0, r3, r0
 srwi    r3, r0, 31
 blr

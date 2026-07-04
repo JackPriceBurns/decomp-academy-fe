@@ -46,7 +46,7 @@ lone `addc` on two low words, which *looks* like a 32-bit add until you notice t
 lwz    r4,gTicksA@sda21+0x4(r13) # only the low half of gTicksA
 lis    r3,1                     # build the 60000 bound...
 lwz    r0,gTicksB@sda21+0x4(r13) # only the low half of gTicksB
-addi   r3,r3,-5536              # ...= 1<<16 - 5536 = 60000
+subi   r3,r3,5536               # ...= 1<<16 - 5536 = 60000
 addc   r4,r4,r0                # low-word add (the adde is gone — high half is dead)
 cmplwi r4,60000                # unsigned compare against the cap
 bgtlr-                         # over -> return the cap in r3
@@ -57,7 +57,7 @@ blr
 No high-half loads, no `adde`, no `stfd` — the downcast collapsed the 64-bit add
 to its low word. The `+0x4` relocations are the only surviving evidence that the
 globals are `u64`. The bound here fit a path where it could be built with a
-single `lis`/`addi`, and the clamp is the familiar speculative-return `bgtlr-`.
+single `lis`/`subi`, and the clamp is the familiar speculative-return `bgtlr-`.
 
 Your `netBalance` is the same shape, but its cap is a **larger** constant (so the
 constant build and the compare opcode differ) and it sums two **different** `u64`

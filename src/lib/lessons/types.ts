@@ -98,8 +98,14 @@ export interface LessonSource {
   solution: string;
   /** Progressive hints. */
   hints: string[];
-  /** MWCC flag overrides appended after the base set (e.g. pragmas/opt). */
-  extraFlags?: string[];
+  /**
+   * Optimisation preset override for this lesson's compile, e.g. "O4,s". Must be
+   * one of the compile service's validated presets (O0, O1, O2,p, O2,s, O3,p,
+   * O3,s, O4,p, O4,s) — anything else is rejected at build time. Omit for the
+   * default O4,p. Replaces the old free-form `extraFlags`, which the API dropped
+   * because forwarding caller-supplied flags was a server-side file-read risk.
+   */
+  opt?: string;
 }
 
 export interface Lesson extends LessonSource {

@@ -85,6 +85,7 @@ export default function LessonPage({ params }: { params: { course: string; slug:
     context: lesson.context && !lesson.hideContext ? lesson.context : undefined,
     hints: lesson.hints,
     grader: course.grader,
+    opt: lesson.opt,
     prev: prev ? { slug: prev.slug, title: prev.title } : null,
     next: next ? { slug: next.slug, title: next.title } : null,
   };
