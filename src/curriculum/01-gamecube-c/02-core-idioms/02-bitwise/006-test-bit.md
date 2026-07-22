@@ -40,13 +40,6 @@ isolated, convert that back to the hex value, and express it as an AND in C.
 
 Write `test_bit` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-u32 test_bit(u32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 test_bit(u32 x) {

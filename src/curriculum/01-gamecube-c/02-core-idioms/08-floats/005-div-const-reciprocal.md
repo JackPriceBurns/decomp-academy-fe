@@ -31,14 +31,7 @@ Spotting `lfs` then `fmuls` in the target? Work back to the power-of-two divisor
 
 ## Your task
 
-Write `scaleRecip` taking an `f32 x` so it compiles to an `lfs` + `fmuls` pattern.
-
-<!-- starter -->
-```c
-f32 scaleRecip(f32 x) {
-    return 0.0f;
-}
-```
+Write `scaleRecip` so it compiles to an `lfs` + `fmuls` pattern.
 
 <!-- solution -->
 ```c

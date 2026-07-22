@@ -39,14 +39,7 @@ produces this whole sequence. Identify it and apply it to the correct variable.
 
 ## Your task
 
-Write `f2i` taking an `f32 x` to match the target assembly above.
-
-<!-- starter -->
-```c
-int f2i(f32 x) {
-    return 0;
-}
-```
+Write `f2i` to match the target assembly above.
 
 <!-- solution -->
 ```c

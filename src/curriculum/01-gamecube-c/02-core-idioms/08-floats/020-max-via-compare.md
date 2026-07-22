@@ -47,15 +47,8 @@ will know which argument leaves by which path.
 
 ## Your task
 
-Write `select2`, taking two `f32`s, to reproduce the assembly above. Use a plain
+Write `select2` to reproduce the assembly above. Use a plain
 `if` with an early `return`.
-
-<!-- starter -->
-```c
-f32 select2(f32 a, f32 b) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

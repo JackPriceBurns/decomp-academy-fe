@@ -3,9 +3,10 @@
 export const SIGNUP_PROMPT_AT = 5; // anon: "save your progress" after N solved
 export const FEEDBACK_PROMPT_AT = 8; // everyone: "how's it going" after N solved
 
-export type PromptKind = "signup" | "feedback";
+export type PromptKind = "reading-signatures" | "signup" | "feedback";
 
 const FLAG: Record<PromptKind, string> = {
+  "reading-signatures": "decomp-prompt-reading-signatures-v1",
   signup: "decomp-prompt-signup-v1",
   feedback: "decomp-prompt-feedback-v1",
 };

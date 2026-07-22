@@ -54,13 +54,6 @@ Write `load_pair(register f32 *dst, register const f32 *src)` that uses an
 `dst`. This is the *only* lesson where `asm{}` is the right answer — keep both
 pointer parameters `register`-qualified or the assembler rejects the operands.
 
-<!-- starter -->
-```c
-void load_pair(register f32 *dst, register const f32 *src) {
-    // asm { ... } using psq_l / psq_st
-}
-```
-
 <!-- solution -->
 ```c
 void load_pair(register f32 *dst, register const f32 *src) {

@@ -91,13 +91,6 @@ blr
 
 With the structs above, write `crfueltank_apply` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void crfueltank_apply(CrFuelTankObject* obj, HitObj* hitObj) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void crfueltank_apply(CrFuelTankObject* obj, HitObj* hitObj) {

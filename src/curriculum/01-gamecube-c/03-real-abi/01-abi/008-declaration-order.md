@@ -63,13 +63,6 @@ Write `order_demo`, calling `transform` twice and returning a combination of the
 results. `transform` is declared for you. Match the register assignments in the
 target assembly by choosing the right declaration order.
 
-<!-- starter -->
-```c
-int order_demo(int x, int y) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int order_demo(int x, int y) {

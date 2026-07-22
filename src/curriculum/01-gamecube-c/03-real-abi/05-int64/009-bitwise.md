@@ -43,13 +43,6 @@ or a 64-bit compare is what tells you the AND was working on a 64-bit value.
 
 Write `and_64` to match the target.
 
-<!-- starter -->
-```c
-u64 and_64(u64 a, u64 b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u64 and_64(u64 a, u64 b) {

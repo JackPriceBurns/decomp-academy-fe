@@ -52,14 +52,7 @@ you the bound and the direction of the clamp.
 
 ## Your task
 
-Write `scale_clamp`, taking one `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int scale_clamp(int x) {
-    return 0;
-}
-```
+Write `scale_clamp` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -40,7 +40,7 @@ blr
 ```
 
 The shape is clean enough that MWCC at full `-O4,p` leaves it rolled on its own,
-so there's no `#pragma` to add here. Run into a loop with **no pre-test branch at
+so this one needs no optimization adjustment at all. Run into a loop with **no pre-test branch at
 the top** and you're almost surely looking at a `do`/`while`, or at least a loop
 whose author knew the body would always run. And remember `sum` kicks its
 induction variable off at 0 rather than 1, which pushes its initializer and test
@@ -57,15 +57,6 @@ away from what this example shows.
 ## Your task
 
 Write `sum` as a `do`/`while` loop. Assume the body always runs at least once.
-
-<!-- starter -->
-```c
-int sum(int n) {
-    int i = 0, s = 0;
-    // use a do/while loop
-    return s;
-}
-```
 
 <!-- solution -->
 ```c

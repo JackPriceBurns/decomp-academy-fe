@@ -50,15 +50,7 @@ which widened value gets pulled out of which. Get that ordering right.
 
 ## Your task
 
-Write `mix_signs`, taking a `u8` and an `s8` and returning their difference as an
-`int`, to match the target assembly. Both extends and the `subf` must line up.
-
-<!-- starter -->
-```c
-int mix_signs(u8 a, s8 b) {
-    return 0;
-}
-```
+Write `mix_signs` to match the target assembly. Both extends and the `subf` must line up.
 
 <!-- solution -->
 ```c

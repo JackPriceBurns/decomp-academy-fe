@@ -43,14 +43,7 @@ instruction does to it.
 
 ## Your task
 
-Write `muladd3`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int muladd3(int a, int b, int c) {
-    return 0;
-}
-```
+Write `muladd3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

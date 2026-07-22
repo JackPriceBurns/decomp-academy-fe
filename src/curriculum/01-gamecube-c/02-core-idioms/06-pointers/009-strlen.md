@@ -60,13 +60,6 @@ up byte values, what takes the place of `add`?
 Write `str_len`, taking a `u8* s`, returning the number of bytes before the
 terminating zero.
 
-<!-- starter -->
-```c
-int str_len(u8* s) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int str_len(u8* s) {

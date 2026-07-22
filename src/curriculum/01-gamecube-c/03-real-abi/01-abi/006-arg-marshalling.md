@@ -48,13 +48,6 @@ Read that `addi` and decide how the second argument relates to `x`.
 Write `forward`, which calls `combine` with the arguments marshalled as shown in
 the target assembly. `combine` is declared for you.
 
-<!-- starter -->
-```c
-int forward(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int forward(int x) {

@@ -45,13 +45,6 @@ load.
 
 Write `as_s8` so it compiles to the single `extsb` above.
 
-<!-- starter -->
-```c
-int as_s8(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int as_s8(int x) {

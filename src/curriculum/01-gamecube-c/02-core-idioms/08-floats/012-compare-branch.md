@@ -47,17 +47,8 @@ figure out which return path is the early return.
 
 ## Your task
 
-Write `gate` taking an `f32 x`: examine the assembly to determine the comparison
+Write `gate` to determine the comparison
 and the two possible return values. Use a plain `if` statement.
-
-<!-- starter -->
-```c
-f32 gate(f32 x) {
-    // TODO: compare x against the assembly's constant and pick the
-    // return value for each branch
-    return x;
-}
-```
 
 <!-- solution -->
 ```c

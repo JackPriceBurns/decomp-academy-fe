@@ -107,15 +107,6 @@ Sum the four bytes of `scan->occ[0]` into `sumCur` and the four bytes of
 To match the lockstep schedule above you must **interleave the two accumulations
 term by term** — not write two flat `a+b+c+d` sums.
 
-<!-- starter -->
-```c
-int voxmap_chooseDir(VoxScan* scan) {
-    int sumCur, sumNext;
-    // your code here
-    return 1;
-}
-```
-
 <!-- solution -->
 ```c
 int voxmap_chooseDir(VoxScan* scan) {

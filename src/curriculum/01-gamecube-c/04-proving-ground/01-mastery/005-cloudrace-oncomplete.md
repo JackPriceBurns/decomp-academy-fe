@@ -119,14 +119,6 @@ arguments.
 
 With the structs above, write `crcloudrace_onComplete` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int crcloudrace_onComplete(RaceObject* obj, AnimUpdate* upd) {
-    // your code here
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int crcloudrace_onComplete(RaceObject* obj, AnimUpdate* upd) {

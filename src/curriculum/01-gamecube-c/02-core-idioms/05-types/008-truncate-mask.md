@@ -41,14 +41,7 @@ clrlwi r3, r3, 24   →  8 bits remain   →  keep low 8 bits
 
 ## Your task
 
-Write `low_byte`, taking an `int`, to reproduce the assembly shown for that symbol.
-
-<!-- starter -->
-```c
-u8 low_byte(int x) {
-    return 0;
-}
-```
+Write `low_byte` to reproduce the assembly shown for that symbol.
 
 <!-- solution -->
 ```c

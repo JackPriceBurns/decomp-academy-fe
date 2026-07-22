@@ -47,14 +47,7 @@ expression is yours.
 
 ## Your task
 
-Write `xor_add_64`, taking three `u64`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u64 xor_add_64(u64 a, u64 b, u64 c) {
-    return 0;
-}
-```
+Write `xor_add_64` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

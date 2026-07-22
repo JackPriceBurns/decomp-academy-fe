@@ -52,13 +52,6 @@ the underlying `rlwinm` form; they are the same instruction.
 
 Write `at` to match the target assembly above.
 
-<!-- starter -->
-```c
-int at(int* p, int i) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int at(int* p, int i) {

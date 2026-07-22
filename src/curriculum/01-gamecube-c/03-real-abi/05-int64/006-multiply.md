@@ -45,13 +45,6 @@ carry on show, but a clipped multiply gives you nothing to spot.
 
 Write `mul_64` to match the target.
 
-<!-- starter -->
-```c
-u64 mul_64(u64 a, u64 b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u64 mul_64(u64 a, u64 b) {

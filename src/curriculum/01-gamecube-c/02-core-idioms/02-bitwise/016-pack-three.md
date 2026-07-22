@@ -45,14 +45,7 @@ back to the expression that produced them.
 
 ## Your task
 
-Write `pack_three`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int pack_three(int a, int b, int c) {
-    return 0;
-}
-```
+Write `pack_three` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -49,15 +49,6 @@ I always match the type the target was built with.
 Write `slen`, counting bytes until the zero terminator (a from-scratch `strlen`).
 `p` is a `u8*`.
 
-<!-- starter -->
-```c
-int slen(u8 *p) {
-    int n = 0;
-    // your code here
-    return n;
-}
-```
-
 <!-- solution -->
 ```c
 int slen(u8 *p) {

@@ -45,15 +45,8 @@ encode.
 
 ## Your task
 
-Write `leaf`, taking two `int`s, to match the target assembly. It calls nothing, so
+Write `leaf` to match the target assembly. It calls nothing, so
 expect no stack frame.
-
-<!-- starter -->
-```c
-int leaf(int a, int b) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

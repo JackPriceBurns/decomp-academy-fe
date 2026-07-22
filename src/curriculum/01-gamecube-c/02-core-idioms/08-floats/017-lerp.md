@@ -45,15 +45,8 @@ back to the three arguments and you can tell base from target from fraction.
 
 ## Your task
 
-Write `lerp`, taking three `f32`s (base, target, fraction), to reproduce the
+Write `lerp` to reproduce the
 assembly above.
-
-<!-- starter -->
-```c
-f32 lerp(f32 a, f32 b, f32 t) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

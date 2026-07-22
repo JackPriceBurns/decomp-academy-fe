@@ -60,11 +60,7 @@ come out identical.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int sum(int n) {
-    int i = 0, s = 0;
-    // turn this into a while loop
-    return s;
-}
+// define sum to match the target
 ```
 
 <!-- solution -->

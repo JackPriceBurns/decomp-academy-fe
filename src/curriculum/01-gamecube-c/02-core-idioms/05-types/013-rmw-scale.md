@@ -54,14 +54,8 @@ Your target scales by some other constant, so read it off the `mulli` immediate.
 
 ## Your task
 
-Write `rmw_scale`, taking a `u8*`, to match the target assembly. Expect
+Write `rmw_scale` to match the target assembly. Expect
 `lbz` / `mulli` / `stb` with no mask and no `extsb`.
-
-<!-- starter -->
-```c
-void rmw_scale(u8* p) {
-}
-```
 
 <!-- solution -->
 ```c

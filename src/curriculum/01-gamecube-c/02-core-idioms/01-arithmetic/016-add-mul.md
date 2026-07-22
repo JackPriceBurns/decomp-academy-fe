@@ -42,14 +42,7 @@ and which argument register surfaces only in the second instruction.
 
 ## Your task
 
-Write `addmul3`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int addmul3(int a, int b, int c) {
-    return 0;
-}
-```
+Write `addmul3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

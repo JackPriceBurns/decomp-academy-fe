@@ -41,14 +41,7 @@ exit fires is what nails each `li` to its arm.
 
 ## Your task
 
-Write `pick`, taking two `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int pick(int a, int b) {
-    return 0;
-}
-```
+Write `pick` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

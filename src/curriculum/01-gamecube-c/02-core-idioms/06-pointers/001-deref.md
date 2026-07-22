@@ -50,13 +50,6 @@ which element it reads.
 
 Write `load_int` to match the target assembly above.
 
-<!-- starter -->
-```c
-int load_int(int* p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int load_int(int* p) {

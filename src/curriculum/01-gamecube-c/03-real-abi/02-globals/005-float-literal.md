@@ -41,19 +41,12 @@ source expression carried a float constant.
 
 ## Your task
 
-Write `applyFactor`, taking an `f32 x`, to reproduce the `lfs`/`fmuls` sequence
+Write `applyFactor` to reproduce the `lfs`/`fmuls` sequence
 above. Pay close attention to literal suffixes — writing a plain `double` literal
 instead of an `f32` one causes MWCC to promote `x` to double precision, multiply,
 then convert back, producing `lfd`/`fmul`/`frsp` instead of `lfs`/`fmuls`.
 Forgetting the suffix is one of the most common real-world causes of a float
 mismatch.
-
-<!-- starter -->
-```c
-f32 applyFactor(f32 x) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

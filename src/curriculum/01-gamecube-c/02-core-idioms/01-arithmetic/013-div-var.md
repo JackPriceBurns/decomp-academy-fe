@@ -32,13 +32,6 @@ the instruction*.
 
 Write `div2` for signed `int`s to match the target.
 
-<!-- starter -->
-```c
-int div2(int a, int b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int div2(int a, int b) {

@@ -41,14 +41,7 @@ toward zero for negative inputs, so instead of one clean shift MWCC produces a
 (`u32` is the GameCube SDK's typedef for `unsigned int` — it's pre-declared for
 you here, not a built-in C type.)
 
-Write `divPow2U` taking a `u32 x` to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u32 divPow2U(u32 x) {
-    return 0;
-}
-```
+Write `divPow2U` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

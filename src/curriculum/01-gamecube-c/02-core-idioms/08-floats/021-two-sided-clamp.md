@@ -52,15 +52,8 @@ ceiling, and the order they apply in.
 
 ## Your task
 
-Write `clampRange`, taking one `f32`, to reproduce the assembly above. Use two
+Write `clampRange` to reproduce the assembly above. Use two
 plain `if` statements that overwrite the value.
-
-<!-- starter -->
-```c
-f32 clampRange(f32 x) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

@@ -36,15 +36,8 @@ address arithmetic ahead of it is what a direct global write looks like.
 
 ## Your task
 
-`extern int gScore;` is provided. Write `setScore`, taking an `int v`, so it
+`extern int gScore;` is provided. Write `setScore` so it
 compiles to the `stw` above (no return value).
-
-<!-- starter -->
-```c
-void setScore(int v) {
-    // hint: which opcode does a write use?
-}
-```
 
 <!-- solution -->
 ```c

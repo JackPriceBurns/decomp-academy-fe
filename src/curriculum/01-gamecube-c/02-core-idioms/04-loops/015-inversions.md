@@ -86,15 +86,6 @@ to recover the condition being counted.
 Write `inv`, returning the number of pairs `(i, j)` with `i < j < n` and
 `a[i] > a[j]` (the inversion count of `a`).
 
-<!-- starter -->
-```c
-int inv(int *a, int n) {
-    int i, j, c = 0;
-    // your code here
-    return c;
-}
-```
-
 <!-- solution -->
 ```c
 int inv(int *a, int n) {

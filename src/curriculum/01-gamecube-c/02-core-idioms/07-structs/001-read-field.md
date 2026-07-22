@@ -47,13 +47,6 @@ sits at the offset used in the target assembly.
 
 With the `Point` struct above, write `Point_getField` to match the target.
 
-<!-- starter -->
-```c
-int Point_getField(Point* p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int Point_getField(Point* p) {

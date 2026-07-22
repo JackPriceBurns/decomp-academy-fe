@@ -45,14 +45,7 @@ values it chooses between.
 
 ## Your task
 
-Write `pick_unsigned`, taking two `u32`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int pick_unsigned(u32 a, u32 b) {
-    return 0;
-}
-```
+Write `pick_unsigned` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

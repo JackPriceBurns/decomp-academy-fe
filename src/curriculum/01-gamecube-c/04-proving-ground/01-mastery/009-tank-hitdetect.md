@@ -82,13 +82,6 @@ what work the innermost block performs on `obj`'s fields and which helper calls
 it makes, and reconstruct the `hitEvent != -1` optional-event guard and the
 biased position copy.
 
-<!-- starter -->
-```c
-void tank_hitDetect(TankObject* obj) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void tank_hitDetect(TankObject* obj) {

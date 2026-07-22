@@ -66,12 +66,6 @@ given, so once you recognise the pattern the assignment writes itself.
 With the `Tilemap` struct above, write `Tilemap_copy` to reproduce the target
 assembly.
 
-<!-- starter -->
-```c
-void Tilemap_copy(Tilemap* dst, Tilemap* src) {
-}
-```
-
 <!-- solution -->
 ```c
 void Tilemap_copy(Tilemap* dst, Tilemap* src) {

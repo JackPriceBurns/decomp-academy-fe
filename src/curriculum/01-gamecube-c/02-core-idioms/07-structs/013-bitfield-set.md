@@ -58,12 +58,6 @@ and that simply won't line up with the compiled output.
 
 With `Flags` above, write `Flags_setActive` to reproduce the target assembly.
 
-<!-- starter -->
-```c
-void Flags_setActive(Flags* f) {
-}
-```
-
 <!-- solution -->
 ```c
 void Flags_setActive(Flags* f) {

@@ -44,14 +44,7 @@ and the computation after the label are both right there in the listing.
 
 ## Your task
 
-Write `safe_div`, taking two `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int safe_div(int a, int b) {
-    return 0;
-}
-```
+Write `safe_div` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

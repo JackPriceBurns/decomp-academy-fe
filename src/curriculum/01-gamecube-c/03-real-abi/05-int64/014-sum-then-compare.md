@@ -51,15 +51,8 @@ which way the relation points.
 
 ## Your task
 
-Write `chained_cmp_64`, taking three `u64`s and returning an `int`, to reproduce the
+Write `chained_cmp_64` to reproduce the
 assembly above.
-
-<!-- starter -->
-```c
-int chained_cmp_64(u64 a, u64 b, u64 c) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

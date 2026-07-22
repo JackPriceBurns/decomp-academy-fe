@@ -47,15 +47,6 @@ and the loop just runs out the normal way, leaving `i == n`.
 Write `find`, returning the index of the first element of `a` equal to `k`, or
 `n` if there is none.
 
-<!-- starter -->
-```c
-int find(int *a, int n, int k) {
-    int i;  /* the for loop you write below sets i; it holds the answer */
-    // return the first index where a[i] == k, else n
-    return i;
-}
-```
-
 <!-- solution -->
 ```c
 int find(int *a, int n, int k) {

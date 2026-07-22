@@ -76,16 +76,9 @@ arm's offset from its `addi`.
 ## Your task
 
 The `Channel` enum and the `volatile int gReg` are provided in context. Write
-`sampleChannel`, taking a `Channel`, to reproduce the assembly above. Read the
+`sampleChannel` to reproduce the assembly above. Read the
 table head to confirm the case count, and each arm's `addi` for its offset; the
 `default` arm returns the sentinel.
-
-<!-- starter -->
-```c
-int sampleChannel(Channel c) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

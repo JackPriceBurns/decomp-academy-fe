@@ -53,12 +53,6 @@ but the pattern is identical.
 
 With `Packed` above, write `Packed_setMode` to reproduce the target assembly.
 
-<!-- starter -->
-```c
-void Packed_setMode(Packed* p, u32 m) {
-}
-```
-
 <!-- solution -->
 ```c
 void Packed_setMode(Packed* p, u32 m) {

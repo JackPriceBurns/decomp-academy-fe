@@ -52,14 +52,7 @@ falls back out of the compare it rides on.
 
 ## Your task
 
-Write `clamp_range`, taking one `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int clamp_range(int x) {
-    return 0;
-}
-```
+Write `clamp_range` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -66,13 +66,6 @@ Write `fuse`, which converts two of its inputs and passes all the pieces to a
 final call, to reproduce the target assembly. `conv` and `join` are declared for
 you.
 
-<!-- starter -->
-```c
-int fuse(int a, int b, int c) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int fuse(int a, int b, int c) {

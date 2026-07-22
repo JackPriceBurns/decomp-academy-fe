@@ -44,13 +44,6 @@ blr
 
 Write `affine` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int affine(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int affine(int x) {

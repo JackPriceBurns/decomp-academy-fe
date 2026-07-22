@@ -42,13 +42,6 @@ the parameter's declared type.
 
 Write `shiftRightS` so it compiles to the `srawi` above.
 
-<!-- starter -->
-```c
-s32 shiftRightS(s32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 s32 shiftRightS(s32 x) {

@@ -60,13 +60,6 @@ together.
 
 With the structs above, write `AABB_spanX` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int AABB_spanX(AABB* b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int AABB_spanX(AABB* b) {

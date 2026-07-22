@@ -59,13 +59,6 @@ displacement back into an index, then assemble the combine.
 With the `Record` struct above, write `Record_combineScores` to reproduce the
 assembly above.
 
-<!-- starter -->
-```c
-int Record_combineScores(Record* r) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int Record_combineScores(Record* r) {

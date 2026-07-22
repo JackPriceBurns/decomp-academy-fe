@@ -83,13 +83,6 @@ Pay attention to which rotation fields change and by how much, the direction of
 the `GameBit_Get` branch and which event it reads, and the `(s16)` on the flag
 write.
 
-<!-- starter -->
-```c
-void spellstone_step(GameObject* obj) {
-    // maybe spin; then branch on the complete event
-}
-```
-
 <!-- solution -->
 ```c
 void spellstone_step(GameObject* obj) {

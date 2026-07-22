@@ -38,13 +38,6 @@ the moment you read fields out of a struct, so keep it in mind.
 
 Write `load_u8` to match the target assembly above.
 
-<!-- starter -->
-```c
-u8 load_u8(u8* p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u8 load_u8(u8* p) {

@@ -68,11 +68,7 @@ before adding it into the running total. Reproduce the assembly above.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int wsum(int *a, int n) {
-    int i, s = 0;
-    // weight each element by its 1-based position
-    return s;
-}
+// define wsum to match the target
 ```
 
 <!-- solution -->

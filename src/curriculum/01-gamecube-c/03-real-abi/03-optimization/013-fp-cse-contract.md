@@ -56,13 +56,6 @@ Write `fmix(f32 a, f32 b, f32 c)` to reproduce the target assembly — a single
 `fmuls` for the shared product, then one `fmadds` that reuses it in two operand
 slots.
 
-<!-- starter -->
-```c
-f32 fmix(f32 a, f32 b, f32 c) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 fmix(f32 a, f32 b, f32 c) {

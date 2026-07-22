@@ -54,15 +54,8 @@ instruction past the fall-through hands you the rest.
 
 ## Your task
 
-Write `safe_scale`, taking a value `x` and a `factor`, to reproduce the assembly
+Write `safe_scale` to reproduce the assembly
 above.
-
-<!-- starter -->
-```c
-int safe_scale(int x, int factor) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

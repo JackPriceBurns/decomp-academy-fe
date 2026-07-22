@@ -39,15 +39,8 @@ blr
 
 ## Your task
 
-Write `load_s16`, taking an `s16*` and returning the pointed-to value widened to
+Write `load_s16` to
 `int`. Because the result is used as a 32-bit `int`, the load must sign-extend.
-
-<!-- starter -->
-```c
-int load_s16(s16* p) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

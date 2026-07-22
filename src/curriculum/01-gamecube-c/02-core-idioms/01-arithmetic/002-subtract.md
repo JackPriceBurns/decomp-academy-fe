@@ -32,14 +32,7 @@ formula over it and you will land on the C expression it wants.
 
 ## Your task
 
-Write `sub2`, taking two `int`s, to reproduce the target assembly.
-
-<!-- starter -->
-```c
-int sub2(int a, int b) {
-    return 0;
-}
-```
+Write `sub2` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

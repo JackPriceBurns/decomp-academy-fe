@@ -45,14 +45,7 @@ assembly into two pairs. Label each `add` or `subf`. Then write the expression.
 
 ## Your task
 
-Write `addsub_64`, taking three `u64`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u64 addsub_64(u64 a, u64 b, u64 c) {
-    return 0;
-}
-```
+Write `addsub_64` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

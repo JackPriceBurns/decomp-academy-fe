@@ -48,12 +48,6 @@ work out to?
 
 Write `setElemAt` to match the target assembly above.
 
-<!-- starter -->
-```c
-void setElemAt(int* p, int v) {
-}
-```
-
 <!-- solution -->
 ```c
 void setElemAt(int* p, int v) {

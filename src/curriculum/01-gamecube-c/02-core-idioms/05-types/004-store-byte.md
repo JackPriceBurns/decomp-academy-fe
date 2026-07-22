@@ -33,13 +33,7 @@ beforehand, it simply narrows the store down to a byte.
 
 ## Your task
 
-Write `store_u8`, taking a `u8*` and a `u8`, to produce a single `stb`.
-
-<!-- starter -->
-```c
-void store_u8(u8* p, u8 v) {
-}
-```
+Write `store_u8` to produce a single `stb`.
 
 <!-- solution -->
 ```c

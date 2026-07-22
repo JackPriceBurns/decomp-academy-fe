@@ -65,13 +65,6 @@ pair marks one lerp.
 Write `blend(f32 *a, f32 *b, f32 t)` to reproduce the assembly above. Write
 the lerps in the natural form and let the optimizer fuse and interleave.
 
-<!-- starter -->
-```c
-f32 blend(f32 *a, f32 *b, f32 t) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 blend(f32 *a, f32 *b, f32 t) {

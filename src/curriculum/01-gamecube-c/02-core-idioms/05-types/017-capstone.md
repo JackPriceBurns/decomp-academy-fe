@@ -53,16 +53,9 @@ arithmetic chain from there.
 
 ## Your task
 
-Write `blend`, taking three parameters and returning an `int`, to reproduce the
+Write `blend` to reproduce the
 target assembly. Each parameter's type is encoded in its extend instruction;
 the arithmetic chain is encoded in the `mullw`/`add` that follow.
-
-<!-- starter -->
-```c
-int blend(s8 a, u16 b, u8 c) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

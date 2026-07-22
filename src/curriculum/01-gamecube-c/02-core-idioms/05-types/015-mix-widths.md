@@ -48,15 +48,7 @@ two end up joined.
 
 ## Your task
 
-Write `mix_widths`, taking a `u8` and an `s16` and returning their sum as an
-`int`, to match the target assembly.
-
-<!-- starter -->
-```c
-int mix_widths(u8 a, s16 b) {
-    return 0;
-}
-```
+Write `mix_widths` to match the target assembly.
 
 <!-- solution -->
 ```c

@@ -71,13 +71,6 @@ The `u64` globals `gBytesIn` and `gBytesOut` are declared for you. Write
 clamp bound from the `lis`/`addi` pair and the cast from the fact that only the
 low halves are touched.
 
-<!-- starter -->
-```c
-u32 netBalance(void) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 netBalance(void) {

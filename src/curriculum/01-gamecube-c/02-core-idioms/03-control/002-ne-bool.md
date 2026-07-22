@@ -38,14 +38,7 @@ answer holds.
 
 ## Your task
 
-Write `not_equal`, taking two `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int not_equal(int a, int b) {
-    return 0;
-}
-```
+Write `not_equal` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

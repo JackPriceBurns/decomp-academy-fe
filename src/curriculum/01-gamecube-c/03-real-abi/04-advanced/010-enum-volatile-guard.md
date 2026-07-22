@@ -60,13 +60,6 @@ Write `sample(struct Dev *d)` to reproduce the assembly above. The `Mode` enum,
 `cmpwi` immediate to find which enum value passes the guard and the `li` to find
 the sentinel; the global must be read twice past the guard.
 
-<!-- starter -->
-```c
-int sample(struct Dev *d) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int sample(struct Dev *d) {

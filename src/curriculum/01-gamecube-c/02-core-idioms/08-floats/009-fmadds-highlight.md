@@ -33,15 +33,8 @@ Back to the target for `fma3`. Its arguments sit in `f1`, `f2`, `f3`. Match thos
 
 ## Your task
 
-Write `fma3` taking three `f32`s so it compiles to the `fmadds` above. Write it
+Write `fma3` so it compiles to the `fmadds` above. Write it
 as a plain expression — let the compiler fuse it.
-
-<!-- starter -->
-```c
-f32 fma3(f32 a, f32 b, f32 c) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

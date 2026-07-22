@@ -48,13 +48,6 @@ next all stay inline.
 
 Write `shl_64` to match the target.
 
-<!-- starter -->
-```c
-u64 shl_64(u64 a, u64 b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u64 shl_64(u64 a, u64 b) {

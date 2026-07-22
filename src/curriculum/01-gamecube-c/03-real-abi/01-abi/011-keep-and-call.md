@@ -59,13 +59,6 @@ the post-call instruction folds the survivor into the result.
 Write `accum`, which calls `proc` and combines a surviving parameter with the
 result, to reproduce the target assembly. `proc` is declared for you.
 
-<!-- starter -->
-```c
-int accum(int a, int b, int c) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int accum(int a, int b, int c) {

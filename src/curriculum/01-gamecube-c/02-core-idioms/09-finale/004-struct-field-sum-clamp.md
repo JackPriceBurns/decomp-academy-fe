@@ -70,11 +70,7 @@ With the `Unit` struct below, write `total_hp` to reproduce the target assembly.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int total_hp(Unit *u, int n) {
-    int i, s = 0;
-    // your code here
-    return s;
-}
+// define total_hp to match the target
 ```
 
 <!-- solution -->

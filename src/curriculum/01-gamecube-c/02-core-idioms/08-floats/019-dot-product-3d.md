@@ -55,19 +55,12 @@ typedef struct { f32 x, y, z; } Vec3;
 
 ## Your task
 
-With the `Vec3` struct above, write `dot3` taking two `Vec3*`s to reproduce the
+With the `Vec3` struct above, write `dot3` to reproduce the
 assembly above.
 
 <!-- context -->
 ```c
 typedef struct { f32 x, y, z; } Vec3;
-```
-
-<!-- starter -->
-```c
-f32 dot3(Vec3* a, Vec3* b) {
-    return 0.0f;
-}
 ```
 
 <!-- solution -->

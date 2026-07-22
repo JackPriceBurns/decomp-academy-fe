@@ -146,13 +146,6 @@ expressions.
 
 With the structs above, write `asteroid_orbit` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void asteroid_orbit(AsteroidObject* obj) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void asteroid_orbit(AsteroidObject* obj) {

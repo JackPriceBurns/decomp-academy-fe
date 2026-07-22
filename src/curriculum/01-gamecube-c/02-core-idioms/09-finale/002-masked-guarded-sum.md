@@ -63,12 +63,7 @@ assembly above.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-u32 sum_low_bytes(u32 *a, int n) {
-    int i;
-    u32 s = 0;
-    // your code here
-    return s;
-}
+// define sum_low_bytes to match the target
 ```
 
 <!-- solution -->

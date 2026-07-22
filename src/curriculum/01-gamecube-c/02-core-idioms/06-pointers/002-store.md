@@ -48,12 +48,6 @@ is the value.
 
 Write `store_int` so it compiles to the `stw` above.
 
-<!-- starter -->
-```c
-void store_int(int* p, int v) {
-}
-```
-
 <!-- solution -->
 ```c
 void store_int(int* p, int v) {

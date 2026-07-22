@@ -60,12 +60,6 @@ float moves, then reproduce the assignment they came from.
 With the `Record` struct above, write `Record_copy` to reproduce the target
 assembly.
 
-<!-- starter -->
-```c
-void Record_copy(Record* dst, Record* src) {
-}
-```
-
 <!-- solution -->
 ```c
 void Record_copy(Record* dst, Record* src) {

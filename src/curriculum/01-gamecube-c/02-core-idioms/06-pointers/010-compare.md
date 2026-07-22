@@ -49,13 +49,6 @@ to 0. Recognize this three-instruction sequence as a branchless `==`.
 Write `same`, taking two `int*` and returning whether they point at the same
 address.
 
-<!-- starter -->
-```c
-BOOL same(int* a, int* b) {
-    return FALSE;
-}
-```
-
 <!-- solution -->
 ```c
 BOOL same(int* a, int* b) {

@@ -50,13 +50,7 @@ pointers to reproduce the target.
 
 ## Your task
 
-Write `swap`, taking two `int*` and exchanging the values they point to.
-
-<!-- starter -->
-```c
-void swap(int* a, int* b) {
-}
-```
+Write `swap` to.
 
 <!-- solution -->
 ```c

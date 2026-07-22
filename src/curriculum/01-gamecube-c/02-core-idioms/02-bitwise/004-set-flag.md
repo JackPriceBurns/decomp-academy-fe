@@ -48,13 +48,6 @@ blr
 
 Write `set_flag` so it compiles to the `ori` above.
 
-<!-- starter -->
-```c
-u32 set_flag(u32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 set_flag(u32 x) {

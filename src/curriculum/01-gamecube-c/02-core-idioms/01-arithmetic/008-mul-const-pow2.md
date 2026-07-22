@@ -41,13 +41,6 @@ interchangeable here, so the prettier one wins.
 
 Write `scalePow2` to match the target.
 
-<!-- starter -->
-```c
-int scalePow2(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int scalePow2(int x) {

@@ -47,14 +47,8 @@ whatever sits between the `lha` and the `sth`, and read its operand straight off
 
 ## Your task
 
-Write `rmw_half`, taking an `s16*`, to match the target assembly. The load must
+Write `rmw_half` to match the target assembly. The load must
 be `lha` and the store `sth`.
-
-<!-- starter -->
-```c
-void rmw_half(s16* p) {
-}
-```
 
 <!-- solution -->
 ```c

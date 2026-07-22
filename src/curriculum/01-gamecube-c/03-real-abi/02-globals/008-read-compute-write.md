@@ -55,13 +55,6 @@ store is where you find it.
 The globals are declared for you: `gAlpha`, `gBeta`, `gTotal` (all `int`). Write
 `accumulate` (no arguments, no return) to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void accumulate(void) {
-    // read two globals, combine them, store the result in the third
-}
-```
-
 <!-- solution -->
 ```c
 void accumulate(void) {

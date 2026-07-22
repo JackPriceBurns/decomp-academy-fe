@@ -41,14 +41,7 @@ corresponds to the opposite arm.
 
 ## Your task
 
-Write `over_five`, taking a signed `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int over_five(int a) {
-    return 0;
-}
-```
+Write `over_five` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

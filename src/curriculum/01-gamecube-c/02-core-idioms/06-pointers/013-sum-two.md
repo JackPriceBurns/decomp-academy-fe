@@ -43,14 +43,7 @@ operation.
 
 ## Your task
 
-Write `combine_two`, taking one `int*`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int combine_two(int* p) {
-    return 0;
-}
-```
+Write `combine_two` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

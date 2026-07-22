@@ -68,13 +68,6 @@ Write `wrapper`, which calls `compute(x)` and returns a value derived from the
 result. `compute` is declared for you. Expect a full prologue and epilogue around the
 `bl`.
 
-<!-- starter -->
-```c
-int wrapper(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int wrapper(int x) {

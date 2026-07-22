@@ -53,13 +53,6 @@ way to bring it back is to cast that address through a `volatile` pointer.
 Write `read_status` to match the assembly above. The `vu32` typedef is part
 of the shared preamble. Both loads must survive as separate `lwz`.
 
-<!-- starter -->
-```c
-int read_status(void) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int read_status(void) {

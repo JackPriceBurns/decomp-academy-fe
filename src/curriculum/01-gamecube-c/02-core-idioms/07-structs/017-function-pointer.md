@@ -56,12 +56,6 @@ nothing extra needs to happen before the branch.
 
 With `Actor` above, write `Actor_run` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void Actor_run(Actor* a) {
-}
-```
-
 <!-- solution -->
 ```c
 void Actor_run(Actor* a) {

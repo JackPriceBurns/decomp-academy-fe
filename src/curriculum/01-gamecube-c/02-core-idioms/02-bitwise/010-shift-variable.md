@@ -41,13 +41,6 @@ from the mnemonic, and let the second argument carry the count.
 
 Write `shl_var` to match the target.
 
-<!-- starter -->
-```c
-int shl_var(int x, int n) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int shl_var(int x, int n) {

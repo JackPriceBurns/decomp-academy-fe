@@ -71,13 +71,6 @@ but with loads sitting next to the adds that consume them. You can't get there
 by rewriting the C; the lever is the pragma. Put `#pragma scheduling off`
 before the function so the compiler emits instructions in source order.
 
-<!-- starter -->
-```c
-int combine2(int *p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 #pragma scheduling off

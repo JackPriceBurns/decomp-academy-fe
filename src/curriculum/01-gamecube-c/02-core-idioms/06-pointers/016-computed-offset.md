@@ -47,14 +47,7 @@ instruction to find the operation.
 
 ## Your task
 
-Write `pair_at`, taking an `int*` and an `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int pair_at(int* p, int i) {
-    return 0;
-}
-```
+Write `pair_at` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

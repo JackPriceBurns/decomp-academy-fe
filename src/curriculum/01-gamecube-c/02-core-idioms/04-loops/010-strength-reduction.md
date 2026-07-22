@@ -60,15 +60,6 @@ Write `count`, returning how many elements precede the first zero in `a` (the
 length of a zero-terminated `int` array). Write natural C — let the compiler
 produce the strength-reduced pointer form.
 
-<!-- starter -->
-```c
-int count(int *a) {
-    int n = 0;
-    // your code here
-    return n;
-}
-```
-
 <!-- solution -->
 ```c
 int count(int *a) {

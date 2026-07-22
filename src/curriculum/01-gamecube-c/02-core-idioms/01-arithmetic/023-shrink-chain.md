@@ -41,14 +41,7 @@ from the count, then follow the two operations after it.
 
 ## Your task
 
-Write `shrink3`, taking three `u32`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u32 shrink3(u32 a, u32 b, u32 c) {
-    return 0;
-}
-```
+Write `shrink3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -58,13 +58,6 @@ The globals are declared for you:
 what type each global is, which operands feed each instruction, and what the
 float-to-byte path looks like.
 
-<!-- starter -->
-```c
-void worldUpdate(void) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void worldUpdate(void) {

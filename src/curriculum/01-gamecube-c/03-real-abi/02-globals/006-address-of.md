@@ -65,13 +65,6 @@ here, which is what you'll be reproducing below.
 `lis @ha` / `addi @l` pair above — the two-instruction sequence that materializes
 a non-SDA address.
 
-<!-- starter -->
-```c
-int* getPalette(void) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int* getPalette(void) {

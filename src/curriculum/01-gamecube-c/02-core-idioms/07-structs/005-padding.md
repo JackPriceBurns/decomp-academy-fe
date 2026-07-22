@@ -50,13 +50,6 @@ follows a narrow field.
 
 With the `S` struct above, write `S_getCount` so it compiles to the `lhz` in the target assembly.
 
-<!-- starter -->
-```c
-u16 S_getCount(S* s) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u16 S_getCount(S* s) {

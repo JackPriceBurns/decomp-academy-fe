@@ -43,14 +43,7 @@ its multiplier, then trace the two operations that follow.
 
 ## Your task
 
-Write `scale3`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int scale3(int a, int b, int c) {
-    return 0;
-}
-```
+Write `scale3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

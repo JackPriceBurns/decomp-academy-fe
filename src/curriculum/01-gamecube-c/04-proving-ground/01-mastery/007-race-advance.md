@@ -62,13 +62,6 @@ regenerates this exact pivot structure for you.
 
 Write `race_advance` taking a `RaceObject* obj`. Switch on `s->phase` with cases 0 through 3 and a `default`, reading `s` from `obj->state`. Match the comparison tree and all per-case behaviour shown in the assembly above.
 
-<!-- starter -->
-```c
-void race_advance(RaceObject* obj) {
-    // switch on s->phase across cases 0..3 with a default
-}
-```
-
 <!-- solution -->
 ```c
 void race_advance(RaceObject* obj) {

@@ -57,6 +57,8 @@ export function formatLesson(lesson) {
   if (lesson.concept) fm.concept = true;
   if (lesson.hideContext) fm.hideContext = true;
   if (lesson.opt) fm.opt = lesson.opt;
+  if (lesson.peephole === false) fm.peephole = false;
+  if (lesson.schedule === false) fm.schedule = false;
   if (lesson.hints && lesson.hints.length) fm.hints = lesson.hints;
 
   const sections = [`---\n${YAML.stringify(fm).trimEnd()}\n---`, (lesson.brief ?? "").trim()];
@@ -133,6 +135,10 @@ export function parseLessonFile(raw, { chapter, order }) {
   if (code.context != null) lesson.context = `${code.context}\n`;
   if (data.hideContext) lesson.hideContext = true;
   if (data.opt) lesson.opt = data.opt;
+  // Codegen toggles (default enabled). Only carried when explicitly present, so
+  // a lesson opts out of peephole/scheduling by setting the field to `false`.
+  if (typeof data.peephole === "boolean") lesson.peephole = data.peephole;
+  if (typeof data.schedule === "boolean") lesson.schedule = data.schedule;
   return lesson;
 }
 

@@ -39,13 +39,6 @@ pick the constant that lines up.
 
 Write `shiftLeftConst` so it compiles to the `slwi` above.
 
-<!-- starter -->
-```c
-u32 shiftLeftConst(u32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 shiftLeftConst(u32 x) {

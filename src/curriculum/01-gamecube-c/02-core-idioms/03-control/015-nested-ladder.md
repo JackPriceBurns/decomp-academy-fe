@@ -50,14 +50,7 @@ on which side.
 
 ## Your task
 
-Write `size_class`, taking one `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int size_class(int n) {
-    return 0;
-}
-```
+Write `size_class` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

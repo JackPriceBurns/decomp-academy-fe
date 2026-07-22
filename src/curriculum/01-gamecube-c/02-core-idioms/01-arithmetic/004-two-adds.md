@@ -43,14 +43,7 @@ arguments take part. Chase every `add`'s sources back to the argument registers
 
 ## Your task
 
-Write `add3`, taking three `int`s, to reproduce the target assembly.
-
-<!-- starter -->
-```c
-int add3(int a, int b, int c) {
-    return 0;
-}
-```
+Write `add3` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

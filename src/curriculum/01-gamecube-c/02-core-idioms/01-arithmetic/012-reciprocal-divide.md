@@ -98,14 +98,7 @@ Your target builds `M` from its own `lis`/`addi` pair and has a single `srawi`.
 Compute `M = top × 2^16 + bottom`, read `s` off that shift, and divide
 `2^(32 + s)` by `M` to find the divisor it hides.
 
-Write `recipDiv`, taking an `int a`, to reproduce the target assembly.
-
-<!-- starter -->
-```c
-int recipDiv(int a) {
-    return 0;
-}
-```
+Write `recipDiv` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

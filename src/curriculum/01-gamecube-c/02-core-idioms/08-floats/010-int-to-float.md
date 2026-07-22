@@ -46,14 +46,7 @@ the whole sequence.
 
 ## Your task
 
-Write `i2f` taking an `int x` to reproduce the assembly above.
-
-<!-- starter -->
-```c
-f32 i2f(int x) {
-    return 0.0f;
-}
-```
+Write `i2f` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -63,16 +63,8 @@ the plain multiply-then-add — the compiler fuses and schedules it for you.
 
 ## Your task
 
-The float globals `gGainA` and `gGainB` are declared for you. Write `mixGains`,
-taking two `f32` args, to reproduce the assembly above. Recover the bias literals
+The float globals `gGainA` and `gGainB` are declared for you. Write `mixGains` to reproduce the assembly above. Recover the bias literals
 from the `@N` rodata slots and write each channel in its natural form.
-
-<!-- starter -->
-```c
-f32 mixGains(f32 x, f32 y) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

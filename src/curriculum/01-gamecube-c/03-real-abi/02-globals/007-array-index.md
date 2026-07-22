@@ -49,15 +49,8 @@ this constantly, so don't read anything into it.
 
 ## Your task
 
-`extern int gScores[];` is provided. Write `getScore`, taking an `int i`, so it
+`extern int gScores[];` is provided. Write `getScore` so it
 compiles to the indexed array load above.
-
-<!-- starter -->
-```c
-int getScore(int i) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

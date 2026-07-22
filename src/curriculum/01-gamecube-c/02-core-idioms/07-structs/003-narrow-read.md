@@ -51,13 +51,6 @@ names.
 
 With the `Color` struct above, write `Color_getG` to match the target.
 
-<!-- starter -->
-```c
-u8 Color_getG(Color* c) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u8 Color_getG(Color* c) {

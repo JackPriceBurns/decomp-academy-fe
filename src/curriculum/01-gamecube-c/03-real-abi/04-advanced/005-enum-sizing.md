@@ -54,13 +54,6 @@ Write `check_state(struct Actor *a)` to match the assembly above. The
 `State` enum and `Actor` struct are provided. Confirm for yourself that
 replacing the enum constant with its numeric value produces the same asm.
 
-<!-- starter -->
-```c
-int check_state(struct Actor *a) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int check_state(struct Actor *a) {

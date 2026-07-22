@@ -55,12 +55,6 @@ target and puzzle out which element is in play and what happens to it.
 
 Write `bump` to match the target. Expect exactly `lbz` / `addi` / `stb` with no `extsb`.
 
-<!-- starter -->
-```c
-void bump(u8* p) {
-}
-```
-
 <!-- solution -->
 ```c
 void bump(u8* p) {

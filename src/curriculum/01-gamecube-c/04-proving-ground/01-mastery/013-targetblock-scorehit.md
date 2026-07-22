@@ -91,13 +91,6 @@ listing above (where `kind` is in `r31`). Trace the call sequence and arguments
 from the assembly; choose your local variable placement to make `kind` — not
 `obj` — the value that spans the calls.
 
-<!-- starter -->
-```c
-void targetblock_scoreHit(TargetBlockObject* obj) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void targetblock_scoreHit(TargetBlockObject* obj) {

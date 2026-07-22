@@ -60,12 +60,6 @@ The globals are declared for you: `gPacketBytes` and `gFrameBytes`, both `u64`.
 Write `tallyBytes` to reproduce the assembly above. Read the relocations to see
 which global is read, which is written, and how the low and high halves pair up.
 
-<!-- starter -->
-```c
-void tallyBytes(void) {
-}
-```
-
 <!-- solution -->
 ```c
 void tallyBytes(void) {

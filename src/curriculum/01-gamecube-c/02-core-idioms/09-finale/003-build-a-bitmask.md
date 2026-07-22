@@ -65,12 +65,7 @@ assembly above.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-u32 mask_above(int *a, int n) {
-    int i;
-    u32 m = 0;
-    // your code here
-    return m;
-}
+// define mask_above to match the target
 ```
 
 <!-- solution -->

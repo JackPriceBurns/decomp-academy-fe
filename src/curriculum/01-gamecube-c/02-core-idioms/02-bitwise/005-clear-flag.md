@@ -48,13 +48,6 @@ up.
 
 Write `clear_flag` so it compiles to the `rlwinm` above.
 
-<!-- starter -->
-```c
-u32 clear_flag(u32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 clear_flag(u32 x) {

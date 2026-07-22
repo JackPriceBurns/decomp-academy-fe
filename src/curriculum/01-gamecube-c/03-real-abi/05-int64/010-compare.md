@@ -44,13 +44,6 @@ compare. It's among the surest signs the operands really are `long long`.
 
 Write `lt_64`, returning whether `a` is less than `b` (as an `int`).
 
-<!-- starter -->
-```c
-int lt_64(u64 a, u64 b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int lt_64(u64 a, u64 b) {

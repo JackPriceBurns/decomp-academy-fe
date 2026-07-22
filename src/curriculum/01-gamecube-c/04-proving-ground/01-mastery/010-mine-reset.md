@@ -88,13 +88,6 @@ feeding `spawnExplosion`, why `ObjHits_EnableObject` appears twice, and the
 NULL-guarded free at the end. Reconstruct the call sequence and struct writes
 from the assembly itself.
 
-<!-- starter -->
-```c
-void mine_resetToIdle(MineObject* obj) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void mine_resetToIdle(MineObject* obj) {

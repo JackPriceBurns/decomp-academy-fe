@@ -57,13 +57,6 @@ Now your target. The rotate amount hands you the right-shift count, the mask
 
 Write `extract_nibble` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-u32 extract_nibble(u32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 extract_nibble(u32 x) {

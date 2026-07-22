@@ -47,14 +47,7 @@ which is the subtrahend.
 
 ## Your task
 
-Write `divsubmul4`, taking four `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int divsubmul4(int a, int b, int c, int d) {
-    return 0;
-}
-```
+Write `divsubmul4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

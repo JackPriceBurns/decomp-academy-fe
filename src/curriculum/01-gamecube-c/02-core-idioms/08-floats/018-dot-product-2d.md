@@ -43,14 +43,7 @@ registers, pull out the two products, and check that they are added.
 
 ## Your task
 
-Write `dot2`, taking four `f32`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-f32 dot2(f32 a, f32 b, f32 c, f32 d) {
-    return 0.0f;
-}
-```
+Write `dot2` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

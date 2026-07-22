@@ -59,11 +59,7 @@ Write `sum`, returning the sum of the first `n` elements of `a`.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int sum(int *a, int n) {
-    int i, s = 0;
-    // sum a[0..n-1]
-    return s;
-}
+// define sum to match the target
 ```
 
 <!-- solution -->

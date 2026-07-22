@@ -47,14 +47,7 @@ four operations.
 
 ## Your task
 
-Write `allfour5`, taking five `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int allfour5(int a, int b, int c, int d, int e) {
-    return 0;
-}
-```
+Write `allfour5` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

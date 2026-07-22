@@ -53,13 +53,6 @@ Write `cost_of(Tile t)` to reproduce the assembly above. The `Tile` enum is
 provided in context. Eight dense enum values land in table form — read the
 `li r3, N` in each arm to recover what each tile costs.
 
-<!-- starter -->
-```c
-int cost_of(Tile t) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int cost_of(Tile t) {

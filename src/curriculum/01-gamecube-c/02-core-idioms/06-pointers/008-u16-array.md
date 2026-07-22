@@ -47,13 +47,6 @@ when the pointer type is `s16*` instead of `u16*`.
 
 Write `half_at` to match the target assembly above.
 
-<!-- starter -->
-```c
-s16 half_at(s16* p, int i) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 s16 half_at(s16* p, int i) {

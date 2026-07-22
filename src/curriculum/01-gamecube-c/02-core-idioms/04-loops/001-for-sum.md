@@ -64,10 +64,7 @@ Write `sum`, returning the sum `0 + 1 + ... + (n-1)`.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int sum(int n) {
-    // accumulate 0 + 1 + ... + (n-1)
-    return 0;
-}
+// define sum to match the target
 ```
 
 <!-- solution -->

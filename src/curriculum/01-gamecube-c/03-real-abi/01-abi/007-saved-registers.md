@@ -57,13 +57,6 @@ it back to whichever parameter fed it.
 Write `keep`, which calls `side` and then returns a surviving parameter.
 `side` is declared for you.
 
-<!-- starter -->
-```c
-int keep(int x, int y) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int keep(int x, int y) {

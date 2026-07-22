@@ -92,13 +92,6 @@ initial arithmetic.
 
 With the struct above, write `actor_clampHealth` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void actor_clampHealth(Actor* a, f32 amount) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void actor_clampHealth(Actor* a, f32 amount) {

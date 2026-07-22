@@ -62,12 +62,6 @@ end to end, then fold it back down to the assignment it always was.
 
 With the `Span` struct above, write `Span_copy` to reproduce the target assembly.
 
-<!-- starter -->
-```c
-void Span_copy(Span* dst, Span* src) {
-}
-```
-
 <!-- solution -->
 ```c
 void Span_copy(Span* dst, Span* src) {

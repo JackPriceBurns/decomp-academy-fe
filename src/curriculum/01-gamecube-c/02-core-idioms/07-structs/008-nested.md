@@ -46,13 +46,6 @@ Count the bytes and the offset explains itself.
 
 With the structs above, write `Entity_getPosY` to reproduce the target assembly.
 
-<!-- starter -->
-```c
-f32 Entity_getPosY(Entity* e) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 Entity_getPosY(Entity* e) {

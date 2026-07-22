@@ -54,15 +54,6 @@ on stage in the break lesson driving a loop that bails early too.
 
 Write `amax`, returning the largest of the `n` elements of `a` (assume `n >= 1`).
 
-<!-- starter -->
-```c
-int amax(int *a, int n) {
-    int i, m = a[0];
-    // keep the largest element
-    return m;
-}
-```
-
 <!-- solution -->
 ```c
 int amax(int *a, int n) {

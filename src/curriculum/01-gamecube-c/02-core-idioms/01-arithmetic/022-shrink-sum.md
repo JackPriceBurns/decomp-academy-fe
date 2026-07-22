@@ -44,14 +44,7 @@ into a divisor, and see how the two results are joined.
 
 ## Your task
 
-Write `shrink2`, taking two `u32`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u32 shrink2(u32 a, u32 b) {
-    return 0;
-}
-```
+Write `shrink2` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -53,13 +53,6 @@ recognising those three shapes and writing each in the C that produces it.
 Write `step_state(GameState s)` to reproduce the assembly above. The `GameState`
 enum and `g_abort` are provided in context.
 
-<!-- starter -->
-```c
-int step_state(GameState s) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int step_state(GameState s) {

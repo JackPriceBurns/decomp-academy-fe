@@ -42,14 +42,7 @@ expression back together.
 
 ## Your task
 
-Write `muladdsub4`, taking four `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int muladdsub4(int a, int b, int c, int d) {
-    return 0;
-}
-```
+Write `muladdsub4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

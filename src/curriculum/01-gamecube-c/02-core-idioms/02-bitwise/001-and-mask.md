@@ -49,13 +49,6 @@ blr
 
 Write `mask_bits` to match the target.
 
-<!-- starter -->
-```c
-u32 mask_bits(u32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 mask_bits(u32 x) {

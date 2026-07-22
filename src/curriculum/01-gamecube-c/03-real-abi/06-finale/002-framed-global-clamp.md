@@ -65,16 +65,9 @@ limit and direction.
 ## Your task
 
 `compute` is declared for you, along with the int global `gThreshold`. Write
-`clampedStep`, taking one `int`, to reproduce the assembly above. Expect a full
+`clampedStep` to reproduce the assembly above. Expect a full
 prologue and epilogue around the `bl`; the real work is the load, the arithmetic,
 and the clamp in the middle.
-
-<!-- starter -->
-```c
-int clampedStep(int x) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

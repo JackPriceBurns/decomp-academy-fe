@@ -43,13 +43,6 @@ and an unsigned source pulls in a mask.
 Write `s8_to_s16`, taking an `s8 x` and returning it as an `s16`. The signed
 widen should emit a single `extsb`.
 
-<!-- starter -->
-```c
-s16 s8_to_s16(s8 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 s16 s8_to_s16(s8 x) {

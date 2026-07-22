@@ -41,14 +41,7 @@ accumulator instruction by instruction until the expression falls out.
 
 ## Your task
 
-Write `addsub4`, taking four `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int addsub4(int a, int b, int c, int d) {
-    return 0;
-}
-```
+Write `addsub4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

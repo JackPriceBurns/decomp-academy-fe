@@ -70,13 +70,6 @@ reconstruct the expression.
 Write `capstone`, which calls `work` and combines the result with two surviving
 parameters, to reproduce the target assembly. `work` is declared for you.
 
-<!-- starter -->
-```c
-int capstone(int a, int b, int c) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int capstone(int a, int b, int c) {

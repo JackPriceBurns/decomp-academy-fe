@@ -37,14 +37,7 @@ Spot the two instructions one after another and the order is everything. They do
 
 ## Your task
 
-Write `negabs` taking an `f32 x` to compile to the two sign-bit instructions above.
-
-<!-- starter -->
-```c
-f32 negabs(f32 x) {
-    return 0.0f;
-}
-```
+Write `negabs` to compile to the two sign-bit instructions above.
 
 <!-- solution -->
 ```c

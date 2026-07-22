@@ -40,13 +40,6 @@ instruction comes out.
 
 Write `shiftRightU` so it compiles to the `srwi` above.
 
-<!-- starter -->
-```c
-u32 shiftRightU(u32 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 shiftRightU(u32 x) {

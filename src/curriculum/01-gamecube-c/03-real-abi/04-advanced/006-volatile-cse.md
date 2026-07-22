@@ -58,13 +58,6 @@ hardware-register code depends on it.
 Write `poll_counter` using the provided `volatile int g_counter` to reproduce the
 assembly above.
 
-<!-- starter -->
-```c
-int poll_counter(void) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int poll_counter(void) {

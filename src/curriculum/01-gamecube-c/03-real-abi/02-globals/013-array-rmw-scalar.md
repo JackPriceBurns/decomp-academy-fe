@@ -57,14 +57,7 @@ Match the reloc names, and check that the load and store hit the same element.
 ## Your task
 
 The globals are declared for you: `gGrid` (`int[]`) and `gBonus` (`int`). Write
-`addBonus`, taking an `int i`, to reproduce the read-modify-write above.
-
-<!-- starter -->
-```c
-void addBonus(int i) {
-    // your code here
-}
-```
+`addBonus` to reproduce the read-modify-write above.
 
 <!-- solution -->
 ```c

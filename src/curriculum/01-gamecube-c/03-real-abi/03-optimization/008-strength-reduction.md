@@ -56,12 +56,6 @@ you see in the target asm and you can work backward to the source expression.
 Write `fill(int *dst, int n)` to reproduce the assembly above. Use the
 natural loop-and-multiply form; let `-O4,p` handle the reduction.
 
-<!-- starter -->
-```c
-void fill(int *dst, int n) {
-}
-```
-
 <!-- solution -->
 ```c
 void fill(int *dst, int n) {

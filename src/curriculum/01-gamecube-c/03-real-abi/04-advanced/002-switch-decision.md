@@ -65,13 +65,6 @@ from the assembly above to recover which case labels to write, and read the
 `li r3, N` in each arm to recover the return value. Four scattered cases stays
 a compare chain.
 
-<!-- starter -->
-```c
-int route(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int route(int x) {

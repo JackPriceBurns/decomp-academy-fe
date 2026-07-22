@@ -39,14 +39,7 @@ the `fsubs` and you will know which value gets subtracted from which.
 
 ## Your task
 
-Write `net3`, taking three `f32`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-f32 net3(f32 a, f32 b, f32 c) {
-    return 0.0f;
-}
-```
+Write `net3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

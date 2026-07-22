@@ -42,14 +42,7 @@ compile down to that pair.
 
 ## Your task
 
-Write `fadd3`, taking three `f32`s, to match the target assembly.
-
-<!-- starter -->
-```c
-f32 fadd3(f32 a, f32 b, f32 c) {
-    return 0.0f;
-}
-```
+Write `fadd3` to match the target assembly.
 
 <!-- solution -->
 ```c

@@ -61,13 +61,6 @@ Look at the mask width in `clrlwi.` and the arithmetic after the branch to work
 out what C to write. The optimizer will merge the mask and the test into a
 single `clrlwi.` automatically when you structure the C correctly.
 
-<!-- starter -->
-```c
-int pick(int x, int a, int b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int pick(int x, int a, int b) {

@@ -40,14 +40,7 @@ the gap. Find the skipped register first and the rest of the signature lines up.
 
 ## Your task
 
-Write `aligned_64`, taking a `u32` then a `u64`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u64 aligned_64(u32 a, u64 b) {
-    return 0;
-}
-```
+Write `aligned_64` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

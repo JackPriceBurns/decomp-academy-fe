@@ -54,13 +54,6 @@ one for each way out. Now do the same for a function guarding an `int*` load.
 Write `safe_deref`, taking an `int* p`, returning `*p` when `p` is non-NULL and
 `0` otherwise.
 
-<!-- starter -->
-```c
-int safe_deref(int* p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int safe_deref(int* p) {

@@ -45,13 +45,6 @@ as a global `f32`, no address built first, no constant pool involved.
 
 `extern f32 gGravity;` is provided. Write `readGravity` to reproduce the `lfs` assembly above.
 
-<!-- starter -->
-```c
-f32 readGravity(void) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 readGravity(void) {

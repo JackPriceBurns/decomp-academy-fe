@@ -49,15 +49,7 @@ and which holds the index.
 
 ## Your task
 
-`extern int gGrid[];` is provided. Write `setCell`, taking an `int i` and an
-`int v`, to reproduce the indexed store above.
-
-<!-- starter -->
-```c
-void setCell(int i, int v) {
-    // your code here
-}
-```
+`extern int gGrid[];` is provided. Write `setCell` to reproduce the indexed store above.
 
 <!-- solution -->
 ```c

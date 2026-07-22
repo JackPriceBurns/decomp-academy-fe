@@ -56,13 +56,6 @@ rebuild the arithmetic.
 
 With the `Point` struct above, write `Point_sum` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int Point_sum(Point* p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int Point_sum(Point* p) {

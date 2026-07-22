@@ -50,13 +50,6 @@ default. Read the `li r3, N` values in each case arm from the assembly above
 to recover what each case returns. Eight dense cases is past the threshold, so
 this compiles to the table form.
 
-<!-- starter -->
-```c
-int dispatch(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int dispatch(int x) {

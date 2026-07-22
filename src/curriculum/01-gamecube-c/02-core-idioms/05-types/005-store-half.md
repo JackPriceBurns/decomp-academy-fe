@@ -33,13 +33,7 @@ on, never the store.
 
 ## Your task
 
-Write `store_u16`, taking a `u16*` and a `u16`, to produce a single `sth`.
-
-<!-- starter -->
-```c
-void store_u16(u16* p, u16 v) {
-}
-```
+Write `store_u16` to produce a single `sth`.
 
 <!-- solution -->
 ```c

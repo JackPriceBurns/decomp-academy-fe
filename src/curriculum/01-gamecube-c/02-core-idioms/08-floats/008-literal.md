@@ -29,14 +29,7 @@ Those `...` are a relocation; the linker resolves them, and in the disassembler 
 
 ## Your task
 
-Write `scaleByLiteral` taking an `f32 x` to match the target assembly above.
-
-<!-- starter -->
-```c
-f32 scaleByLiteral(f32 x) {
-    return 0.0f;
-}
-```
+Write `scaleByLiteral` to match the target assembly above.
 
 <!-- solution -->
 ```c

@@ -41,14 +41,7 @@ two arms.
 
 ## Your task
 
-Write `pick_signed`, taking two signed `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int pick_signed(int a, int b) {
-    return 0;
-}
-```
+Write `pick_signed` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

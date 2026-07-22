@@ -53,15 +53,8 @@ the value waiting on each path.
 
 ## Your task
 
-Write `in_bounds`, taking an index `i` and a length `n`, to reproduce the
+Write `in_bounds` to reproduce the
 assembly above.
-
-<!-- starter -->
-```c
-int in_bounds(int i, int n) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

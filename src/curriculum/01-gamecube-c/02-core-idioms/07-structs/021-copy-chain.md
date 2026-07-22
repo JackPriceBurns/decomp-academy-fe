@@ -67,12 +67,6 @@ shown above). Pull the two apart, then write both.
 With the `Mob` struct above, write `Mob_respawn` to reproduce the target
 assembly.
 
-<!-- starter -->
-```c
-void Mob_respawn(Mob* m) {
-}
-```
-
 <!-- solution -->
 ```c
 void Mob_respawn(Mob* m) {

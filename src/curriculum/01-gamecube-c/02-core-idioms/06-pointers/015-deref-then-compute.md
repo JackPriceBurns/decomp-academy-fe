@@ -46,15 +46,8 @@ how the other one enters.
 
 ## Your task
 
-Write `combine_scaled`, taking an `int*` and an `int`, to reproduce the assembly
+Write `combine_scaled` to reproduce the assembly
 above.
-
-<!-- starter -->
-```c
-int combine_scaled(int* p, int k) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

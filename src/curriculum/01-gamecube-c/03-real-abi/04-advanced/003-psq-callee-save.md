@@ -57,13 +57,6 @@ across six calls forces several callee-saved FPRs — watch the
 `psq_st`/`stfd` pairs appear in the prologue. Use the `fmadds`/`fmuls`/`fadds`
 instructions in the epilogue to reconstruct which products are added together.
 
-<!-- starter -->
-```c
-f32 mix(f32 *p) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 mix(f32 *p) {

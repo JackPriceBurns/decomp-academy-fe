@@ -77,11 +77,7 @@ grid `a`.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int gsum(int *a, int rows, int cols) {
-    int i, j, s = 0;
-    // sum every cell of the rows-by-cols grid
-    return s;
-}
+// define gsum to match the target
 ```
 
 <!-- solution -->

@@ -73,16 +73,8 @@ typedef struct { f32 value; f32 target; f32 rate; } Slider;
 typedef struct { f32 value; f32 target; f32 rate; } Slider;
 ```
 
-With the `Slider` struct above, write `slider_approach` taking a `Slider*` and an
-`f32 dt` to reproduce the assembly above. Compute the interpolated step into one
+With the `Slider` struct above, write `slider_approach` to reproduce the assembly above. Compute the interpolated step into one
 local, clamp it against the relevant field, and store it back.
-
-<!-- starter -->
-```c
-void slider_approach(Slider* s, f32 dt) {
-    // your code here
-}
-```
 
 <!-- solution -->
 ```c

@@ -55,14 +55,7 @@ itself.
 
 ## Your task
 
-Write `capstone`, taking an `int*` and an `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int capstone(int* p, int i) {
-    return 0;
-}
-```
+Write `capstone` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

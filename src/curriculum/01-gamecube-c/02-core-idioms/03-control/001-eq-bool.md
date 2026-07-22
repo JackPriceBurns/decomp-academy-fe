@@ -43,14 +43,6 @@ write the equality expression using the corresponding parameters.
 
 Write `is_equal` so it compiles to the `subf` / `cntlzw` / `srwi` idiom above.
 
-<!-- starter -->
-```c
-int is_equal(int a, int b) {
-    /* TODO: return the result of comparing a and b */
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int is_equal(int a, int b) {

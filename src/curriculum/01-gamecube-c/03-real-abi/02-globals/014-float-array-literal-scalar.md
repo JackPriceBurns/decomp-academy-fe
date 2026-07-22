@@ -63,14 +63,7 @@ which symbol is which, and the literal's value off the constant.
 ## Your task
 
 The globals are declared for you: `gSamples` (`f32[]`) and `gOut` (`f32`). Write
-`mixSample`, taking an `int i`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-void mixSample(int i) {
-    // your code here
-}
-```
+`mixSample` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

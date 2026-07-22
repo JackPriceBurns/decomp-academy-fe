@@ -65,13 +65,6 @@ the `&&`/`||` behind them is yours to rebuild.
 
 Write `both_positive`: return `1` if both arguments satisfy a positive condition, otherwise `0`.
 
-<!-- starter -->
-```c
-int both_positive(int a, int b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int both_positive(int a, int b) {

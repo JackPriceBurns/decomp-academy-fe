@@ -38,14 +38,7 @@ registers — identify which two, then map them to the corresponding parameters.
 
 ## Your task
 
-Write `pick5`, taking five `int`s, to match the target assembly.
-
-<!-- starter -->
-```c
-int pick5(int a, int b, int c, int d, int e) {
-    return 0;
-}
-```
+Write `pick5` to match the target assembly.
 
 <!-- solution -->
 ```c

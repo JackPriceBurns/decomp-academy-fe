@@ -55,13 +55,6 @@ Write `dot2(f32 *a, f32 *b)` to reproduce the assembly above. Read the load
 offsets to determine which elements from each array are paired together, then
 write the natural C and let the scheduler interleave.
 
-<!-- starter -->
-```c
-f32 dot2(f32 *a, f32 *b) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 dot2(f32 *a, f32 *b) {

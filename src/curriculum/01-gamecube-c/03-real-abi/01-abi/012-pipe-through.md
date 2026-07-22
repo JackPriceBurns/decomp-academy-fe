@@ -61,13 +61,6 @@ where the first result flows, and what the second call is.
 Write `pipe2`, which chains a call into a second call, to reproduce the target
 assembly. `step` and `mix` are declared for you.
 
-<!-- starter -->
-```c
-int pipe2(int a, int b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int pipe2(int a, int b) {

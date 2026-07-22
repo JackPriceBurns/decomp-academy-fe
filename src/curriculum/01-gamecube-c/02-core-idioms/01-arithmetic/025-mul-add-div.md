@@ -47,14 +47,7 @@ produces, then determine what the final instruction does with both results.
 
 ## Your task
 
-Write `muldiv4`, taking four `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int muldiv4(int a, int b, int c, int d) {
-    return 0;
-}
-```
+Write `muldiv4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

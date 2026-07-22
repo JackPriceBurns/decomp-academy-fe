@@ -56,14 +56,7 @@ fields meet up, and which argument supplies which one.
 
 ## Your task
 
-Write `merge_fields`, taking two `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int merge_fields(int a, int b) {
-    return 0;
-}
-```
+Write `merge_fields` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

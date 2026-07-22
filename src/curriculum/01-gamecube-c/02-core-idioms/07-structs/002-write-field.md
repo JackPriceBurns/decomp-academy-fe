@@ -47,12 +47,6 @@ write the equivalent setter.
 
 With the `Point` struct above, write `Point_setField` to reproduce the target assembly.
 
-<!-- starter -->
-```c
-void Point_setField(Point* p, int v) {
-}
-```
-
 <!-- solution -->
 ```c
 void Point_setField(Point* p, int v) {

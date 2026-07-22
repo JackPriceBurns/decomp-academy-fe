@@ -55,14 +55,6 @@ computation and inserts a spurious `frsp`.
 Write `halve` to reproduce the assembly above — with **no `frsp`**.
 Match the parameter type and literal suffix to the instructions you see.
 
-<!-- starter -->
-```c
-f32 halve(double x) {
-    // your code here
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 halve(f32 x) {

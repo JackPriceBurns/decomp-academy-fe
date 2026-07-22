@@ -43,14 +43,7 @@ out the argument order.
 
 ## Your task
 
-Write `xor_chain`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int xor_chain(int a, int b, int c) {
-    return 0;
-}
-```
+Write `xor_chain` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

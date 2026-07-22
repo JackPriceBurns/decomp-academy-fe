@@ -66,13 +66,6 @@ Write `combine(Op op, f32 *p)` to reproduce the assembly above. The `Op` enum an
 read each case's `fadds`/`fsubs`/`fmuls`/`fmadds` block to recover that arm's
 expression, and let the callee-saved FPR spills fall out on their own.
 
-<!-- starter -->
-```c
-f32 combine(Op op, f32 *p) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 combine(Op op, f32 *p) {

@@ -48,13 +48,6 @@ table (a `b` through a computed table address), a pattern a later lesson covers.
 Write `classify`: a `switch` on `x` returning `10`, `20`, `30`, `40` for cases
 `0..3`, and `0` by default.
 
-<!-- starter -->
-```c
-int classify(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int classify(int x) {

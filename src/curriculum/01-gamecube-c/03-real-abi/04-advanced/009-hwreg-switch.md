@@ -61,13 +61,6 @@ the `lis`/`lwz` to recover which register is polled, then read the `cmpwi`
 probes and `li r3, N` arms to recover the switch. The `vu32` typedef is in the
 shared preamble; the single volatile read must feed the compare chain.
 
-<!-- starter -->
-```c
-int decode_irq(void) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int decode_irq(void) {

@@ -49,14 +49,7 @@ registers shuffled. Spot which one carries the mask (`r5`), which feeds the
 
 ## Your task
 
-Write `bit_select`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int bit_select(int a, int b, int m) {
-    return 0;
-}
-```
+Write `bit_select` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

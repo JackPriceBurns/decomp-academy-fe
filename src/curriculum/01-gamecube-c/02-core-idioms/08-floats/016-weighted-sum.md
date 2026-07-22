@@ -45,15 +45,8 @@ weights change. Pin down each loaded constant and which argument it scales.
 
 ## Your task
 
-Write `wsum`, taking two `f32`s, to reproduce the assembly above. Write it as a
+Write `wsum` to reproduce the assembly above. Write it as a
 plain weighted sum and let the compiler fuse the tail.
-
-<!-- starter -->
-```c
-f32 wsum(f32 a, f32 b) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

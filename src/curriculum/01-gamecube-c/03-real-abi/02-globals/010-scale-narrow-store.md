@@ -52,13 +52,6 @@ store opcode are what you read off it.
 The globals are declared for you: `gRaw` (`int`) and `gLevel` (`u8`). Write
 `clampLevel` (no arguments, no return) to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void clampLevel(void) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void clampLevel(void) {

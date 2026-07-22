@@ -43,14 +43,7 @@ register threading, and the original expression reassembles itself.
 
 ## Your task
 
-Write `addsub3`, taking three `int`s, to reproduce the target assembly.
-
-<!-- starter -->
-```c
-int addsub3(int a, int b, int c) {
-    return 0;
-}
-```
+Write `addsub3` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

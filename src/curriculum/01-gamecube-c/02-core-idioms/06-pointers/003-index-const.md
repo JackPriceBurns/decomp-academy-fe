@@ -46,13 +46,6 @@ particular element, and dividing by `sizeof(int)` is what tells you which.
 
 Write `elemAt` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int elemAt(int* p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int elemAt(int* p) {

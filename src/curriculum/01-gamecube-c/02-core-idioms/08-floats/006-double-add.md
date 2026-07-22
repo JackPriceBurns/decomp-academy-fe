@@ -28,13 +28,6 @@ So `fadd`/`fmul`/`fsub`/`fdiv` handle doubles and `fadds`/`fmuls`/`fsubs`/`fdivs
 
 Write `add_d` to compile to the `fadd` above.
 
-<!-- starter -->
-```c
-f64 add_d(f64 a, f64 b) {
-    return 0.0;
-}
-```
-
 <!-- solution -->
 ```c
 f64 add_d(f64 a, f64 b) {

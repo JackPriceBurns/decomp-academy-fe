@@ -56,13 +56,6 @@ shift to recover the mask, and the post-branch instruction to recover the op.
 Write `gate2(int *p)` to reproduce the assembly above — both loads at the top, a
 `clrlwi.` that merges the test, a `beqlr-`, then the arithmetic.
 
-<!-- starter -->
-```c
-int gate2(int *p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int gate2(int *p) {

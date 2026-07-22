@@ -45,14 +45,7 @@ the source matters as much as what it computes.
 
 ## Your task
 
-Write `clamp_low`, taking a single `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int clamp_low(int x) {
-    return 0;
-}
-```
+Write `clamp_low` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

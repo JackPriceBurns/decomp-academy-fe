@@ -44,14 +44,7 @@ And which argument is `rA` and which is `rB` in that `subf`?
 
 ## Your task
 
-Write `subadd3`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int subadd3(int a, int b, int c) {
-    return 0;
-}
-```
+Write `subadd3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -42,14 +42,7 @@ the second instruction for what happens to the quotient.
 
 ## Your task
 
-Write `divadd3`, taking three `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int divadd3(int a, int b, int c) {
-    return 0;
-}
-```
+Write `divadd3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

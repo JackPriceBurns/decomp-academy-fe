@@ -44,13 +44,6 @@ sibling of the `stw` from the previous lesson.
 `extern u8 gPlayerHealth;` is provided. Write `readHealth` to match the target.
 Keep the return type `u8` so the load stays `lbz`.
 
-<!-- starter -->
-```c
-u8 readHealth(void) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u8 readHealth(void) {

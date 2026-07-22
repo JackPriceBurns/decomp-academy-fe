@@ -53,13 +53,6 @@ Reach for `do`/`while` and you've gone one step too far.
 With `Node` above, write `List_last` that follows `next` until it is NULL and
 returns the final node.
 
-<!-- starter -->
-```c
-Node* List_last(Node* n) {
-    return n;
-}
-```
-
 <!-- solution -->
 ```c
 Node* List_last(Node* n) {

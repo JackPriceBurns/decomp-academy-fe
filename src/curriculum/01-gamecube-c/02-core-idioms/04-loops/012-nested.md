@@ -57,11 +57,7 @@ Write `grid`, returning the sum of `i * j` over all `0 <= i < n` and `0 <= j < n
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int grid(int n) {
-    int i, j, s = 0;
-    // sum i*j over the n-by-n grid
-    return s;
-}
+// define grid to match the target
 ```
 
 <!-- solution -->

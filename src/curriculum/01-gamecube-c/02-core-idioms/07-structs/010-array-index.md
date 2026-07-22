@@ -45,13 +45,6 @@ which field inside the element got read.
 
 With `Vec3i` above, write `getZ` to match the target.
 
-<!-- starter -->
-```c
-int getZ(Vec3i* a, int i) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int getZ(Vec3i* a, int i) {

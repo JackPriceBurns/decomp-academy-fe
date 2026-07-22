@@ -47,15 +47,8 @@ its C operator, since the cast already pruned the high half and whatever reaches
 
 ## Your task
 
-Write `and_down_64`, taking three `u64`s and returning a `u32`, to reproduce the
+Write `and_down_64` to reproduce the
 assembly above.
-
-<!-- starter -->
-```c
-u32 and_down_64(u64 a, u64 b, u64 c) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

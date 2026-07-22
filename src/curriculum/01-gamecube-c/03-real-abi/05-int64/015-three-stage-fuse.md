@@ -46,14 +46,7 @@ Name each operator from its pair, and since every pair feeds the next, the
 
 ## Your task
 
-Write `fuse_64`, taking four `u64`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u64 fuse_64(u64 a, u64 b, u64 c, u64 d) {
-    return 0;
-}
-```
+Write `fuse_64` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

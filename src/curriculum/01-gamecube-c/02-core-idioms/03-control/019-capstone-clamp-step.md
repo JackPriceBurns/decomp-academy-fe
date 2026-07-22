@@ -58,15 +58,8 @@ branch with no compare in the gap, and the fusion is showing its face again.
 
 ## Your task
 
-Write `apply_damage`, taking `hp`, `dmg`, and `armor` (all `int`), to reproduce
+Write `apply_damage` to reproduce
 the assembly above.
-
-<!-- starter -->
-```c
-int apply_damage(int hp, int dmg, int armor) {
-    return 0;
-}
-```
 
 <!-- solution -->
 ```c

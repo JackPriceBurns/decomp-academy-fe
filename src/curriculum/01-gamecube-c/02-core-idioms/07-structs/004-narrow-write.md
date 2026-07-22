@@ -48,12 +48,6 @@ front of it. Nail those offsets and your loads and stores fall into place.
 
 With the `Color` struct above, write `Color_setField` to reproduce the target assembly.
 
-<!-- starter -->
-```c
-void Color_setField(Color* c, u8 v) {
-}
-```
-
 <!-- solution -->
 ```c
 void Color_setField(Color* c, u8 v) {

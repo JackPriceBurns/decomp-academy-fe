@@ -46,13 +46,6 @@ this, reach for the union member anyway. It's the idiomatic MWCC spelling.
 
 With `FloatBits` above, write `floatRawBits` to match the target.
 
-<!-- starter -->
-```c
-u32 floatRawBits(FloatBits* u) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 floatRawBits(FloatBits* u) {

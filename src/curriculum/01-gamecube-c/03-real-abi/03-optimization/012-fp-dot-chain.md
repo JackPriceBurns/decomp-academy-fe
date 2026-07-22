@@ -54,13 +54,6 @@ Write `dot3(f32 *a, f32 *b)` to reproduce the target assembly — a sum of
 element-wise products with the loads scheduled and the additions contracted into
 `fmadds`.
 
-<!-- starter -->
-```c
-f32 dot3(f32 *a, f32 *b) {
-    return 0.0f;
-}
-```
-
 <!-- solution -->
 ```c
 f32 dot3(f32 *a, f32 *b) {

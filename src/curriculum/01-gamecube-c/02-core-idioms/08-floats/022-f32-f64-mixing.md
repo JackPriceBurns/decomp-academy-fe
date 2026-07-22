@@ -51,15 +51,8 @@ does.
 
 ## Your task
 
-Write `mix`, taking two `f32`s, to reproduce the assembly above. Cast as needed
+Write `mix` to reproduce the assembly above. Cast as needed
 so the arithmetic happens in `f64` and is narrowed back on return.
-
-<!-- starter -->
-```c
-f32 mix(f32 a, f32 b) {
-    return 0.0f;
-}
-```
 
 <!-- solution -->
 ```c

@@ -96,13 +96,6 @@ blr
 
 With the struct above, write `crfueltank_tick` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void crfueltank_tick(CrFuelTankObject* obj) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void crfueltank_tick(CrFuelTankObject* obj) {

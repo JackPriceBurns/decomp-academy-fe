@@ -53,13 +53,6 @@ and the last instruction for how the two copies of the quotient are joined.
 Write `cse_scale(int a, int b)` to reproduce the assembly above — one `divw`, one
 `slwi`, one combining op.
 
-<!-- starter -->
-```c
-int cse_scale(int a, int b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int cse_scale(int a, int b) {

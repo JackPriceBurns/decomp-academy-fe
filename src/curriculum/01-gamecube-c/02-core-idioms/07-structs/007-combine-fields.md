@@ -57,13 +57,6 @@ instructions to recover the expression.
 
 With the `Stats` struct above, write `Stats_score` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int Stats_score(Stats* s) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int Stats_score(Stats* s) {

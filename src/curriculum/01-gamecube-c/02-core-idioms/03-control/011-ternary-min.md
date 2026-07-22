@@ -46,13 +46,6 @@ argument is the one that lands in `r3`.
 
 Write `mini`, returning the smaller of two signed `int`s using a ternary.
 
-<!-- starter -->
-```c
-int mini(int a, int b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int mini(int a, int b) {

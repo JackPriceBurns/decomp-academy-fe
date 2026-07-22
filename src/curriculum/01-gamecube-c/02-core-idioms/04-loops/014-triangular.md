@@ -70,11 +70,7 @@ Write `tri`, returning the sum of `j` over all pairs with `0 <= j < i < n`.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int tri(int n) {
-    int i, j, s = 0;
-    // sum j over every pair with j < i < n
-    return s;
-}
+// define tri to match the target
 ```
 
 <!-- solution -->

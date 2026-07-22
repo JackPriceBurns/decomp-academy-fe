@@ -50,13 +50,6 @@ time.
 
 With `Pixel` above, write `Pixel_getG` so it compiles to the target `rlwinm`.
 
-<!-- starter -->
-```c
-u32 Pixel_getG(Pixel* p) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 Pixel_getG(Pixel* p) {

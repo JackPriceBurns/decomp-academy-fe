@@ -50,15 +50,7 @@ width, so count the bits in its `clrlwi` to confirm the cast.
 
 ## Your task
 
-`extern int gTable[];` is provided. Write `lookupByte`, taking an `int i` and
-returning a `u8`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-u8 lookupByte(int i) {
-    return 0;
-}
-```
+`extern int gTable[];` is provided. Write `lookupByte` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

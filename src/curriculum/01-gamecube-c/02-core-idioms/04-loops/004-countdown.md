@@ -63,11 +63,7 @@ Write `sum`, returning `n + (n-1) + ... + 1` by counting **down** from `n`.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-int sum(int n) {
-    int s = 0;
-    // count down from n to 1
-    return s;
-}
+// define sum to match the target
 ```
 
 <!-- solution -->

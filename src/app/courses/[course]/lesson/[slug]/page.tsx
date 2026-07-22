@@ -53,6 +53,19 @@ export function generateMetadata({
   };
 }
 
+// From the "Reading Signatures" chapter on, exercises ship without a starter
+// signature — the learner derives the return type and arguments from the target
+// assembly, the way real decompilation works. A lesson opts into this simply by
+// omitting its starter block (starter === ""). We then seed the editor with a
+// name-only comment: the symbol is the one thing you legitimately know up front
+// (it's also shown in the workspace header), so the blank editor has an anchor
+// without giving the shape away. Lessons that still want a scaffold (the pre-ABI
+// warm-up exercises) keep a non-empty starter block and are passed through as-is.
+function editorStarter(starter: string, symbol: string): string {
+  if (starter.trim() || !symbol) return starter;
+  return `// define ${symbol} to match the target\n`;
+}
+
 export default function LessonPage({ params }: { params: { course: string; slug: string } }) {
   // Keyed by (course, slug): a URL whose course/slug pair doesn't exist — a stale
   // or hand-typed link — resolves to nothing and 404s, rather than a wrong page.
@@ -77,7 +90,7 @@ export default function LessonPage({ params }: { params: { course: string; slug:
     briefHtml: renderMarkdown(lesson.brief),
     concept: lesson.concept ?? false,
     symbol: lesson.symbol,
-    starter: lesson.starter,
+    starter: editorStarter(lesson.starter, lesson.symbol),
     solution: lesson.solution,
     // The struct/type preamble. Shown read-only in a workspace tab, and — for
     // the in-browser agbcc grader — fed to the client-side compile. Withheld

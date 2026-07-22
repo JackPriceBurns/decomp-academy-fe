@@ -47,14 +47,7 @@ there, rebuild the one `&&` expression that lets the `1` through.
 
 ## Your task
 
-Write `in_range`, taking one `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int in_range(int x) {
-    return 0;
-}
-```
+Write `in_range` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -44,14 +44,7 @@ half, which between them is enough to write the C.
 
 ## Your task
 
-Write `pack_shift_or`, taking two `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int pack_shift_or(int a, int b) {
-    return 0;
-}
-```
+Write `pack_shift_or` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -42,13 +42,6 @@ never does, because the call happens whatever the width of the result.
 
 Write `div_64` to match the target.
 
-<!-- starter -->
-```c
-u64 div_64(u64 a, u64 b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u64 div_64(u64 a, u64 b) {

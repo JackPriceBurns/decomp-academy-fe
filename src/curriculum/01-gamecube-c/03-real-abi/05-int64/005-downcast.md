@@ -45,13 +45,6 @@ result is a reliable signal that a 64-bit type is hiding in the source.
 
 Write `add_64_downcast` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-u32 add_64_downcast(u64 a, u64 b) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 add_64_downcast(u64 a, u64 b) {

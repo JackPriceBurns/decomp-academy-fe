@@ -47,14 +47,7 @@ a different multiplier, and a different combine at the end.
 
 ## Your task
 
-Write `weight`, taking one `int*`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int weight(int* p) {
-    return 0;
-}
-```
+Write `weight` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

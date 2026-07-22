@@ -88,14 +88,6 @@ branchless tail.
 
 With the structs above, write `spellstone_setState` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int spellstone_setState(SpellStoneObject* obj, int state) {
-    // your code here
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int spellstone_setState(SpellStoneObject* obj, int state) {

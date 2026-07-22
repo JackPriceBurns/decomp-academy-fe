@@ -45,13 +45,6 @@ the same way whether the global is `extern` or defined right here.
 Declare nothing yourself — `extern int gFrameCount;` is already provided. Write
 `readFrameCount` to match the target assembly above.
 
-<!-- starter -->
-```c
-int readFrameCount(void) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int readFrameCount(void) {

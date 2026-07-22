@@ -40,14 +40,7 @@ untouched, the case that keeps `b`, and you've found which arm returns `b` versu
 
 ## Your task
 
-Write `maxi`, taking two signed `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int maxi(int a, int b) {
-    return 0;
-}
-```
+Write `maxi` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

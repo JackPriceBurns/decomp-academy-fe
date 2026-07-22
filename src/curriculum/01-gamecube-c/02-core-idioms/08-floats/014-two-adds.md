@@ -41,14 +41,7 @@ what it reads back, and the order the arguments combine is yours to reconstruct.
 
 ## Your task
 
-Write `sum3`, taking three `f32`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-f32 sum3(f32 a, f32 b, f32 c) {
-    return 0.0f;
-}
-```
+Write `sum3` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

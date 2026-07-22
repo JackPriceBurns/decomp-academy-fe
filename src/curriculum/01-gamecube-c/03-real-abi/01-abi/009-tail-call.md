@@ -50,13 +50,6 @@ not emit that, so do not waste time hunting for it.
 Write `call_it` to match the target. `helper` is declared for you. Expect
 the call surrounded only by the prologue and epilogue.
 
-<!-- starter -->
-```c
-int call_it(int x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int call_it(int x) {

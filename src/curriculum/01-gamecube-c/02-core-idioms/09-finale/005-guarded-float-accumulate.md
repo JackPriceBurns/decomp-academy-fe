@@ -70,12 +70,7 @@ assembly above.
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-f32 sum_guarded(f32 *a, int n) {
-    int i;
-    f32 s = 0.0f;
-    // your code here
-    return s;
-}
+// define sum_guarded to match the target
 ```
 
 <!-- solution -->

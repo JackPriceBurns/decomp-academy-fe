@@ -43,14 +43,7 @@ two scaled values come together.
 
 ## Your task
 
-Write `scale2`, taking two `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int scale2(int a, int b) {
-    return 0;
-}
-```
+Write `scale2` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -48,13 +48,6 @@ that work out to?
 
 Write `advancePtr` so it compiles to the `addi` above.
 
-<!-- starter -->
-```c
-int* advancePtr(int* p) {
-    return p;
-}
-```
-
 <!-- solution -->
 ```c
 int* advancePtr(int* p) {

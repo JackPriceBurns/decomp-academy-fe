@@ -47,13 +47,6 @@ the same encoding. If your disassembler prints the raw `rlwinm`, treat it as the
 Write `widen_u8`, taking a `u8 x` and returning it as a `u32`. The unsigned widen
 should emit a single `clrlwi`.
 
-<!-- starter -->
-```c
-u32 widen_u8(u8 x) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u32 widen_u8(u8 x) {

@@ -41,14 +41,7 @@ the instruction right after the two `lwzx` to find out which.
 
 ## Your task
 
-Write `dot1`, taking two `int*` and an `int`, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int dot1(int* a, int* b, int i) {
-    return 0;
-}
-```
+Write `dot1` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

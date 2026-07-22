@@ -43,14 +43,7 @@ on the final instruction tell you how the expression goes back together.
 
 ## Your task
 
-Write `mulsubmul4`, taking four `int`s, to reproduce the assembly above.
-
-<!-- starter -->
-```c
-int mulsubmul4(int a, int b, int c, int d) {
-    return 0;
-}
-```
+Write `mulsubmul4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

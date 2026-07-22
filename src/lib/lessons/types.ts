@@ -106,6 +106,19 @@ export interface LessonSource {
    * because forwarding caller-supplied flags was a server-side file-read risk.
    */
   opt?: string;
+  /**
+   * Disable the compiler's peephole optimizer for this lesson's compile —
+   * the API equivalent of an in-source `#pragma peephole off`. Applied to both
+   * the reference target and the learner's submission so the goal asm is
+   * consistent. Omit (default) to leave peephole enabled.
+   */
+  peephole?: boolean;
+  /**
+   * Disable instruction scheduling for this lesson's compile — the API
+   * equivalent of `#pragma scheduling off`. Same both-sides application as
+   * `peephole`. Omit (default) to leave scheduling enabled.
+   */
+  schedule?: boolean;
 }
 
 export interface Lesson extends LessonSource {

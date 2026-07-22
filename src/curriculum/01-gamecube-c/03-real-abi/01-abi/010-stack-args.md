@@ -40,15 +40,8 @@ nothing.
 
 ## Your task
 
-Write `ninth`, taking nine `int`s. Reproduce the assembly above — a single
-`lwz` from `8(r1)` followed by `blr`.
-
-<!-- starter -->
-```c
-int ninth(int a, int b, int c, int d, int e, int f, int g, int h, int i) {
-    return 0;
-}
-```
+Write `ninth` to reproduce the assembly above — a single `lwz` from `8(r1)`
+followed by `blr`.
 
 <!-- solution -->
 ```c

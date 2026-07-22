@@ -24,6 +24,8 @@ function targetKey(l: LessonSource): string {
   h.update(l.symbol);
   h.update("\0");
   h.update(l.opt || "");
+  h.update("\0");
+  h.update(`${l.peephole ?? ""}:${l.schedule ?? ""}`);
   return h.digest("hex");
 }
 
@@ -51,6 +53,8 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
       symbol: l.symbol,
       context: l.context,
       opt: l.opt,
+      peephole: l.peephole,
+      schedule: l.schedule,
     });
     if (!d?.ok) return { ok: false, error: d?.error || "Compile service error." };
     if (!d.objBase64) {
@@ -100,6 +104,8 @@ export async function checkLesson(
       symbol: lesson.symbol,
       context: lesson.hideContext ? undefined : lesson.context,
       opt: lesson.opt,
+      peephole: lesson.peephole,
+      schedule: lesson.schedule,
     });
     if (!d?.ok) {
       if (d?.compileError) {

@@ -50,13 +50,6 @@ extend is the giveaway.
 
 Write `byte_at` so it compiles to the `lbzx` above.
 
-<!-- starter -->
-```c
-u8 byte_at(u8* p, int i) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 u8 byte_at(u8* p, int i) {

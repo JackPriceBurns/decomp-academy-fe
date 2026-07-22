@@ -54,13 +54,6 @@ disassembly.
 The globals are declared for you: `gVelocity` and `gScaled` (both `f32`). Write
 `applyDrag` (no arguments, no return) to reproduce the assembly above.
 
-<!-- starter -->
-```c
-void applyDrag(void) {
-    // your code here
-}
-```
-
 <!-- solution -->
 ```c
 void applyDrag(void) {

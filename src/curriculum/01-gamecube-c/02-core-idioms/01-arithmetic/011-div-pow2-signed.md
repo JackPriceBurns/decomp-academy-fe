@@ -39,14 +39,7 @@ grows that second instruction.
 
 ## Your task
 
-Write `sdiv4`, taking a signed `int x`, to reproduce the `srawi`/`addze` pair above.
-
-<!-- starter -->
-```c
-int sdiv4(int x) {
-    return 0;
-}
-```
+Write `sdiv4` to reproduce the `srawi`/`addze` pair above.
 
 <!-- solution -->
 ```c

@@ -72,13 +72,6 @@ each offset against the layout below, then rebuild the expression.
 
 With the `Hero` struct above, write `Hero_power` to reproduce the assembly above.
 
-<!-- starter -->
-```c
-int Hero_power(Hero* h) {
-    return 0;
-}
-```
-
 <!-- solution -->
 ```c
 int Hero_power(Hero* h) {
