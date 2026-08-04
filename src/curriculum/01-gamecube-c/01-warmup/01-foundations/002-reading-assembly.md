@@ -30,7 +30,7 @@ The first thing to notice: the numbers on the left don't count up 1, 2, 3. They
 jump by 4, and they're written in hex. That's because they aren't line numbers at
 all — each one is the **address** of its instruction, where that instruction sits
 in memory. It'll matter in later lessons; for now you can ignore the exact values
-and just know that's what they are.
+and know that's what they are.
 
 ## Mnemonic and operands
 
@@ -68,5 +68,5 @@ enough.
 ---
 
 This is a simplification — there's far more to assembly than two instructions, and
-you'll pick the rest up a few at a time, exactly when a lesson needs them. But it's
-enough to read your first target. Let's go match your very first C function.
+you'll pick the rest up a few at a time, when a lesson needs them. But it's
+enough to read your first target. Time to match your first C function.

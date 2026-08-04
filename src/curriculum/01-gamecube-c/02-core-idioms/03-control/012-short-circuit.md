@@ -8,7 +8,7 @@ concepts:
   - short-circuit
   - branch
   - logic
-symbol: both_positive
+symbol: func_802a7e58
 hints:
   - "`&&` short-circuits: a failing first test skips the second compare."
   - Expect two `cmpwi ..., 0` with a `ble-` after each jumping to the false exit.
@@ -56,18 +56,18 @@ li    r3, 0
 blr
 ```
 
-The tail has a wrinkle worth catching. Only the leading operand can shortcut to
-true. The final compare gets none, falls through onto the true path, and diverts
-to false only on failure. Count the `cmpwi`, follow the branch leaving each, and
-the `&&`/`||` behind them is yours to rebuild.
+The tail has a wrinkle: only the leading operand can shortcut to true. The final
+compare gets none, falls through onto the true path, and diverts to false only on
+failure. Count the `cmpwi`, follow the branch leaving each, and the `&&`/`||`
+behind them is yours to rebuild.
 
 ## Your task
 
-Write `both_positive`: return `1` if both arguments satisfy a positive condition, otherwise `0`.
+Write `func_802a7e58`: return `1` if both arguments satisfy a positive condition, otherwise `0`.
 
 <!-- solution -->
 ```c
-int both_positive(int a, int b) {
+int func_802a7e58(int a, int b) {
     if (a > 0 && b > 0) return 1;
     return 0;
 }

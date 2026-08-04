@@ -8,7 +8,7 @@ concepts:
   - arrays
   - multiplication
   - chaining
-symbol: weight
+symbol: func_8013e3b0
 hints:
   - One loaded element is multiplied by a constant before being combined with
     another.
@@ -18,16 +18,15 @@ hints:
 
 # Pointer reads meet integer arithmetic
 
-In a register, an array element is nothing special, just an integer, and
-everything from the Integer Arithmetic chapter still applies. Here the work is
-small. An element gets loaded, multiplied by some constant, and added to a
-neighbour. When the constant isn't a power of two the compiler can't shift, so
-it reaches for `mulli rD, rA, n` (*multiply low immediate*) and parks the
-multiplier `n` inside the instruction itself. Powers of two stay the exception,
-folding down to a `slwi` the way they did in those earlier lessons.
+In a register, an array element is just an integer, and everything from the Integer
+Arithmetic chapter still applies. Here the work is small: load an element, multiply
+by a constant, add it to a neighbor. When the constant isn't a power of two the
+compiler can't shift, so it uses `mulli rD, rA, n` (multiply low immediate) and
+bakes the multiplier `n` into the instruction. Powers of two still fold to `slwi`,
+like before.
 
-`blend(q)` is a good example. Three elements come in, the middle one gets scaled
-by 5, and the three are combined:
+`blend(q)` is a good example. Three elements come in, the middle one gets scaled by
+5, and the three combine:
 
 ```asm
 lwz   r0, 4(r3)    # q[1]
@@ -40,18 +39,18 @@ blr
 ```
 
 Loads gather the elements. `mulli` handles the scale. The running total flows
-through `add` and `subf`. To recover the C, read the assembly backwards. Each
+through `add` and `subf`. To recover the C, read the assembly backward. Each
 displacement becomes an index, and the `mulli` immediate becomes the multiplier.
-Your target wears the same load-scale-combine shape, only with different indices,
-a different multiplier, and a different combine at the end.
+Your target has the same load-scale-combine shape, with different indices, a
+different multiplier, and a different final combine.
 
 ## Your task
 
-Write `weight` to reproduce the assembly above.
+Write `func_8013e3b0` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int weight(int* p) {
+int func_8013e3b0(int* p) {
     return p[0] * 3 + p[2];
 }
 ```

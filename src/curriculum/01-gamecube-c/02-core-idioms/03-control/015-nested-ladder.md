@@ -8,7 +8,7 @@ concepts:
   - nested
   - branch
   - combining
-symbol: size_class
+symbol: func_8035b59c
 hints:
   - Each rung is its own `cmpwi`; failing one falls through to the next.
   - A middle rung can collapse to `li` + `bltlr-`/`blelr-` (a conditional return).
@@ -36,7 +36,7 @@ li    r3,3         # otherwise the middle band
 blr
 ```
 
-Top rung's the easy one. Compare holds, out you go through `blr`. The middle
+Top rung's the easy one: compare holds, out you go through `blr`. The middle
 rung is sneakier. MWCC stashes the bottom band's value before testing anything,
 then `bltlr-` flings it back the moment the input drops under 20. Doesn't drop?
 You land on the middle band's `li`. One compare, one early exit, two bands
@@ -50,11 +50,11 @@ on which side.
 
 ## Your task
 
-Write `size_class` to reproduce the assembly above.
+Write `func_8035b59c` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int size_class(int n) {
+int func_8035b59c(int n) {
     if (n > 1000) return 100;
     else if (n > 100) return 10;
     else return 1;

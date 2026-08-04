@@ -134,6 +134,6 @@ that `loop_cond` held both clauses was the difference between a **76%** attempt
 and a **97%** one. The labels did the heavy lifting. Circle `loop_cond`, and every
 branch leaving it is a clause of the `&&`.
 
-No exercise this time. Just carry the five-part map around in your head, and the
-next time a loop's control flow looks like spaghetti, label the regions before
-you do anything else.
+No exercise this time. Carry the five-part map around in your head, and the next
+time a loop's control flow looks like spaghetti, label the regions before you do
+anything else.

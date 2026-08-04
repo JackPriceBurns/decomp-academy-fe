@@ -8,7 +8,7 @@ concepts:
   - control-flow
   - fcmpo
   - fmr
-symbol: actor_clampHealth
+symbol: func_803fddb8
 hints:
   - Keep the running value in one local `h` so it stays in `f1` across both
     clamps.
@@ -20,8 +20,8 @@ hints:
 # The two-sided clamp
 
 A staple of every game update loop: add a delta, then pin the result between a
-floor and a ceiling. SFA does this all over its health, timer, and fade code.
-The shape is two independent `if`s, each comparing a float and conditionally
+floor and a ceiling. SFA does this all over its health, timer, and fade code. The
+shape is two independent `if`s, each comparing a float and conditionally
 overwriting it.
 
 ```c
@@ -30,10 +30,9 @@ extern f32 lbl_zero;
 ```
 
 **Float compare and branch.** A float comparison that feeds a conditional
-overwrite compiles to `fcmpo` plus a conditional jump over a `fmr`. The jump
-uses the *opposite* condition of the `if` — the branch skips the body when the
-test is *false*, so `if (x < y)` becomes `fcmpo` + `bge-` (branch if
-not-less-than).
+overwrite compiles to `fcmpo` plus a conditional jump over a `fmr`. The jump uses
+the *opposite* condition of the `if` — the branch skips the body when the test is
+*false*, so `if (x < y)` becomes `fcmpo` + `bge-` (branch if not-less-than).
 
 **`fmr` is "assign this float register".** A `fmr` surrounded by `fcmpo`/branch
 on one side and the next statement on the other is almost always one arm of a
@@ -90,11 +89,11 @@ initial arithmetic.
 
 ## Your task
 
-With the struct above, write `actor_clampHealth` to reproduce the assembly above.
+With the struct above, write `func_803fddb8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-void actor_clampHealth(Actor* a, f32 amount) {
+void func_803fddb8(Actor* a, f32 amount) {
     f32 h = a->health + amount;
     if (h < lbl_zero) {
         h = lbl_zero;

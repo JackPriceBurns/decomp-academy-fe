@@ -8,7 +8,7 @@ concepts:
   - control-flow
   - bitmask
   - calls
-symbol: spellstone_step
+symbol: func_800c823c
 hints:
   - Type `state` as `u8` so its compares come out as unsigned `cmplwi`, not
     `cmpwi`.
@@ -78,14 +78,13 @@ mismatches even though the logic is identical.
 
 ## Your task
 
-With the structs above, write `spellstone_step` to match the assembly above.
-Pay attention to which rotation fields change and by how much, the direction of
-the `GameBit_Get` branch and which event it reads, and the `(s16)` on the flag
-write.
+With the structs above, write `func_800c823c` to match the assembly above. Pay
+attention to which rotation fields change and by how much, the direction of the
+`GameBit_Get` branch and which event it reads, and the `(s16)` on the flag write.
 
 <!-- solution -->
 ```c
-void spellstone_step(GameObject* obj) {
+void func_800c823c(GameObject* obj) {
     SpellState* state = obj->state;
     SpellDef* def = obj->def;
     if (state->state == 2) {

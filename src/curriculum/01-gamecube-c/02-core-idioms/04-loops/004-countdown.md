@@ -7,7 +7,7 @@ concepts:
   - countdown
   - induction-variable
   - immediates
-symbol: sum
+symbol: func_800153b8
 hints:
   - Loop `for (; n > 0; n--)` and accumulate `s += n` — reuse `n` itself as the
     counter.
@@ -42,10 +42,10 @@ mr   r3, r4
 blr
 ```
 
-That's why heaps of hand-tuned 2002 game code counts down, because `cmpwi rX, 0`
-spends no register on a limit. Your `sum` runs a plainer body, no multiply
-anywhere. The surrounding loop, though, keeps the bones you already know: a
-pre-test `b`, a decrement through `subi r3,r3,1`, and a `cmpwi r3,0`.
+That's why heaps of hand-tuned 2002 game code counts down: `cmpwi rX, 0` spends
+no register on a limit. Your `func_800153b8` runs a plainer body, no multiply
+anywhere. The surrounding loop keeps the bones you already know: a pre-test `b`,
+a decrement through `subi r3,r3,1`, and a `cmpwi r3,0`.
 
 > Seeing a count-down in the asm does **not** prove the developer wrote one.
 > Optimizers will quietly rewrite a count-up loop into count-down form for this
@@ -58,18 +58,18 @@ pre-test `b`, a decrement through `subi r3,r3,1`, and a `cmpwi r3,0`.
 
 ## Your task
 
-Write `sum`, returning `n + (n-1) + ... + 1` by counting **down** from `n`.
+Write `func_800153b8`, returning `n + (n-1) + ... + 1` by counting **down** from `n`.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define sum to match the target
+// define func_800153b8 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int sum(int n) {
+int func_800153b8(int n) {
     int s = 0;
     for (; n > 0; n--) s += n;
     return s;

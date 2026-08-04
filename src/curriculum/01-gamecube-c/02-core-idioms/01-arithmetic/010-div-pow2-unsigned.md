@@ -7,7 +7,7 @@ concepts:
   - strength-reduction
   - shifts
   - unsigned
-symbol: divPow2U
+symbol: func_802f0570
 hints:
   - Unsigned divide by 4 is a logical right shift by 2.
   - Since the type is unsigned, it's a logical right shift with no rounding
@@ -16,10 +16,10 @@ hints:
 
 # Dividing unsigned is just a shift
 
-On an **unsigned** value, dividing by a power of two collapses to a logical
-right shift, `srwi`, which is yet another face of `rlwinm`. No rounding fix is
-required, since unsigned division truncates toward zero anyway and the shift just
-discards the low bits that would have been the remainder.
+For an **unsigned** value, dividing by a power of two is a logical right shift,
+`srwi`, which is yet another face of `rlwinm`. No rounding fix is needed:
+unsigned division truncates toward zero, and the shift just discards the low bits
+that would have been the remainder.
 
 Run `udiv8(n) = n / 8` through the compiler and you get:
 
@@ -28,9 +28,9 @@ srwi r3, r3, 3    # n >> 3  ==  n / 8 (unsigned)
 blr
 ```
 
-The shift count is log base 2 of the divisor, so `2^3 = 8` lands on a shift of 3 —
-a target that shifts right by `N` is dividing by `2^N`, which means the shift
-count alone tells you the divisor.
+The shift count is log base 2 of the divisor. `2^3 = 8` means a shift of 3. A
+target that shifts right by `N` is dividing by `2^N`; the shift count alone tells
+you the divisor.
 
 **Signed** division by a power of two is a different beast. It has to round
 toward zero for negative inputs, so instead of one clean shift MWCC produces a
@@ -41,11 +41,11 @@ toward zero for negative inputs, so instead of one clean shift MWCC produces a
 (`u32` is the GameCube SDK's typedef for `unsigned int` — it's pre-declared for
 you here, not a built-in C type.)
 
-Write `divPow2U` to reproduce the assembly above.
+Write `func_802f0570` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u32 divPow2U(u32 x) {
+u32 func_802f0570(u32 x) {
     return x / 4;
 }
 ```

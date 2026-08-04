@@ -8,7 +8,7 @@ concepts:
   - arrays
   - row-major
   - indexed-load
-symbol: gsum
+symbol: func_8036a3f0
 hints:
   - A row-major 2-D array stored flat is addressed `a[i * cols + j]` — the `mullw`
     computes `i * cols` and an `add` tacks on `j` before the usual scale-and-load.
@@ -58,12 +58,12 @@ mr   r3, r8
 blr
 ```
 
-The two nested skeletons are exactly the ones from the previous lesson; what is
+The two nested skeletons are exactly the ones from the previous lesson; what's
 new is the **address computation** in the inner body. Spot the `mullw`/`add` pair
-feeding the `slwi`/`lwzx` and you have found a flattened 2-D access. The `cols`
+feeding the `slwi`/`lwzx` and you've found a flattened 2-D access. The `cols`
 operand of that `mullw` is the row stride — the second dimension of the array.
 
-Your `gsum` uses the same nested skeleton and the same flattened addressing, but
+Your `func_8036a3f0` uses the same nested skeleton and the same flattened addressing, but
 its inner body is *simpler* than this example — no compare, no branch. Read the
 target's inner body to see what it does with each element it loads.
 
@@ -71,19 +71,19 @@ target's inner body to see what it does with each element it loads.
 
 ## Your task
 
-Write `gsum`, returning the sum of all `rows * cols` elements of the row-major
+Write `func_8036a3f0`, returning the sum of all `rows * cols` elements of the row-major
 grid `a`.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define gsum to match the target
+// define func_8036a3f0 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int gsum(int *a, int rows, int cols) {
+int func_8036a3f0(int *a, int rows, int cols) {
     int i, j, s = 0;
     for (i = 0; i < rows; i++) {
         for (j = 0; j < cols; j++) {

@@ -8,7 +8,7 @@ concepts:
   - structs
   - float
   - calls
-symbol: tank_hitDetect
+symbol: func_801fa790
 hints:
   - The `&&` guard chain compiles to several `cmplwi`/`beq-` all jumping to the
     shared exit.
@@ -18,10 +18,10 @@ hints:
 
 # Early-out guards stacked deep
 
-This is SFA's `crfueltank_hitDetect`, faithfully shaped: three nested guards
-(two NULL checks and a magic type-id check) all funnel to the **same exit**, and
-only the innermost block does the work — disable hits, set status bytes, fire a
-game bit behind a `!= -1` guard, and copy a biased position.
+This is SFA's `crfueltank_hitDetect`, faithfully shaped: three nested guards (two
+NULL checks and a magic type-id check) all funnel to the **same exit**, and only
+the innermost block does the work — disable hits, set status bytes, fire a game
+bit behind a `!= -1` guard, and copy a biased position.
 
 ```c
 typedef struct { f32 posX; f32 posY; f32 posZ; s16 objType; } HitObj;
@@ -76,15 +76,15 @@ exit, so pick whichever reads clearest.
 
 ## Your task
 
-With the structs above, write `tank_hitDetect` to match the assembly above.
-Read `collider` and `def` up front. Trace the three-way guard chain, determine
-what work the innermost block performs on `obj`'s fields and which helper calls
-it makes, and reconstruct the `hitEvent != -1` optional-event guard and the
-biased position copy.
+With the structs above, write `func_801fa790` to match the assembly above. Read
+`collider` and `def` up front. Trace the three-way guard chain, determine what
+work the innermost block performs on `obj`'s fields and which helper calls it
+makes, and reconstruct the `hitEvent != -1` optional-event guard and the biased
+position copy.
 
 <!-- solution -->
 ```c
-void tank_hitDetect(TankObject* obj) {
+void func_801fa790(TankObject* obj) {
     Collider* collider = obj->collider;
     TankDef* def = obj->def;
     if (collider != NULL && collider->hitObj != NULL) {

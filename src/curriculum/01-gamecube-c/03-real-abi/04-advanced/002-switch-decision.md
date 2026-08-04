@@ -8,7 +8,7 @@ concepts:
   - jump-table
   - compare-chain
   - heuristic
-symbol: route
+symbol: func_80012f78
 hints:
   - Sparse case values can't be table-indexed, so MWCC bisects them with a
     compare chain regardless of count.
@@ -52,22 +52,22 @@ b     .default
            blr         # ...only the dispatch above differs from the table form
 ```
 
-When you're matching a switch, **count the cases and check their spread
-first**. One `cmplwi` followed by `bctr` points to dense-and-many, so you write
+When you're matching a switch, **count the cases and check their spread first**.
+One `cmplwi` followed by `bctr` points to dense-and-many, so you write
 consecutive cases. A staircase of `cmpwi`/`beq-` against scattered constants
 points the other way, to sparse originals, and the *constants in the asm* hand
 you the exact case labels to write.
 
 ## Your task
 
-Write `route(int x)`: a sparse `switch` on `x`. Read the `cmpwi` probe values
-from the assembly above to recover which case labels to write, and read the
-`li r3, N` in each arm to recover the return value. Four scattered cases stays
-a compare chain.
+Write `route(int x)`: a sparse `switch` on `x`. Read the `cmpwi` probe values from
+the assembly above to recover which case labels to write, and read the `li r3, N`
+in each arm to recover the return value. Four scattered cases stays a compare
+chain.
 
 <!-- solution -->
 ```c
-int route(int x) {
+int func_80012f78(int x) {
     switch (x) {
         case 1:   return 11;
         case 10:  return 22;

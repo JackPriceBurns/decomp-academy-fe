@@ -9,7 +9,7 @@ concepts:
   - control
   - bitwise
   - shift
-symbol: mask_above
+symbol: func_800f5eb8
 hints:
   - "`slw` (not `slwi`) shifts by a *register* — here the loop counter — because
     the bit position isn't a constant."
@@ -19,18 +19,18 @@ hints:
 
 # A loop that sets one bit per element
 
-No running total this time. The loop builds a *bitmask* instead, flipping bit `i`
-on the moment element `i` passes its test. Three familiar things are stacked
-together here. You've got the loop skeleton, an `if` guard down in the body, and
-that old bit-set trick where you grab `1`, walk it into position, and OR it home.
+No running total this time. The loop builds a bitmask, flipping bit `i` on when
+element `i` passes its test. Three familiar things stacked: the loop skeleton, an
+`if` guard in the body, and the bit-set trick where you grab `1`, walk it into
+position, and OR it home.
 
-The shift is the new part. Its distance is the loop counter, a value that doesn't
-exist until the loop is running. A `slwi` carries its constant baked in, so it
-can't encode "shift by whatever `i` happens to be right now." That's where `slw`
-earns its keep, reading the count straight out of a register.
+The shift is the new part. Its distance is the loop counter, a value unknown until
+runtime. `slwi` carries its constant baked in, so it can't encode "shift by
+whatever `i` is." That's where `slw` earns its keep, reading the count from a
+register.
 
-Take `mark_negatives(v, n)`. It returns a mask with bit `i` lit for every element
-that came out negative:
+Take `mark_negatives(v, n)`. It returns a mask with bit `i` lit for every negative
+element:
 
 ```asm
 body:
@@ -48,30 +48,30 @@ cmpw  r5,r4
 blt+  body
 ```
 
-Nothing exotic in the guard. It's a `cmpwi 0`, and the `bge-` walks away from the
-set any time the element isn't negative. The set itself is your `1 << i` again,
-written as `li 1`, then `slw`, then `or` to fold the new bit into the mask so far.
+Nothing exotic in the guard: `cmpwi 0`, and `bge-` skips the set when the element
+isn't negative. The set itself is `1 << i` again: `li 1`, `slw`, then `or` to fold
+the new bit into the mask.
 
-`mask_above` runs that exact machinery, only under a *different* test. So read its
-compare, watch which way the branch leans, and you'll see which elements earn a
-bit. The `li 1` / `slw` / `or` trio doesn't move. The condition steering the guard
-is the one thing that does, and changing it changes the whole function.
+`func_800f5eb8` runs the same machinery under a different test. Read its compare,
+watch which way the branch leans, and you'll see which elements earn a bit. The
+`li 1` / `slw` / `or` trio doesn't move. The guard condition is the only thing that
+changes, and it changes the whole function.
 
 ## Your task
 
-Write `mask_above`, taking an `int*` and an `int` count, to reproduce the
+Write `func_800f5eb8`, taking an `int*` and an `int` count, to reproduce the
 assembly above.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define mask_above to match the target
+// define func_800f5eb8 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-u32 mask_above(int *a, int n) {
+u32 func_800f5eb8(int *a, int n) {
     int i;
     u32 m = 0;
     for (i = 0; i < n; i++) {

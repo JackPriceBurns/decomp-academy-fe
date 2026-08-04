@@ -8,7 +8,7 @@ concepts:
   - arrays
   - calls
   - bitmask
-symbol: crcloudrace_onComplete
+symbol: func_801c9624
 hints:
   - "`state->flags |= 0x40;` is a load / `ori 64` / store."
   - "`upd->eventIds[i]` is an indexed load `lwzx` driven by a `i*4` cursor."
@@ -117,11 +117,11 @@ arguments.
 
 ## Your task
 
-With the structs above, write `crcloudrace_onComplete` to reproduce the assembly above.
+With the structs above, write `func_801c9624` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int crcloudrace_onComplete(RaceObject* obj, AnimUpdate* upd) {
+int func_801c9624(RaceObject* obj, AnimUpdate* upd) {
     RaceState* state = obj->state;
     int i;
     state->flags |= 0x40;

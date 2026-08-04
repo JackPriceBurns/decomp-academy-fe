@@ -9,7 +9,7 @@ concepts:
   - addr16
   - lwzx
   - scaled-index
-symbol: getScore
+symbol: func_8015121c
 hints:
   - Array base via the @ha/@l pair, index scaled by the element size, then an
     indexed load.
@@ -19,10 +19,10 @@ hints:
 
 # Base address plus a scaled index
 
-`tbl[i]` from a global array is two ideas you've already met, bolted together.
-Build the address, then run a **scaled, indexed load**. Arrays don't sit in small
-data, so the base is still the `@ha`/`@l` pair. Scale `i` by the element size and
-let `lwzx` ("load word zero, indexed") grab the element off base-plus-index:
+`tbl[i]` from a global array is two ideas bolted together: build the address, then
+run a scaled, indexed load. Arrays don't sit in small data, so the base is still
+the `@ha`/`@l` pair. Scale `i` by element size and let `lwzx` ("load word zero,
+indexed") grab the element off base-plus-index:
 
 ```asm
 lis   r4, tbl@ha        # high half of &tbl
@@ -36,25 +36,24 @@ R_PPC_ADDR16_HA   tbl
 R_PPC_ADDR16_LO   tbl
 ```
 
-`slwi r0, r3, 2` shifts left by 2. That's a multiply by 4, which is the size of
-an `int`. After it, `lwzx rD, rA, rB` reads from `rA + rB`, the base plus that
-scaled offset, no displacement field anywhere. And those two `R_PPC_ADDR16`
-relocations give it away as a global array rather than a small-data scalar.
+`slwi r0, r3, 2` shifts left by 2 — multiply by 4, the size of `int`. Then
+`lwzx rD, rA, rB` reads from `rA + rB`, base plus scaled offset, no displacement.
+The two `R_PPC_ADDR16` relocations mark it as a global array, not a small-data
+scalar.
 
-One detail worth a second look. The `slwi` sits *between* the `lis` and the
-`addi`, even though it has no part in forming the base. That's scheduling, not
-meaning. Its scaling doesn't depend on the address pair, so MWCC drops it into
-the gap to hide the `lis` latency. Real CodeWarrior output reorders things like
-this constantly, so don't read anything into it.
+One detail: the `slwi` sits between `lis` and `addi`, even though it has no part in
+forming the base. That's scheduling, not meaning. It doesn't depend on the address
+pair, so MWCC drops it into the gap to hide `lis` latency. Real CodeWarrior output
+reorders like this constantly — don't read into it.
 
 ## Your task
 
-`extern int gScores[];` is provided. Write `getScore` so it
-compiles to the indexed array load above.
+`extern int gScores[];` is provided. Write `func_8015121c` so it compiles to the
+indexed array load above.
 
 <!-- solution -->
 ```c
-int getScore(int i) {
+int func_8015121c(int i) {
     return gScores[i];
 }
 ```

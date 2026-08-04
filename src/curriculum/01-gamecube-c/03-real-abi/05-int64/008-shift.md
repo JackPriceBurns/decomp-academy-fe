@@ -7,7 +7,7 @@ concepts:
   - 64-bit
   - shifts
   - intrinsics
-symbol: shl_64
+symbol: func_8023bec0
 hints:
   - A variable 64-bit shift has no single instruction, so it calls a helper just like division.
   - "Look for `bl __shl2i`; the shift amount is moved into r5 (`mr r5,r6`) before the call."
@@ -46,11 +46,11 @@ next all stay inline.
 
 ## Your task
 
-Write `shl_64` to match the target.
+Write `func_8023bec0` to match the target.
 
 <!-- solution -->
 ```c
-u64 shl_64(u64 a, u64 b) {
+u64 func_8023bec0(u64 a, u64 b) {
     return a << b;
 }
 ```

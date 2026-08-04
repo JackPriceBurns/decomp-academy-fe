@@ -16,26 +16,25 @@ hints:
 
 # One instruction, no zero needed
 
-Plenty of chips negate a number by subtracting it from zero. PowerPC skips all
+A lot of ISAs negate a number by subtracting it from zero. PowerPC skips all
 that. There is `neg rD, rA`, which is `rD = -rA`, one instruction that flips the
 sign without ever touching a zero register.
 
-Say some function takes two `int`s and returns the negation of the second one. It
-compiles down to this.
+Two `int` arguments, negation of the second:
 
 ```asm
 neg  r3, r4
 blr
 ```
 
-So `rA` is `r4`, the second argument, and `rD = -rA` settles into `r3`, ready to
+`rA` is `r4`, the second argument, and `rD = -rA` settles into `r3`, ready to
 hand back.
 
-You will meet this habit again and again. Where a dedicated instruction exists,
+You'll meet this habit again and again. Where a dedicated instruction exists,
 MWCC grabs it rather than building the operation out of smaller pieces, and
-learning to recognize those idioms is honestly most of the work.
+learning to recognize those idioms is most of the work.
 
-Run `rD = -rA` against the target and the C expression you need falls right out.
+The target gives you `rD = -rA`; the C expression follows.
 
 ## Your task
 

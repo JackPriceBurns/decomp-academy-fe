@@ -8,7 +8,7 @@ concepts:
   - multiplication
   - strength-reduction
   - chaining
-symbol: scale2
+symbol: func_8007bb88
 hints:
   - "`slwi rD, rA, n` shifts left by `n`, which is the same as multiplying by 2ⁿ
     — so `slwi rX, rX, 3` is `× 8`."
@@ -23,8 +23,8 @@ instead. `slwi rD, rA, n` produces `rA << n`, and that's identical to `rA × 2�
 so a shift buried in a chain is just a multiply by some power of two. Read the
 count, raise two to it, done.
 
-Take `blend(p, q)`. It scales two values by different powers of two, then
-subtracts one from the other.
+Take `blend(p, q)`, scaling two values by different powers of two, then
+subtracting one from the other:
 
 ```asm
 slwi r4, r4, 2    # r4 = q << 2  =  q * 4
@@ -43,11 +43,11 @@ two scaled values come together.
 
 ## Your task
 
-Write `scale2` to reproduce the assembly above.
+Write `func_8007bb88` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int scale2(int a, int b) {
+int func_8007bb88(int a, int b) {
     return a * 4 + b * 2;
 }
 ```

@@ -9,7 +9,7 @@ concepts:
   - andc
   - or
   - chaining
-symbol: bit_select
+symbol: func_800cf2c8
 hints:
   - "`andc rD, rA, rB` computes `rA & ~rB` in one instruction — AND-with-complement."
   - One operand is ANDed with the mask, the other with the complement of the mask; then
@@ -23,7 +23,7 @@ out of two sources. Where the mask bit is 1, you copy from one source; where it'
 0, from the other. In C that's three operations, two ANDs and an OR. PowerPC
 shaves it to two by killing one of the ANDs.
 
-The instruction earning that saving is **`andc rD, rA, rB`**. It works out
+The instruction that saves the step is **`andc rD, rA, rB`**. It works out
 `rA & ~rB` by itself, no separate `not` sitting in front of it.
 
 Say `bit_blend(x, y, mask)` pulls bits from `x` where the mask is clear and from
@@ -49,11 +49,11 @@ registers shuffled. Spot which one carries the mask (`r5`), which feeds the
 
 ## Your task
 
-Write `bit_select` to reproduce the assembly above.
+Write `func_800cf2c8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int bit_select(int a, int b, int m) {
+int func_800cf2c8(int a, int b, int m) {
     return (a & m) | (b & ~m);
 }
 ```

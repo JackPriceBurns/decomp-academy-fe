@@ -8,7 +8,7 @@ concepts:
   - signed
   - unsigned
   - branch
-symbol: maybe_act
+symbol: func_8025f774
 hints:
   - An unsigned operand feeding a branch compares with `cmplwi`, not `cmpwi`.
   - Change the parameter from `s16` to `u16`; that yields `clrlwi` then `cmplwi
@@ -42,7 +42,7 @@ bl     trigger
 
 After that it comes down to the one letter and whichever extend set things up.
 `clrlwi` clearing the high bits points at an unsigned value; `extsh` or `extsb`
-smearing the sign downward points at a signed one. And `clrlwi` is generous, the
+smearing the sign downward points at a signed one. And `clrlwi` is generous: the
 shift it uses spells out the original width. A `cmplwi` in your target therefore
 leaves nothing ambiguous: the source was unsigned, width and all.
 
@@ -55,14 +55,14 @@ so the comparison emits `cmplwi` instead — the target assembly uses the logica
 
 <!-- starter -->
 ```c
-void maybe_act(s16 x) {
+void func_8025f774(s16 x) {
 
 }
 ```
 
 <!-- solution -->
 ```c
-void maybe_act(u16 x) {
+void func_8025f774(u16 x) {
     if (x == 256) {
         act();
     }

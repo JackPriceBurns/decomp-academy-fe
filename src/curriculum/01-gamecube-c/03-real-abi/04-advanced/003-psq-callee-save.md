@@ -9,7 +9,7 @@ concepts:
   - callee-save
   - prologue
   - floats
-symbol: mix
+symbol: func_80381010
 hints:
   - Each float local must survive a `bl transform`, so it lands in a
     callee-saved FPR (f31, f30, ...).
@@ -19,10 +19,10 @@ hints:
 
 # Why a float function stores 64 + 32 bits per register
 
-FPRs `f14`–`f31` are callee-saved on the Gekko. If a function holds float
-values live across a call, it has to stash them somewhere safe and put them
-back before returning. The odd part is what MWCC does to save one. It writes
-the register out *twice*.
+FPRs `f14`–`f31` are callee-saved on the Gekko. If a function holds float values
+live across a call, it has to stash them somewhere safe and put them back before
+returning. The odd part is what MWCC does to save one: it writes the register out
+*twice*.
 
 ```asm
 stwu   r1, -96(r1)
@@ -35,13 +35,12 @@ psq_st f30, 72(r1), 0, 0
 ...
 ```
 
-Why twice? A Gekko FPR can hold **two packed 32-bit floats**, not just a
-double. An `stfd` (store float double) only preserves the double-precision
-lane, so it would quietly drop the second paired-single half. MWCC covers
-itself by following every `stfd` with a `psq_st` (store paired-single
-quantized), which writes both 32-bit halves. The epilogue runs the same
-pairing backwards, `psq_l` then `lfd`, restoring the highest-numbered register
-first.
+Why twice? A Gekko FPR can hold **two packed 32-bit floats**, not just a double.
+An `stfd` (store float double) only preserves the double-precision lane, so it
+would quietly drop the second paired-single half. MWCC covers itself by following
+every `stfd` with a `psq_st` (store paired-single quantized), which writes both
+32-bit halves. The epilogue runs the same pairing backwards, `psq_l` then `lfd`,
+restoring the highest-numbered register first.
 
 So a prologue that marches `stfd`/`psq_st` up through `f31, f30, f29...` isn't
 doing anything exotic. Those are callee-saved float registers, spilled because
@@ -52,14 +51,14 @@ values alive across calls and the saves appear on their own.
 
 Write `mix(f32 *p)`: call the provided `transform` on `p[0]..p[5]` into six
 locals — skip the name `f` so it isn't confused with the `f32` type — then
-combine those locals into a return value. Holding six float results live
-across six calls forces several callee-saved FPRs — watch the
-`psq_st`/`stfd` pairs appear in the prologue. Use the `fmadds`/`fmuls`/`fadds`
-instructions in the epilogue to reconstruct which products are added together.
+combine those locals into a return value. Holding six float results live across
+six calls forces several callee-saved FPRs — watch the `psq_st`/`stfd` pairs
+appear in the prologue. Use the `fmadds`/`fmuls`/`fadds` instructions in the
+epilogue to reconstruct which products are added together.
 
 <!-- solution -->
 ```c
-f32 mix(f32 *p) {
+f32 func_80381010(f32 *p) {
     f32 a = transform(p[0]);
     f32 b = transform(p[1]);
     f32 c = transform(p[2]);

@@ -8,7 +8,7 @@ concepts:
   - control-flow
   - calls
   - narrow-types
-symbol: crfueltank_tick
+symbol: func_801e15c4
 hints:
   - Clear the bit with `flags & ~0x4000` (→ `rlwinm`), never `& 0xbfff` (→
     `andi`).
@@ -59,14 +59,13 @@ ori     r0, r0, 8192       # flags |= 0x2000
 sth     r0, 4(r31)
 ```
 
-Note `rlwinm r3, r3, 0, 19, 17`: rotate by 0, keep bits from MB=19 through
-ME=17 (wrapping), which zeros every bit *except* those in that range — the
-excluded bit is at MSB-position 18, i.e. `0x2000`. The `ori 8192` is
-`0x2000` in decimal.
+Note `rlwinm r3, r3, 0, 19, 17`: rotate by 0, keep bits from MB=19 through ME=17
+(wrapping), which zeros every bit *except* those in that range — the excluded bit
+is at MSB-position 18, i.e. `0x2000`. The `ori 8192` is `0x2000` in decimal.
 
-In the target assembly below, read the `rlwinm` MB/ME fields to work out which
-bit is cleared, and read the `ori` immediate to confirm the same bit is set.
-Read the `li` immediate to find the byte-field value.
+In the target assembly below, read the `rlwinm` MB/ME fields to work out which bit
+is cleared, and read the `ori` immediate to confirm the same bit is set. Read the
+`li` immediate to find the byte-field value.
 
 ```asm
 stwu    r1, -16(r1)
@@ -94,11 +93,11 @@ blr
 
 ## Your task
 
-With the struct above, write `crfueltank_tick` to reproduce the assembly above.
+With the struct above, write `func_801e15c4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-void crfueltank_tick(CrFuelTankObject* obj) {
+void func_801e15c4(CrFuelTankObject* obj) {
     if (timerCountDown(&obj->timer) != 0) {
         ObjHits_EnableObject(obj);
         obj->flags = (s16)(obj->flags & ~0x4000);

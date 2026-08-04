@@ -7,7 +7,7 @@ concepts:
   - saved-registers
   - calls
   - register-allocation
-symbol: keep
+symbol: func_802364a4
 hints:
   - "`y` is needed after the call, so it can't stay in a volatile register."
   - Expect `stw r31,12(r1)` / `mr r31, r4` before the `bl`, and `mr r3, r31`
@@ -16,14 +16,13 @@ hints:
 
 # Values that must outlive a call
 
-Call something and it can scribble over any of `r3` through `r12`, the
-**volatile** registers. That is a problem for a value you still need once the
-call returns. It has to move out of harm's way, into a **non-volatile** register
-from `r14` to `r31`. The ABI guarantees a callee restores those before it hands
-control back. MWCC works from the top, so the very first value it rescues ends
-up in **`r31`**.
+Call something and it can scribble over any of `r3` through `r12`, the volatile
+registers. That's a problem for a value you still need after the call returns. It
+has to move out of harm's way, into a non-volatile register from `r14` to `r31`.
+The ABI guarantees a callee restores those before returning. MWCC works from the
+top, so the first value it rescues ends up in `r31`.
 
-Here is `preserve_z(s32 x, s32 y, s32 z)`: it calls `modify(y)` and returns `z`.
+Here's `preserve_z(s32 x, s32 y, s32 z)`: it calls `modify(y)` and returns `z`.
 `z` shows up in `r5`, but the return needs it long after `modify` has run, so the
 compiler tucks it into `r31` before branching.
 
@@ -43,23 +42,23 @@ addi   r1,r1,16
 blr
 ```
 
-Holding onto `r31` is not free. `stw r31, 12(r1)` stashes whatever the caller
-left in `r31`, and `lwz r31, 12(r1)` hands it back at the end, so nobody upstream
-notices we borrowed it. A `stw r31` sitting next to a `mr r31, ...` just before a
-`bl` is the tell: something is riding across the call.
+Holding onto `r31` isn't free. `stw r31, 12(r1)` stashes whatever the caller left
+in `r31`, and `lwz r31, 12(r1)` hands it back at the end, so nobody upstream
+notices we borrowed it. A `stw r31` next to a `mr r31, ...` just before a `bl` is
+the tell: something is riding across the call.
 
-Now the target assembly for `keep`. Spot the register that gets dropped into
-`r31` before the `bl` and pulled back out with `mr r3, r31` afterward, then chase
-it back to whichever parameter fed it.
+Now the target for `func_802364a4`. Spot the register that gets dropped into `r31`
+before the `bl` and pulled back out with `mr r3, r31` afterward, then chase it back
+to whichever parameter fed it.
 
 ## Your task
 
-Write `keep`, which calls `side` and then returns a surviving parameter.
+Write `func_802364a4`, which calls `side` and then returns a surviving parameter.
 `side` is declared for you.
 
 <!-- solution -->
 ```c
-int keep(int x, int y) {
+int func_802364a4(int x, int y) {
     side(x);
     return y;
 }

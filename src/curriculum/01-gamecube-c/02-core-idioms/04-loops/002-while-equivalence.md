@@ -7,7 +7,7 @@ concepts:
   - while-loop
   - for-loop
   - control-flow
-symbol: sum
+symbol: func_801072d8
 hints:
   - Initialize `i` and `s` before the loop, then `while (i < n) { s += i; i++;
     }`.
@@ -21,7 +21,7 @@ hints:
 
 A `for` loop is pure syntactic sugar. Once you hoist the initializer above the
 loop and drop the increment at the bottom of the body, a `for` *is* a `while`.
-The compiler erases the distinction completely — both produce the exact same
+The compiler erases the distinction completely — both produce the same
 **pre-tested, bottom-branching** skeleton.
 
 Here is the `squares(n)` function from the previous lesson, now written as a
@@ -53,20 +53,20 @@ does the diff tool — the match is identical either way.
 
 ## Your task
 
-Write `sum` again, but this time express it as a `while` loop. It compiles to
+Write `func_801072d8` again, but this time express it as a `while` loop. It compiles to
 the same loop skeleton as the `for` version — the test, the branch, and the body
 come out identical.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define sum to match the target
+// define func_801072d8 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int sum(int n) {
+int func_801072d8(int n) {
     int i = 0, s = 0;
     while (i < n) {
         s += i;

@@ -9,7 +9,7 @@ concepts:
   - float
   - fmadds
   - int-to-float
-symbol: tumbler_integrateSpin
+symbol: func_80015cc0
 hints:
   - Put `#pragma peephole off` at the top of the function's translation unit —
     the lever is that the cleanup pass is gone.
@@ -72,15 +72,15 @@ and that is exactly the edit the real match made.
 
 ## Your task
 
-With the structs above, write `tumbler_integrateSpin` under `#pragma peephole off`.
-For each of X, Y, Z, integrate the rate into the angle to match the assembly above.
+With the structs above, write `func_80015cc0` under `#pragma peephole off`. For
+each of X, Y, Z, integrate the rate into the angle to match the assembly above.
 Cast directly on the store value — do **not** route through an `int` local, or the
 `extsh` masks will reappear and break the match.
 
 <!-- starter -->
 ```c
 #pragma peephole off
-void tumbler_integrateSpin(GameObject* obj, RollState* state, f32 timeDelta) {
+void func_80015cc0(GameObject* obj, RollState* state, f32 timeDelta) {
     // your code here
 }
 ```
@@ -88,7 +88,7 @@ void tumbler_integrateSpin(GameObject* obj, RollState* state, f32 timeDelta) {
 <!-- solution -->
 ```c
 #pragma peephole off
-void tumbler_integrateSpin(GameObject* obj, RollState* state, f32 timeDelta) {
+void func_80015cc0(GameObject* obj, RollState* state, f32 timeDelta) {
     obj->spinX = (s16)((f32)(int)state->rateX * timeDelta + (f32)(int)obj->spinX);
     obj->spinY = (s16)((f32)(int)state->rateY * timeDelta + (f32)(int)obj->spinY);
     obj->spinZ = (s16)((f32)(int)state->rateZ * timeDelta + (f32)(int)obj->spinZ);

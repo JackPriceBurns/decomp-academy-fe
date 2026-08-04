@@ -7,9 +7,9 @@ concepts:
   - peephole
   - pragma
   - dot-form
-symbol: pick2
+symbol: func_80314648
 hints:
-  - "The body is exactly the `pick` body — `int y = x & 0xFF; return y ? a + y :
+  - "The body is exactly the `func_801c2540` body — `int y = x & 0xFF; return y ? a + y :
     b;`."
   - "The pragma, not the C, changes the output: the mask stays plain and the
     compare is emitted separately."
@@ -18,11 +18,11 @@ hints:
 
 # When the target *kept* its separate compare
 
-Now and then the retail object got built with the peephole pass switched off over
+Sometimes the retail object got built with the peephole pass switched off over
 some region, so the dot-merge from last lesson simply didn't run. What you find
-instead is a plain, undotted instruction trailed by an explicit `cmpwi ...,0`. No
-amount of C rewriting brings that back. The only lever is the pragma the original
-author reached for.
+instead is a plain, undotted instruction followed by an explicit `cmpwi ...,0`.
+No amount of C rewriting brings that back. The only lever is the pragma the
+original author reached for.
 
 ```c
 #pragma peephole off
@@ -40,7 +40,8 @@ beq-    L
 add     r3, r4, r0
 ```
 
-Put the two outputs next to each other and the dot-merge is the whole difference.
+Put the two outputs next to each other and the dot-merge is the whole
+difference.
 
 ```asm
 # peephole ON (lesson 3)   # peephole OFF (this lesson)
@@ -50,8 +51,8 @@ beq-    L                  beq-    L
 ```
 
 The `.` disappears and a full `cmpwi` walks back in. That's the textbook
-fingerprint of `peephole off`. Out in real decomp work you fence a function, or a
-stretch of several, and every `off` you write gets a matching `reset`.
+fingerprint of `peephole off`. In real decomp work you fence a function, or a
+stretch of several, and every `off` gets a matching `reset`.
 
 > Both the starter and the solution already carry the `#pragma peephole off` /
 > `reset` lines, so all you owe is the body. The same pair was applied to the
@@ -59,13 +60,14 @@ stretch of several, and every `off` you write gets a matching `reset`.
 
 ## Your task
 
-Fill in the body of `pick2` (same logic as `pick`) so that, with peephole
-disabled, you match the un-merged `clrlwi` + `cmpwi` + `beq-` sequence.
+Write `func_80314648` (same logic as `func_801c2540` from last lesson) so that,
+with peephole disabled, you match the un-merged `clrlwi` + `cmpwi` + `beq-`
+sequence.
 
 <!-- starter -->
 ```c
 #pragma peephole off
-int pick2(int x, int a, int b) {
+int func_80314648(int x, int a, int b) {
     return 0;
 }
 #pragma peephole reset
@@ -74,7 +76,7 @@ int pick2(int x, int a, int b) {
 <!-- solution -->
 ```c
 #pragma peephole off
-int pick2(int x, int a, int b) {
+int func_80314648(int x, int a, int b) {
     int y = x & 0xFF;
     return y ? a + y : b;
 }

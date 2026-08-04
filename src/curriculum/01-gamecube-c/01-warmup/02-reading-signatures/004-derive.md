@@ -7,7 +7,7 @@ concepts:
   - calling-convention
   - arguments
   - arithmetic
-symbol: gap
+symbol: func_80030bc8
 hints:
   - The two source registers of the `add` are the 1st and 3rd argument registers.
   - One argument in the middle is never touched, but you must still declare it so
@@ -16,7 +16,7 @@ hints:
 
 # Mind the gap
 
-Same game, except now the function actually *does* something with its arguments
+Same idea, but now the function actually *does* something with its arguments
 instead of handing one straight back. The counting rule doesn't change: find the
 highest argument register named in the instruction, and that's how many parameters
 there are — gaps and all.
@@ -42,11 +42,11 @@ Read your target, find its two source registers, and count from `r3`.
 
 ## Your task
 
-Write `gap` to reproduce the assembly above.
+Write `func_80030bc8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int gap(int a, int b, int c) {
+int func_80030bc8(int a, int b, int c) {
     return a + c;
 }
 ```

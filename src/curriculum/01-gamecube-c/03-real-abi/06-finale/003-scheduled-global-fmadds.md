@@ -10,7 +10,7 @@ concepts:
   - float-literal
   - fp-contract
   - scheduling
-symbol: mixGains
+symbol: func_802fcf98
 hints:
   - Each channel multiplies its arg by a float *global* and adds a float *literal*
     — the global is an `@sda21` symbol, the literal is an `@N` slot from the
@@ -28,9 +28,9 @@ A per-channel scale-and-bias is everywhere in graphics and audio code, and it
 lights up the back half of the tier all at once. Each channel reads a **float
 global** (`@sda21`, from the globals chapter), adds a **float literal** pulled
 from the **rodata pool** (the `@N` slots, also the globals chapter),
-**`fp_contract`** fuses the multiply-then-add into one `fmadds` (the optimization
-chapter), and the **scheduler** reorders the independent channels so their
-latencies overlap (the optimization chapter again).
+**`fp_contract`** fuses the multiply-then-add into one `fmadds` (the
+optimization chapter), and the **scheduler** reorders the independent channels so
+their latencies overlap (the optimization chapter again).
 
 The tell is the load mix: every channel contributes one `lfs` of an `@sda21`
 *named* global and one `lfs` of an `@N` *anonymous* literal. Consider `mix3`,
@@ -51,24 +51,25 @@ fadds  f1,f2,f0
 blr
 ```
 
-Every `... * g + bias` collapsed into one `fmadds` — that is `fp_contract`. The
+Every `... * g + bias` collapsed into one `fmadds` — that's `fp_contract`. The
 loads are hoisted and the channels interleaved rather than run as three tidy
-blocks — that is scheduling. The `@sda21` symbols are your float globals; the
+blocks — that's scheduling. The `@sda21` symbols are your float globals; the
 `@N` slots are the constants you wrote, parked in the rodata literal pool.
 
-Your `mixGains` has the same per-channel shape with **fewer channels** and
+Your `func_802fcf98` has the same per-channel shape with **fewer channels** and
 **different bias constants**. Count the `lfs` to recover how many channels there
 are, pair each named global with its anonymous literal, and write each channel as
 the plain multiply-then-add — the compiler fuses and schedules it for you.
 
 ## Your task
 
-The float globals `gGainA` and `gGainB` are declared for you. Write `mixGains` to reproduce the assembly above. Recover the bias literals
-from the `@N` rodata slots and write each channel in its natural form.
+The float globals `gGainA` and `gGainB` are declared for you. Write
+`func_802fcf98` to reproduce the assembly above. Recover the bias literals from
+the `@N` rodata slots and write each channel in its natural form.
 
 <!-- solution -->
 ```c
-f32 mixGains(f32 x, f32 y) {
+f32 func_802fcf98(f32 x, f32 y) {
     f32 a = x * gGainA + 0.5f;
     f32 b = y * gGainB + 0.25f;
     return a + b;

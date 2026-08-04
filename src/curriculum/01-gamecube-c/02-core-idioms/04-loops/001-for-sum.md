@@ -7,7 +7,7 @@ concepts:
   - for-loop
   - induction-variable
   - control-flow
-symbol: sum
+symbol: func_802badb0
 hints:
   - Declare an accumulator `s = 0` and an induction variable `i`.
   - A standard `for (i = 0; i < n; i++) s += i;` is exactly this skeleton.
@@ -22,11 +22,10 @@ back on itself with a single **branch that jumps backwards**, letting the same
 instructions run more than once. Watch how MWCC threads a `for` loop. You enter
 at a `b` that skips ahead to the comparison; the comparison decides whether any
 work remains, and when it passes, control drops into the body. The body runs,
-bumps the counter, and lands back on that same comparison. Since the test is the
-first thing reached, the body can run zero times when the count begins empty.
-That early check is why people call the loop **pre-tested** even though the
-compare physically sits at the bottom; the jump-first wiring just makes it behave
-as if the test came first.
+bumps the counter, and lands back on that same comparison. The test is reached
+first, so the body can run zero times when the count begins empty. The loop is
+**pre-tested**; the jump-first wiring just makes it behave that way even though
+the compare physically sits at the bottom.
 
 Take `squares(n)`, which totals the integers from 1 up through `n`:
 
@@ -47,7 +46,7 @@ blr
 The counter driving all this, `i` over in `r4`, is the loop's **induction
 variable**. And notice where the test lands, down at the bottom, reached first by
 way of that leading `b`, which is exactly why an `n` under 1 leaves the body
-untouched. Your own `sum` counts from 0 rather than 1 and quits one short of `n`
+untouched. Your own `func_802badb0` counts from 0 rather than 1 and quits one short of `n`
 instead of including it, so its starting value and its test won't match the ones
 here.
 
@@ -59,18 +58,18 @@ here.
 
 ## Your task
 
-Write `sum`, returning the sum `0 + 1 + ... + (n-1)`.
+Write `func_802badb0`, returning the sum `0 + 1 + ... + (n-1)`.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define sum to match the target
+// define func_802badb0 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int sum(int n) {
+int func_802badb0(int n) {
     int i, s = 0;
     for (i = 0; i < n; i++) s += i;
     return s;

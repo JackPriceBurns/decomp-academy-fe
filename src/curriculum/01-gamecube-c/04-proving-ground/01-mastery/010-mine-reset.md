@@ -9,7 +9,7 @@ concepts:
   - float
   - fmadds
   - control-flow
-symbol: mine_resetToIdle
+symbol: func_800ce850
 hints:
   - Load `lbl_zero` into a local `zero` and assign it to both velocity fields so
     one `lfs` is reused.
@@ -23,11 +23,10 @@ hints:
 
 # Everything at once
 
-The finale is SFA's `proximitymine_resetToIdle`, reshaped to compile
-standalone — and it earns its place: **nine** helper calls, struct writes
-through a saved state pointer, a fused float expression feeding a 9-argument
-call, and a closing NULL-guarded free. If you can match this, you can match real
-game code.
+The finale is SFA's `proximitymine_resetToIdle`, reshaped to compile standalone —
+and it earns its place: **nine** helper calls, struct writes through a saved state
+pointer, a fused float expression feeding a 9-argument call, and a closing
+NULL-guarded free. If you can match this, you can match real game code.
 
 ```c
 typedef struct {
@@ -73,24 +72,23 @@ bl      spawnExplosion
 
 Three things make or break the match. **(1)** Storing the *same* zero to two
 velocity fields reuses one loaded `f0` — write `zero = lbl_zero;` to a local and
-assign it twice. **(2)** Passing `&state->effectHandle` to the free routine
-takes the field's *address* (`addi r3, r31, 16`), guarded by a NULL test of the
-value. **(3)** Keep the call order exactly: the result of `fn_lightUpdate`
-matters for scheduling, and the explosion's scale is computed inline right
-before the call.
+assign it twice. **(2)** Passing `&state->effectHandle` to the free routine takes
+the field's *address* (`addi r3, r31, 16`), guarded by a NULL test of the value.
+**(3)** Keep the call order exactly: the result of `fn_lightUpdate` matters for
+scheduling, and the explosion's scale is computed inline right before the call.
 
 ## Your task
 
-With the structs above, write `mine_resetToIdle` to match the target assembly.
-Read the full function: identify the sfx call order, which velocity fields get
-zeroed (and which does not), the timer reset sequence, the fused scale expression
+With the structs above, write `func_800ce850` to match the target assembly. Read
+the full function: identify the sfx call order, which velocity fields get zeroed
+(and which does not), the timer reset sequence, the fused scale expression
 feeding `spawnExplosion`, why `ObjHits_EnableObject` appears twice, and the
 NULL-guarded free at the end. Reconstruct the call sequence and struct writes
 from the assembly itself.
 
 <!-- solution -->
 ```c
-void mine_resetToIdle(MineObject* obj) {
+void func_800ce850(MineObject* obj) {
     MineState* state;
     f32 zero;
     state = obj->state;

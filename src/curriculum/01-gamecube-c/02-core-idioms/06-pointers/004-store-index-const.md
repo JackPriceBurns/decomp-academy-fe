@@ -7,7 +7,7 @@ concepts:
   - stores
   - addressing
   - arrays
-symbol: setElemAt
+symbol: func_8027cb5c
 hints:
   - Same displacement trick as the load, but writing.
   - "`p[2] = v` compiles to `stw r4, 8(r3)`."
@@ -15,9 +15,9 @@ hints:
 
 # Displacement stores
 
-Writing at a constant index is just the load run backwards. The compiler knows
-the index up front, multiplies it by the element size, and bakes that number into
-the displacement of `stw`. Nothing gets added at runtime.
+Writing at a constant index is the same idea as loading, just in reverse. The
+compiler knows the index up front, multiplies by element size, and bakes the offset
+into `stw`. No runtime add.
 
 Here, the function pokes element five:
 
@@ -32,25 +32,23 @@ stw  r4, 16(r3)   # write v to p + 16 bytes
 blr
 ```
 
-An `int` is 4 bytes. Index `4` times 4 is `16`, which is the offset you see. Read
-it the other way and a `stw` of `16` through an `int*` can only be index `4`, the
-fifth slot.
+An `int` is 4 bytes. Index 4 times 4 is 16. Read it backward: an `stw` offset of 16
+through an `int*` means index 4, the fifth slot.
 
-The tell is a non-zero constant displacement that's an exact multiple of the
-element size. When that shows up, the C almost certainly indexed an array or
-touched a struct field. People don't hand-roll offsets like `16`. Divide it out
-and the index falls right out.
+The tell is a non-zero constant displacement that's an exact multiple of the element
+size. When you see that, the C almost certainly indexed an array or touched a struct
+field. Divide it out and the index falls out.
 
-Now check `setElemAt`. What displacement is on its `stw`, and what index does that
-work out to?
+Now check `func_8027cb5c`. What displacement is on its `stw`, and what index does
+that work out to?
 
 ## Your task
 
-Write `setElemAt` to match the target assembly above.
+Write `func_8027cb5c` to match the target assembly above.
 
 <!-- solution -->
 ```c
-void setElemAt(int* p, int v) {
+void func_8027cb5c(int* p, int v) {
     p[2] = v;
 }
 ```

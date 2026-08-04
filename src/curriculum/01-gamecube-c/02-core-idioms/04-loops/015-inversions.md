@@ -9,7 +9,7 @@ concepts:
   - arrays
   - conditional-update
   - capstone
-symbol: inv
+symbol: func_802edd00
 hints:
   - Two indexed loads per inner pass — one for the outer element, one for the inner
     — feed a single compare.
@@ -20,7 +20,7 @@ hints:
     `addi` is the `if` body.
 ---
 
-# Everything at once: a triangular pair scan
+# A triangular pair scan
 
 This capstone folds the whole chapter into one function: a **nested** loop whose
 inner bound follows the outer index (a triangle), which **loads two array
@@ -68,7 +68,7 @@ Read it as layers: the two stacked skeletons are the nest, the `mullw`/`add`/
 conditionally-reached `lwzx r8` is the update. Strip any one layer and you are
 back to an earlier lesson.
 
-Your `inv` differs in three ways from this example, each one a layer you have
+Your `func_802edd00` differs in three ways from this example, each one a layer you have
 already met:
 
 - It scans a **flat** `int` array of length `n` (one index each, `a[i]` and
@@ -83,12 +83,12 @@ to recover the condition being counted.
 
 ## Your task
 
-Write `inv`, returning the number of pairs `(i, j)` with `i < j < n` and
+Write `func_802edd00`, returning the number of pairs `(i, j)` with `i < j < n` and
 `a[i] > a[j]` (the inversion count of `a`).
 
 <!-- solution -->
 ```c
-int inv(int *a, int n) {
+int func_802edd00(int *a, int n) {
     int i, j, c = 0;
     for (i = 0; i < n; i++) {
         for (j = i + 1; j < n; j++) {

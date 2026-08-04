@@ -10,7 +10,7 @@ concepts:
   - clamp
   - capstone
   - highlight
-symbol: slider_approach
+symbol: func_80129fdc
 hints:
   - The arithmetic before the compare is a lerp — an `fsubs` (difference) feeding
     an `fmadds` (`base + diff*amount`), with one `fmuls` building the amount.
@@ -20,16 +20,16 @@ hints:
     arithmetic through the clamp to the store.
 ---
 
-# Bringing the chapter together
+# A float step with a clamp
 
-Here's the capstone, and it leans on nearly the whole chapter at once. Struct
-fields loaded without touching the constant pool. A chained multiply. The lerp
-idiom, `fsubs` into `fmadds`. A one-branch clamp out of `fcmpo` and `fmr`. A
-store to close it off. Read the fields, interpolate toward a target, clamp, write
-back. That is the per-frame update pattern game actor code is built from.
+Here's the capstone, leaning on nearly the whole chapter at once. Struct fields
+loaded without touching the constant pool. A chained multiply. The lerp idiom:
+`fsubs` into `fmadds`. A one-branch clamp from `fcmpo` and `fmr`. A store to close
+it off. Read the fields, interpolate toward a target, clamp, write back — that's
+the per-frame update pattern game actor code is built from.
 
-Take `body_step(b, dt)`. It nudges a position forward by a drag-scaled velocity
-and refuses to let it drop below zero:
+Take `body_step(b, dt)`. It nudges a position forward by drag-scaled velocity and
+refuses to let it drop below zero:
 
 ```asm
 lfs   f0, 8(r3)      # b->drag
@@ -47,18 +47,16 @@ stfs  f1, 0(r3)      # b->pos = result
 blr
 ```
 
-Notice that nothing ever leaves `f1`. The products pile up there, the `fadds`
-brings in the base, and the `fcmpo`/`bge-`/`fmr` run clamps the floor. Then
-`stfs` writes that final value straight back into the struct. The branch is
-testing the *inverted* `if`, so `bge-` is what skips the `if (result < 0)` body.
-And there is exactly one `stfs`. One store, nothing more.
+Nothing ever leaves `f1`. The products pile up there, `fadds` brings in the base,
+and `fcmpo`/`bge-`/`fmr` clamps the floor. Then `stfs` writes the final value back.
+The branch tests the inverted `if`, so `bge-` skips the `if (result < 0)` body.
+Exactly one `stfs`.
 
-On to the target, `slider_approach`. The math ahead of the compare is the
-**lerp idiom** you have already met. You are looking for an `fsubs` taking a
-difference, an `fmadds` shaping `base + diff * amount`, and an `fmuls` putting
-that amount together. Past the compare, the `fcmpo` operands and the branch
-condition name the field that bounds the result, and the `stfs` offset says where
-the answer goes.
+On to the target, `func_80129fdc`. The math before the compare is the lerp idiom.
+Look for an `fsubs` taking a difference, an `fmadds` shaping
+`base + diff * amount`, and an `fmuls` putting that amount together. Past the
+compare, the `fcmpo` operands and branch condition name the field that bounds the
+result, and the `stfs` offset says where the answer goes.
 
 Its one argument points at this struct:
 
@@ -73,12 +71,13 @@ typedef struct { f32 value; f32 target; f32 rate; } Slider;
 typedef struct { f32 value; f32 target; f32 rate; } Slider;
 ```
 
-With the `Slider` struct above, write `slider_approach` to reproduce the assembly above. Compute the interpolated step into one
-local, clamp it against the relevant field, and store it back.
+With the `Slider` struct above, write `func_80129fdc` to reproduce the assembly
+above. Compute the interpolated step into one local, clamp it against the relevant
+field, and store it back.
 
 <!-- solution -->
 ```c
-void slider_approach(Slider* s, f32 dt) {
+void func_80129fdc(Slider* s, f32 dt) {
     f32 v = s->value + (s->target - s->value) * (s->rate * dt);
     if (v > s->target) {
         v = s->target;

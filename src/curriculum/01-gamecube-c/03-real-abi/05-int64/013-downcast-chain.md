@@ -9,7 +9,7 @@ concepts:
   - detection
   - chaining
   - downcast
-symbol: and_down_64
+symbol: func_8036fcdc
 hints:
   - The return type is `u32`, so only the low word matters — every high-word instruction in the chain is dropped.
   - What survives is the low half of each operation; the leading carrying instruction (`addc`/`subfc`) still betrays that the operands were 64-bit.
@@ -24,8 +24,8 @@ the hint of this on a single op: a `u64 + u64` truncated to `u32` still emits an
 low-word instruction of each step survives; every high-word partner is cut, so a
 three-operation expression can collapse to two instructions.
 
-Here is `low_combo(p, q, r)`. It subtracts two 64-bit values, ORs in a third,
-and returns only the low 32 bits:
+Here is `low_combo(p, q, r)`. It subtracts two 64-bit values, ORs in a third, and
+returns only the low 32 bits:
 
 ```asm
 subfc  r4, r6, r4     # (p - q) low word -- carry recorded, never read
@@ -40,19 +40,18 @@ nothing else. That `subfc` is the tell. A genuine 32-bit subtract compiles to a
 bare `subf`, so the carrying form proves the operands were 64-bit even though
 only the bottom 32 bits escape to `r3`.
 
-Your target wears the same shape, a different arithmetic op then a different
+Your target wears the same shape — a different arithmetic op then a different
 bitwise op, truncated to `u32`. Read each surviving low-word instruction back to
 its C operator, since the cast already pruned the high half and whatever reaches
 `r3` is the whole answer.
 
 ## Your task
 
-Write `and_down_64` to reproduce the
-assembly above.
+Write `func_8036fcdc` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u32 and_down_64(u64 a, u64 b, u64 c) {
+u32 func_8036fcdc(u64 a, u64 b, u64 c) {
     return (u32)((a + b) & c);
 }
 ```

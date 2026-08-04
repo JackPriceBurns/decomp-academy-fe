@@ -8,7 +8,7 @@ concepts:
   - control-flow
   - float
   - boolean-idiom
-symbol: spellstone_setState
+symbol: func_800421e0
 hints:
   - "Chase the state pointer first: `extra = obj->state;` — that's the leading
     `lwz r5, 0(r3)`."
@@ -21,10 +21,9 @@ hints:
 # Your first real function
 
 Everything so far has been a single idea in isolation. Capstones combine them.
-This one is lifted almost verbatim from Star Fox Adventures'
-`spellstone_setState` — a setter that does several things in one short function:
-reads an old value, writes a new one, conditionally nudges a position, and
-returns a boolean.
+This one is lifted almost verbatim from Star Fox Adventures' `func_800421e0` — a
+setter that does several things in one short function: reads an old value, writes
+a new one, conditionally nudges a position, and returns a boolean.
 
 ```c
 typedef struct { u8 state; u8 pad[3]; f32 timer; } SpellStoneState;
@@ -55,8 +54,8 @@ or      r0,r3,r0
 srwi    r3,r0,31
 ```
 
-The tail of `spellstone_setState` uses this same pattern. Read the constants in
-the target assembly to determine the comparison value.
+The tail of `func_800421e0` uses this same pattern. Read the constants in the
+target assembly to determine the comparison value.
 
 **Float offset.** A conditional `+= someExternFloat` on a field loads the field,
 loads the extern, calls `fadds`, and stores back — no intermediate local needed.
@@ -86,11 +85,11 @@ branchless tail.
 
 ## Your task
 
-With the structs above, write `spellstone_setState` to reproduce the assembly above.
+With the structs above, write `func_800421e0` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int spellstone_setState(SpellStoneObject* obj, int state) {
+int func_800421e0(SpellStoneObject* obj, int state) {
     SpellStoneState* extra;
     u8 oldState;
 

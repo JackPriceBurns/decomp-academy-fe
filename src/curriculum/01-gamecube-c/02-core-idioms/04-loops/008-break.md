@@ -7,7 +7,7 @@ concepts:
   - break
   - early-exit
   - linear-search
-symbol: find
+symbol: func_800dcc78
 hints:
   - A plain counted `for` with `if (a[i] == k) break;` inside.
   - When `k` is found, `break` leaves the loop with `i` holding the index.
@@ -38,18 +38,18 @@ mr   r3, r6         # return index
 blr
 ```
 
-So the tell is simple. A CTR-driven `bdnz` plus a stray conditional branch
-leaping out of the middle? That middle branch is the `break`. Miss `k` entirely
-and the loop just runs out the normal way, leaving `i == n`.
+The tell is simple. A CTR-driven `bdnz` plus a stray conditional branch leaping
+out of the middle? That middle branch is the `break`. Miss `k` entirely and the
+loop just runs out the normal way, leaving `i == n`.
 
 ## Your task
 
-Write `find`, returning the index of the first element of `a` equal to `k`, or
+Write `func_800dcc78`, returning the index of the first element of `a` equal to `k`, or
 `n` if there is none.
 
 <!-- solution -->
 ```c
-int find(int *a, int n, int k) {
+int func_800dcc78(int *a, int n, int k) {
     int i;
     for (i = 0; i < n; i++) {
         if (a[i] == k) break;

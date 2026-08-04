@@ -10,11 +10,11 @@ concepts:
   - sda21
   - clamp
   - control
-symbol: clampedStep
+symbol: func_800af8d8
 hints:
   - The `bl` makes this a non-leaf, so a full `stwu`/`mflr`/`stw` prologue and its
     mirror wrap the real work — read past the boilerplate.
-  - The returned value and the `@sda21` global are combined first; the `li` of the
+  - The returned value and the @sda21 global are combined first; the `li` of the
     bound is parked speculatively before the `cmpwi`.
   - "The cap is delivered the `bgt-` way: a speculative `li` of the limit, with
     `mr` letting the computed value through when it stays under."
@@ -57,7 +57,7 @@ that joins the call result to the global, and the `li`/`cmpwi`/`bgt-`/`mr` clamp
 The `li 1000` lands in the return register *before* the compare so the over-limit
 path costs nothing extra; `mr` overwrites it only when the value is in range.
 
-Your `clampedStep` has the same three-layer shape, but it **adds** the global
+Your `func_800af8d8` has the same three-layer shape, but it **adds** the global
 instead of subtracting it and caps at a **different** bound. Read the opcode that
 joins the call result to the global, and read the `cmpwi`/`bgt-` pair for the
 limit and direction.
@@ -65,13 +65,13 @@ limit and direction.
 ## Your task
 
 `compute` is declared for you, along with the int global `gThreshold`. Write
-`clampedStep` to reproduce the assembly above. Expect a full
-prologue and epilogue around the `bl`; the real work is the load, the arithmetic,
-and the clamp in the middle.
+`func_800af8d8` to reproduce the assembly above. Expect a full prologue and
+epilogue around the `bl`; the real work is the load, the arithmetic, and the
+clamp in the middle.
 
 <!-- solution -->
 ```c
-int clampedStep(int x) {
+int func_800af8d8(int x) {
     int v = compute(x) + gThreshold;
     if (v > 255) return 255;
     return v;

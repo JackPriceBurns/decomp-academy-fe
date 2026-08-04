@@ -9,7 +9,7 @@ concepts:
   - offsets
   - chaining
   - capstone
-symbol: Hero_power
+symbol: func_80046b10
 hints:
   - Four fields feed the result, one of them a constant-indexed member array.
     Read each load's displacement against the struct layout to name the field.
@@ -17,18 +17,17 @@ hints:
     reproduce one expression — trace the registers from each load to the return.
 ---
 
-# Putting the chapter together
+# Several fields, one expression
 
-This is where the chapter cashes out. A real accessor doesn't touch just one
-field. It grabs **several fields of one struct** at once, some scalars and a
-member-array element, and crushes them into a single number. Nothing below is new
-to you, though. Each field loads from its byte offset. An array element is that
-same idea plus a fixed displacement. The values gather in scratch registers in
-whatever order the expression calls for, and `r3` keeps doubling as the load
-address until there's nothing left to load.
+This is where the chapter cashes out. A real accessor doesn't touch just one field.
+It grabs several fields of one struct at once — some scalars and a member-array
+element — and crushes them into a single number. Nothing below is new, though. Each
+field loads from its byte offset. An array element is the same idea plus a fixed
+displacement. The values gather in scratch registers in whatever order the
+expression calls for, and `r3` keeps doubling as the load address until there's
+nothing left to load.
 
-Take a signal struct that mixes plain scalar fields with a little array of
-samples:
+Take a signal struct that mixes scalar fields with a small array of samples:
 
 ```c
 typedef struct {
@@ -44,7 +43,7 @@ int Signal_value(Signal* s) {
 ```
 
 Work the offsets out first. `kind` at 0, `rate` at 4, `samples` at 8, so
-`samples[1]` lands at `8 + 4 = 12`, and `offset` sits at `8 + 16 = 24`. Then the
+`samples[1]` is at `8 + 4 = 12`, and `offset` is at `8 + 16 = 24`. Then the
 compiler pulls the operands, multiplies two of them, and threads the rest in:
 
 ```asm
@@ -58,23 +57,22 @@ subf   r3, r3, r0    # - offset
 blr
 ```
 
-Four fields, four offsets, one expression. Match each `lwz` displacement to a
-field through the layout, and the `mullw`, `add`, and `subf` tell you how they
-combine (`subf rD, rA, rB` is `rB − rA`, mind the order). Notice the loads ignore
-offset order entirely. They show up exactly when the arithmetic wants them, not a
-moment sooner.
+Four fields, four offsets, one expression. Match each `lwz` displacement to a field
+through the layout, and the `mullw`, `add`, and `subf` tell you how they combine
+(`subf rD, rA, rB` is `rB − rA`). The loads ignore offset order; they appear exactly
+when the arithmetic wants them.
 
-The target works a different struct the same way, scalar fields plus one
+The target works a different struct the same way: scalar fields plus one
 member-array element, multiplied and added and subtracted into a result. Decode
 each offset against the layout below, then rebuild the expression.
 
 ## Your task
 
-With the `Hero` struct above, write `Hero_power` to reproduce the assembly above.
+With the `Hero` struct above, write `func_80046b10` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int Hero_power(Hero* h) {
+int func_80046b10(Hero* h) {
     return h->strength * h->level + h->items[2] - h->bonus;
 }
 ```

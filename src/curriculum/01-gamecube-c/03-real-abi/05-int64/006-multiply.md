@@ -7,7 +7,7 @@ concepts:
   - 64-bit
   - arithmetic
   - multiply
-symbol: mul_64
+symbol: func_80128aa0
 hints:
   - A 64-bit product expands inline into a recognizable burst of mullw/mulhwu plus adds.
   - "One `mulhwu` (high half of low×low) and three `mullw`s, summed together — that whole block is one `a * b`."
@@ -43,11 +43,11 @@ carry on show, but a clipped multiply gives you nothing to spot.
 
 ## Your task
 
-Write `mul_64` to match the target.
+Write `func_80128aa0` to match the target.
 
 <!-- solution -->
 ```c
-u64 mul_64(u64 a, u64 b) {
+u64 func_80128aa0(u64 a, u64 b) {
     return a * b;
 }
 ```

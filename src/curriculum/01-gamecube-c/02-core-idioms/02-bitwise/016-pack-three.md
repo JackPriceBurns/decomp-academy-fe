@@ -9,7 +9,7 @@ concepts:
   - or
   - chaining
   - capstone
-symbol: pack_three
+symbol: func_800156b4
 hints:
   - Each `slwi` positions one value at a different byte boundary in the 32-bit result.
   - The two `or` instructions fold the three shifted values together, one pair at a time.
@@ -17,9 +17,9 @@ hints:
 
 # Many shifts, many ORs, packing a full word
 
-Here's the capstone, and it leans on every trick the chapter built up. Three
-separate shifts park three values in their own byte lanes, then a pair of chained
-ORs fuse the lot into one 32-bit word.
+Here's the capstone, leaning on every trick the chapter built up. Three separate
+shifts park three values in their own byte lanes, then a pair of chained ORs fuse
+the lot into one 32-bit word.
 
 Take `pack_word(hi, mid, lo)`. It drops three bytes at positions 24, 16, and 0 of
 the result.
@@ -45,11 +45,11 @@ back to the expression that produced them.
 
 ## Your task
 
-Write `pack_three` to reproduce the assembly above.
+Write `func_800156b4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int pack_three(int a, int b, int c) {
+int func_800156b4(int a, int b, int c) {
     return (a << 16) | (b << 8) | c;
 }
 ```

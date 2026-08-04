@@ -8,7 +8,7 @@ concepts:
   - stores
   - read-modify-write
   - u8
-symbol: bump
+symbol: func_80248e18
 hints:
   - "Read-modify-write a byte: load with `lbz`, add with `addi`, store with
     `stb`."
@@ -36,9 +36,8 @@ blr
 
 So the byte rides up into a register zero-padded, picks up its `2` where a whole
 32 bits give the sum room to breathe, and then only its lowest eight bits survive
-the trip back to memory. Everything above those eight is simply thrown out, which
-is the whole reason `255 + 1` does not grow into 256 but loops quietly back to
-`0`.
+the trip back to memory. Everything above those eight is thrown out, which is why
+`255 + 1` does not grow into 256 but loops quietly back to `0`.
 
 Conspicuously missing from all of this is `extsb`. That one earns a place only
 when a signed byte has to be hauled up into a wider signed type, and nothing of
@@ -47,17 +46,17 @@ memory at its original width. So `u8` and `char` agree to leave it out. Still,
 `u8` is the safer habit by far. Let a `char` drift into some wider signed
 expression and `extsb` resurfaces unbidden, the very wrinkle `u8` spares you.
 
-`bump` follows the very same cut, three phases in the very same order. All that
+`func_80248e18` follows the very same cut, three phases in the very same order. All that
 moves is the displacement and the immediate, so read those straight off the
 target and puzzle out which element is in play and what happens to it.
 
 ## Your task
 
-Write `bump` to match the target. Expect exactly `lbz` / `addi` / `stb` with no `extsb`.
+Write `func_80248e18` to match the target. Expect exactly `lbz` / `addi` / `stb` with no `extsb`.
 
 <!-- solution -->
 ```c
-void bump(u8* p) {
+void func_80248e18(u8* p) {
     p[0]++;
 }
 ```

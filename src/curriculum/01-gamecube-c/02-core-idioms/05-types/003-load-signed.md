@@ -7,7 +7,7 @@ concepts:
   - loads
   - signed
   - sign-extension
-symbol: load_s16
+symbol: func_802795b8
 hints:
   - A signed halfword load that widens to int is `lha`, not `lhz`.
   - "`return p[0];` on an `s16*` compiles to a single `lha r3, 0(r3)`."
@@ -39,12 +39,12 @@ blr
 
 ## Your task
 
-Write `load_s16` to
-`int`. Because the result is used as a 32-bit `int`, the load must sign-extend.
+Write `func_802795b8` to return an `s16` widened to `int`. Because the result is
+used as a 32-bit `int`, the load must sign-extend.
 
 <!-- solution -->
 ```c
-int load_s16(s16* p) {
+int func_802795b8(s16* p) {
     return p[0];
 }
 ```

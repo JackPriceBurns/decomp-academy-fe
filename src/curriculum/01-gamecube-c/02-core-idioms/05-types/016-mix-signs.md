@@ -9,7 +9,7 @@ concepts:
   - sign-extension
   - mixed-signedness
   - operand-order
-symbol: mix_signs
+symbol: func_80040fcc
 hints:
   - "One operand zero-extends (`clrlwi`), the other sign-extends (`extsb`/`extsh`)
     — the extend each operand gets is decided by *its own* declared signedness,
@@ -20,15 +20,12 @@ hints:
 
 # Signedness is decided per operand, not per expression
 
-A mixed-sign expression has no house rule. Sign one operand, leave the other
-unsigned, and the compiler quietly asks each value on its own how it means to
-grow to 32 bits. Whichever one is unsigned gets a `clrlwi` to scrub its upper
-bits clean, while the signed value instead has its sign dragged upward by `extsb`
-or `extsh`. Only with both stretched to full width does the arithmetic get its
-turn, which is the whole reason you end up staring at two different extends parked
-right beside each other.
+When an expression mixes signed and unsigned values, the compiler doesn't pick one
+rule for the whole expression. It asks each operand how it wants to be widened.
+Unsigned values get a `clrlwi` mask; signed values get their sign copied up with
+`extsb` or `extsh`. Only after both are full width does the arithmetic happen.
 
-Look at `merge(a, b)`, which adds a signed `s16` to an unsigned `u8`:
+Take `merge(a, b)`, adding a signed `s16` to an unsigned `u8`:
 
 ```asm
 extsh  r3, r3      # a: sign-extend (s16 is signed)
@@ -37,24 +34,23 @@ add    r3, r3, r0
 blr
 ```
 
-Spot `extsh` next to `clrlwi` and the story tells itself, one signed operand
-sharing the expression with one unsigned. The trick is to read them apart instead
-of as a pair. Whichever extend you are looking at, its kind nails down the
-signedness, while the width is whatever its reach implies, be that the `clrlwi`
-count or the `extsb`-versus-`extsh` pick.
+`extsh` next to `clrlwi` tells you immediately: one signed operand, one unsigned.
+Read each extend on its own. Its kind gives you the signedness, and its reach gives
+you the width — either the `clrlwi` shift count or the choice between `extsb` and
+`extsh`.
 
-Your target subtracts where this one added, so its final instruction is `subf`
-rather than `add`. The wrinkle to remember is that `subf rD, rA, rB` works out
-`rB − rA`, so the order your operands take in the C is precisely what decides
-which widened value gets pulled out of which. Get that ordering right.
+Your target uses `subf` instead of `add`. Remember that `subf rD, rA, rB` computes
+`rB − rA`, so the order of operands in C determines which widened value is
+subtracted from which.
 
 ## Your task
 
-Write `mix_signs` to match the target assembly. Both extends and the `subf` must line up.
+Write `func_80040fcc` to match the target assembly. Both extends and the `subf`
+must line up.
 
 <!-- solution -->
 ```c
-int mix_signs(u8 a, s8 b) {
+int func_80040fcc(u8 a, s8 b) {
     return a - b;
 }
 ```

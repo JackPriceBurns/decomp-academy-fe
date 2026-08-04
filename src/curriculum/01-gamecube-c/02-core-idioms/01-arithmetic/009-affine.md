@@ -7,7 +7,7 @@ concepts:
   - arithmetic
   - strength-reduction
   - instruction-selection
-symbol: affine
+symbol: func_8032b554
 hints:
   - Multiply by 4 is a shift; the + 1 is an immediate add.
   - Expect `slwi r3, r3, 2` then `addi r3, r3, 1`.
@@ -16,14 +16,13 @@ hints:
 # When the idioms stack up
 
 Real code rarely hands you one operation at a time. An affine expression is a
-good example. It multiplies by a power of two and then adds a constant, so it's
-really two of this chapter's idioms back to back. A compiler encodes each one
-cheaply, a shift for the multiply and an immediate add for the constant.
+good example: it multiplies by a power of two and then adds a constant, so it's
+two of this chapter's idioms back to back. The compiler encodes each one cheaply:
+a shift for the multiply and an immediate add for the constant.
 
-Decoding runs the other way, and it's mechanical. Count how many places the
-value shifts left and that's the power of two, so a shift by 3 means a multiply
-by 8. Whatever number rides on the `addi` is the constant. Push `n * 8 + 3`
-through that and it becomes:
+Decoding runs the other way, and it's mechanical. Count how many places the value
+shifts left and that's the power of two — a shift by 3 means a multiply by 8.
+Whatever number is on the `addi` is the constant. So `n * 8 + 3` becomes:
 
 ```asm
 slwi r3, r3, 3    # left-shift by 3  →  n * 8
@@ -42,11 +41,11 @@ blr
 
 ## Your task
 
-Write `affine` to reproduce the assembly above.
+Write `func_8032b554` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int affine(int x) {
+int func_8032b554(int x) {
     return x * 4 + 1;
 }
 ```

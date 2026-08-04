@@ -8,7 +8,7 @@ concepts:
   - linked-list
   - loops
   - pointers
-symbol: List_last
+symbol: func_80142154
 hints:
   - Loop `while (n->next != NULL) n = n->next;` and return `n`.
   - Each step reloads `lwz r0, 0(r3)` and tests it with `cmplwi r0, 0`.
@@ -16,19 +16,18 @@ hints:
 
 # p = p->next
 
-A struct can hold a pointer to its own type. That's all a linked list really is,
-each node knowing where the next one lives. So to land on the final node, you
-walk. Loop over the chain, and every time around grab `next` from memory again
-before you test it for NULL. Skip the re-fetch and the loop never advances; you'd
-read the same node until the heat death of the console.
+A struct can hold a pointer to its own type. That's all a linked list is: each node
+knows where the next one lives. To reach the final node, you walk. Loop over the
+chain, and every time grab `next` from memory before testing it for NULL. Skip the
+re-fetch and the loop never advances — you'd read the same node forever.
 
 ```c
 typedef struct Node { struct Node* next; int value; } Node;
 ```
 
-`next` comes first in the struct, offset 0, so following it is a lone
-`lwz r0, 0(r3)`. Then zero-compare the result. Nonzero, keep walking. Zero,
-you're done.
+`next` is first in the struct, offset 0, so following it is a lone
+`lwz r0, 0(r3)`. Then zero-compare the result. Nonzero, keep walking. Zero, you're
+done.
 
 ```asm
        b       check
@@ -39,23 +38,22 @@ check: lwz     r0, 0(r3)    # load n->next
        blr                  # return last node (still in r3)
 ```
 
-Load from offset 0, check for NULL, branch back, repeat. That rhythm is a
-traversal and nothing else. Worth a glance: the compare is `cmplwi`, unsigned.
-`next` is an address, and addresses don't go negative.
+Load from offset 0, check for NULL, branch back, repeat. That rhythm is a traversal
+and nothing else. Note the compare is `cmplwi`, unsigned — `next` is an address, and
+addresses don't go negative.
 
-That `b check` sitting before the loop label isn't a mistake. MWCC builds the
-`while` as a bottom-tested loop, so control jumps to the condition first and the
-body folds in next to it. Plain old `while` in C gives you this exact thing.
-Reach for `do`/`while` and you've gone one step too far.
+The `b check` before the loop label isn't a mistake. MWCC builds `while` as a
+bottom-tested loop, so control jumps to the condition first and the body follows.
+Plain `while` in C gives exactly this. `do`/`while` would be one step too far.
 
 ## Your task
 
-With `Node` above, write `List_last` that follows `next` until it is NULL and
+With `Node` above, write `func_80142154` that follows `next` until it is NULL and
 returns the final node.
 
 <!-- solution -->
 ```c
-Node* List_last(Node* n) {
+Node* func_80142154(Node* n) {
     while (n->next != NULL) {
         n = n->next;
     }

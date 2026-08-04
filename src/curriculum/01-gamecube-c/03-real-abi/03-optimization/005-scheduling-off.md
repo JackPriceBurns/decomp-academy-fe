@@ -7,7 +7,7 @@ concepts:
   - scheduling
   - pragma
   - ordering
-symbol: combine3
+symbol: func_802a5354
 hints:
   - "Same body as the very first lesson: two sums, then multiply them."
   - The pragma forces source order, so each `add` follows its own pair of loads.
@@ -16,12 +16,12 @@ hints:
 
 # Putting the instructions back in source order
 
-That pragma has a twin, `scheduling off`. Switch it on and MWCC stops reordering
-for latency, writing instructions out in more or less the order you typed them.
+That pragma has a twin: `scheduling off`. Switch it on and MWCC stops reordering
+for latency, writing instructions out more or less in the order you typed them.
 So the loads-first shape from before never shows up in a target built this way.
 Loads end up wedged right against whatever consumes them.
 
-Here's lesson 1's body again, two sums and a multiply, except this time
+Here's lesson 1's body again — two sums and a multiply — except this time
 scheduling is off.
 
 ```asm
@@ -35,10 +35,10 @@ mullw r3, r5, r0
 ```
 
 See how the four loads never get gathered up front. Each pair stays welded to its
-own `add`, and that ordering, plus the register numbers it drags along, is the
+own `add`, and that ordering — plus the register numbers it drags along — is the
 tell for `scheduling off`. Peephole worked the same way. You bracket the region
-and you always close an `off` with a `reset`, and in real decomp the two pragmas
-tend to travel together around an entire function.
+and always close an `off` with a `reset`; in real decomp the two pragmas tend to
+travel together around an entire function.
 
 > The `#pragma scheduling off` / `reset` lines are already there in the starter
 > and the solution, and they apply to the target as well, so your job is only the
@@ -46,15 +46,15 @@ tend to travel together around an entire function.
 
 ## Your task
 
-Write the body of `combine3(int *p)` to match the un-batched, source-order
-assembly above. Read which array slots pair with which `add`, and what the
-final `mullw` combines. With scheduling off the compiler emits in source order,
-so the layout of the loads tells you the layout of the C.
+Write `func_802a5354` to match the un-batched, source-order assembly above. Read
+which array slots pair with which `add`, and what the final `mullw` combines. With
+scheduling off the compiler emits in source order, so the layout of the loads
+tells you the layout of the C.
 
 <!-- starter -->
 ```c
 #pragma scheduling off
-int combine3(int *p) {
+int func_802a5354(int *p) {
     return 0;
 }
 #pragma scheduling reset
@@ -63,7 +63,7 @@ int combine3(int *p) {
 <!-- solution -->
 ```c
 #pragma scheduling off
-int combine3(int *p) {
+int func_802a5354(int *p) {
     int a = p[0] + p[1];
     int b = p[2] + p[3];
     return a * b;

@@ -7,7 +7,7 @@ concepts:
   - loads
   - addressing
   - arrays
-symbol: elemAt
+symbol: func_803495b0
 hints:
   - A constant index folds into the load's displacement — no extra add.
   - "`p[2]` on an int* is byte offset 8, so `lwz r3, 8(r3)`."
@@ -15,10 +15,8 @@ hints:
 
 # The displacement field earns its keep
 
-Index a pointer by a constant and the compiler does the multiplication itself,
-ahead of time, tucking the scaled byte offset right into the load's displacement
-field. No extra add shows up to do the scaling, because there is nothing left to
-scale at runtime.
+Index a pointer by a constant and the compiler does the scaling itself, baking the
+byte offset into the load's displacement. No extra add appears at runtime.
 
 Take a function that grabs the sixth element of an `int` array:
 
@@ -33,22 +31,21 @@ lwz  r3, 20(r3)   # fetch word at p + 20 bytes
 blr
 ```
 
-An `int` is 4 bytes wide, so index 5 works out to a byte offset of `5 * 4 = 20`.
-Run that backward and a displacement of `20` on an `int*` comes out as
-`20 / 4 = 5`, the sixth element. Dividing the displacement by the element size
-like that is the whole trick to reading constant-index accesses straight off a
-disassembly.
+An `int` is 4 bytes, so index 5 gives byte offset `5 * 4 = 20`. Run that backward:
+a displacement of `20` on an `int*` means `20 / 4 = 5`, the sixth element. Dividing
+the displacement by the element size is the trick to reading constant-index accesses
+in disassembly.
 
-So look over the target assembly for `elemAt`. Its displacement lands on one
-particular element, and dividing by `sizeof(int)` is what tells you which.
+Look at the target assembly for `func_803495b0`. Its displacement points to one
+element; divide by `sizeof(int)` to find which.
 
 ## Your task
 
-Write `elemAt` to reproduce the assembly above.
+Write `func_803495b0` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int elemAt(int* p) {
+int func_803495b0(int* p) {
     return p[2];
 }
 ```

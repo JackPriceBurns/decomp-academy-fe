@@ -9,7 +9,7 @@ concepts:
   - arrays
   - multiplication
   - chaining
-symbol: capstone
+symbol: func_8023b078
 hints:
   - Three reads share one scaled index — a fixed element via `lwz 0(r3)`, the
     indexed element via `lwzx`, and a neighbor via a displacement load off the
@@ -18,19 +18,19 @@ hints:
     loaded values) and the final step is `subf`.
 ---
 
-# Putting the chapter together
+# Several dereferences in one expression
 
-By now you've met every move in this function separately. It loads an element at
-a fixed index, loads another at a variable index with `lwzx`, grabs a neighbor
-off the computed base, multiplies two loaded values together
-register-to-register, and subtracts at the end. So nothing here is unfamiliar.
-The earlier lessons have just been bolted together into one routine.
+By now you've seen every move in this function separately. It loads an element at
+a fixed index, loads another at a variable index with `lwzx`, grabs a neighbor off
+the computed base, multiplies two loaded values register-to-register, and subtracts
+at the end. Nothing here is unfamiliar — the earlier lessons just got bolted
+together.
 
-The efficiency worth catching is that the variable index only gets scaled
-**once**, by `slwi`. After that, the same offset does two jobs. It drives the
-indexed `lwzx`, and it also locates the neighbor, whose base falls out of an
-`add` before a displacement load finishes the read. The element at index 0 never
-goes near that path, since a plain `lwz 0(r3)` reaches it directly.
+The efficiency to catch: the variable index only gets scaled once, by `slwi`. After
+that, the same offset does two jobs. It drives the indexed `lwzx`, and it also
+locates the neighbor, whose base falls out of an `add` before a displacement load
+finishes the read. The element at index 0 never needs that path; a plain
+`lwz 0(r3)` reaches it directly.
 
 `mix(q, j)` blends the first element with the product of two neighbors:
 
@@ -45,21 +45,20 @@ add  r3, r5, r0    # q[0] + q[j]*q[j+1]
 blr
 ```
 
-Here the single `slwi` is what powers both the `lwzx` and the `add`-built base,
-and because the multiply takes two *loaded* values it comes out as `mullw` rather
-than `mulli`, with the fixed element joining only at the close. Your target is
-built from the same parts, but it puts the multiply and the subtract in different
-places. So work each loaded register forward from its load to whatever consumes
-it, recover the indices from the displacements, and the expression reassembles
-itself.
+The single `slwi` powers both the `lwzx` and the `add`-built base. Because the
+multiply takes two loaded values, it comes out as `mullw` rather than `mulli`, with
+the fixed element joining only at the end. Your target is built from the same
+parts, but the multiply and subtract sit in different places. Work each loaded
+register forward from its load to whatever consumes it, recover the indices from
+the displacements, and the expression reassembles itself.
 
 ## Your task
 
-Write `capstone` to reproduce the assembly above.
+Write `func_8023b078` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int capstone(int* p, int i) {
+int func_8023b078(int* p, int i) {
     return p[i] * p[0] - p[i + 2];
 }
 ```

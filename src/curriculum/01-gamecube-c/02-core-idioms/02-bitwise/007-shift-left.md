@@ -7,7 +7,7 @@ concepts:
   - bitwise
   - shifts
   - rlwinm
-symbol: shiftLeftConst
+symbol: func_801872b8
 hints:
   - A constant left shift is the `slwi` extended mnemonic.
   - "`x << 4` compiles to `slwi r3, r3, 4`."
@@ -27,8 +27,8 @@ blr
 
 That `slwi r3, r3, 3` is really `rlwinm r3, r3, 3, 0, 28` wearing a nicer name, a
 rotate by 3 that holds onto the top 29 bits. No need to decode it by hand. Spot
-`slwi`, read it as a constant left shift, and the immediate sitting beside it is
-the shift count, plain as that.
+`slwi`, read it as a constant left shift, and the immediate beside it is the
+shift count.
 
 There's a second route to the same instruction. Since `x << n` carries the same
 value as `x * 2^n`, MWCC strength-reduces a power-of-two multiply straight into a
@@ -37,11 +37,11 @@ pick the constant that lines up.
 
 ## Your task
 
-Write `shiftLeftConst` so it compiles to the `slwi` above.
+Write `func_801872b8` so it compiles to the `slwi` above.
 
 <!-- solution -->
 ```c
-u32 shiftLeftConst(u32 x) {
+u32 func_801872b8(u32 x) {
     return x << 4;
 }
 ```

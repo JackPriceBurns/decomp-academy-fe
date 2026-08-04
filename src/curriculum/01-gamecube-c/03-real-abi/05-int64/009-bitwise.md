@@ -7,7 +7,7 @@ concepts:
   - 64-bit
   - bitwise
   - detection
-symbol: and_64
+symbol: func_801e3a94
 hints:
   - AND/OR/XOR have no carry between halves, so each is just the 32-bit op done twice.
   - "`and r4,r4,r6` then `and r3,r3,r5` — low pair, then high pair."
@@ -16,9 +16,9 @@ hints:
 
 # No carry, no fingerprint
 
-Bitwise ops have no carry. Each bit stands alone, so nothing flows between the low
-and high halves of a `u64`. A 64-bit AND, OR, or XOR is therefore just the 32-bit
-instruction run twice, once on each half:
+Bitwise ops have no carry. Each bit stands alone, so nothing flows between the
+low and high halves of a `u64`. A 64-bit AND, OR, or XOR is therefore just the
+32-bit instruction run twice, once on each half:
 
 ```asm
 and    r4, r4, r6     # low half
@@ -41,11 +41,11 @@ or a 64-bit compare is what tells you the AND was working on a 64-bit value.
 
 ## Your task
 
-Write `and_64` to match the target.
+Write `func_801e3a94` to match the target.
 
 <!-- solution -->
 ```c
-u64 and_64(u64 a, u64 b) {
+u64 func_801e3a94(u64 a, u64 b) {
     return a & b;
 }
 ```

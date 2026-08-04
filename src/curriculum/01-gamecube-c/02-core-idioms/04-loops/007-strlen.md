@@ -7,7 +7,7 @@ concepts:
   - pointers
   - sentinel
   - byte-load
-symbol: slen
+symbol: func_800fd138
 hints:
   - Loop `while (*p) { n++; p++; }` — the pointer itself is the loop state.
   - A `u8` load is `lbz`; comparing an unsigned byte gives `cmplwi`, not `cmpwi`.
@@ -40,18 +40,18 @@ compare is `cmplwi` only because that `u8` is unsigned. Type the pointer `u8*`
 rather than `char*` and the load comes out clean.
 
 That `u8` is the project's own unsigned byte, just `typedef unsigned char u8;` in
-a shared header, the `u8`/`u16`/`u32` style nearly every GC decomp uses. Pick
+a shared header — the `u8`/`u16`/`u32` style nearly every GC decomp uses. Pick
 `char` instead and you'd get a sign-extending load and slightly different asm, so
 I always match the type the target was built with.
 
 ## Your task
 
-Write `slen`, counting bytes until the zero terminator (a from-scratch `strlen`).
+Write `func_800fd138`, counting bytes until the zero terminator (a from-scratch `strlen`).
 `p` is a `u8*`.
 
 <!-- solution -->
 ```c
-int slen(u8 *p) {
+int func_800fd138(u8 *p) {
     int n = 0;
     while (*p) {
         n++;

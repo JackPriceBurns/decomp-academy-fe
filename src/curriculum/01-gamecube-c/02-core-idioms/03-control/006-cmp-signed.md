@@ -8,7 +8,7 @@ concepts:
   - signed
   - branch
   - types
-symbol: pick_signed
+symbol: func_80321ad4
 hints:
   - Signed `int` operands feeding a branch use `cmpw`.
   - Expect `cmpw r3, r4`, `li r3, 200`, `bgelr-`, `li r3, 100`.
@@ -32,7 +32,7 @@ blr
 than* `1`. The branch mnemonic encodes the *negation* of the taken condition.
 In the pattern above, the branch exits on one side and the fall-through handles
 the other — the two `li` constants give you the two possible return values.
-This lesson is one half of a pair — the next swaps the types to unsigned and
+This lesson is one half of a pair; the next swaps the types to unsigned and
 watches the opcode change.
 
 To reconstruct the C: figure out which condition causes the `bgelr-` to fire
@@ -41,11 +41,11 @@ two arms.
 
 ## Your task
 
-Write `pick_signed` to reproduce the assembly above.
+Write `func_80321ad4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int pick_signed(int a, int b) {
+int func_80321ad4(int a, int b) {
     if (a < b) return 100;
     return 200;
 }

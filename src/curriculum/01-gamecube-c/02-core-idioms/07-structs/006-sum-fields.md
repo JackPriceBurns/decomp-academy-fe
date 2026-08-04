@@ -8,7 +8,7 @@ concepts:
   - load
   - offsets
   - chaining
-symbol: Point_sum
+symbol: func_80371e38
 hints:
   - Two loads from the same base register, at two different offsets, then one
     combining instruction.
@@ -18,14 +18,13 @@ hints:
 
 # Two loads, then combine
 
-Up to now every function has read a single field. That isn't how real code
-behaves. It grabs a handful of fields off the same struct and does something with
-them, and the assembly for that is about as plain as it gets: a load per field,
-all hanging off the same base pointer, then some arithmetic to fold them
-together. Since the base lives in `r3` and never moves, every `lwz` points at
-`r3` and just changes the displacement.
+Up to now every function read a single field. Real code grabs a handful of fields
+off the same struct and does something with them. The assembly is straightforward:
+a load per field, all off the same base pointer, then arithmetic to fold them
+together. Since the base stays in `r3`, every `lwz` points at `r3` and just changes
+the displacement.
 
-Take a health struct whose function works out how much health is missing.
+Take a health struct whose function works out how much health is missing:
 
 ```c
 typedef struct { int hp; int maxHp; } Health;
@@ -42,23 +41,23 @@ subf  r3, r4, r0   # r3 = r0 - r4  =  maxHp - hp
 blr
 ```
 
-So the two `lwz`s park each field in a scratch register, and `subf` glues them:
-`subf rD, rA, rB` is `rB − rA`. Want to know which field a load grabbed? Look at
-its offset. Want to know how the two were combined? Look at the instruction that
-did it. The one gotcha is ordering. The loads come out in the order the source
-expression mentions the fields, which has nothing to do with their offsets.
+The two `lwz`s park each field in a scratch register, and `subf` glues them:
+`subf rD, rA, rB` is `rB − rA`. To find which field a load grabbed, look at its
+offset. To find how they were combined, look at the combining instruction. The one
+gotcha is ordering: the loads come out in the order the source expression mentions
+the fields, not necessarily by offset.
 
 Your assembly pulls the same trick on a different struct and uses a different
-operation to join the values. Pair each `lwz` displacement with a field and
-rebuild the arithmetic.
+operation. Pair each `lwz` displacement with a field and rebuild the arithmetic.
 
 ## Your task
 
-With the `Point` struct above, write `Point_sum` to reproduce the assembly above.
+With the `Point` struct above, write `func_80371e38` to reproduce the assembly
+above.
 
 <!-- solution -->
 ```c
-int Point_sum(Point* p) {
+int func_80371e38(Point* p) {
     return p->x + p->y;
 }
 ```

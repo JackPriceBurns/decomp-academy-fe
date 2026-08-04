@@ -7,7 +7,7 @@ concepts:
   - ternary
   - comparison
   - select
-symbol: maxi
+symbol: func_801a77f4
 hints:
   - "`a > b ? a : b` is max; expect a `cmpw` and a `ble-` skip."
   - Both arms merge through `mr r4, r3` / `mr r3, r4`.
@@ -16,8 +16,8 @@ hints:
 # Selecting one of two values based on a comparison
 
 A ternary `cond ? x : y` picking between the *same two input registers* lowers to
-a compare, a conditional skip, and a pair of `mr` (move register) instructions
-that shuttle the chosen value into the return register where it gets read out.
+a compare, a conditional skip, and a pair of `mr` instructions that move the
+chosen value into the return register.
 
 ```asm
 cmpw r3, r4      # compare a, b (signed int)
@@ -40,11 +40,11 @@ untouched, the case that keeps `b`, and you've found which arm returns `b` versu
 
 ## Your task
 
-Write `maxi` to reproduce the assembly above.
+Write `func_801a77f4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int maxi(int a, int b) {
+int func_801a77f4(int a, int b) {
     return a > b ? a : b;
 }
 ```

@@ -23,7 +23,7 @@ reads, you know which arguments it has.
 
 ## Counting from the assembly
 
-Here is a function that adds its second and fourth arguments together:
+Here's a function that adds its second and fourth arguments together:
 
 ```asm
 add   r3, r4, r6
@@ -40,11 +40,11 @@ int combine(int a, int b, int c, int d) {
 }
 ```
 
-Look closely and you'll notice `a` and `c` appear *nowhere* in the assembly. **An
-argument that arrives but is never used generates no code at all** — it is
-invisible in the disassembly. You don't spot `a` and `c` directly; you *deduce*
-them, because `d` sits in `r6`, and nothing can be the fourth argument unless
-three arguments come before it.
+Notice `a` and `c` appear *nowhere* in the assembly. **An argument that arrives
+but is never used generates no code at all** — it is invisible in the
+disassembly. You don't spot `a` and `c` directly; you *deduce* them, because `d`
+sits in `r6`, and nothing can be the fourth argument unless three arguments come
+before it.
 
 ## The rule
 
@@ -52,7 +52,6 @@ three arguments come before it.
 > position is your argument count. Declare every argument up to it — including the
 > ones in between that the code skips straight over.
 
-That is the entire skill for now. A lone `r3` → one argument. Reads up to `r5` →
-three arguments, even if `r4` is nowhere in sight. Reads `r7` → five. Work out
-that number, give each parameter the type `int`, return an `int`, and the
-signature is reconstructed.
+That's it. A lone `r3` → one argument. Reads up to `r5` → three arguments, even
+if `r4` is nowhere in sight. Reads `r7` → five. Work out that number, give each
+parameter the type `int`, return an `int`, and the signature is reconstructed.

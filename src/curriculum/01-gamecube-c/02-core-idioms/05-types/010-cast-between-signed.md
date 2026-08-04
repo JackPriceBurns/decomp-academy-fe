@@ -7,7 +7,7 @@ concepts:
   - casts
   - signed
   - sign-extension
-symbol: s8_to_s16
+symbol: func_80094334
 hints:
   - Widening a signed byte preserves its sign, so it sign-extends.
   - "`return x;` compiles to `extsb r3, r3`."
@@ -35,17 +35,17 @@ clrlwi r3, r3, 24   # u8 -> u16, zero-extended (no sign to preserve)
 blr
 ```
 
-What you start from is what matters. A signed source pulls in `extsb` or `extsh`,
-and an unsigned source pulls in a mask.
+What you start from matters. A signed source pulls in `extsb` or `extsh`; an
+unsigned source pulls in a mask.
 
 ## Your task
 
-Write `s8_to_s16`, taking an `s8 x` and returning it as an `s16`. The signed
+Write `func_80094334`, taking an `s8 x` and returning it as an `s16`. The signed
 widen should emit a single `extsb`.
 
 <!-- solution -->
 ```c
-s16 s8_to_s16(s8 x) {
+s16 func_80094334(s8 x) {
     return x;
 }
 ```

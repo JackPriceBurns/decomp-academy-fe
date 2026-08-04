@@ -9,7 +9,7 @@ concepts:
   - division
   - chaining
   - operand-order
-symbol: allfour5
+symbol: func_802240e8
 hints:
   - Four instructions, four operations. The first two are independent — neither
     feeds the other — and they are later joined by the third. The fourth applies
@@ -20,13 +20,13 @@ hints:
 
 # Every operator in one expression
 
-This is the capstone of the arithmetic chain series. When `+`, `−`, `×`, and `÷`
-all appear in a single expression, the compiler still follows the same rules: it
+This is the capstone for arithmetic chains. When `+`, `−`, `×`, and `÷` all
+appear in a single expression, the compiler still follows the same rules: it
 evaluates independent sub-expressions separately, then combines them in order of
 dependency, one instruction at a time.
 
-Consider `weighted_offset(p, q, r, s)`, which multiplies two values, then
-divides that product by a third, and finally adds a fourth:
+Consider `weighted_offset(p, q, r, s)`, multiplying two values, then dividing
+that product by a third, and finally adding a fourth:
 
 ```asm
 mullw   r0,r3,r4   # r0 = p * q
@@ -47,11 +47,11 @@ four operations.
 
 ## Your task
 
-Write `allfour5` to reproduce the assembly above.
+Write `func_802240e8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int allfour5(int a, int b, int c, int d, int e) {
+int func_802240e8(int a, int b, int c, int d, int e) {
     return a * b + c / d - e;
 }
 ```

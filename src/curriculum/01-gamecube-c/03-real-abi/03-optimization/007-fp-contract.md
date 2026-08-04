@@ -7,7 +7,7 @@ concepts:
   - floating-point
   - fp_contract
   - fmadds
-symbol: madd
+symbol: func_8024bf00
 hints:
   - The body is simply `return a*b + c;`.
   - Reordering to `c + a*b` won't dodge fusion — the pragma is what controls the
@@ -51,14 +51,14 @@ the pragma instead of contorting the expression to dodge fusion.
 
 ## Your task
 
-Write `madd(f32 a, f32 b, f32 c)` so it compiles to the separate `fmuls` and
-`fadds` above — not the fused `fmadds`. Look at the function signature to
-determine what arithmetic to express.
+Write `func_8024bf00` so it compiles to the separate `fmuls` and `fadds` above —
+not the fused `fmadds`. Look at the function signature to determine what
+arithmetic to express.
 
 <!-- starter -->
 ```c
 #pragma fp_contract off
-f32 madd(f32 a, f32 b, f32 c) {
+f32 func_8024bf00(f32 a, f32 b, f32 c) {
     return 0.0f;
 }
 #pragma fp_contract reset
@@ -67,7 +67,7 @@ f32 madd(f32 a, f32 b, f32 c) {
 <!-- solution -->
 ```c
 #pragma fp_contract off
-f32 madd(f32 a, f32 b, f32 c) {
+f32 func_8024bf00(f32 a, f32 b, f32 c) {
     return a*b + c;
 }
 #pragma fp_contract reset

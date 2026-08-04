@@ -10,7 +10,7 @@ concepts:
   - rlwinm
   - rlwimi
   - mwcc-idiom
-symbol: merge_fields
+symbol: func_8036c628
 hints:
   - Mask the two halves independently, then OR them together — the compiler may fuse those steps.
   - "`rlwimi rD, rA, sh, MB, ME` inserts bits from rA into rD in the range [MB,ME], leaving the rest of rD intact."
@@ -47,8 +47,8 @@ every other bit of `r3` exactly as it was. So `r3` ends up holding
 
 That insert is the whole trick. `rlwimi` splices a field from one register into
 another without disturbing anything outside the [MB, ME] range. Doing the same
-in C is fiddly, an AND on the source, an AND-with-complement on the destination,
-then an OR, and the compiler folds all three into one instruction.
+in C is fiddly: an AND on the source, an AND-with-complement on the destination,
+then an OR. The compiler folds all three into one instruction.
 
 Your target runs the same `mr` / `rlwinm` / `rlwimi` dance, just with different
 masks. Pull the [MB, ME] fields out of each instruction to see which byte-wide
@@ -56,11 +56,11 @@ fields meet up, and which argument supplies which one.
 
 ## Your task
 
-Write `merge_fields` to reproduce the assembly above.
+Write `func_8036c628` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int merge_fields(int a, int b) {
+int func_8036c628(int a, int b) {
     return (a & 0xFF) | (b & 0xFF00);
 }
 ```

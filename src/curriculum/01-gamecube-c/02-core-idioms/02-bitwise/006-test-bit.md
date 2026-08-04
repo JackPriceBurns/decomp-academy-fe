@@ -8,7 +8,7 @@ concepts:
   - and
   - rlwinm
   - masks
-symbol: test_bit
+symbol: func_80395cf8
 hints:
   - Isolate the bit by AND-ing with its single-bit mask.
   - A contiguous one-bit mask like 0x80 compiles to `rlwinm`, not `andi.`.
@@ -26,8 +26,8 @@ rlwinm  r3,r3,0,27,27
 blr
 ```
 
-The rotate is 0 and the mask is exactly **one** bit wide: `[27,27]` selects PPC
-bit 27, which corresponds to `0x10`. (PPC counts bits from the MSB: bit 0 is
+The rotate is 0 and the mask is one bit wide: `[27,27]` selects PPC bit 27,
+which corresponds to `0x10`. (PPC counts bits from the MSB: bit 0 is
 `0x80000000`, bit 27 is `0x10`, bit 31 is `0x1`.) This is the mirror image of the
 AND-mask lesson — a *contiguous* mask (even a one-bit one) goes through `rlwinm`,
 while a *scattered* mask like `0x12` went through `andi.`. Contiguity, not size,
@@ -38,11 +38,11 @@ isolated, convert that back to the hex value, and express it as an AND in C.
 
 ## Your task
 
-Write `test_bit` to reproduce the assembly above.
+Write `func_80395cf8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u32 test_bit(u32 x) {
+u32 func_80395cf8(u32 x) {
     return x & 0x80;
 }
 ```

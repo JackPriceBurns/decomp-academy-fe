@@ -8,7 +8,7 @@ concepts:
   - range
   - boolean
   - combining
-symbol: in_bounds
+symbol: func_80357688
 hints:
   - "`||` short-circuits the other way: the first *passing* test jumps to the
     reject exit."
@@ -24,8 +24,8 @@ escapes either bound, so the first half to hold settles the whole thing. That's
 the spot where `||` short-circuits. And keep an eye on the two compares here,
 because they don't even have to share a form.
 
-Take `rejected(x, lo)`. It's true when `x` dips below a *variable* floor, or
-climbs above a fixed ceiling of 255.
+Take `rejected(x, lo)`, true when `x` dips below a *variable* floor or climbs
+above a fixed ceiling of 255:
 
 ```asm
 cmpw  r3,r4        # x vs lo (both registers -> cmpw)
@@ -53,12 +53,12 @@ the value waiting on each path.
 
 ## Your task
 
-Write `in_bounds` to reproduce the
+Write `func_80357688` to reproduce the
 assembly above.
 
 <!-- solution -->
 ```c
-int in_bounds(int i, int n) {
+int func_80357688(int i, int n) {
     if (i < 0 || i >= n) return 0;
     return 1;
 }

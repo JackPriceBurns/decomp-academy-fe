@@ -9,7 +9,7 @@ concepts:
   - arithmetic
   - carry
   - chaining
-symbol: xor_add_64
+symbol: func_80326e6c
 hints:
   - Two stages — a flag-less bitwise pair (low then high) whose result then flows into an `addc`/`adde` carry chain.
   - The bitwise op has no carry, so its high word is computed independently; the carrying instructions appear only in the second stage.
@@ -47,11 +47,11 @@ expression is yours.
 
 ## Your task
 
-Write `xor_add_64` to reproduce the assembly above.
+Write `func_80326e6c` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u64 xor_add_64(u64 a, u64 b, u64 c) {
+u64 func_80326e6c(u64 a, u64 b, u64 c) {
     return (a ^ b) + c;
 }
 ```

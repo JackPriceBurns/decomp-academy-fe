@@ -10,7 +10,7 @@ concepts:
   - addr16
   - lis
   - ha-lo
-symbol: getPalette
+symbol: func_803f5e70
 hints:
   - An array's address isn't in the SDA window, so it's built from two halves.
   - "`return gPalette;` compiles to `lis r3, gPalette@ha` then `addi r3, r3,
@@ -19,33 +19,30 @@ hints:
 
 # Two ways to materialize an address
 
-Returning a global's *address* instead of its value plays out two different ways,
-depending on where the global lives.
+Returning a global's address instead of its value plays out two ways, depending on
+where the global lives.
 
-**A small-data scalar** already sits one `r13`/`r2` offset from its base, so MWCC
-only has to fold that offset into a register, which it encodes with the SDA21
-relocation. The linker later turns that into a genuine `addi r3, r13, g`. Before
-linking, neither the offset nor the base register is filled in yet, so the
-disassembler prints a stripped-down `addi r3, r3, 0` (also shown as `li r3, 0`)
-with the reloc attached. The `g@sda21(r13)` operand isn't in the raw object at
-all; it appears only after the linker resolves the symbol:
+A small-data scalar already sits one `r13`/`r2` offset from its base, so MWCC folds
+that offset into a register with the SDA21 relocation. The linker later turns that
+into `addi r3, r13, g`. Before linking, neither offset nor base is filled in, so
+the disassembler prints `addi r3, r3, 0` (or `li r3, 0`) with the reloc attached.
+The `g@sda21(r13)` operand isn't in the raw object; it appears only after linking:
 
 ```asm
-addi  r3, r13, g@sda21   # r3 = &g  (small-data scalar# "li r3, 0" + reloc unlinked)
+addi  r3, r13, g@sda21   # r3 = &g  (small-data scalar; "li r3, 0" + reloc unlinked)
 blr
 ```
 ```
 R_PPC_EMB_SDA21   g
 ```
 
-**A non-small-data symbol** is the other case. Anything the linker drops outside
-the SDA window, an array being the usual example, has no short offset to lean on,
-so its full 32-bit address gets assembled from two halves using the classic
-**high-adjusted / low** pair:
+A non-small-data symbol is the other case. Anything outside the SDA window —
+arrays, typically — has no short offset, so its full 32-bit address is assembled
+from two halves using the high-adjusted / low pair:
 
 ```asm
-lis   r3, tbl@ha        # r3 = high 16 bits (adjusted for sign of the low half)
-addi  r3, r3, tbl@l     # add the low 16 bits → full &tbl
+lis   r3, tbl@ha        # r3 = high 16 bits (adjusted for sign of low half)
+addi  r3, r3, tbl@l     # add low 16 bits → full &tbl
 blr
 ```
 ```
@@ -53,21 +50,21 @@ R_PPC_ADDR16_HA   tbl
 R_PPC_ADDR16_LO   tbl
 ```
 
-The `@ha` half is "high adjusted", the top 16 bits bumped by one whenever the low
-half comes out negative, and `@l` is just the low half. A `lis ...@ha` paired
-with an `addi ...@l`, backed by `R_PPC_ADDR16_HA` and `R_PPC_ADDR16_LO`, is *the*
-unmistakable mark of a non-SDA address. Arrays are the classic thing that ends up
-here, which is what you'll be reproducing below.
+`@ha` is "high adjusted": the top 16 bits bumped by one when the low half is
+negative. `@l` is the low half. A `lis ...@ha` paired with `addi ...@l`, backed by
+`R_PPC_ADDR16_HA` and `R_PPC_ADDR16_LO`, is the unmistakable mark of a non-SDA
+address. Arrays are the classic thing that ends up here, which is what you'll
+reproduce below.
 
 ## Your task
 
-`extern int gPalette[];` is provided. Write `getPalette` to reproduce the
+`extern int gPalette[];` is provided. Write `func_803f5e70` to reproduce the
 `lis @ha` / `addi @l` pair above — the two-instruction sequence that materializes
 a non-SDA address.
 
 <!-- solution -->
 ```c
-int* getPalette(void) {
+int* func_803f5e70(void) {
     return gPalette;
 }
 ```

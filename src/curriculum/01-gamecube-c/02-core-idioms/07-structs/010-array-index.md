@@ -7,7 +7,7 @@ concepts:
   - structs
   - arrays
   - address-arithmetic
-symbol: getZ
+symbol: func_800921bc
 hints:
   - The element is 12 bytes, so the index is scaled by `mulli r0, r4, 12`.
   - After `add r3, r3, r0`, load `.z` at offset 8 with `lwz r3, 8(r3)`.
@@ -16,17 +16,17 @@ hints:
 # The signature idiom: index × sizeof
 
 Of all the patterns in GameCube decompilation, this is probably the one you'll
-learn to recognize first. When the code says `a[i].field`, the compiler builds
-the element's address as `base + i * sizeof(element)` and then adds the field's
-own offset to land on the value. Here's the element type we'll use:
+recognize first. When the code says `a[i].field`, the compiler builds the element
+address as `base + i * sizeof(element)` and then adds the field's own offset.
+Here's the element type:
 
 ```c
 typedef struct { int x; int y; int z; } Vec3i;   // sizeof == 12
 ```
 
-Getting to an element comes down to scaling the index by the size of the struct.
-The first field sits at offset 0, so once the multiply is done there's nothing
-left to add. An indexed `lwzx` reads it directly, no displacement involved:
+Getting to an element means scaling the index by the struct size. The first field
+sits at offset 0, so once the multiply is done there's nothing left to add. An
+indexed `lwzx` reads it directly:
 
 ```asm
 mulli  r0, r4, 12   # i * sizeof(Vec3i)
@@ -34,20 +34,19 @@ lwzx   r3, r3, r0   # load field at offset 0 of &a[i]
 blr
 ```
 
-When that multiply is a `mulli` and the constant isn't a power of two, you're
-almost certainly looking at an array of structs. (A power-of-two size, 8 for
-instance, would have the compiler emit `slwi` instead, like `slwi r0, r4, 3`.)
-Anytime a `mulli` or `slwi` feeds an `add` that feeds a load, take the multiplier
-at face value as the element's `sizeof`, and let the load's displacement tell you
-which field inside the element got read.
+When the multiply is `mulli` and the constant isn't a power of two, you're almost
+certainly looking at an array of structs. (A power-of-two size, like 8, would get
+`slwi` instead, e.g. `slwi r0, r4, 3`.) Anytime a `mulli` or `slwi` feeds an `add`
+that feeds a load, treat the multiplier as the element's `sizeof`, and let the
+load's displacement tell you which field inside the element got read.
 
 ## Your task
 
-With `Vec3i` above, write `getZ` to match the target.
+With `Vec3i` above, write `func_800921bc` to match the target.
 
 <!-- solution -->
 ```c
-int getZ(Vec3i* a, int i) {
+int func_800921bc(Vec3i* a, int i) {
     return a[i].z;
 }
 ```

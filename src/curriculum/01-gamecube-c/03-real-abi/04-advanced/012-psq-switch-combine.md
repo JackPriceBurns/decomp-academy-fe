@@ -10,7 +10,7 @@ concepts:
   - switch
   - enum
   - chaining
-symbol: combine
+symbol: func_8000fd60
 hints:
   - Several float results live across calls, so the prologue spills callee-saved
     FPRs as `stfd`/`psq_st` pairs and reloads them as `psq_l`/`lfd` in the epilogue.
@@ -24,8 +24,8 @@ This is the chapter's second capstone, and it stacks two of its heaviest ideas.
 First, holding several float results live across calls forces **callee-saved FPR
 spills** — each one an `stfd`/`psq_st` pair in the prologue (lesson 3). Then an
 **enum `switch`** (lessons 2 and 5) picks which combination of those saved floats
-to return. The prologue is pure plumbing; the real shape is in the per-case
-float blocks after the dispatch.
+to return. The prologue is pure plumbing; the real shape is in the per-case float
+blocks after the dispatch.
 
 Consider `blend2(Kind k, f32 *v)`: it runs `fx` on three inputs, holding the
 results live, then switches on a three-value `Kind` enum to combine them:
@@ -55,8 +55,8 @@ mirrored `psq_l`/`lfd` epilogue) just mean the function kept float values across
 calls — they fall out automatically; you don't write them. The **dispatch**
 (`cmpwi r30, K` / `beq-` / `bge-`) is the enum switch on the first argument,
 parked in a callee-saved GPR because it must survive the calls too. The **case
-blocks** are the payload: each one's `fadds`/`fsubs`/`fmuls` sequence is one
-arm's float expression — read which saved FPRs feed it to recover the formula.
+blocks** are the payload: each one's `fadds`/`fsubs`/`fmuls` sequence is one arm's
+float expression — read which saved FPRs feed it to recover the formula.
 
 ## Your task
 
@@ -68,7 +68,7 @@ expression, and let the callee-saved FPR spills fall out on their own.
 
 <!-- solution -->
 ```c
-f32 combine(Op op, f32 *p) {
+f32 func_8000fd60(Op op, f32 *p) {
     f32 a = transform(p[0]);
     f32 b = transform(p[1]);
     f32 c = transform(p[2]);

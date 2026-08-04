@@ -7,7 +7,7 @@ concepts:
   - bitwise
   - xor
   - chaining
-symbol: xor_chain
+symbol: func_801c1c40
 hints:
   - "`xor rD, rA, rB` writes `rA ^ rB` into `rD`."
   - Each `xor` has two inputs — trace which register carries the intermediate
@@ -20,7 +20,7 @@ hints:
 you chain three or more XOR operands in C, the compiler breaks it into a
 sequence where each instruction folds in one more value.
 
-Consider `xor_four(a, b, c, d)`, which XORs four values together:
+Consider four values XORed together:
 
 ```asm
 xor     r0,r3,r4
@@ -43,11 +43,11 @@ out the argument order.
 
 ## Your task
 
-Write `xor_chain` to reproduce the assembly above.
+Write `func_801c1c40` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int xor_chain(int a, int b, int c) {
+int func_801c1c40(int a, int b, int c) {
     return a ^ b ^ c;
 }
 ```

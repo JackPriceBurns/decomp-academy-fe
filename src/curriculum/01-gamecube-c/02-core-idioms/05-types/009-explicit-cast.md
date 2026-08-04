@@ -8,7 +8,7 @@ concepts:
   - sign-extension
   - extsb
   - extsh
-symbol: as_s8
+symbol: func_80277678
 hints:
   - Casting to a signed byte and back re-spreads the sign bit.
   - "`(s8)x` compiles to a single `extsb r3, r3`."
@@ -37,17 +37,16 @@ extsb r3, r3        # narrow to s8 width, sign bit re-spread
 blr
 ```
 
-When you spot a stray `extsb` or `extsh` on its own in the disassembly, it has
-usually come from an explicit narrowing cast in the source rather than from a
-load.
+A stray `extsb` or `extsh` on its own in the disassembly usually comes from an
+explicit narrowing cast in the source rather than from a load.
 
 ## Your task
 
-Write `as_s8` so it compiles to the single `extsb` above.
+Write `func_80277678` so it compiles to the single `extsb` above.
 
 <!-- solution -->
 ```c
-int as_s8(int x) {
+int func_80277678(int x) {
     return (s8)x;
 }
 ```

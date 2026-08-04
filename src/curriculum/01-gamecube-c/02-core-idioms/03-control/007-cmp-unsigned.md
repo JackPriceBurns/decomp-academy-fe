@@ -8,7 +8,7 @@ concepts:
   - unsigned
   - branch
   - types
-symbol: pick_unsigned
+symbol: func_8033f2ac
 hints:
   - Unsigned operands feeding a branch use `cmplw`, not `cmpw`.
   - The only difference from the signed version is the operand types.
@@ -36,8 +36,8 @@ to unsigned and that same pattern becomes the largest value the register can
 hold. Feed `u32` data into a signed compare and it sorts to the wrong end, so the
 branch fires backwards. Which compare you get is dictated by the operand types
 and nothing else. Seeing `cmplw` where your source still says `int` is the
-giveaway that the real type was unsigned. The disassembly just handed you
-something the symbol names could not.
+giveaway that the real type was unsigned. The disassembly handed you something
+the symbol names could not.
 
 After the compare, nothing here is new. The type is settled by `cmplw`. As for
 the rest, `bgelr-` carries the condition while the two `li` constants are the
@@ -45,11 +45,11 @@ values it chooses between.
 
 ## Your task
 
-Write `pick_unsigned` to reproduce the assembly above.
+Write `func_8033f2ac` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int pick_unsigned(u32 a, u32 b) {
+int func_8033f2ac(u32 a, u32 b) {
     if (a < b) return 100;
     return 200;
 }

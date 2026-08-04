@@ -8,7 +8,7 @@ concepts:
   - short-circuit
   - early-return
   - combining
-symbol: safe_scale
+symbol: func_801f17c0
 hints:
   - A `||` guard is two compares that both bail to the *same* early-return block.
   - After both checks pass, the real work runs at the branch target (a `divw`,
@@ -25,7 +25,7 @@ The branch shape itself is lesson 16's. The one twist is that the surviving arm
 now computes something instead of parroting a constant.
 
 Take `safe_avg(sum, count)`. Count zero or negative? Sum below zero? Either way
-it refuses the call. Otherwise, it divides.
+it refuses the call; otherwise it divides.
 
 ```asm
 cmpwi r4,0         # count <= 0 ?
@@ -54,12 +54,12 @@ instruction past the fall-through hands you the rest.
 
 ## Your task
 
-Write `safe_scale` to reproduce the assembly
+Write `func_801f17c0` to reproduce the assembly
 above.
 
 <!-- solution -->
 ```c
-int safe_scale(int x, int factor) {
+int func_801f17c0(int x, int factor) {
     if (factor <= 0 || x == 0) return 0;
     return x * factor;
 }

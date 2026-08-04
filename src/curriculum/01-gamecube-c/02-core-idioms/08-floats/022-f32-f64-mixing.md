@@ -8,7 +8,7 @@ concepts:
   - double-precision
   - frsp
   - conversion
-symbol: mix
+symbol: func_80316c98
 hints:
   - Casting the operands to `f64` switches the arithmetic to the suffix-less
     `fmul`/`fadd` and pulls constants in as `lfd` doubles.
@@ -18,16 +18,14 @@ hints:
 
 # When the math goes double and comes back single
 
-Promote your `f32` operands to `f64` and the whole expression changes flavor.
-The arithmetic drops its `s` suffix and becomes the plain double forms, `fmul`
-and `fadd` and friends, while any constant arrives as a *double* through `lfd`
-instead of `lfs`. A single-precision value can step straight into a double op, no
-widening instruction required, because it is already exactly representable. The
-catch comes at the end. Hand back an `f32` from double math and the result has to
-be rounded down with **`frsp`** first.
+Promote `f32` operands to `f64` and the expression changes flavor. The arithmetic
+drops its `s` suffix and becomes plain double forms — `fmul`, `fadd`, etc.
+Constants arrive as doubles through `lfd` instead of `lfs`. An `f32` can step
+straight into a double op; no widening instruction needed because it's already
+exactly representable. The catch comes at the end: return an `f32` from double
+math and the result must be rounded down with `frsp`.
 
-Take `avg2(p, q)`, which averages two values in double precision and then
-narrows:
+Take `avg2(p, q)`, averaging two values in double precision then narrowing:
 
 ```asm
 fadd  f0, f1, f2     # double add: (double)p + (double)q
@@ -37,26 +35,24 @@ frsp  f1, f1         # round the f64 result back to f32 for return
 blr
 ```
 
-Double math leaves fingerprints all over this. `fadd` and `fmul` with no `s`, an
-`lfd` rather than `lfs` for the constant, and that `frsp` at the close. The
-`frsp` is the giveaway for *double-computed, single-returned* code. Write the
-same thing in straight `f32` and you would see `fadds`/`fmuls`/`lfs` with no
-`frsp` anywhere. So whenever a `frsp` shows up next to suffix-less ops, the
-original C cast its operands up to `double`.
+Double math leaves fingerprints: `fadd` and `fmul` with no `s`, `lfd` instead of
+`lfs`, and `frsp` at the close. The `frsp` is the giveaway for double-computed,
+single-returned code. Write the same thing in straight `f32` and you'd see
+`fadds`/`fmuls`/`lfs` with no `frsp`. So whenever `frsp` shows up next to
+suffix-less ops, the original C cast its operands to `double`.
 
-Your target runs a different double-precision computation that still finishes on
-`frsp`. Read the suffix-less ops, the `lfd` constant, and that closing `frsp`,
-and you can locate where the cast to `f64` happens and what the final narrowing
-does.
+Your target runs a different double-precision computation that still ends with
+`frsp`. Read the suffix-less ops, the `lfd` constant, and the closing `frsp` to
+locate where the cast to `f64` happens and what the final narrowing does.
 
 ## Your task
 
-Write `mix` to reproduce the assembly above. Cast as needed
-so the arithmetic happens in `f64` and is narrowed back on return.
+Write `func_80316c98` to reproduce the assembly above. Cast as needed so the
+arithmetic happens in `f64` and is narrowed back on return.
 
 <!-- solution -->
 ```c
-f32 mix(f32 a, f32 b) {
+f32 func_80316c98(f32 a, f32 b) {
     f64 t = (f64)a * (f64)b;
     return (f32)(t + 1.0);
 }

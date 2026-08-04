@@ -8,7 +8,7 @@ concepts:
   - arithmetic
   - clamp
   - control
-symbol: scale_clamp
+symbol: func_802efcf4
 hints:
   - The arithmetic runs first and lands in a scratch register; only then does the
     compare decide whether to cap it.
@@ -18,16 +18,15 @@ hints:
 
 # Two chapters in one function
 
-Up to now you've seen these two ideas on their own. An *affine* expression,
-`x * k + c`, falls out of a `mulli` (or a `slwi`) and an `addi`. A one-sided
-*clamp* is a `cmpwi` whose taken branch returns some fixed bound. The thing is,
-working code rarely keeps them separate. It computes a value and then pins that
-value inside a range, all in the same handful of instructions.
+Up to now you've seen these ideas separately. An affine expression `x * k + c`
+falls out of a `mulli` (or `slwi`) and an `addi`. A one-sided clamp is a `cmpwi`
+whose taken branch returns a fixed bound. Real code rarely keeps them separate —
+it computes a value and pins it inside a range in the same handful of instructions.
 
-So where does one idea end and the next begin? At the compare. Everything before
-the `cmpwi` builds a single expression; the `cmpwi` and the branch riding behind
-it are the cap. Take `bias_cap(x)`, which doubles its input, biases it, and keeps
-the answer below 50:
+Where does one idea end and the next begin? At the compare. Everything before
+`cmpwi` builds a single expression; `cmpwi` and the branch behind it are the cap.
+Take `bias_cap(x)`, which doubles its input, biases it, and keeps the answer below
+50:
 
 ```asm
 slwi  r4,r3,1     # x * 2   (×2 is a shift, not a mulli)
@@ -39,24 +38,23 @@ mr    r3,r0       # no  -> return the computed value
 blr
 ```
 
-So, two halves. `slwi` plus `addi` give you `x * 2 + 7` — the multiply became a
-shift only because the factor was a power of two. The clever bit is `li 50`, which
-loads the ceiling into `r3` early, on spec, well before the compare runs. `bgtlr-`
-is what decides. Too big? The 50 you stashed is already the answer. Otherwise `mr
-r3,r0` drops the computed value in over it.
+Two halves. `slwi` plus `addi` give `x * 2 + 7` — the multiply became a shift
+because the factor was a power of two. The clever bit is `li 50`, loading the
+ceiling into `r3` early, on spec, before the compare. `bgtlr-` decides: too big and
+the stashed 50 is already the answer; otherwise `mr r3,r0` drops the computed value
+over it.
 
-`scale_clamp` is the same machine with one part swapped. Its factor isn't a power
-of two, so the multiply stays a `mulli` and never folds down to a shift. Read off
-the expression from that `mulli` and the `addi`, then let `cmpwi`/`bgtlr-` give
-you the bound and the direction of the clamp.
+`func_802efcf4` is the same machine with one part swapped. Its factor isn't a power
+of two, so the multiply stays `mulli`. Read the expression from that `mulli` and
+the `addi`, then let `cmpwi`/`bgtlr-` give you the bound and clamp direction.
 
 ## Your task
 
-Write `scale_clamp` to reproduce the assembly above.
+Write `func_802efcf4` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int scale_clamp(int x) {
+int func_802efcf4(int x) {
     int v = x * 3 + 1;
     if (v > 100) return 100;
     return v;

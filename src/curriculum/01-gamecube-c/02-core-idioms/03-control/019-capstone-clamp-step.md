@@ -9,7 +9,7 @@ concepts:
   - clamp
   - combining
   - branch
-symbol: apply_damage
+symbol: func_8011fd9c
 hints:
   - Three stages in a row — a guard, then a clamp on one value, then a clamp on
     another.
@@ -17,13 +17,13 @@ hints:
     separate compare."
 ---
 
-# Tying the chapter together
+# A guard, arithmetic, and two clamps
 
-This last one is a mash-up. The function leans on an **early-return guard** to
-drop junk inputs, runs a little arithmetic, then uses **branchless-style clamps**
-to keep the answer in bounds. No new instruction appears. The challenge is
-recognising machinery you've already built, plus one MWCC habit of welding a
-clamp's compare onto the arithmetic that just ran.
+This one mixes a guard, arithmetic, and clamps. The function leans on an
+**early-return guard** to drop junk inputs, runs a little arithmetic, then uses
+**branchless-style clamps** to keep the answer in bounds. No new instruction
+appears. The challenge is recognising machinery you've already built, plus one
+MWCC habit of welding a clamp's compare onto the arithmetic that just ran.
 
 The weld hangs on the trailing dot. When a mnemonic carries a `.`, say `add.` or
 `subf.`, it updates the condition register as a *side effect* of its real work.
@@ -58,12 +58,11 @@ branch with no compare in the gap, and the fusion is showing its face again.
 
 ## Your task
 
-Write `apply_damage` to reproduce
-the assembly above.
+Write `func_8011fd9c` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int apply_damage(int hp, int dmg, int armor) {
+int func_8011fd9c(int hp, int dmg, int armor) {
     if (hp <= 0) return 0;
     dmg = dmg - armor;
     if (dmg < 0) dmg = 0;

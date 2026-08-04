@@ -8,7 +8,7 @@ concepts:
   - copy
   - loops
   - optimization
-symbol: Tilemap_copy
+symbol: func_800d35e0
 hints:
   - Past 64 bytes MWCC stops unrolling and emits a counted `mtctr`/`bdnz` loop
     that moves 8 bytes per turn, with a single trailing word after it.
@@ -18,11 +18,10 @@ hints:
 
 # When the copy gets too big to unroll
 
-Unrolling a copy into one `lwz`/`stw` per word is fine for a handful of words,
-but past **64 bytes** MWCC switches strategy and emits an actual **copy loop**. It
-moves 8 bytes per iteration with the update-form loads and stores (`lwzu`/`stwu`,
-which bump the pointer as they go) and counts down with the `ctr` register via
-`bdnz`.
+Unrolling a copy into one `lwz`/`stw` per word is fine for a handful of words, but
+past 64 bytes MWCC switches strategy and emits a copy loop. It moves 8 bytes per
+iteration with update-form loads and stores (`lwzu`/`stwu`, which bump the pointer
+as they go) and counts down with `ctr` via `bdnz`.
 
 Take a 68-byte struct (seventeen words):
 
@@ -50,25 +49,24 @@ stw    r0, 4(r5)
 blr
 ```
 
-Work backward from the loop count and the trailing word to recover the size: the
-count is `8`, the loop carries 8
-bytes each pass (`8 × 8 = 64`), and the lone trailing `lwz`/`stw` adds the final 4
-— `64 + 4 = 68` bytes. (Note the compiler even borrows `r3`, the destination
-pointer, as a scratch register inside the loop.) A `mtctr`/`bdnz` block whose
-loads and stores do nothing but shuttle words from one pointer to another is a
-whole-struct assignment of a large struct — there is no logic hiding in it.
+Work backward from the loop count and trailing word to recover the size: count is
+8, loop carries 8 bytes per pass (`8 × 8 = 64`), and the lone trailing `lwz`/`stw`
+adds the final 4 — `64 + 4 = 68` bytes. (The compiler even borrows `r3`, the
+destination pointer, as a scratch register inside the loop.) A `mtctr`/`bdnz` block
+whose loads and stores only shuttle words from one pointer to another is a
+whole-struct assignment of a large struct — no logic hiding in it.
 
-The target copies a larger struct with the same loop. The struct below is already
-given, so once you recognise the pattern the assignment writes itself.
+The target copies a larger struct with the same loop. The struct is already given,
+so once you recognize the pattern the assignment writes itself.
 
 ## Your task
 
-With the `Tilemap` struct above, write `Tilemap_copy` to reproduce the target
+With the `Tilemap` struct above, write `func_800d35e0` to reproduce the target
 assembly.
 
 <!-- solution -->
 ```c
-void Tilemap_copy(Tilemap* dst, Tilemap* src) {
+void func_800d35e0(Tilemap* dst, Tilemap* src) {
     *dst = *src;
 }
 ```

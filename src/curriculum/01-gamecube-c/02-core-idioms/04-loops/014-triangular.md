@@ -7,7 +7,7 @@ concepts:
   - nested-loops
   - triangular
   - control-flow
-symbol: tri
+symbol: func_801c7748
 hints:
   - The inner test compares the inner counter against the *outer* counter, not
     against `n` — so the inner trip count grows as the outer index climbs.
@@ -50,14 +50,14 @@ mr   r3, r6
 blr
 ```
 
-Stare at the inner test. `cmpw r5, r4` pits `j`, the inner counter, against `r4`,
-which is `i`, the outer counter, and **not** `r3`, the bound `n`. That alone is the
-whole signature of a triangular nest. On the first outer pass `i == 0`, so the
+Look at the inner test. `cmpw r5, r4` pits `j`, the inner counter, against `r4`,
+which is `i`, the outer counter, and **not** `r3`, the bound `n`. That's the whole
+signature of a triangular nest. On the first outer pass `i == 0`, so the
 inner loop never runs; by the final pass it runs `n - 1` times. Once the inner
 `cmpw` is reading the *outer* induction variable, you know the inner `for` was
 bounded by the outer index.
 
-Your `tri` runs the identical control flow, the same `j < i` inner bound, but its
+Your `func_801c7748` runs the identical control flow, the same `j < i` inner bound, but its
 body folds in the inner counter `j` itself instead of a flat `+1`. Read what the
 inner `body` adds to the running total and write that.
 
@@ -65,18 +65,18 @@ inner `body` adds to the running total and write that.
 
 ## Your task
 
-Write `tri`, returning the sum of `j` over all pairs with `0 <= j < i < n`.
+Write `func_801c7748`, returning the sum of `j` over all pairs with `0 <= j < i < n`.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define tri to match the target
+// define func_801c7748 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int tri(int n) {
+int func_801c7748(int n) {
     int i, j, s = 0;
     for (i = 0; i < n; i++) {
         for (j = 0; j < i; j++) {

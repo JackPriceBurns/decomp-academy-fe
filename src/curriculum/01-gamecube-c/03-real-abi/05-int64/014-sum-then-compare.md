@@ -9,7 +9,7 @@ concepts:
   - comparison
   - branchless
   - chaining
-symbol: chained_cmp_64
+symbol: func_8007401c
 hints:
   - Two stages — an arithmetic pair builds a 64-bit value, then the branchless compare machinery (`subfc`/`subfe`/`subfe`/`neg`) tests it.
   - The compare's first subtract takes the computed value as one of its operands, so the running result threads straight into it.
@@ -18,11 +18,11 @@ hints:
 
 # Computing a value, then testing it
 
-The 64-bit compare from earlier ends in a recognizable four-instruction
-flourish: the subtract-with-borrow pair, a `subfe rD, rD, rD` that materializes
-the borrow bit, and a `neg` that turns `-1/0` into `1/0`. When the thing being
-compared is itself *computed*, those arithmetic instructions simply run first
-and feed the compare.
+The 64-bit compare from earlier ends in a recognizable four-instruction flourish:
+the subtract-with-borrow pair, a `subfe rD, rD, rD` that materializes the borrow
+bit, and a `neg` that turns `-1/0` into `1/0`. When the thing being compared is
+itself *computed*, those arithmetic instructions simply run first and feed the
+compare.
 
 Consider `diff_below(p, q, r)`, which subtracts two 64-bit values and asks
 whether the difference is less than a third:
@@ -37,26 +37,25 @@ neg    r3, r3         # -> 1 / 0
 blr
 ```
 
-Read it in two halves. The first `subfc`/`subfe` build `p - q` into `r3:r0`.
-The next `subfc`/`subfe` are the *compare's* subtract, taking that computed
-value as their input; then the self-subtract `subfe r3, r4, r4` lifts out the
-borrow and `neg` makes a clean boolean. The two subtract pairs look alike — the
-difference is that the first produces a value and the second exists only to set
-the borrow flag for the `neg` trick.
+Read it in two halves. The first `subfc`/`subfe` build `p - q` into `r3:r0`. The
+next `subfc`/`subfe` are the *compare's* subtract, taking that computed value as
+their input; then the self-subtract `subfe r3, r4, r4` lifts out the borrow and
+`neg` makes a clean boolean. The two subtract pairs look alike — the difference
+is that the first produces a value and the second exists only to set the borrow
+flag for the `neg` trick.
 
 The target computes its left operand with a *different* arithmetic operation
-before the same compare tail. Spot where the arithmetic pair ends and the
-compare machinery begins, read the first pair to recover the operation, and note
-which way the relation points.
+before the same compare tail. Spot where the arithmetic pair ends and the compare
+machinery begins, read the first pair to recover the operation, and note which
+way the relation points.
 
 ## Your task
 
-Write `chained_cmp_64` to reproduce the
-assembly above.
+Write `func_8007401c` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int chained_cmp_64(u64 a, u64 b, u64 c) {
+int func_8007401c(u64 a, u64 b, u64 c) {
     return (a + b) < c;
 }
 ```

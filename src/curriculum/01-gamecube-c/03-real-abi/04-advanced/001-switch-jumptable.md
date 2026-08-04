@@ -8,7 +8,7 @@ concepts:
   - jump-table
   - bctr
   - control-flow
-symbol: dispatch
+symbol: func_800ccaf4
 hints:
   - Eight consecutive cases (0..7) is dense enough that MWCC builds a jump
     table, not a compare chain.
@@ -40,19 +40,19 @@ Three things give it away once you know to look. The bounds check is a **single
 enormous value and fails the check at no extra cost. The index gets scaled by
 `slwi r0, r3, 2`. Then the `lwzx` → `mtctr` → `bctr` trio fetches an address from
 a `@switch` rodata table and jumps through it. Everything after `bctr` is a small
-`li r3, N` / `blr` block, one per case. Notice there's not a single per-case
-compare; the dispatch is O(1) flat.
+`li r3, N` / `blr` block, one per case. There's no per-case compare; the
+dispatch is O(1) flat.
 
 ## Your task
 
 Write `dispatch(int x)`: a `switch` on `x` with eight consecutive cases and a
-default. Read the `li r3, N` values in each case arm from the assembly above
-to recover what each case returns. Eight dense cases is past the threshold, so
-this compiles to the table form.
+default. Read the `li r3, N` values in each case arm from the assembly above to
+recover what each case returns. Eight dense cases is past the threshold, so this
+compiles to the table form.
 
 <!-- solution -->
 ```c
-int dispatch(int x) {
+int func_800ccaf4(int x) {
     switch (x) {
         case 0: return 100;
         case 1: return 211;

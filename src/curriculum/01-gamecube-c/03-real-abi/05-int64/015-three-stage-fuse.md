@@ -10,7 +10,7 @@ concepts:
   - borrow
   - bitwise
   - chaining
-symbol: fuse_64
+symbol: func_803a6dd8
 hints:
   - Three stages of pairs — a carry chain, then a borrow chain on its result, then a flag-free bitwise pair against the fourth operand.
   - Each stage is a low-word/high-word pair; only the last `adde`/`subfe`/bitwise of each stage feeds the next, with the running high word held in a scratch register.
@@ -19,7 +19,7 @@ hints:
 
 # The whole chapter in one function
 
-Four 64-bit operands, three operations, one expression. That is the finale, and
+Four 64-bit operands, three operations, one expression. That's the finale, and
 `blend3(p, q, r, s)` shows the shape: it adds three 64-bit values, then ORs the
 sum with a fourth:
 
@@ -46,11 +46,11 @@ Name each operator from its pair, and since every pair feeds the next, the
 
 ## Your task
 
-Write `fuse_64` to reproduce the assembly above.
+Write `func_803a6dd8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u64 fuse_64(u64 a, u64 b, u64 c, u64 d) {
+u64 func_803a6dd8(u64 a, u64 b, u64 c, u64 d) {
     return (a + b - c) & d;
 }
 ```

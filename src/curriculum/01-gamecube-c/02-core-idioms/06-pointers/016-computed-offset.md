@@ -8,7 +8,7 @@ concepts:
   - indexed-addressing
   - arrays
   - chaining
-symbol: pair_at
+symbol: func_80037ad8
 hints:
   - The scaled offset `i*4` is computed once; one access uses it with `lwzx`, the
     other reuses it as a base for a displacement load.
@@ -18,15 +18,15 @@ hints:
 
 # One scale, two nearby elements
 
-When a function reads `p[i]` and a *neighbor* like `p[i + 1]`, the compiler does
-not scale the index twice. It scales `i` once with `slwi`, then reaches both
-elements from that single computation: one element via the indexed load `lwzx`
-(base `+` scaled offset), and the neighbor by forming the address `&p[i]` with an
-`add` and then using an ordinary displacement load for the small constant step.
+When a function reads `p[i]` and a neighbor like `p[i + 1]`, the compiler doesn't
+scale the index twice. It scales `i` once with `slwi`, then reaches both elements
+from that single computation: one via the indexed load `lwzx` (base + scaled
+offset), and the neighbor by forming `&p[i]` with an `add`, then using an ordinary
+displacement load for the small constant step.
 
-That displacement is the *neighbor distance* times the element size — the same
-divide-by-element-size reading you already know, just measured from `p[i]`
-instead of from `p[0]`.
+That displacement is the neighbor distance times the element size — the same
+divide-by-element-size reading you already know, just measured from `p[i]` instead
+of `p[0]`.
 
 Consider `spread(q, j)`, which reads `q[j]` and `q[j + 3]` and subtracts:
 
@@ -39,19 +39,18 @@ subf r3, r3, r0    # r0 - q[j+3]
 blr
 ```
 
-The single `slwi` scales `j`; `lwzx` reads `q[j]` directly while the `add` builds
-the base `&q[j]` so the neighbor is a plain `lwz` at displacement `12` — three
-elements further on. The target assembly uses the same one-scale-two-neighbors
-shape; read the neighbor displacement to find the step and the combining
-instruction to find the operation.
+One `slwi` scales `j`; `lwzx` reads `q[j]` directly while the `add` builds `&q[j]`
+so the neighbor is a plain `lwz` at displacement `12` — three elements further on.
+The target assembly uses the same one-scale-two-neighbors shape. Read the neighbor
+displacement to find the step and the combining instruction to find the operation.
 
 ## Your task
 
-Write `pair_at` to reproduce the assembly above.
+Write `func_80037ad8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int pair_at(int* p, int i) {
+int func_80037ad8(int* p, int i) {
     return p[i] + p[i + 1];
 }
 ```

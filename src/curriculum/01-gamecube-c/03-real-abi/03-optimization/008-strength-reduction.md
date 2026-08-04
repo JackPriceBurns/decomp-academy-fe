@@ -7,7 +7,7 @@ concepts:
   - strength-reduction
   - loops
   - induction-variable
-symbol: fill
+symbol: func_80377820
 hints:
   - A simple `for (i = 0; i < n; i++) dst[i] = i * 12;` is all you write.
   - Let the optimizer reduce it — matching the target requires the natural
@@ -32,8 +32,8 @@ stores eight elements per pass — still a `mulli` per element there — under a
 one at a time. It's in the tail loop where the strength-reduced increment is
 cleanest to read.
 
-Consider `score(int *dst, int n)` — a similar loop that writes `i * 8` into
-each slot. Its tail loop looks like this:
+Consider `score(int *dst, int n)` — a similar loop that writes `i * 8` into each
+slot. Its tail loop looks like this:
 
 ```asm
 L:
@@ -44,21 +44,21 @@ L:
 ```
 
 There is no `mulli` in that loop body at all — both the accumulated value and
-the address became cheap induction variables incremented by a constant.
-When you see a loop bumping a register by a fixed stride with no multiply in
-sight, that's strength reduction, and the original C almost certainly used a
-multiply or array index that *looked* expensive. The constant added each
-iteration tells you the original stride; match it to the register increment
-you see in the target asm and you can work backward to the source expression.
+the address became cheap induction variables incremented by a constant. When you
+see a loop bumping a register by a fixed stride with no multiply in sight, that's
+strength reduction, and the original C almost certainly used a multiply or array
+index that *looked* expensive. The constant added each iteration tells you the
+original stride; match it to the register increment you see in the target asm and
+you can work backward to the source expression.
 
 ## Your task
 
-Write `fill(int *dst, int n)` to reproduce the assembly above. Use the
-natural loop-and-multiply form; let `-O4,p` handle the reduction.
+Write `fill(int *dst, int n)` to reproduce the assembly above. Use the natural
+loop-and-multiply form; let `-O4,p` handle the reduction.
 
 <!-- solution -->
 ```c
-void fill(int *dst, int n) {
+void func_80377820(int *dst, int n) {
     int i;
     for (i = 0; i < n; i++)
         dst[i] = i * 12;

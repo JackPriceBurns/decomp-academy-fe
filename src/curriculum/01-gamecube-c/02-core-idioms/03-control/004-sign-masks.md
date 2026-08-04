@@ -100,8 +100,8 @@ inverted first. Feed it the value and its sign mask and watch what happens. The
 Read the result column: non-negative values pass through untouched, negative
 values collapse to `0`. The mask *selects* — `~0x00 = 0xFF` is "keep every bit",
 `~0xFF = 0x00` is "drop every bit" — and `andc` does the inversion and the AND in
-one shot, which is exactly why the compiler reaches for it instead of a separate
-`not` plus `and`.
+one shot, which is why the compiler reaches for it instead of a separate `not`
+plus `and`.
 
 ## Putting it together
 

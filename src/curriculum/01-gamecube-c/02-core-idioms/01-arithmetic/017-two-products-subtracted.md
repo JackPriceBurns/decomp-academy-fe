@@ -8,7 +8,7 @@ concepts:
   - multiplication
   - chaining
   - operand-order
-symbol: mulsubmul4
+symbol: func_801c25bc
 hints:
   - Two `mullw` instructions mean two independent products — one writes into a
     saved register, the other into the scratch `r0`.
@@ -18,12 +18,12 @@ hints:
 
 # Two products in parallel
 
-Multiplications and additions compile down to a chain of arithmetic instructions.
-Each result rides into the next one through a scratch register. You've seen this
-with the add/subtract chains already; the only new face here is `mullw`.
+Multiplications and additions compile to a chain of arithmetic instructions. Each
+result rides into the next one through a scratch register. You've seen this with
+add/subtract chains already; the only new face here is `mullw`.
 
-Take `fused_chain(p, q, r, s)`. It multiplies a pair, adds a third value, and
-subtracts the fourth.
+Take `fused_chain(p, q, r, s)`, multiplying a pair, adding a third value, and
+subtracting the fourth:
 
 ```asm
 mullw r0, r4, r5   # r0 = q * r
@@ -43,11 +43,11 @@ on the final instruction tell you how the expression goes back together.
 
 ## Your task
 
-Write `mulsubmul4` to reproduce the assembly above.
+Write `func_801c25bc` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int mulsubmul4(int a, int b, int c, int d) {
+int func_801c25bc(int a, int b, int c, int d) {
     return a * b - c * d;
 }
 ```

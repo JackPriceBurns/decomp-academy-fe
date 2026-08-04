@@ -8,7 +8,7 @@ concepts:
   - shifts
   - signed
   - srawi
-symbol: shiftRightS
+symbol: func_8007a7e0
 hints:
   - A signed right shift preserves the sign — use the algebraic shift.
   - "`x >> 3` on an s32 compiles to `srawi r3, r3, 3`."
@@ -35,16 +35,16 @@ operand's type is what settles it, `srwi` for a `u32` and `srawi` for an `s32`.
 Once the shift *amount* becomes a variable rather than a constant, you move to
 the register forms `sraw`/`srw`/`slw`, which the next lesson covers.
 
-Two facts in the target tell you everything, the shift count next to `srawi` and
+Two facts in the target tell you everything: the shift count next to `srawi` and
 the parameter's declared type.
 
 ## Your task
 
-Write `shiftRightS` so it compiles to the `srawi` above.
+Write `func_8007a7e0` so it compiles to the `srawi` above.
 
 <!-- solution -->
 ```c
-s32 shiftRightS(s32 x) {
+s32 func_8007a7e0(s32 x) {
     return x >> 3;
 }
 ```

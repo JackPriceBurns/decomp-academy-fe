@@ -8,7 +8,7 @@ concepts:
   - division
   - strength-reduction
   - chaining
-symbol: shrink2
+symbol: func_8006bff0
 hints:
   - "`srwi rD, rA, n` shifts *right* by `n`, which for an unsigned value is
     dividing by 2ⁿ — so `srwi rX, rX, 3` is `/ 8`."
@@ -24,8 +24,8 @@ right shift — **`srwi rD, rA, n` computes `rA >> n`, which for an unsigned `rA
 is `rA ÷ 2ⁿ`**. (Signed division can't do this directly; that's why these are
 `u32` arguments and the instruction is `srwi`, not `srawi`.)
 
-Consider `ratio(p, q)`, which divides two unsigned values by different powers of
-two and subtracts:
+Consider `ratio(p, q)`, dividing two unsigned values by different powers of two
+and subtracting:
 
 ```asm
 srwi r4, r4, 2    # r4 = q >> 2  =  q / 4
@@ -44,11 +44,11 @@ into a divisor, and see how the two results are joined.
 
 ## Your task
 
-Write `shrink2` to reproduce the assembly above.
+Write `func_8006bff0` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u32 shrink2(u32 a, u32 b) {
+u32 func_8006bff0(u32 a, u32 b) {
     return a / 4 + b / 2;
 }
 ```

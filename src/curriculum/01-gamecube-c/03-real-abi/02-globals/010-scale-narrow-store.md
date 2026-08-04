@@ -9,7 +9,7 @@ concepts:
   - types
   - stb
   - chaining
-symbol: clampLevel
+symbol: func_8000bd28
 hints:
   - "`lwz` reads the int global; a `mulli` scales it; the store opcode is the one
     that matches the *destination* global's width."
@@ -19,16 +19,16 @@ hints:
 
 # The store width follows the destination, not the source
 
-Read a wide global, run some arithmetic, then write into a *narrower* global, and
-the two memory opcodes end up coming from different types. The load is `lwz`,
-because the source happens to be an `int`. The store is `stb` (or `sth`), because
-the *destination* is a byte (or halfword). Nothing in between narrows the value
-for you. A `stb` already keeps only the low 8 bits, so the upper part of the
-computed word just drops on the floor.
+Read a wide global, do some math, then write the result into a narrower global.
+The two memory opcodes come from different types. The load is `lwz` because the
+source is an `int`. The store is `stb` (or `sth`) because the *destination* is a
+byte (or halfword). Nothing in between narrows the value for you — `stb` already
+keeps only the low 8 bits, so the upper part of the computed word is simply
+dropped.
 
-It's the same narrow-store rule from the type lesson, `stb`/`sth` and all, except
-now it follows arithmetic rather than a plain load. The *store* opcode hands you
-the destination's width, and the *load* opcode hands you the source's.
+It's the same narrow-store rule from the type lesson, except now it follows
+arithmetic instead of a plain load. The store opcode tells you the destination's
+width, and the load opcode tells you the source's.
 
 Here's `stepPhase()`. It reads the int global `gTicks`, multiplies by a constant,
 and drops the low byte into the `u8` global `gPhase`:
@@ -40,21 +40,21 @@ stb   r0, gPhase@sda21(r13)  # gPhase = (u8) result
 blr
 ```
 
-`mulli` is the catch-all constant multiply, and 5 isn't a power of two, so
-there's no shift to strength-reduce it into. That product fills the whole of
-`r0`, and yet `stb` writes back only the low byte to the `u8` global, which *is*
-the `(u8)` cast made flesh. Your target scales a different int global by a
-different constant ahead of its own narrow store. The `mulli` immediate and the
-store opcode are what you read off it.
+`mulli` is the general-purpose constant multiply, and 5 isn't a power of two, so
+there's no shift to strength-reduce it into. That product fills all of `r0`, yet
+`stb` writes back only the low byte to the `u8` global — that's the `(u8)` cast
+in hardware. Your target scales a different int global by a different constant
+before its own narrow store. The `mulli` immediate and the store opcode are what
+you read off it.
 
 ## Your task
 
-The globals are declared for you: `gRaw` (`int`) and `gLevel` (`u8`). Write
-`clampLevel` (no arguments, no return) to reproduce the assembly above.
+The globals are already declared: `gRaw` (`int`) and `gLevel` (`u8`). Write
+`func_8000bd28` (no arguments, no return) to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-void clampLevel(void) {
+void func_8000bd28(void) {
     gLevel = (u8)(gRaw * 3);
 }
 ```

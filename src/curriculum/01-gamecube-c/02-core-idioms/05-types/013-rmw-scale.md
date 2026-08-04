@@ -9,7 +9,7 @@ concepts:
   - read-modify-write
   - truncation
   - u8
-symbol: rmw_scale
+symbol: func_8026c740
 hints:
   - "Same three-phase shape as the byte counter — `lbz` / arithmetic / `stb` —
     but the middle step is a constant multiply, so it's `mulli`."
@@ -21,8 +21,8 @@ hints:
 
 You met the three-phase byte read-modify-write with the counter: a byte comes in
 through `lbz` already zero-extended, something happens to it in a full register,
-and `stb` hands the trimmed result back. Nothing pins that middle act to `addi`,
-though. Any arithmetic fits, a constant multiply included.
+and `stb` hands the trimmed result back. Nothing pins that middle step to `addi`.
+Any arithmetic fits, a constant multiply included.
 
 Take `add5(p)`, which tacks `5` onto the byte at `p[1]`:
 
@@ -54,12 +54,12 @@ Your target scales by some other constant, so read it off the `mulli` immediate.
 
 ## Your task
 
-Write `rmw_scale` to match the target assembly. Expect
+Write `func_8026c740` to match the target assembly. Expect
 `lbz` / `mulli` / `stb` with no mask and no `extsb`.
 
 <!-- solution -->
 ```c
-void rmw_scale(u8* p) {
+void func_8026c740(u8* p) {
     p[0] = p[0] * 3;
 }
 ```

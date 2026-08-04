@@ -7,7 +7,7 @@ concepts:
   - arithmetic
   - divide
   - signed
-symbol: div2
+symbol: func_8022d8a0
 hints:
   - Dividing by a variable can't be reduced to shifts — it's a hardware divide.
   - The signed `int` type selects `divw` (an unsigned divide would use `divwu`).
@@ -16,8 +16,8 @@ hints:
 # When it really is a divide
 
 When the divisor is a *variable*, none of the constant-divisor tricks apply —
-not the power-of-two shift, not the reciprocal multiply. The compiler has to fall
-back on real hardware division, **`divw rD, rA, rB`** (signed divide word):
+not the power-of-two shift, not the reciprocal multiply. The compiler falls back
+on real hardware division, **`divw rD, rA, rB`** (signed divide word):
 
 ```asm
 divw r3, r3, r4
@@ -30,11 +30,11 @@ the instruction*.
 
 ## Your task
 
-Write `div2` for signed `int`s to match the target.
+Write `func_8022d8a0` for signed `int`s to match the target.
 
 <!-- solution -->
 ```c
-int div2(int a, int b) {
+int func_8022d8a0(int a, int b) {
     return a / b;
 }
 ```

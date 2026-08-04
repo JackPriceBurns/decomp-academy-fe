@@ -9,7 +9,7 @@ concepts:
   - multiplication
   - chaining
   - operand-order
-symbol: divsubmul4
+symbol: func_80092880
 hints:
   - Two independent operations (`divw` and `mullw`) produce separate results before
     they are combined — neither depends on the other.
@@ -21,11 +21,11 @@ hints:
 
 When two parts of an expression are independent — neither needs the other's
 result — the compiler computes each into its own register and then combines them
-in one final step, free to evaluate them in either order. The example below
-builds a product and a quotient, then joins them:
+in one final step, free to evaluate them in either order. The example below builds
+a product and a quotient, then joins them.
 
-Consider `mul_plus_div(p, q, r, s)`, which multiplies a pair and divides another
-pair, then adds the results:
+Consider `mul_plus_div(p, q, r, s)`, multiplying a pair and dividing another pair,
+then adding the results:
 
 ```asm
 divw  r5, r5, r6   # r5 = r / s  (computed first, overwrites r5)
@@ -34,7 +34,7 @@ add   r3, r5, r0   # r3 = (r / s) + (p * q)
 blr
 ```
 
-Notice the compiler computed `r / s` first, even though it appears second in the
+The compiler computed `r / s` first, even though it appears second in the
 expression — it was free to pick any order since the two sub-expressions are
 independent. The `divw` overwrites `r5` in place, clearing it for use as an
 intermediate, and `mullw` writes its product into `r0`. The `add` then combines
@@ -47,11 +47,11 @@ which is the subtrahend.
 
 ## Your task
 
-Write `divsubmul4` to reproduce the assembly above.
+Write `func_80092880` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int divsubmul4(int a, int b, int c, int d) {
+int func_80092880(int a, int b, int c, int d) {
     return a / b - c * d;
 }
 ```

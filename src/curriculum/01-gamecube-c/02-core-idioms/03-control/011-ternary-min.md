@@ -7,7 +7,7 @@ concepts:
   - ternary
   - comparison
   - select
-symbol: mini
+symbol: func_8004014c
 hints:
   - "`a < b ? a : b` is min; the only change from max is `bge-` instead of
     `ble-`."
@@ -27,7 +27,7 @@ choice inverts. The copy is now skipped when `a` is already ≥ `b`, so the case
 that stages `a` becomes `a < b`, and the value that survives to the end is the
 *smaller* one rather than the larger.
 
-Here is the `max` listing once more, to hold up against your answer:
+Here's the `max` listing again, to hold up against your answer:
 
 ```asm
 cmpw r3, r4
@@ -38,17 +38,17 @@ mr   r3, r4
 blr
 ```
 
-Look hard at that branch line. The `min` version is the same code with exactly
-one mnemonic changed. Work out what the condition has to become so the *smaller*
-argument is the one that lands in `r3`.
+The `min` version is the same code with exactly one mnemonic changed. Work out
+what the condition has to become so the *smaller* argument is the one that lands
+in `r3`.
 
 ## Your task
 
-Write `mini`, returning the smaller of two signed `int`s using a ternary.
+Write `func_8004014c`, returning the smaller of two signed `int`s using a ternary.
 
 <!-- solution -->
 ```c
-int mini(int a, int b) {
+int func_8004014c(int a, int b) {
     return a < b ? a : b;
 }
 ```

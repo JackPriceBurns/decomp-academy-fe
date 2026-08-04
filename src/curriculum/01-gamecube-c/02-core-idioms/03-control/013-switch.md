@@ -8,7 +8,7 @@ concepts:
   - branch
   - comparison
   - control-flow
-symbol: classify
+symbol: func_8030eee0
 hints:
   - A small dense switch becomes a binary-search compare chain, not a table.
   - Cases are tested in value order with `cmpwi` / `beq-` / `bge-`.
@@ -45,12 +45,12 @@ table (a `b` through a computed table address), a pattern a later lesson covers.
 
 ## Your task
 
-Write `classify`: a `switch` on `x` returning `10`, `20`, `30`, `40` for cases
+Write `func_8030eee0`: a `switch` on `x` returning `10`, `20`, `30`, `40` for cases
 `0..3`, and `0` by default.
 
 <!-- solution -->
 ```c
-int classify(int x) {
+int func_8030eee0(int x) {
     switch (x) {
         case 0: return 10;
         case 1: return 20;

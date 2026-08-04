@@ -8,7 +8,7 @@ concepts:
   - fp_contract
   - floating-point
   - chaining
-symbol: fmix
+symbol: func_801e757c
 hints:
   - A single `fmuls` standing in for a product that appears twice is CSE; the
     `fmadds` that follows reads that one result as **both** its multiplicand and
@@ -22,7 +22,7 @@ hints:
 CSE isn't only an integer trick. Let the **same product** show up twice in a
 float expression and `-O4` evaluates it just once, after which `fp_contract`
 (lesson 7) wraps the multiply-and-add around it into a single `fmadds`. What you
-end up with is neat. A value the source mentions twice lives in **one** register,
+end up with is neat: a value the source mentions twice lives in **one** register,
 and the `fmadds` reads that register in two of its operand slots.
 
 Here's the reading skill to pick up. An `fmadds fD, fA, fC, fB` computes
@@ -41,24 +41,23 @@ blr
 ```
 
 Notice the lone `fmuls`. The square `s*s` is shared, so CSE lays it into `f0` just
-the once. Then `fmadds f1,f2,f0,f0` evaluates `g * f0 + f0`, where `f0` is the
-multiplicand and the addend at the same time, which is exactly what lets the
-multiply and add fuse. Four operations in the C, two instructions on the chip.
+once. Then `fmadds f1,f2,f0,f0` evaluates `g * f0 + f0`, where `f0` is the
+multiplicand and the addend at the same time — exactly what lets the multiply and
+add fuse. Four operations in the C, two instructions on the chip.
 
-Your `fmix` recycles a product the same way, except the product is of **two
-distinct arguments** instead of a square, and a **third** argument does the
+Your `func_801e757c` recycles a product the same way, except the product is of
+**two distinct arguments** instead of a square, and a **third** argument does the
 scaling. Watch for the register that repeats across the `fmadds` operands; that's
 the subexpression being shared.
 
 ## Your task
 
-Write `fmix(f32 a, f32 b, f32 c)` to reproduce the target assembly — a single
-`fmuls` for the shared product, then one `fmadds` that reuses it in two operand
-slots.
+Write `func_801e757c` to reproduce the target assembly — a single `fmuls` for the
+shared product, then one `fmadds` that reuses it in two operand slots.
 
 <!-- solution -->
 ```c
-f32 fmix(f32 a, f32 b, f32 c) {
+f32 func_801e757c(f32 a, f32 b, f32 c) {
     return a*b*c + a*b;
 }
 ```

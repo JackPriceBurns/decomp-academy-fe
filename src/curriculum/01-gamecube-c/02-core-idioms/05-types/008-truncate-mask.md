@@ -7,7 +7,7 @@ concepts:
   - truncation
   - masking
   - rlwinm
-symbol: low_byte
+symbol: func_801ef8d0
 hints:
   - Keeping the low 8 bits of a register is a rotate-mask.
   - "`x & 0xFF` compiles to `clrlwi r3, r3, 24`."
@@ -31,8 +31,8 @@ blr
 It is the in-register version of a truncating store. `stb` and `sth` cut a value
 down on the way to memory, and `clrlwi` cuts one down while it stays in a register.
 
-The shift count tells you the mask width. It is simply the number of **high** bits
-the instruction clears:
+The shift count tells you the mask width: the number of **high** bits the
+instruction clears.
 
 ```text
 clrlwi r3, r3, 16   →  24 bits remain  →  keep low 16 bits
@@ -41,11 +41,11 @@ clrlwi r3, r3, 24   →  8 bits remain   →  keep low 8 bits
 
 ## Your task
 
-Write `low_byte` to reproduce the assembly shown for that symbol.
+Write `func_801ef8d0` to reproduce the assembly shown for that symbol.
 
 <!-- solution -->
 ```c
-u8 low_byte(int x) {
+u8 func_801ef8d0(int x) {
     return x & 0xFF;
 }
 ```

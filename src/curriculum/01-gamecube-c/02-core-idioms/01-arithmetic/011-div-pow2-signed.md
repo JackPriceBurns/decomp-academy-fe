@@ -8,7 +8,7 @@ concepts:
   - shifts
   - signed
   - rounding
-symbol: sdiv4
+symbol: func_803bd3c0
 hints:
   - Signed divide by a power of two is an arithmetic shift plus a rounding fixup.
   - Look for `srawi` followed by `addze` — the carry corrects the rounding for
@@ -29,21 +29,21 @@ addze r3, r0       # add the carry back: +1 only when x was negative
 blr
 ```
 
-The `srawi` does the arithmetic shift, and it sets the carry bit whenever it
-shifts a 1 out of a negative value. Then `addze` ("add to zero, extended with
-carry") reads that carry and nudges the quotient back toward zero, but only when
-it's actually needed. Feed it a positive dividend and there's no carry, so
-`addze` contributes nothing. Whenever you spot the **`srawi` + `addze`** pairing,
-you're looking at a signed divide by a power of two; the unsigned version never
-grows that second instruction.
+The `srawi` does the arithmetic shift and sets the carry bit whenever it shifts a
+1 out of a negative value. Then `addze` ("add to zero, extended with carry") reads
+that carry and nudges the quotient back toward zero, but only when it's needed.
+Feed it a positive dividend and there's no carry, so `addze` contributes nothing.
+Whenever you spot the **`srawi` + `addze`** pairing, you're looking at a signed
+divide by a power of two; the unsigned version never grows that second
+instruction.
 
 ## Your task
 
-Write `sdiv4` to reproduce the `srawi`/`addze` pair above.
+Write `func_803bd3c0` to reproduce the `srawi`/`addze` pair above.
 
 <!-- solution -->
 ```c
-int sdiv4(int x) {
+int func_803bd3c0(int x) {
     return x / 4;
 }
 ```

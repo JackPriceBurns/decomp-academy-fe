@@ -7,7 +7,7 @@ concepts:
   - pointers
   - arithmetic
   - scaling
-symbol: advancePtr
+symbol: func_802fcf68
 hints:
   - "Pointer math counts elements, not bytes: `p + 3` is +12 bytes for an int*."
   - "`p + 3` compiles to `addi r3, r3, 12`."
@@ -15,10 +15,9 @@ hints:
 
 # `p + n` is not `+ n`
 
-Pointers count in elements. Add `5` to an `int*` and you don't move 5 bytes, you
-move 5 ints. The compiler handles that scaling. It multiplies your offset by
-`sizeof(*p)` before anything reaches a register, and for a constant offset the
-math finishes at compile time, so the byte count is already baked into the `addi`.
+Pointers count in elements. Add `5` to an `int*` and you move 5 ints, not 5 bytes.
+The compiler scales the offset by `sizeof(*p)`. For a constant offset, that scaling
+happens at compile time, so the byte count is already baked into the `addi`.
 
 Five elements into an `int` array:
 
@@ -33,24 +32,24 @@ addi r3, r3, 20   # advance p by 5 * sizeof(int) = 20 bytes
 blr
 ```
 
-An `int` is 4 bytes. Five times 4 is 20, and 20 is what the `addi` carries. Going
-backward from the disassembly you flip the operation. Take the immediate, divide
-by the element size, and the quotient is how many elements the pointer moved.
+An `int` is 4 bytes. Five times 4 is 20, and that's what `addi` carries. Going
+backward from disassembly, take the immediate and divide by the element size; the
+quotient is how many elements the pointer moved.
 
-Here's a gotcha. `p + n` and `&p[n]` produce byte-identical assembly, since both
-land on the nth element's address. The output keeps the secret of which one the
-author typed, so just write whichever is easier to read.
+One note: `p + n` and `&p[n]` produce identical assembly, since both land on the nth
+element's address. You can't tell which the author typed, so write whichever reads
+better.
 
-So `advancePtr`. What's the immediate on its `addi`, and how many elements does
+So `func_802fcf68`. What's the immediate on its `addi`, and how many elements does
 that work out to?
 
 ## Your task
 
-Write `advancePtr` so it compiles to the `addi` above.
+Write `func_802fcf68` so it compiles to the `addi` above.
 
 <!-- solution -->
 ```c
-int* advancePtr(int* p) {
+int* func_802fcf68(int* p) {
     return p + 3;
 }
 ```

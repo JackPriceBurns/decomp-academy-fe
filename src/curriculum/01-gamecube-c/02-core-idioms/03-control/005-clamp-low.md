@@ -8,7 +8,7 @@ concepts:
   - clamp
   - branchless
   - idiom
-symbol: clamp_low
+symbol: func_8002fc94
 hints:
   - Clamping a signed value up to zero needs no branch.
   - Expect a sign mask via `srawi r0, r3, 31` then `andc r3, r3, r0`.
@@ -37,19 +37,19 @@ an all-ones mask and the inversion becomes all-zeros, dragging the result down
 to `0`. An all-zeros mask inverts to all-ones, and `rA` passes straight through.
 So the mask decides which of the two you get.
 
-Notice there's no test anywhere. That's the whole trick, and MWCC will only use
-it when both arms of the original return something derived from the *same*
-register. Swap the order of the branches and the spell breaks: write
+Notice there's no test anywhere. That's the trick, and MWCC will only use it when
+both arms of the original return something derived from the *same* register. Swap
+the order of the branches and the spell breaks: write
 `if (x >= 0) return x; return 0;` and you get a different sequence. The shape of
 the source matters as much as what it computes.
 
 ## Your task
 
-Write `clamp_low` to reproduce the assembly above.
+Write `func_8002fc94` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int clamp_low(int x) {
+int func_8002fc94(int x) {
     if (x < 0) return 0;
     return x;
 }

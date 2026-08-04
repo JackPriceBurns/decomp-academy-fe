@@ -8,7 +8,7 @@ concepts:
   - fp_contract
   - capstone
   - lerp
-symbol: blend
+symbol: func_80343bd0
 hints:
   - Write each lerp as `a[i] + (b[i] - a[i]) * t` and sum the two.
   - fp_contract turns each `... * t + a[i]` into an `fmadds` — let the compiler
@@ -19,10 +19,10 @@ hints:
 
 # Everything at once
 
-This is where the chapter comes together. Linear interpolation, the trick of
-landing a value some fraction of the way between two endpoints, runs through game
-code everywhere (SFA's lighting lerps are built on it). Write a pair of them, add
-the results, and three of the passes you've met all go off at once:
+This is where the chapter comes together. Linear interpolation — landing a value
+some fraction of the way between two endpoints — runs through game code
+everywhere (SFA's lighting lerps are built on it). Write a pair of them, add the
+results, and three of the passes you've met all go off at once:
 
 - **fp_contract** collapses the multiply-then-add in each lerp into a single
   `fmadds`, once the `fsubs` for the difference is out of the way.
@@ -56,18 +56,18 @@ sitting in their own block? That's the scheduler. Compile the same unit with
 `#pragma scheduling off` and every lerp would stand alone, finished before the
 following one starts.
 
-For your `blend`, tally the `lfs` instructions in the target asm to learn how
-many arrays show up and how many elements each one reaches; every `fsubs`/`fmadds`
-pair marks one lerp.
+For your `func_80343bd0`, tally the `lfs` instructions in the target asm to learn
+how many arrays show up and how many elements each one reaches; every
+`fsubs`/`fmadds` pair marks one lerp.
 
 ## Your task
 
-Write `blend(f32 *a, f32 *b, f32 t)` to reproduce the assembly above. Write
-the lerps in the natural form and let the optimizer fuse and interleave.
+Write `blend(f32 *a, f32 *b, f32 t)` to reproduce the assembly above. Write the
+lerps in the natural form and let the optimizer fuse and interleave.
 
 <!-- solution -->
 ```c
-f32 blend(f32 *a, f32 *b, f32 t) {
+f32 func_80343bd0(f32 *a, f32 *b, f32 t) {
     f32 x = a[0] + (b[0] - a[0]) * t;
     f32 y = a[1] + (b[1] - a[1]) * t;
     return x + y;

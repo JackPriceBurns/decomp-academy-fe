@@ -7,7 +7,7 @@ concepts:
   - 64-bit
   - types
   - detection
-symbol: add_64_downcast
+symbol: func_803901dc
 hints:
   - The operands are 64-bit even though the return type is narrow; the truncation happens in the cast, not the arithmetic.
   - "MWCC still emits `addc` on the low word, then just `mr r3,r4` to deliver it — the carry instruction gives away the hidden 64-bit add."
@@ -33,8 +33,8 @@ blr
 
 A purely 32-bit `a - b` on `u32` operands would emit a single `subf r3, r4, r3`
 — **no `subfc`**. The fact that MWCC reaches for `subfc` here and then throws
-the carry away is a fingerprint: it proves the *operands* were 64-bit even
-though the *result* is narrow.
+the carry away is a fingerprint: it proves the *operands* were 64-bit even though
+the *result* is narrow.
 
 This is genuinely useful in the wild. ProDG optimizes the carry away and looks
 identical to 32-bit math, but on **every MWCC version** the `addc`/`subfc`
@@ -43,11 +43,11 @@ result is a reliable signal that a 64-bit type is hiding in the source.
 
 ## Your task
 
-Write `add_64_downcast` to reproduce the assembly above.
+Write `func_803901dc` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u32 add_64_downcast(u64 a, u64 b) {
+u32 func_803901dc(u64 a, u64 b) {
     return a + b;
 }
 ```

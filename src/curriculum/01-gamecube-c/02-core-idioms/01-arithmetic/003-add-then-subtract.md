@@ -7,7 +7,7 @@ concepts:
   - arithmetic
   - chaining
   - operand-order
-symbol: addsub3
+symbol: func_8032640c
 hints:
   - Each operation becomes its own instruction, evaluated left-to-right.
   - The add lands in a scratch register; the `subf` then subtracts the third
@@ -16,12 +16,12 @@ hints:
 
 # Chaining two instructions
 
-Up to now, one expression has bought you one instruction. Chain two operations,
-though, and you get two arithmetic instructions, worked out left-to-right. The
-first result drops into a scratch register, and that register feeds straight into
-the second.
+Until now, one expression meant one instruction. Chain two operations, though,
+and you get two arithmetic instructions, worked out left-to-right. The first
+result drops into a scratch register, and that register feeds straight into the
+second.
 
-Take `p - q + r` over three `int` arguments. It compiles to this.
+Take `p - q + r` over three `int` arguments. It compiles to this:
 
 ```asm
 subf r0, r4, r3   # r0 = r3 - r4  =  p - q
@@ -29,25 +29,24 @@ add  r3, r5, r0   # r3 = r5 + r0  =  r + (p - q)
 blr
 ```
 
-Watch how the two instructions hand off. The `subf` parks its result in scratch
-register `r0`, then the `add` pulls `r0` back in as a source. That intermediate
-value sits in `r0` only long enough to feed the next step, after which `r3`
-carries the final answer.
+The two instructions hand off through `r0`. The `subf` parks its result there,
+then the `add` pulls `r0` back in as a source. That intermediate value sits in
+`r0` only long enough to feed the next step; `r3` carries the final answer.
 
-And the `subf` reversal from the earlier subtraction lesson has not gone
-anywhere: `subf rD, rA, rB` computes `rB - rA`.
+The `subf` reversal from the earlier lesson still applies: `subf rD, rA, rB`
+computes `rB - rA`.
 
 Your target pairs up a different two operations in a different order. Work the
 target asm one instruction at a time, figure out what each computes, follow the
-register threading, and the original expression reassembles itself.
+register threading, and the expression reassembles.
 
 ## Your task
 
-Write `addsub3` to reproduce the target assembly.
+Write `func_8032640c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c
-int addsub3(int a, int b, int c) {
+int func_8032640c(int a, int b, int c) {
     return a + b - c;
 }
 ```

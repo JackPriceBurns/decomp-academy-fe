@@ -7,7 +7,7 @@ concepts:
   - pointers
   - branches
   - "null"
-symbol: safe_deref
+symbol: func_800f27cc
 hints:
   - "`if (p)` is an unsigned compare of the pointer against 0."
   - Expect `cmplwi r3, 0` / `beq-` guarding the `lwz`.
@@ -15,18 +15,17 @@ hints:
 
 # Branch on the pointer itself
 
-NULL is just address `0`. So `if (p)` and `if (p != NULL)` come out identical,
-both an unsigned compare of the pointer register against `0`. MWCC reaches for
-`cmplwi` (compare logical word immediate) instead of `cmpwi`, since an address is
-an unsigned quantity.
+NULL is just address `0`. So `if (p)` and `if (p != NULL)` compile identically: an
+unsigned compare of the pointer register against `0`. MWCC uses `cmplwi` (compare
+logical word immediate) rather than `cmpwi`, since an address is unsigned.
 
 Don't read the `-` and `+` on a branch as part of the condition. They're static
-prediction bits, encoded into the branch itself. A `beq-` says branch if equal,
-but I'm betting you won't. A `bne+` says branch if not equal, and I'm betting you
-will. NULL guards almost never trip, so the branch taken on NULL gets stamped with
-the `-`. Two `blr`s show up as well, since each return path finishes on its own.
+prediction bits encoded into the branch itself. `beq-` means branch if equal, but
+the compiler bets you won't. `bne+` means branch if not equal, and the compiler
+bets you will. NULL guards almost never trip, so the taken-on-NULL branch gets the
+`-`. Two `blr`s appear, one for each return path.
 
-Here's that pattern wrapped around a `u32*` load:
+Here's that pattern around a `u32*` load:
 
 ```c
 u32 safe_read_u32(u32* p) {
@@ -46,17 +45,17 @@ li      r3,0
 blr
 ```
 
-When `p` is zero the `beq-` hops over the load. Count the `blr`s, there are two,
-one for each way out. Now do the same for a function guarding an `int*` load.
+When `p` is zero the `beq-` hops over the load. Count the `blr`s: two, one for each
+path. Now do the same for a function guarding an `int*` load.
 
 ## Your task
 
-Write `safe_deref`, taking an `int* p`, returning `*p` when `p` is non-NULL and
+Write `func_800f27cc`, taking an `int* p`, returning `*p` when `p` is non-NULL and
 `0` otherwise.
 
 <!-- solution -->
 ```c
-int safe_deref(int* p) {
+int func_800f27cc(int* p) {
     if (p) {
         return *p;
     }

@@ -7,7 +7,7 @@ concepts:
   - loops
   - pointers
   - u8
-symbol: str_len
+symbol: func_802d654c
 hints:
   - Loop loading `*s` with `lbz`, advancing `s` with `addi`, until the byte is 0.
   - The u8 type makes the zero-test an unsigned `cmplwi r0, 0`.
@@ -15,17 +15,16 @@ hints:
 
 # Advancing a pointer in a loop
 
-Walking a byte buffer is a small loop. Each pass loads a byte with `lbz`, bumps
-the pointer with `addi`, and checks what came back. The element is a `u8`, so it's
-unsigned, and that nudges the zero test to `cmplwi` (compare logical word
-immediate) instead of the signed `cmpwi`.
+Walking a byte buffer is a small loop. Each pass loads a byte with `lbz`, bumps the
+pointer with `addi`, and checks the result. The element is a `u8`, so it's unsigned,
+which pushes the zero test to `cmplwi` (compare logical word immediate) instead of
+the signed `cmpwi`.
 
-MWCC puts the test at the bottom of the loop. An opening `b` jumps right to that
-check first, which means an empty input never enters the body. The back-edge
-branch wears a `+` hint as well, MWCC's static guess that a loop usually loops, so
-it marks the taken path as the likely one.
+MWCC puts the test at the bottom of the loop. An opening `b` jumps straight to that
+check, so an empty input never enters the body. The back-edge branch has a `+` hint
+— MWCC's guess that a loop usually loops, marking the taken path as likely.
 
-Here's a different one, summing the byte values rather than counting them:
+Here's a different version, summing byte values instead of counting:
 
 ```c
 int byte_sum(u8* s) {
@@ -50,19 +49,19 @@ mr      r3,r4
 blr
 ```
 
-See the `lbz`/`cmplwi`/`bne+` trio doing the loop check, the pointer creeping
-forward with `addi r3,r3,1`, and `r4` holding the running total until the closing
-`mr`. Now picture the body when you only want to *count* the iterations, not add
-up byte values, what takes the place of `add`?
+The `lbz`/`cmplwi`/`bne+` trio handles the loop check, the pointer inches forward
+with `addi r3,r3,1`, and `r4` holds the running total until the final `mr`. Now
+picture the body when you only want to *count* iterations instead of adding byte
+values. What replaces the `add`?
 
 ## Your task
 
-Write `str_len`, taking a `u8* s`, returning the number of bytes before the
+Write `func_802d654c`, taking a `u8* s`, returning the number of bytes before the
 terminating zero.
 
 <!-- solution -->
 ```c
-int str_len(u8* s) {
+int func_802d654c(u8* s) {
     int n = 0;
     while (*s) {
         n++;

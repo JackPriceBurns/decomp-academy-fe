@@ -7,7 +7,7 @@ concepts:
   - nested-loops
   - multiply
   - control-flow
-symbol: grid
+symbol: func_8032ffc4
 hints:
   - Two stacked `for` loops; accumulate `s += i * j` in the inner body.
   - "`j` is reset to 0 at the start of each outer iteration — that's the `li r5,
@@ -45,25 +45,25 @@ blr
 ```
 
 That `mullw` is there because the inner body multiplies two variable quantities,
-with no constant to turn into a shift. And the dead giveaway that you're looking
-at a nest? The inner-counter reset, that `li r5, 0` tucked inside the outer body.
+with no constant to turn into a shift. The dead giveaway that you're looking at a
+nest: the inner-counter reset, that `li r5, 0` tucked inside the outer body.
 
 > `#pragma optimization_level 1` keeps both loops rolled.
 
 ## Your task
 
-Write `grid`, returning the sum of `i * j` over all `0 <= i < n` and `0 <= j < n`.
+Write `func_8032ffc4`, returning the sum of `i * j` over all `0 <= i < n` and `0 <= j < n`.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define grid to match the target
+// define func_8032ffc4 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int grid(int n) {
+int func_8032ffc4(int n) {
     int i, j, s = 0;
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {

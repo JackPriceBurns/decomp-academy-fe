@@ -8,7 +8,7 @@ concepts:
   - range
   - boolean
   - combining
-symbol: in_range
+symbol: func_80282f28
 hints:
   - One value tested against two bounds is two compares on the *same* register.
   - Both `&&` failures branch to the same shared `li r3, 0` exit.
@@ -42,16 +42,16 @@ bound, the second the high. Each one bails the instant the value slips past its
 side. Reach `li r3,1` and you know both held.
 
 The two constants are your bounds, inclusive or exclusive depending on the
-branch. `blt` vs `ble`, `bgt` vs `bge`, that distinction is what tells you. From
+branch. `blt` vs `ble`, `bgt` vs `bge` — that distinction is what tells you. From
 there, rebuild the one `&&` expression that lets the `1` through.
 
 ## Your task
 
-Write `in_range` to reproduce the assembly above.
+Write `func_80282f28` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int in_range(int x) {
+int func_80282f28(int x) {
     if (x >= 0 && x < 100) return 1;
     return 0;
 }

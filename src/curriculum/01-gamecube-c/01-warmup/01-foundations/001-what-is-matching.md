@@ -20,23 +20,23 @@ human-friendly **source code** the developers typed into the low-level
 **assembly** that the CPU actually understands and runs.
 
 Only that compiled version goes out the door. The source stays behind with the
-developers. And while assembly executes perfectly well, it's miserable to read —
-all registers and raw instructions, none of the names and structure that made the
-original make sense. If you could turn it back into source code, you'd hand
-everyone who ever wanted to understand or modify that game a way in.
+developers. Assembly executes perfectly well, but it's miserable to read — all
+registers and raw instructions, none of the names and structure that made the
+original make sense. If you could turn it back into source code, you'd give
+everyone who wants to understand or modify that game a way in.
 
-That's what **decompilation** is: taking the shipped, compiled program and working
-it back toward the source code it came from.
+That's **decompilation**: taking the shipped, compiled program and working it
+back toward the source it came from.
 
 # What "matching" adds
 
-Here's the catch that defines this whole craft. Source code that is *functionally
-identical* can compile to *different* assembly — two C functions that behave
-exactly the same may come out as different instructions.
+Matching decompilation adds one harder constraint. Source code that is
+*functionally identical* can compile to *different* assembly — two C functions
+that behave the same may come out as different instructions.
 
 For ordinary decompilation, that doesn't matter. If you've written C that does
 what the assembly does, you've won; that's usually the end of the battle.
-**Matching decompilation** takes it one step further. You compile your C back into
+**Matching decompilation** takes it further. You compile your C back into
 assembly a *second* time and ask a stricter question: does it produce *exactly*
 the same assembly as the original? If it doesn't — even when the behaviour is
 identical — the job isn't done.
@@ -53,12 +53,12 @@ Why hold yourself to that harder bar? Two reasons make it worth it:
   for bit, you have *categorically proven* it behaves like the original. There's
   no room left for a subtle difference to hide.
 
-Matching is a fair bit harder than plain decompilation, but that measurable,
-provable result is the payoff. And it's exactly the loop you'll run here: every
-exercise shows you the target assembly, you write the C you think produced it, and
-**Compile & Check** feeds it to the genuine Metrowerks compiler the GameCube games
-were built with, then diffs the output line by line. Match all of it and you score
-**100%**.
+Matching is harder than plain decompilation, but that measurable, provable
+result is the payoff. It's also the loop you'll run here: every exercise shows
+you the target assembly, you write the C you think produced it, and
+**Compile & Check** feeds it to the genuine Metrowerks compiler the GameCube
+games were built with, then diffs the output line by line. Match all of it and
+you score **100%**.
 
 # Why decompile at all?
 
@@ -82,6 +82,7 @@ Under all of it sits one aim: to recover the C the original developers actually
 wrote, years ago, when the game was made. For *Star Fox Adventures*, that's the
 code a Rare developer sat down and wrote back in 2002.
 
-Whether you're here for the nostalgia, the grind, the mods you'll build on top, or
-the bugs you'll hunt — we hope this site can get you up to speed and contributing to
-a project. Next, let's look at what that assembly actually is, and how to read it.
+Whether you're here for the nostalgia, the grind, the mods you'll build on top,
+or the bugs you'll hunt — this site is built to get you up to speed and
+contributing to a project. Next, let's look at what that assembly actually is,
+and how to read it.

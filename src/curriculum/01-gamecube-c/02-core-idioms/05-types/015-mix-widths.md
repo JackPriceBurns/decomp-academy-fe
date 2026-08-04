@@ -8,7 +8,7 @@ concepts:
   - zero-extension
   - sign-extension
   - mixed-width
-symbol: mix_widths
+symbol: func_80133a14
 hints:
   - "Each narrow operand is widened to 32 bits *before* the arithmetic — one
     extend per operand, chosen by that operand's own type."
@@ -16,43 +16,37 @@ hints:
     (sign-extend). Then a single `add` combines them."
 ---
 
-# Each operand is widened on its own terms
+# Don't mix widths before you extend each side
 
-Every PowerPC arithmetic instruction wants full 32-bit registers, so mixing two
-operands of unlike narrow widths means widening each to 32 bits first. The catch
-is that the extend gets chosen one operand at a time, according to whatever that
-operand's own type happens to be. Anything unsigned, a `u8` or a `u16`, gets the
-`clrlwi` mask that zeros its top bits; anything signed, an `s8` or `s16`, gets
-`extsb` or `extsh` to copy its sign up. Only once both sit at full width does the
-arithmetic itself get to run.
+PowerPC arithmetic uses full 32-bit registers. When you add two narrow operands of
+different widths, the compiler widens each one separately before the add. The choice
+of extend is per-operand: unsigned values get zero-extension, signed values get
+sign-extension. Then a single `add` does the real work.
 
-Take `combine(a, b)`, summing a `u16` with a `u8`. Both are unsigned, so both
-lean on a mask, and only the shift count separates them, since the widths are not
-equal:
+Take `combine(a, b)`, adding a `u16` to a `u8`. Both are unsigned, so both use masks.
+The only difference is how many bits to keep:
 
 ```asm
 clrlwi r3, r3, 16   # a: keep low 16 bits (u16, zero-extended)
 clrlwi r0, r4, 24   # b: keep low 8 bits  (u8, zero-extended)
-add    r3, r3, r0   # 32-bit add of the two widened values
+add    r3, r3, r0   # 32-bit add of the widened values
 blr
 ```
 
-So you get two extends and a lone `add`. Those two `clrlwi` shift amounts spell
-the source widths right out for you. A `…,16` betrays a 16-bit operand, a `…,24`
-an 8-bit one.
+Two extends, one `add`. The shift counts in the `clrlwi` instructions tell you the
+source widths: `…,16` is 16-bit, `…,24` is 8-bit.
 
-Your target pairs an unsigned operand with a signed one, which means one extend
-lands as a `clrlwi` while the other shows up as `extsh` or `extsb`. Read each one
-to pull back its operand's width along with its signedness, then work out how the
-two end up joined.
+Your target pairs an unsigned operand with a signed one, so one extend is `clrlwi`
+and the other is `extsh` or `extsb`. Look at each one to recover its width and
+signedness, then figure out how they fit together.
 
 ## Your task
 
-Write `mix_widths` to match the target assembly.
+Write `func_80133a14` to match the target assembly.
 
 <!-- solution -->
 ```c
-int mix_widths(u8 a, s16 b) {
+int func_80133a14(u8 a, s16 b) {
     return a + b;
 }
 ```

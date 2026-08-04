@@ -7,7 +7,7 @@ concepts:
   - arrays
   - indexed-load
   - addressing
-symbol: sum
+symbol: func_802fbba8
 hints:
   - "`a` is in r3, `n` is in r4 — take them straight as parameters."
   - "`for (i = 0; i < n; i++) s += a[i];` is the whole function."
@@ -21,10 +21,9 @@ To read `a[i]` where `a` is an `int*`, the address is `a + i*4`. The compiler
 scales the index with `slwi r0, rI, 2` (`i * 4`) and then uses the **indexed
 load** `lwzx rD, rA, rB`, which loads from `rA + rB` in one instruction.
 
-Here is `count_pos(int *a, int n)` — it counts how many elements of `a` are
-greater than zero. Study how the `slwi`+`lwzx` pair computes each element
-address, and how the result drives a comparison that conditionally updates the
-accumulator:
+Here's `count_pos(int *a, int n)`, counting how many elements of `a` are greater
+than zero. Study how the `slwi`+`lwzx` pair computes each element address, and how
+the result drives a comparison that conditionally updates the accumulator:
 
 ```asm
 li   r6, 0          # c = 0
@@ -45,7 +44,7 @@ mr   r3, r6
 blr
 ```
 
-The array pointer `a` arrives in `r3` and the length `n` in `r4`. For `sum` the
+The array pointer `a` arrives in `r3` and the length `n` in `r4`. For `func_802fbba8` the
 body is simpler — there is no branch inside the loop, just an `add` that
 accumulates the loaded value directly — but the `slwi`+`lwzx` pair works
 exactly the same way.
@@ -54,18 +53,18 @@ exactly the same way.
 
 ## Your task
 
-Write `sum`, returning the sum of the first `n` elements of `a`.
+Write `func_802fbba8`, returning the sum of the first `n` elements of `a`.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define sum to match the target
+// define func_802fbba8 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int sum(int *a, int n) {
+int func_802fbba8(int *a, int n) {
     int i, s = 0;
     for (i = 0; i < n; i++) s += a[i];
     return s;

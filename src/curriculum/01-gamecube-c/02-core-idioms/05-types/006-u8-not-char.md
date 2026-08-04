@@ -8,7 +8,7 @@ concepts:
   - char
   - sign-extension
   - matching-idiom
-symbol: relay
+symbol: func_8006bacc
 hints:
   - "`char` is signed in MWCC, so promoting it to `int` for the call inserts an
     `extsb`."
@@ -20,8 +20,8 @@ hints:
 
 The thing to internalise about MWCC is that a bare **`char`** is *signed*, and it
 causes more wrong diffs than almost anything else at this level. The moment a
-`char` is *promoted* into a wider context, say an argument or an `int` return
-value, an **`extsb`** has to run first to stretch its sign across the register.
+`char` is *promoted* into a wider context — say an argument or an `int` return
+value — an **`extsb`** has to run first to stretch its sign across the register.
 None of that touches a **`u8`**, which is unsigned to begin with, so there is no
 sign to carry upward.
 
@@ -54,20 +54,20 @@ for `u8` rather than `char`.**
 
 ## Your task
 
-Here `scale` takes an `int`. Write `relay` so it loads `s[0]`, passes it to
+Here `scale` takes an `int`. Write `func_8006bacc` so it loads `s[0]`, passes it to
 `scale`, and stores the result to `d[0]` — **with no `extsb`**. Choose your
 pointer types carefully.
 
 <!-- starter -->
 ```c
-void relay(char* d, char* s) {
+void func_8006bacc(char* d, char* s) {
     d[0] = scale(s[0]);
 }
 ```
 
 <!-- solution -->
 ```c
-void relay(u8* d, u8* s) {
+void func_8006bacc(u8* d, u8* s) {
     d[0] = scale(s[0]);
 }
 ```

@@ -9,7 +9,7 @@ concepts:
   - read-modify-write
   - signed
   - sign-extension
-symbol: rmw_half
+symbol: func_8019664c
 hints:
   - "A *signed* halfword read-modify-write loads with `lha` (it sign-extends),
     not `lhz`."
@@ -35,24 +35,24 @@ sth   r0, 0(r3)   # truncate back to a halfword
 blr
 ```
 
-Worth burning into memory is where each responsibility sits. Signedness rides on
-the load, `lha` against `lhz`; the arithmetic plays out in a roomy 32-bit
-register; and width is the store's only concern, since `sth` simply keeps the
-bottom 16 bits and could not care less about the sign. Read the same location
-back later through a signed pointer and that later load sign-extends all over
-again. The store never did.
+Worth remembering: where each responsibility sits. Signedness rides on the load,
+`lha` against `lhz`; the arithmetic plays out in a roomy 32-bit register; and
+width is the store's only concern, since `sth` simply keeps the bottom 16 bits and
+could not care less about the sign. Read the same location back later through a
+signed pointer and that later load sign-extends all over again. The store never
+did.
 
 Your target reaches for a different operation than the worked example does. Find
 whatever sits between the `lha` and the `sth`, and read its operand straight off.
 
 ## Your task
 
-Write `rmw_half` to match the target assembly. The load must
+Write `func_8019664c` to match the target assembly. The load must
 be `lha` and the store `sth`.
 
 <!-- solution -->
 ```c
-void rmw_half(s16* p) {
+void func_8019664c(s16* p) {
     p[0] = p[0] + 100;
 }
 ```

@@ -9,7 +9,7 @@ concepts:
   - signed
   - unsigned
   - types
-symbol: over_five
+symbol: func_8027b954
 hints:
   - Comparing against a constant uses an immediate compare.
   - A signed `int` gives `cmpwi r3, 5`; a `u32` would give `cmplwi`.
@@ -33,19 +33,19 @@ The unsigned twin (`u32 a`) would use **`cmplwi r3, 5`** in line one, and
 everything else is the same shape. Same rule as the register compares: the
 operand's *type*, not the constant, chooses the opcode.
 
-To read the pattern: the immediate in `cmpwi` is the comparison constant; the
-branch mnemonic encodes the early-exit condition; and the two `li` values are
+To read the pattern: the immediate in `cmpwi` is the comparison constant, the
+branch mnemonic encodes the early-exit condition, and the two `li` values are
 the two possible return values. The speculative load (before the branch)
-corresponds to the arm that exits via the branch, and the fall-through `li`
+corresponds to the arm that exits via the branch; the fall-through `li`
 corresponds to the opposite arm.
 
 ## Your task
 
-Write `over_five` to reproduce the assembly above.
+Write `func_8027b954` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int over_five(int a) {
+int func_8027b954(int a) {
     if (a > 5) return 7;
     return 9;
 }

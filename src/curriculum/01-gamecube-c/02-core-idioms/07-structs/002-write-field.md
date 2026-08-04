@@ -7,7 +7,7 @@ concepts:
   - structs
   - store
   - offsets
-symbol: Point_setField
+symbol: func_801e8610
 hints:
   - The value `v` arrives in r4; the struct base is in r3.
   - "`p->y = v;` compiles to `stw r4, 4(r3)`."
@@ -15,16 +15,15 @@ hints:
 
 # Storing into a field
 
-Writing a field mirrors reading it: a **store at the field's byte offset**. The
-store instruction `stw rS, off(rA)` writes the contents of `rS` to address
-`rA + off`. No load is needed — a store overwrites the whole field. Note the
-operand order: **source register first, then the address**, the opposite mental
-model from `lwz`.
+Writing a field mirrors reading it: a store at the field's byte offset. `stw rS,
+off(rA)` writes the contents of `rS` to `rA + off`. No load is needed — a store
+overwrites the whole field. Note the operand order: source register first, then the
+address, the opposite of `lwz`.
 
-Arguments arrive in registers in order: the struct pointer goes into `r3`, and
-the first value argument into `r4`.
+Arguments arrive in order: the struct pointer in `r3`, the first value argument in
+`r4`.
 
-For a three-field struct, writing the third field (offset 8) looks like this:
+For a three-field struct, writing the third field (offset 8) looks like:
 
 ```c
 typedef struct { int x; int y; int z; } Vec3i;
@@ -39,17 +38,18 @@ stw     r4,8(r3)    # v->z = val
 blr
 ```
 
-The offset `8` tells you it's the third `int` field. Now determine which field
-of a two-field struct corresponds to the offset used in the target assembly, and
-write the equivalent setter.
+The offset `8` tells you it's the third `int` field. Now figure out which field of
+a two-field struct matches the offset in the target assembly, and write the
+equivalent setter.
 
 ## Your task
 
-With the `Point` struct above, write `Point_setField` to reproduce the target assembly.
+With the `Point` struct above, write `func_801e8610` to reproduce the target
+assembly.
 
 <!-- solution -->
 ```c
-void Point_setField(Point* p, int v) {
+void func_801e8610(Point* p, int v) {
     p->y = v;
 }
 ```

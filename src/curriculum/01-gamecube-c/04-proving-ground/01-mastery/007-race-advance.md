@@ -8,7 +8,7 @@ concepts:
   - control-flow
   - calls
   - float
-symbol: race_advance
+symbol: func_8033feec
 hints:
   - Write a plain `switch (s->phase)` with cases 0..3 in order plus a `default`.
   - Don't hand-roll the `cmpwi` pivot tree — the compiler builds it from the
@@ -54,17 +54,19 @@ b       .case3             # phase == 3
 
 The body of each case is ordinary: `GameBit_Get`/`Set` calls, a `stw` to update
 `phase`, and in case 2 a `timerCountDown` guard. A useful habit here: rather than
-reverse-engineering the comparison tree by hand, write the
-plain `switch` with the cases in numeric order and a `default`, and MWCC
-regenerates this exact pivot structure for you.
+reverse-engineering the comparison tree by hand, write the plain `switch` with
+the cases in numeric order and a `default`, and MWCC regenerates this exact pivot
+structure for you.
 
 ## Your task
 
-Write `race_advance` taking a `RaceObject* obj`. Switch on `s->phase` with cases 0 through 3 and a `default`, reading `s` from `obj->state`. Match the comparison tree and all per-case behaviour shown in the assembly above.
+Write `func_8033feec` taking a `RaceObject* obj`. Switch on `s->phase` with cases
+0 through 3 and a `default`, reading `s` from `obj->state`. Match the comparison
+tree and all per-case behaviour shown in the assembly above.
 
 <!-- solution -->
 ```c
-void race_advance(RaceObject* obj) {
+void func_8033feec(RaceObject* obj) {
     RaceState* s = obj->state;
     switch (s->phase) {
     case 0:

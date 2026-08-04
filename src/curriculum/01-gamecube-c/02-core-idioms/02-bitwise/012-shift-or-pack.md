@@ -8,7 +8,7 @@ concepts:
   - shift
   - or
   - chaining
-symbol: pack_shift_or
+symbol: func_803c6618
 hints:
   - "`slwi rD, rA, n` shifts rA left by n bits, the same shift you'd write `<< n` in C."
   - The `or` joins two registers bit-by-bit — which register holds the shifted value,
@@ -30,10 +30,10 @@ or      r3,r0,r4
 blr
 ```
 
-The first line, `slwi r0, r3, 16`, is shift-left-word-immediate. Every bit of
-`r3` climbs 16 places and the result parks in `r0`, which leaves the bottom 16
-bits of `r0` sitting at zero. There's your gap. Now `or r3, r0, r4` fills it
-straight from `r4`, because any bit set in either operand still shows up in `r3`.
+`slwi r0, r3, 16` shifts `r3` left by 16. Every bit climbs 16 places and the
+result parks in `r0`, leaving the bottom 16 bits of `r0` at zero. There's your
+gap. Now `or r3, r0, r4` fills it straight from `r4`, because any bit set in
+either operand still shows up in `r3`.
 
 Two instructions, sure, but one idea. The `slwi` output only has to stay alive
 for a single cycle before `or` eats it.
@@ -44,11 +44,11 @@ half, which between them is enough to write the C.
 
 ## Your task
 
-Write `pack_shift_or` to reproduce the assembly above.
+Write `func_803c6618` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int pack_shift_or(int a, int b) {
+int func_803c6618(int a, int b) {
     return (a << 8) | b;
 }
 ```

@@ -17,7 +17,7 @@ can recover a signature from nothing but the target in front of you.
 
 Now the real work starts. This tier, **Core idioms**, is a tour of every shape C
 compiles into, and we begin where the machine is friendliest: **integer
-arithmetic**. Over the next handful of lessons you'll learn to read:
+arithmetic**. Over the next few lessons you'll learn to read:
 
 - **add, subtract, multiply, and divide** between registers,
 - the tricks the compiler plays — a multiply or divide by a constant that becomes
@@ -26,4 +26,4 @@ arithmetic**. Over the next handful of lessons you'll learn to read:
 - and how **operator precedence** decides the order the instructions come out in.
 
 Same rules as the last chapter: the editor starts empty, the name is in the
-header, and the signature is yours to work out. Let's go add two numbers.
+header, and the signature is yours to work out. Time to add two numbers.

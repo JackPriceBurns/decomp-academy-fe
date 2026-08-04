@@ -15,9 +15,9 @@ hints:
 
 # Folding a constant into the instruction
 
-Adding a small constant is free of any load. The compiler folds the number
-straight into the instruction with the immediate form `addi rD, rA, imm` — `imm`
-being the literal value, riding along inside the opcode:
+Adding a small constant doesn't need a separate load. The compiler folds the
+number straight into the instruction with the immediate form `addi rD, rA, imm` —
+`imm` is the literal value, riding along inside the opcode:
 
 ```asm
 addi r3, r3, 5    # r3 = r3 + 5
@@ -26,11 +26,11 @@ blr
 
 That immediate field is signed and 16 bits wide, so it reaches from -32768 up to
 32767; ask for a constant beyond that and the compiler splits the work across
-`lis` plus `addi`. Won't happen in this exercise, but file the shape away. And
-because the field is signed, the very same `addi` can *subtract* too — that's the
-next lesson.
+`lis` plus `addi`. You won't need that here, but it's worth remembering. And
+because the field is signed, the same `addi` can *subtract* too — that's the next
+lesson.
 
-Whatever immediate the target `addi` carries is the constant you are after.
+The immediate in the target `addi` is the constant you want.
 
 ## Your task
 

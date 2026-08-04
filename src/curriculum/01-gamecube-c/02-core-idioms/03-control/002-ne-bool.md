@@ -7,7 +7,7 @@ concepts:
   - comparison
   - boolean
   - idiom
-symbol: not_equal
+symbol: func_80002498
 hints:
   - Inequality uses two subtractions ORed together.
   - The sign bit is harvested with `srwi r3, r0, 31`.
@@ -31,18 +31,18 @@ blr
 Why both directions? Because that pair of subtractions guarantees bit 31 is set
 the moment the inputs differ. At least one of the two will overflow into that
 bit. When the inputs match, both differences are zero and so is the OR. The
-closing `srwi r3, r0, 31` then drags bit 31 down to a tidy `0` or `1`. There's a
-corner case that still behaves: if one difference wraps to `INT_MIN`, the other
-wraps to `INT_MIN` as well, the OR stays `INT_MIN`, bit 31 stays lit, and the
-answer holds.
+closing `srwi r3, r0, 31` then drags bit 31 down to a tidy `0` or `1`. A corner
+case still behaves: if one difference wraps to `INT_MIN`, the other wraps to
+`INT_MIN` as well, the OR stays `INT_MIN`, bit 31 stays lit, and the answer
+holds.
 
 ## Your task
 
-Write `not_equal` to reproduce the assembly above.
+Write `func_80002498` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int not_equal(int a, int b) {
+int func_80002498(int a, int b) {
     return a != b;
 }
 ```

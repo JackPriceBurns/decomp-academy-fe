@@ -7,7 +7,7 @@ concepts:
   - scheduling
   - latency
   - pipelining
-symbol: combine2
+symbol: func_80352f04
 hints:
   - The C body is identical to the previous lesson — two sums, then a multiply.
   - To freeze the loads in source order, add `#pragma scheduling off` on the
@@ -19,7 +19,7 @@ hints:
 # Why the order looks scrambled
 
 A load isn't free. The value needs a few cycles to come back from memory, and if
-the next instruction grabs at it right away, the pipeline stalls. `,p` scheduling
+the next instruction grabs it right away, the pipeline stalls. `,p` scheduling
 hides that wait by dropping independent instructions into the gap, giving the CPU
 something to chew on while the load finishes.
 
@@ -37,9 +37,9 @@ add   r0, r4, r0   # b = p[2]+p[3]
 mullw r3, r5, r0
 ```
 
-Switch it back on, which is what `-O4,p` does unless you stop it, and the shape
-changes entirely. All four loads leave first so their latencies pile up in
-parallel, and neither `add` runs until its operands have landed.
+Switch it back on — which is what `-O4,p` does unless you stop it — and the shape
+changes. All four loads leave first so their latencies pile up in parallel, and
+neither `add` runs until its operands have landed.
 
 ```asm
 lwz   r6, 0(r3)
@@ -51,30 +51,30 @@ add   r0, r4, r0
 mullw r3, r3, r0
 ```
 
-Identical instructions. Different order, and different register numbers to match.
+Identical instructions, different order, and different register numbers to match.
 The renumbering follows from the reorder, not from chance, because MWCC colors
 registers only once the schedule is fixed; change the schedule and the live
-ranges change, which drags the register numbers around with them. An interleaved
-target, then, is the scheduler talking. It says nothing about how you wrote the
-source. Keep the C plain and the scheduler will shape it.
+ranges change, which drags the register numbers with them. An interleaved target,
+then, is the scheduler talking. It says nothing about how you wrote the source.
+Keep the C plain and the scheduler will shape it.
 
 This is the `#pragma scheduling off` lever, and this is the first time you'll
 touch it, on one lone function. Lesson 5 brings it back as a real technique,
-fencing off a region between a matching `off` and `reset`, but the gear is
-identical to what you're using here.
+fencing off a region between a matching `off` and `reset`, but the gear is the
+same.
 
 ## Your task
 
-Write `combine2(int *p)` to reproduce the unscheduled, source-order assembly
-(the first listing above) — same integer computation as the previous lesson,
-but with loads sitting next to the adds that consume them. You can't get there
-by rewriting the C; the lever is the pragma. Put `#pragma scheduling off`
-before the function so the compiler emits instructions in source order.
+Write `func_80352f04` to reproduce the unscheduled, source-order assembly (the
+first listing above) — the same integer computation as the previous lesson, but
+with loads sitting next to the adds that consume them. You can't get there by
+rewriting the C; the lever is the pragma. Put `#pragma scheduling off` before the
+function so the compiler emits instructions in source order.
 
 <!-- solution -->
 ```c
 #pragma scheduling off
-int combine2(int *p) {
+int func_80352f04(int *p) {
     int a = p[0] + p[1];
     int b = p[2] + p[3];
     return a * b;

@@ -9,7 +9,7 @@ concepts:
   - cse
   - guard
   - chaining
-symbol: sample
+symbol: func_802c2454
 hints:
   - The enum field load + `cmpwi K` + `bnelr-` is a one-line guard; the `li r3,-1`
     is parked speculatively before the compare so the bail value is already in
@@ -24,13 +24,13 @@ Engine code often refuses to touch hardware until the object is in the right
 state. What you get is two idioms back to back. First an `enum` state check, the
 kind from lesson 5, acts as an early-return guard, and only when that guard
 passes does the function reach a `volatile` access that defeats CSE, the kind
-from lesson 6. To read the assembly, split it at the conditional branch, since
-everything ahead of the branch is the guard and everything past it is the
-actual work.
+from lesson 6. To read the assembly, split it at the conditional branch:
+everything ahead of the branch is the guard, and everything past it is the actual
+work.
 
 Take `read_if_armed(struct Sensor *s)`, which bails out with a sentinel unless
 `s->state` is the enum value `ARMED` (ordinal 1), and otherwise reads a
-`volatile int g_raw` twice.
+`volatile int g_raw` twice:
 
 ```asm
 lwz   r0, 0(r3)            # load the 4-byte enum field
@@ -46,12 +46,11 @@ blr
 The guard is that `lwz`/`cmpwi K`/`bnelr-` trio. It loads the enum field,
 compares it against an ordinal, and `bnelr-` returns straight away when the two
 differ, with the sentinel already waiting in `r3` thanks to the speculative
-`li`. One thing worth knowing is that the sentinel needs to be non-zero, because
-a `return 0` arm lets MWCC flatten the guard into a branchless mask and the
-`bnelr-` disappears. Once you are past the branch, the two `lwz` of the same
+`li`. One thing worth knowing: the sentinel needs to be non-zero, because a
+`return 0` arm lets MWCC flatten the guard into a branchless mask and the
+`bnelr-` disappears. Once you're past the branch, the two `lwz` of the same
 `@sda21` symbol with nothing storing between them is the volatile double-read
-fingerprint, where a plain `int` would have loaded once and done
-`add r3, r0, r0`.
+fingerprint — a plain `int` would have loaded once and done `add r3, r0, r0`.
 
 ## Your task
 
@@ -62,7 +61,7 @@ the sentinel; the global must be read twice past the guard.
 
 <!-- solution -->
 ```c
-int sample(struct Dev *d) {
+int func_802c2454(struct Dev *d) {
     if (d->mode != MODE_HIGH) return -1;
     return g_ticks + g_ticks;
 }

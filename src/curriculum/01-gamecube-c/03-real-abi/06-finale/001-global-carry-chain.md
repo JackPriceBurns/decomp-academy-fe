@@ -9,7 +9,7 @@ concepts:
   - sda21
   - 64-bit
   - carry
-symbol: tallyBytes
+symbol: func_800778c0
 hints:
   - Each 64-bit global occupies two @sda21 slots; the low half is loaded from the
     `+0x4` relocation and the high half from the base symbol.
@@ -49,20 +49,21 @@ the `addc`, stores the low result, and only then resolves the high words for the
 `adde`. The `+0x4` relocations are the giveaway that each symbol is a 64-bit pair
 rather than a 32-bit global.
 
-Your `tallyBytes` reads two `u64` globals, adds them as one value, and writes the
-sum back into the first. The `addc`/`adde` pair and the four loads tell you it is
-64-bit; the `@sda21` relocations tell you the operands and destination are
+Your `func_800778c0` reads two `u64` globals, adds them as one value, and writes
+the sum back into the first. The `addc`/`adde` pair and the four loads tell you
+it's 64-bit; the `@sda21` relocations tell you the operands and destination are
 globals. Trace which symbol each load and store touches.
 
 ## Your task
 
-The globals are declared for you: `gPacketBytes` and `gFrameBytes`, both `u64`.
-Write `tallyBytes` to reproduce the assembly above. Read the relocations to see
-which global is read, which is written, and how the low and high halves pair up.
+The globals are already declared: `gPacketBytes` and `gFrameBytes`, both `u64`.
+Write `func_800778c0` to reproduce the assembly above. Read the relocations to
+see which global is read, which is written, and how the low and high halves pair
+up.
 
 <!-- solution -->
 ```c
-void tallyBytes(void) {
+void func_800778c0(void) {
     gPacketBytes = gPacketBytes + gFrameBytes;
 }
 ```

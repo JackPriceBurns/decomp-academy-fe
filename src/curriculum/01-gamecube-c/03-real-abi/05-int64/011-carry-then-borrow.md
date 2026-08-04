@@ -9,7 +9,7 @@ concepts:
   - carry
   - borrow
   - chaining
-symbol: addsub_64
+symbol: func_80326844
 hints:
   - Two 64-bit operations back to back — an `addc`/`adde` pair, then a `subfc`/`subfe` pair on the running result.
   - The carry chain of the add and the borrow chain of the subtract don't interact; each pair manages its own flag, low word then high.
@@ -20,8 +20,8 @@ hints:
 
 You've used the 64-bit add (`addc`/`adde`) and the 64-bit subtract
 (`subfc`/`subfe`) one at a time. Most functions chain several steps. The shape
-per step stays fixed. Low word first, high word second, a flag in between. Read
-a chain by finding its pairs. A carrying low-word instruction and its extended
+per step stays fixed: low word first, high word second, a flag in between. Read a
+chain by finding its pairs. A carrying low-word instruction and its extended
 high-word partner count as one operation.
 
 Here is `accumulate(p, q, r)`. It adds the first two 64-bit values and folds in
@@ -45,11 +45,11 @@ assembly into two pairs. Label each `add` or `subf`. Then write the expression.
 
 ## Your task
 
-Write `addsub_64` to reproduce the assembly above.
+Write `func_80326844` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u64 addsub_64(u64 a, u64 b, u64 c) {
+u64 func_80326844(u64 a, u64 b, u64 c) {
     return a + b - c;
 }
 ```

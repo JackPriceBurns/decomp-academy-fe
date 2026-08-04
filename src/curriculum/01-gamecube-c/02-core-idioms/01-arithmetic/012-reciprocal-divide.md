@@ -7,7 +7,7 @@ concepts:
   - strength-reduction
   - divide
   - optimization
-symbol: recipDiv
+symbol: func_803858f8
 hints:
   - This whole cluster is a divide by a constant — the compiler swapped the slow
     `divw` for a multiply by a fixed reciprocal.
@@ -30,19 +30,19 @@ That lesson quietly dialled the optimizer down. The rest of this course runs at
 to spend a slow hardware `divw` on a constant divisor. Instead it multiplies by a
 fixed-point *reciprocal*.
 
-The idea: to divide by `N` you'd like to multiply by `1 / N`, but an integer
-can't hold a fraction. So the compiler scales it up — it picks a big whole number
-`M` that is close to `2^32 / N` — multiplies your value by it, then divides the
-product back down by `2^32`. That last step is free: `mulhw` ("multiply high
-word") keeps the top 32 bits of the 64-bit product, and dropping the low 32 bits
-*is* a divide by `2^32`. The net effect is `a × (2^32 / N) ÷ 2^32 = a / N`.
+Dividing by `N` is the same as multiplying by `1 / N`, but an integer can't hold
+a fraction. So the compiler scales it up: it picks a big whole number `M` close
+to `2^32 / N`, multiplies your value by it, then divides the product back down by
+`2^32`. That last step is free: `mulhw` ("multiply high word") keeps the top 32
+bits of the 64-bit product, and dropping the low 32 bits *is* a divide by `2^32`.
+The net effect is `a × (2^32 / N) ÷ 2^32 = a / N`.
 
-The catch when decompiling is that `N` — the number you actually have to write —
-never appears in the code. You recover it from the big constant `M`.
+The divisor `N` — the number you actually have to write — never appears in the
+assembly. You recover it from the big constant `M`.
 
 ## Reading the constant back
 
-Here is that same `a / 3`, now at `-O4,p`:
+Here's that same `a / 3`, now at `-O4,p`:
 
 ```asm
 lis   r4, 21845      # r4 = 21845 * 2^16 = 1,431,633,920
@@ -54,14 +54,14 @@ add   r3, r3, r0     # toward-zero rounding fixup
 
 The first two lines build `M`. `lis` loads the *top* half of the register — a
 left-shift by 16, i.e. a multiply by `2^16` (65536) — and `addi` adds the bottom
-part, so `M = 21845 × 2^16 + 21846 = 1,431,655,766`. To get the divisor, just undo
-the reciprocal by dividing it into `2^32`:
+part, so `M = 21845 × 2^16 + 21846 = 1,431,655,766`. To get the divisor, undo the
+reciprocal by dividing `2^32` by it:
 
 `N ≈ 2^32 / M = 4,294,967,296 / 1,431,655,766 = 3.0` → the divisor is **3**.
 
-Ignore the `srwi 31` + `add` at the end. That is *not* part of the reciprocal —
-it's the toward-zero rounding fixup you met on the signed power-of-two divide (add
-one, but only when the value is negative).
+Ignore the `srwi 31` + `add` at the end. That's not part of the reciprocal —
+it's the toward-zero rounding fixup from the signed power-of-two divide: add one,
+but only when the value is negative.
 
 ## When the divisor needs an extra shift
 
@@ -72,7 +72,7 @@ some small power of two, divided by `N`) and then shift the product back down by
 that many bits with an `srawi`.
 
 So an `srawi` in the sequence is your signal: its shift count, call it `s`, tells
-you the reciprocal was built from `2^(32 + s)` instead of plain `2^32`. Here is
+you the reciprocal was built from `2^(32 + s)` instead of plain `2^32`. Here's
 `a / 17`:
 
 ```asm
@@ -88,9 +88,9 @@ add   r3, r0, r3     # rounding fixup
 - The `srawi 3` means `s = 3`, so the reciprocal used `2^(32 + 3) = 2^35 = 34,359,738,368`.
 - `N ≈ 34,359,738,368 / 2,021,161,081 = 17.0` → the divisor is **17**.
 
-That is the whole method: `N ≈ 2^(32 + s) / M`, where `s` is the count on the
-`srawi` (and `s = 0` when there is none). `M` only approximates the true
-reciprocal, so if the answer lands a hair off a whole number, round to it.
+So: `N ≈ 2^(32 + s) / M`, where `s` is the count on the `srawi` (and `s = 0`
+when there is none). `M` only approximates the true reciprocal, so if the answer
+lands a hair off a whole number, round to it.
 
 ## Your task
 
@@ -98,11 +98,11 @@ Your target builds `M` from its own `lis`/`addi` pair and has a single `srawi`.
 Compute `M = top × 2^16 + bottom`, read `s` off that shift, and divide
 `2^(32 + s)` by `M` to find the divisor it hides.
 
-Write `recipDiv` to reproduce the target assembly.
+Write `func_803858f8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c
-int recipDiv(int a) {
+int func_803858f8(int a) {
     return a / 5;
 }
 ```

@@ -8,7 +8,7 @@ concepts:
   - peephole
   - dot-form
   - chaining
-symbol: gate2
+symbol: func_8012e7e0
 hints:
   - Two independent loads at the top is the scheduler batching them; the
     `clrlwi.` that masks-and-tests in one instruction is the peephole dot-merge.
@@ -27,8 +27,8 @@ loads come first because of scheduling, and the mask-plus-test fuses because of
 peephole.
 
 Consider `sift(int *v)` — it loads two array slots, masks the **low 16 bits** of
-the first, and if that masked value is non-zero subtracts it from the second slot,
-otherwise just returns the second slot:
+the first, and if that masked value is non-zero subtracts it from the second
+slot, otherwise just returns the second slot:
 
 ```asm
 lwz     r0, 0(r3)     # both loads hoisted to the front (scheduler)
@@ -46,19 +46,20 @@ instruction, so `beqlr-` branches straight off it. That fusion only happens
 because the masked value is **reused** — it feeds both the test and the
 arithmetic.
 
-Your `gate2` has the same skeleton — two loads, a masked-and-tested first value,
-a branch, then one combining op — but it masks a **different width** and uses a
-**different** arithmetic operation on the surviving path. Read the `clrlwi.`
-shift to recover the mask, and the post-branch instruction to recover the op.
+Your `func_8012e7e0` has the same skeleton — two loads, a masked-and-tested first
+value, a branch, then one combining op — but it masks a **different width** and
+uses a **different** arithmetic operation on the surviving path. Read the
+`clrlwi.` shift to recover the mask, and the post-branch instruction to recover
+the op.
 
 ## Your task
 
-Write `gate2(int *p)` to reproduce the assembly above — both loads at the top, a
+Write `func_8012e7e0` to reproduce the assembly above — both loads at the top, a
 `clrlwi.` that merges the test, a `beqlr-`, then the arithmetic.
 
 <!-- solution -->
 ```c
-int gate2(int *p) {
+int func_8012e7e0(int *p) {
     int x = p[0] & 0xFF;
     int y = p[1];
     return x ? x + y : y;

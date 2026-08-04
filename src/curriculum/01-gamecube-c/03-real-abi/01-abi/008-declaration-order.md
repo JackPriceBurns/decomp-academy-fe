@@ -7,7 +7,7 @@ concepts:
   - saved-registers
   - register-allocation
   - declaration-order
-symbol: order_demo
+symbol: func_80307788
 hints:
   - Both results survive a call, so they go in r31 and r30.
   - "Declaration order decides which: `first` is declared first, so it takes
@@ -16,15 +16,14 @@ hints:
 
 # A rule that decides r31 vs r30
 
-Picture two locals that both have to be alive once a call returns. A volatile
-register would get trampled, so each one retreats to a callee-saved register
-instead. MWCC hands those out starting at the high end, which means `r31` before
-`r30`. The order they get claimed traces straight back to your source. Whichever
-local you declared earlier walks off with `r31`, and the later one is stuck with
-`r30`.
+Picture two locals that both must be alive after a call returns. A volatile
+register would get trampled, so each retreats to a callee-saved register. MWCC
+hands those out starting at the high end: `r31` before `r30`. The order they get
+claimed traces back to your source. Whichever local you declared earlier walks off
+with `r31`; the later one gets `r30`.
 
-`order_alt(s32 x, s32 y)` puts that on display. `beta` appears above `alpha`,
-and both draw their value from a `scale()` call.
+`order_alt(s32 x, s32 y)` puts this on display. `beta` appears above `alpha`, and
+both draw their value from a `scale()` call.
 
 ```asm
 stwu   r1,-16(r1)
@@ -47,25 +46,25 @@ addi   r1,r1,16
 blr
 ```
 
-`beta` went first and bagged `r31`, leaving `alpha` down in `r30`. There is real
-leverage in that. Catch a target with its registers reversed and you fix it by
-swapping the two declarations and building again.
+`beta` went first and bagged `r31`, leaving `alpha` in `r30`. There's real leverage
+in that. Catch a target with registers reversed and you fix it by swapping the two
+declarations and rebuilding.
 
-Now `order_demo`, the one you actually write. Its target calls `transform` twice
-and hangs onto both answers, one in `r31` and one in `r30`. Walk each parameter
-to the local it feeds and notice the register that local ends up in; the
-declaration order falls right out of that. Whatever the last instruction does to
-the two values is the operation you owe the return.
+Now `func_80307788`, the one you write. Its target calls `transform` twice and
+hangs onto both answers, one in `r31` and one in `r30`. Walk each parameter to the
+local it feeds and notice which register that local ends up in; declaration order
+falls right out. Whatever the last instruction does to the two values is the
+operation you owe the return.
 
 ## Your task
 
-Write `order_demo`, calling `transform` twice and returning a combination of the
+Write `func_80307788`, calling `transform` twice and returning a combination of the
 results. `transform` is declared for you. Match the register assignments in the
 target assembly by choosing the right declaration order.
 
 <!-- solution -->
 ```c
-int order_demo(int x, int y) {
+int func_80307788(int x, int y) {
     int first = transform(x);
     int second = transform(y);
     return first - second;

@@ -7,7 +7,7 @@ concepts:
   - 64-bit
   - division
   - intrinsics
-symbol: div_64
+symbol: func_8008dc40
 hints:
   - PowerPC has no 64-bit divide instruction, so the compiler emits a call to a runtime helper.
   - "Look for `bl __div2u` wrapped in a stack-saving prologue/epilogue (mflr/stw … lwz/mtlr)."
@@ -34,17 +34,17 @@ blr
 
 The `bl __div2u` in the middle is the whole point. `__div2u` is the unsigned
 64-bit divide; `__div2i` is the signed one, and `__mod2u` and `__mod2i` cover
-modulo. Spot a `bl` to any of those `__…2u` or `__…2i` names and you know a 64-bit
-divide or modulo is in play. A multiply can vanish behind a downcast, but this
-never does, because the call happens whatever the width of the result.
+modulo. Spot a `bl` to any of those `__…2u` or `__…2i` names and you know a
+64-bit divide or modulo is in play. A multiply can vanish behind a downcast, but
+this never does, because the call happens whatever the width of the result.
 
 ## Your task
 
-Write `div_64` to match the target.
+Write `func_8008dc40` to match the target.
 
 <!-- solution -->
 ```c
-u64 div_64(u64 a, u64 b) {
+u64 func_8008dc40(u64 a, u64 b) {
     return a / b;
 }
 ```

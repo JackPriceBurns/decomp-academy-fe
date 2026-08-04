@@ -7,7 +7,7 @@ concepts:
   - widening
   - sign-extension
   - zero-extension
-symbol: widen_u8
+symbol: func_803a8eb8
 hints:
   - Widening an unsigned byte to a word zero-extends — a mask, not a sign-extend.
   - "`return x;` compiles to `clrlwi r3, r3, 24` (keep the low 8 bits)."
@@ -34,7 +34,7 @@ blr
 ```
 
 So `clrlwi r3, r3, 24` and `extsb r3, r3` do almost the same job. The only
-difference is what lands in the high bits, zeros for the unsigned case and copies
+difference is what lands in the high bits: zeros for the unsigned case and copies
 of the sign bit for the signed one. (This lesson is the *unsigned* one.)
 
 Watch out for the `rlwinm` alias as well. `clrlwi` is just the readable name for a
@@ -44,12 +44,12 @@ the same encoding. If your disassembler prints the raw `rlwinm`, treat it as the
 
 ## Your task
 
-Write `widen_u8`, taking a `u8 x` and returning it as a `u32`. The unsigned widen
+Write `func_803a8eb8`, taking a `u8 x` and returning it as a `u32`. The unsigned widen
 should emit a single `clrlwi`.
 
 <!-- solution -->
 ```c
-u32 widen_u8(u8 x) {
+u32 func_803a8eb8(u8 x) {
     return x;
 }
 ```

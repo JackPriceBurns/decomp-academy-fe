@@ -8,7 +8,7 @@ concepts:
   - float
   - narrow-types
   - pointers
-symbol: crfueltank_apply
+symbol: func_801fc510
 hints:
   - "`fadeTimer`/`triggered` are `u8`s after the `s16 flags`, so they land at
     offsets 14 and 15 (`stb`)."
@@ -19,11 +19,11 @@ hints:
 
 # Two structs, one position copy
 
-Modeled on the tail of SFA's `crfueltank_hitDetect`: when a fuel tank is hit,
-the game copies the *hitter's* position onto the tank, lifting one axis by a
-constant so the effect spawns slightly offset from the impact point. It's a clean
-exercise in moving `f32` fields between two different structs while a couple of
-`u8` status bytes get set.
+Modeled on the tail of SFA's `crfueltank_hitDetect`: when a fuel tank is hit, the
+game copies the *hitter's* position onto the tank, lifting one axis by a constant
+so the effect spawns slightly offset from the impact point. It's a clean exercise
+in moving `f32` fields between two different structs while a couple of `u8`
+status bytes get set.
 
 ```c
 typedef struct { f32 posX; f32 posY; f32 posZ; } HitObj;
@@ -48,8 +48,8 @@ byte-store statements roughly in source order. If you write the byte stores
 non-matching layout. Write the byte stores in whatever order the assembly shows
 them.
 
-Consider an analogous function that spawns an explosion, biasing posX instead
-of posY and using a different timer value:
+Consider an analogous function that spawns an explosion, biasing posX instead of
+posY and using a different timer value:
 
 ```asm
 li      r5, 30
@@ -89,11 +89,11 @@ blr
 
 ## Your task
 
-With the structs above, write `crfueltank_apply` to reproduce the assembly above.
+With the structs above, write `func_801fc510` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-void crfueltank_apply(CrFuelTankObject* obj, HitObj* hitObj) {
+void func_801fc510(CrFuelTankObject* obj, HitObj* hitObj) {
     obj->fadeTimer = 0xfa;
     obj->triggered = 1;
     obj->posX = hitObj->posX;

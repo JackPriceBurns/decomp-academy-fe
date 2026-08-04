@@ -7,7 +7,7 @@ concepts:
   - pointers
   - comparison
   - boolean
-symbol: same
+symbol: func_8005569c
 hints:
   - Pointer equality is address equality — write the plain `a == b`.
   - The branchless form is `subf`, `cntlzw`, then `srwi r3, r0, 5`.
@@ -15,16 +15,15 @@ hints:
 
 # Equality without a branch
 
-Two pointers are equal when their addresses are the same integer. MWCC avoids
-a branch for this by using a three-instruction idiom: subtract the two addresses,
-count the leading zero bits of the result, then shift right.
+Two pointers are equal when their addresses are the same integer. MWCC avoids a
+branch with a three-instruction idiom: subtract the addresses, count leading zeros
+of the result, then shift right.
 
-The key instruction is `cntlzw rD, rA` — *count leading zeros word*. It counts
-how many of the 32 bits, starting from the most significant, are zero. That count
-is 32 only when the input is exactly zero; for any non-zero input it is at most
-31.
+The key instruction is `cntlzw rD, rA` — count leading zeros word. It counts how
+many of the 32 bits, starting from the top, are zero. That count is 32 only when
+the input is exactly zero; for anything non-zero it's at most 31.
 
-Here is the same idiom applied to `u8*` pointers with different operand names:
+Here's the idiom applied to `u8*` pointers:
 
 ```c
 BOOL at_same_byte(u8* p, u8* q) {
@@ -39,19 +38,19 @@ srwi    r3,r0,5     # 32 >> 5 = 1 (true); anything else >> 5 = 0 (false)
 blr
 ```
 
-`subf rD,rA,rB` computes `rB − rA` (note: *not* `rA − rB`). After the
-subtract, a zero result means the inputs were equal. `cntlzw` turns that zero
-into 32, and shifting right by 5 maps 32 → 1 while collapsing all smaller counts
-to 0. Recognize this three-instruction sequence as a branchless `==`.
+`subf rD,rA,rB` computes `rB − rA` (not `rA − rB`). After the subtract, a zero
+result means the inputs were equal. `cntlzw` turns that zero into 32, and shifting
+right by 5 maps 32 → 1 while collapsing smaller counts to 0. Recognize this
+three-instruction sequence as a branchless `==`.
 
 ## Your task
 
-Write `same`, taking two `int*` and returning whether they point at the same
-address.
+Write `func_8005569c`, taking two `int*` and returning whether they point at the
+same address.
 
 <!-- solution -->
 ```c
-BOOL same(int* a, int* b) {
+BOOL func_8005569c(int* a, int* b) {
     return a == b;
 }
 ```

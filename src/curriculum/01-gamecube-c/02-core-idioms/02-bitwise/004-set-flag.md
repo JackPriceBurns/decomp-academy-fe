@@ -7,7 +7,7 @@ concepts:
   - bitwise
   - or
   - flags
-symbol: set_flag
+symbol: func_8037aa6c
 hints:
   - Setting a flag means OR-ing in its bit and keeping the rest.
   - "`x |= 0x40` is the same as `x = x | 0x40` → one `ori`."
@@ -31,10 +31,9 @@ ori  r3, r3, 8
 blr
 ```
 
-The reason `|=` earns its keep is that it leaves every *other* flag exactly where
-it was; only the bit you aimed at moves. So when you spot a lone `ori` carrying a
-power-of-two immediate, the source behind it was almost certainly `flags |=
-SOME_FLAG;`.
+The reason `|=` works is that it leaves every *other* flag where it was; only the
+bit you aimed at moves. So when you spot a lone `ori` carrying a power-of-two
+immediate, the source behind it was almost certainly `flags |= SOME_FLAG;`.
 
 The target below sets a different flag. Work out which power of two the immediate
 stands for, then write the compound assignment that flips it on.
@@ -46,11 +45,11 @@ blr
 
 ## Your task
 
-Write `set_flag` so it compiles to the `ori` above.
+Write `func_8037aa6c` so it compiles to the `ori` above.
 
 <!-- solution -->
 ```c
-u32 set_flag(u32 x) {
+u32 func_8037aa6c(u32 x) {
     x |= 0x40;
     return x;
 }

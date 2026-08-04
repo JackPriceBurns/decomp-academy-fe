@@ -10,7 +10,7 @@ concepts:
   - lwzx
   - clrlwi
   - chaining
-symbol: lookupByte
+symbol: func_80050a64
 hints:
   - The array read is the familiar @ha/@l base, scaled index, and lwzx; the
     narrowing happens *after* the load.
@@ -21,16 +21,16 @@ hints:
 # Casting after an indexed load
 
 A cast like `(u8)tbl[i]` doesn't touch the load at all. You still pull a full
-word with `lwzx`, because the array elements are `int`. What the cast does, it
-does later, once the word is sitting in `r0`, with no second trip to memory. The
-narrowing is one instruction, `clrlwi rD, rA, 24`, clearing the top 24 bits and
-keeping the low 8. There's your `(u8)`.
+word with `lwzx`, because the array elements are `int`. The cast happens later,
+once the word is sitting in `r0`, with no second trip to memory. The narrowing is
+one instruction: `clrlwi rD, rA, 24`, which clears the top 24 bits and keeps the
+low 8. That's your `(u8)`.
 
-Compare that to a *byte global*, where `lbz` would just fetch the byte. No such
-luck with word storage. You read all 32 bits and then mask the top ones, which is
-exactly what `lwzx` then `clrlwi ..., 24` is doing: an int element trimmed down to
-a byte. Same idea for `(u16)`, only the count becomes `16`. For a signed narrow
-you'd reach for `extsb` or `extsh`.
+Compare that to a *byte global*, where `lbz` would just fetch the byte. With word
+storage you read all 32 bits and then mask the top ones. So `lwzx` followed by
+`clrlwi ..., 24` is exactly an int element trimmed down to a byte. Same idea for
+`(u16)`, only the count becomes `16`. For a signed narrow you'd use `extsb` or
+`extsh`.
 
 Here's `channel(k)`. It pulls element `k` out of the int array `gPixels` and
 returns it as a `u8`:
@@ -50,11 +50,12 @@ width, so count the bits in its `clrlwi` to confirm the cast.
 
 ## Your task
 
-`extern int gTable[];` is provided. Write `lookupByte` to reproduce the assembly above.
+`extern int gTable[];` is provided. Write `func_80050a64` to reproduce the
+assembly above.
 
 <!-- solution -->
 ```c
-u8 lookupByte(int i) {
+u8 func_80050a64(int i) {
     return (u8)gTable[i];
 }
 ```

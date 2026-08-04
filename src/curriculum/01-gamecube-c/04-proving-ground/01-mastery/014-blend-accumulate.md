@@ -9,7 +9,7 @@ concepts:
   - declaration-order
   - loops
   - calls
-symbol: blend_accumulate
+symbol: func_8000e94c
 hints:
   - All three sums are read *after* the loop and updated *across* a `sample()`
     call, so each one is forced into a callee-saved register (r28–r30). That's
@@ -83,25 +83,25 @@ Flip the declarations to `x, y` and the homes swap: `x→r30, y→r29`. Every `a
 and `mr r4` in the function flips and the match breaks. The register numbers are
 a direct readout of the order in which you spelled the declarations.
 
-The target `blend_accumulate` has three accumulators (`a`, `b`, `c`) instead of
+The target `func_8000e94c` has three accumulators (`a`, `b`, `c`) instead of
 two. Apply the same rule: read the target assembly to find which accumulator lands
 in which saved register, then work backwards to the declaration order that places
 them there.
 
 ## Your task
 
-With the externs above, write `blend_accumulate(int* base, int count)`. The logic
-is in the starter and the assembly above: loop `i` over `[0, count)`, accumulate
-three sums per iteration and `emit` the combined total, then emit each sum after
-the loop. The challenge is register assignment: read the `li r28`, `li r29`,
-`li r30` init sequence and the `mr r4, rX` tail to identify which accumulator
-(`a`, `b`, or `c`) lands in which register, then order your declarations so MWCC
-assigns those homes. The starter's declaration order produces the wrong assignment;
-adjust it until the register layout matches.
+With the externs above, write `func_8000e94c`. The logic is in the starter and
+the assembly above: loop `i` over `[0, count)`, accumulate three sums per
+iteration and `emit` the combined total, then emit each sum after the loop. The
+challenge is register assignment: read the `li r28`, `li r29`, `li r30` init
+sequence and the `mr r4, rX` tail to identify which accumulator (`a`, `b`, or
+`c`) lands in which register, then order your declarations so MWCC assigns those
+homes. The starter's declaration order produces the wrong assignment; adjust it
+until the register layout matches.
 
 <!-- starter -->
 ```c
-void blend_accumulate(int* base, int count) {
+void func_8000e94c(int* base, int count) {
     int a;
     int b;
     int c;
@@ -120,7 +120,7 @@ void blend_accumulate(int* base, int count) {
 
 <!-- solution -->
 ```c
-void blend_accumulate(int* base, int count) {
+void func_8000e94c(int* base, int count) {
     int c;
     int b;
     int a;

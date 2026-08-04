@@ -8,7 +8,7 @@ concepts:
   - rlwinm
   - bitfields
   - instruction-selection
-symbol: extract_nibble
+symbol: func_803666fc
 hints:
   - Shift the field down, then mask off the unwanted high bits.
   - "`rlwinm` fuses the shift and the mask into one instruction."
@@ -36,7 +36,7 @@ different hat, and it drops bits 8-11 squarely onto bits 0-3. Don't trust me,
 trace a value. `0x00000F00` rotated left by 24 comes out `0x0000000F`. Anything
 still hanging around above the low 4 bits is wiped by that `[28,31]` mask.
 
-There's your whole shift-and-AND in a single instruction. Memorise the shape and
+There's your whole shift-and-AND in a single instruction. Remember the shape and
 you'll spot it everywhere: rotate by `r`, mask `[32-w, 31]`, and what you've
 really written is a right shift of `r` keeping the bottom `w` bits.
 
@@ -55,11 +55,11 @@ Now your target. The rotate amount hands you the right-shift count, the mask
 
 ## Your task
 
-Write `extract_nibble` to reproduce the assembly above.
+Write `func_803666fc` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-u32 extract_nibble(u32 x) {
+u32 func_803666fc(u32 x) {
     return (x >> 4) & 0xF;
 }
 ```

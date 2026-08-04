@@ -8,7 +8,7 @@ concepts:
   - enum-int
   - types
   - naming
-symbol: check_state
+symbol: func_8013f594
 hints:
   - With -enum int the enum is 4 bytes, so the field loads with a full `lwz` and
     STATE_RUN is just the value 2.
@@ -19,11 +19,11 @@ hints:
 # An enum compiles to nothing special
 
 Here the compiler runs with `-enum int` (the same as `#pragma enum int`), which
-pins every `enum` to 4 bytes, the width of an `int`. An enum-typed field
-therefore compiles to exactly the instructions an `int` field would.
+pins every `enum` to 4 bytes, the width of an `int`. An enum-typed field therefore
+compiles to exactly the instructions an `int` field would.
 
-Take `is_raging(struct Enemy *e)`, which asks whether `e->phase` holds the
-third enum value `PHASE_RAGE = 3`.
+Take `is_raging(struct Enemy *e)`, which asks whether `e->phase` holds the third
+enum value `PHASE_RAGE = 3`:
 
 ```asm
 lwz    r0, 0(r3)      # load the 4-byte phase field
@@ -33,30 +33,30 @@ srwi   r3, r0, 5      # the "==" idiom -> 0/1
 blr
 ```
 
-The `lwz` reads a full word rather than `lbz` or `lhz`, so the field is
-genuinely 4 bytes. Something shifted since the control chapter, where comparing
-two *variables* produced `subf`. With a compile-time constant on one side, MWCC
-emits `subfic` (subtract-from-immediate) and computes `r0 = K - field`, which
-is zero precisely when `field == K`, so the immediate stands in for the enum
-ordinal you need to identify.
+The `lwz` reads a full word rather than `lbz` or `lhz`, so the field is genuinely
+4 bytes. Something shifted since the control chapter, where comparing two
+*variables* produced `subf`. With a compile-time constant on one side, MWCC emits
+`subfic` (subtract-from-immediate) and computes `r0 = K - field`, which is zero
+precisely when `field == K`, so the immediate stands in for the enum ordinal you
+need to identify.
 
 You can write `PHASE_RAGE` or the literal `3` and the object file comes out
 byte-for-byte the same, because the names never reach the machine code.
 
 So when you find a 4-byte field compared against a small constant through
-`subfic`, reintroducing an `enum` with descriptive names costs nothing in
-codegen and makes the C readable again. Find the right name by counting the
-constant's position in the provided enum.
+`subfic`, reintroducing an `enum` with descriptive names costs nothing in codegen
+and makes the C readable again. Find the right name by counting the constant's
+position in the provided enum.
 
 ## Your task
 
-Write `check_state(struct Actor *a)` to match the assembly above. The
-`State` enum and `Actor` struct are provided. Confirm for yourself that
-replacing the enum constant with its numeric value produces the same asm.
+Write `func_8013f594` to match the assembly above. The `State` enum and `Actor`
+struct are provided. Confirm for yourself that replacing the enum constant with
+its numeric value produces the same asm.
 
 <!-- solution -->
 ```c
-int check_state(struct Actor *a) {
+int func_8013f594(struct Actor *a) {
     return a->state == STATE_RUN;
 }
 ```

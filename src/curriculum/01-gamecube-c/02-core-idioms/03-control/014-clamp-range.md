@@ -8,7 +8,7 @@ concepts:
   - if
   - branch
   - combining
-symbol: clamp_range
+symbol: func_802340c0
 hints:
   - Two independent guards run back to back — first the low bound, then the high.
   - The high-bound arm merges through `li r0, <hi>` / `mr r0, r3` / `mr r3, r0`.
@@ -20,7 +20,7 @@ One condition was enough for every lesson before this. Most real functions aren'
 that tidy. Stacking shows up everywhere, and the cleanest case to learn it on is
 a **two-sided clamp**, which pushes a value up to a floor and then trims it down
 to a ceiling. Neither test depends on the other. Lay them end to end and the
-assembly is simply lesson 4's clamp followed by its mirror image.
+assembly is lesson 4's clamp followed by its mirror image.
 
 Take `clamp_volume(v)`, pinning a value into `[10, 50]`:
 
@@ -52,11 +52,11 @@ falls back out of the compare it rides on.
 
 ## Your task
 
-Write `clamp_range` to reproduce the assembly above.
+Write `func_802340c0` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int clamp_range(int x) {
+int func_802340c0(int x) {
     if (x < 0) return 0;
     if (x > 100) return 100;
     return x;

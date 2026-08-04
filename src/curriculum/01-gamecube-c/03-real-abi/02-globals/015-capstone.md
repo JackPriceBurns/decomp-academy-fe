@@ -9,7 +9,7 @@ concepts:
   - capstone
   - mixed-types
   - highlight
-symbol: worldUpdate
+symbol: func_80233fa0
 hints:
   - Each global is an independent @sda21 access; the type fixes the opcode
     (lwz/stw, lfs/stfs, stb).
@@ -20,10 +20,10 @@ hints:
 # Many globals in one function
 
 Real engine code reads and writes a fistful of globals per function. The assembly
-below is drawn from `worldplanet_updateMapLighting` in Star Fox Adventures.
-Every access is its own `@sda21` load or store; the types pick the opcodes. Here a
-counter is bumped, a float is copied, and the product of two floats is truncated
-into a byte global:
+below is drawn from `worldplanet_updateMapLighting` in Star Fox Adventures. Every
+access is its own `@sda21` load or store; the types pick the opcodes. A counter is
+bumped, a float is copied, and the product of two floats is truncated into a byte
+global:
 
 ```asm
 stwu  r1, -16(r1)
@@ -46,21 +46,21 @@ R_PPC_EMB_SDA21   gSrcA / gSrcB / gCounter / gLerpT / gColor
 ```
 
 Nothing new per line — `lwz`/`stw` for the `int`, `lfs`/`stfs` for the floats,
-`stb` for the `u8`, all at `@sda21` offsets — but together they're the texture of
-real global-heavy code. The `fctiwz` -> `stfd` -> `lwz` is the float->int cast
-from the floats chapter, here landing in a byte global.
+`stb` for the `u8`, all at `@sda21` offsets — but together they look like real
+global-heavy code. The `fctiwz` -> `stfd` -> `lwz` sequence is the float->int
+cast from the floats chapter, here landing in a byte global.
 
 ## Your task
 
-The globals are declared for you:
+The globals are already declared:
 `gCounter` (int), `gSrcA`/`gSrcB`/`gLerpT` (f32), `gColor` (u8). Write
-`worldUpdate` to reproduce the assembly above. Read each opcode to determine
-what type each global is, which operands feed each instruction, and what the
+`func_80233fa0` to reproduce the assembly above. Read each opcode to determine
+each global's type, which operands feed each instruction, and what the
 float-to-byte path looks like.
 
 <!-- solution -->
 ```c
-void worldUpdate(void) {
+void func_80233fa0(void) {
     gCounter = gCounter + 1;
     gLerpT = gSrcA;
     gColor = (u8)(s32)(gSrcA * gSrcB);

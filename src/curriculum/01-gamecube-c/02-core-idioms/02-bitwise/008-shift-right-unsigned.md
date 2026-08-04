@@ -8,7 +8,7 @@ concepts:
   - shifts
   - unsigned
   - srwi
-symbol: shiftRightU
+symbol: func_803b18a0
 hints:
   - An unsigned right shift fills with zeros — the `srwi` mnemonic.
   - "`x >> 3` on a u32 compiles to `srwi r3, r3, 3`."
@@ -33,16 +33,16 @@ r3, 5` is `rlwinm r3, r3, 27, 5, 31` underneath. Make `x` signed and the story
 changes; the vacated bits would copy the sign bit, which calls for a wholly
 different instruction, the subject of the next lesson.
 
-Read the shift amount off the target `srwi`, hold the type at `u32`, and the same
+Read the shift amount off the target `srwi`, keep the type `u32`, and the same
 instruction comes out.
 
 ## Your task
 
-Write `shiftRightU` so it compiles to the `srwi` above.
+Write `func_803b18a0` so it compiles to the `srwi` above.
 
 <!-- solution -->
 ```c
-u32 shiftRightU(u32 x) {
+u32 func_803b18a0(u32 x) {
     return x >> 3;
 }
 ```

@@ -10,7 +10,7 @@ concepts:
   - stwx
   - scaled-index
   - chaining
-symbol: setCell
+symbol: func_801c18bc
 hints:
   - Same @ha/@l base and same scaled index as the indexed *read*, but the final
     instruction is the indexed *store*.
@@ -19,16 +19,16 @@ hints:
 
 # The indexed load, in reverse
 
-Flip `tbl[i]` around and you have `tbl[i] = v`. The setup doesn't budge. Build the
-base from the `@ha`/`@l` pair, because an array still won't fit in small-data, and
-scale `i` by the element size with `slwi`. Only the tail differs. Where the read
-finished on an indexed *load*, the write finishes on an indexed *store*. `stwx
-rS, rA, rB` drops `rS` at `rA + rB`, the identical addressing `lwzx` uses, just
-with the data heading the other way.
+Flip `tbl[i]` around and you have `tbl[i] = v`. The setup doesn't change. Build
+the base from the `@ha`/`@l` pair, because an array still won't fit in small-data,
+and scale `i` by the element size with `slwi`. Only the tail differs. Where the
+read ended with an indexed *load*, the write ends with an indexed *store*. `stwx
+rS, rA, rB` puts `rS` at `rA + rB` — the same addressing `lwzx` uses, just with
+the data going the other way.
 
-None of the address machinery shifts when you go from reading to writing. Only the
-last opcode does. Trading `lwzx` for `stwx` is just the scalar `lwz`-to-`stw` swap
-again, this time wearing its indexed form.
+None of the address machinery changes when you switch from reading to writing.
+Only the last opcode does. Trading `lwzx` for `stwx` is the scalar `lwz`-to-`stw`
+swap again, this time in indexed form.
 
 Take `storeAt(n, x)`, which writes `x` into element `n` of the int array
 `gBuffer`:
@@ -41,19 +41,20 @@ stwx  r4, r3, r0        # gBuffer[n] = x   (x is in r4)
 blr
 ```
 
-That `lis`/`slwi`/`addi` trio is word-for-word the indexed-read lesson, base plus
-scaled index. The one newcomer is `stwx`, and it carries the value being stored,
-`x` over in `r4`, as its first operand. Your target writes a different argument
-into a different array. The work is just spotting which register holds the value
-and which holds the index.
+That `lis`/`slwi`/`addi` trio is identical to the indexed-read lesson, base plus
+scaled index. The only new instruction is `stwx`, and its first operand is the
+value being stored — `x` in `r4`. Your target writes a different argument into a
+different array. The work is just spotting which register holds the value and
+which holds the index.
 
 ## Your task
 
-`extern int gGrid[];` is provided. Write `setCell` to reproduce the indexed store above.
+`extern int gGrid[];` is provided. Write `func_801c18bc` to reproduce the indexed
+store above.
 
 <!-- solution -->
 ```c
-void setCell(int i, int v) {
+void func_801c18bc(int i, int v) {
     gGrid[i] = v;
 }
 ```

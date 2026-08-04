@@ -12,7 +12,7 @@ concepts:
   - lfsx
   - float
   - chaining
-symbol: mixSample
+symbol: func_802df228
 hints:
   - The whole float toolkit at once - @ha/@l array base, an lfsx for the element,
     an lfs of a pooled literal, an fmuls, and an stfs to a float scalar global.
@@ -37,7 +37,7 @@ the compiler:
 
 So the disassembly carries *three* relocations of two flavors: one
 `R_PPC_ADDR16_HA`/`LO` pair for the array, one `R_PPC_EMB_SDA21` for the `@N`
-literal, and one `R_PPC_EMB_SDA21` for the destination scalar. Reading them apart
+literal, and one `R_PPC_EMB_SDA21` for the destination scalar. Telling them apart
 is the whole skill.
 
 Consider `grabPeak(n)`, which scales element `n` of the float array `gWave` by a
@@ -58,16 +58,16 @@ Every instruction here is one you have met — `lis`/`slwi`/`addi` to address th
 array, `lfsx` to read the element, `lfs @N` for the literal, `fmuls`, and `stfs`
 to the scalar. The target assembly does the same on a different array, with a
 different literal, into a different float global. Read each relocation to recover
-which symbol is which, and the literal's value off the constant.
+which symbol is which, and pick the literal's value out of the constant pool.
 
 ## Your task
 
-The globals are declared for you: `gSamples` (`f32[]`) and `gOut` (`f32`). Write
-`mixSample` to reproduce the assembly above.
+The globals are already declared: `gSamples` (`f32[]`) and `gOut` (`f32`). Write
+`func_802df228` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-void mixSample(int i) {
+void func_802df228(int i) {
     gOut = gSamples[i] * 2.0f;
 }
 ```

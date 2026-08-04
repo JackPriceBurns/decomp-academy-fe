@@ -8,7 +8,7 @@ concepts:
   - fabs
   - fneg
   - sign-bit
-symbol: negabs
+symbol: func_802d7b9c
 hints:
   - "`__fabsf` lowers to `fabs` (clear sign bit); unary minus lowers to `fneg`
     (flip sign bit)."
@@ -17,7 +17,9 @@ hints:
 
 # Sign-bit instructions
 
-A couple of one-instruction operations close out the chapter, and both are dead simple. Floating-point **negation** is `fneg`, which flips the sign bit. **Absolute value** is `fabs`, which clears it. On their own, each costs exactly one instruction:
+A couple of one-instruction operations close out the chapter. Floating-point
+negation is `fneg`, which flips the sign bit. Absolute value is `fabs`, which
+clears it. Each costs one instruction:
 
 ```asm
 # absval(f32 v):
@@ -29,19 +31,24 @@ fneg  f1, f1       # flip sign bit
 blr
 ```
 
-Reach for the single-precision intrinsic `__fabsf` and it lowers straight to `fabs`.
+Use the single-precision intrinsic `__fabsf` and it lowers straight to `fabs`.
 
-Here's the quirk. These two skip the `s` suffix entirely, so even on an `f32` you'll read `fabs` and `fneg`, never an `s`-tagged form. That breaks the single/double naming rule from before, and for good reason. Toggling a sign bit gives identical bits at single or double width, so there's nothing to round and no second variant to define.
+The quirk: these two skip the `s` suffix, so even on `f32` you'll read `fabs` and
+`fneg`, never an `s`-tagged form. That breaks the single/double naming rule, and
+for good reason. Toggling a sign bit gives identical bits at single or double
+width, so there's nothing to round and no second variant.
 
-Spot the two instructions one after another and the order is everything. They don't commute, so which sign-bit op runs first and which runs second changes the meaning. The C that lays them down in that exact sequence follows from what you read off the disassembly.
+Spot the two instructions one after another and the order matters. They don't
+commute, so which runs first and which runs second changes the meaning. The C that
+lays them down follows from the disassembly.
 
 ## Your task
 
-Write `negabs` to compile to the two sign-bit instructions above.
+Write `func_802d7b9c` to compile to the two sign-bit instructions above.
 
 <!-- solution -->
 ```c
-f32 negabs(f32 x) {
+f32 func_802d7b9c(f32 x) {
     return -__fabsf(x);
 }
 ```

@@ -8,7 +8,7 @@ concepts:
   - switch
   - jump-table
   - chaining
-symbol: cost_of
+symbol: func_80255b54
 hints:
   - The enum arrives as a plain 4-byte int in r3, so the dispatch is identical to
     a switch on an `int` — eight dense values cross the table threshold.
@@ -26,7 +26,7 @@ interfere. The enum is only renaming integers, so the dispatch matches what a
 switch on a plain `int` would emit.
 
 Take `paint(Brush b)`, which switches over an eight-value `Brush` enum
-(`BRUSH_PEN`, `BRUSH_FILL`, and so on) and returns a pixel cost per tool.
+(`BRUSH_PEN`, `BRUSH_FILL`, and so on) and returns a pixel cost per tool:
 
 ```asm
 cmplwi r3, 7        # b arrives as a 4-byte int; bounds-check 0..7
@@ -41,21 +41,21 @@ bctr                # jump straight to the case for this brush
 .case1: li r3, 25  blr   # ...the enum names left no trace
 ```
 
-That `cmplwi`/`lwzx`/`mtctr`/`bctr` shape is the lesson 1 `dispatch`, down to
-the byte. What changed is the argument's type, and the enum type stays in the
-source and never reaches the object file. Your C labels the cases with enum
-names while the assembly works with their ordinals 0 through 7, and the
-`li r3, N` in each arm is the value that case returns.
+That `cmplwi`/`lwzx`/`mtctr`/`bctr` shape is lesson 1's jump table, down to the
+byte. What changed is the argument's type, and the enum type stays in the source
+and never reaches the object file. Your C labels the cases with enum names while
+the assembly works with their ordinals 0 through 7, and the `li r3, N` in each
+arm is the value that case returns.
 
 ## Your task
 
-Write `cost_of(Tile t)` to reproduce the assembly above. The `Tile` enum is
+Write `func_80255b54` to reproduce the assembly above. The `Tile` enum is
 provided in context. Eight dense enum values land in table form — read the
 `li r3, N` in each arm to recover what each tile costs.
 
 <!-- solution -->
 ```c
-int cost_of(Tile t) {
+int func_80255b54(Tile t) {
     switch (t) {
         case TILE_VOID:  return 0;
         case TILE_FLOOR: return 1;

@@ -14,7 +14,7 @@ hints:
 
 # Where do arguments come from?
 
-On the GC ABI, the first integer argument arrives in `r3`. That's the very same
+On the GC ABI, the first integer argument arrives in `r3`. That's the same
 register the return value goes back in. The overlap has a funny consequence: a
 few functions give the compiler nothing to emit beyond the return instruction.
 
@@ -26,9 +26,8 @@ One `blr`, and that's a whole valid function. Further integer and pointer
 arguments stack up in `r4`, `r5`, `r6`, and so on through `r10`. Floats play by
 different rules, riding in `f1`–`f8` without consuming an integer slot.
 
-So when the assembly is just a `blr` with nothing touching `r3`, here's the
-question to ask: what would the input and output have to be for no work to be
-needed at all?
+When the assembly is only a `blr` with nothing touching `r3`, ask yourself: what
+would the input and output have to be for no work to be needed at all?
 
 ## Your task
 

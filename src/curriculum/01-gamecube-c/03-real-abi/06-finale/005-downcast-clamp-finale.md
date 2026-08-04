@@ -11,7 +11,7 @@ concepts:
   - carry
   - downcast
   - clamp
-symbol: netBalance
+symbol: func_80049c00
 hints:
   - Only the low halves are loaded (`symbol+0x4`) and only `addc` runs — the
     downcast to `u32` makes the high words and the `adde` dead, so the optimizer
@@ -59,21 +59,21 @@ to its low word. The `+0x4` relocations are the only surviving evidence that the
 globals are `u64`. The bound here fit a path where it could be built with a
 single `lis`/`subi`, and the clamp is the familiar speculative-return `bgtlr-`.
 
-Your `netBalance` is the same shape, but its cap is a **larger** constant (so the
-constant build and the compare opcode differ) and it sums two **different** `u64`
-globals. Read the `+0x4` relocations to confirm the operands are 64-bit, the
-`lis`/`addi` for the bound, and the `bgtlr-` for the clamp direction.
+Your `func_80049c00` is the same shape, but its cap is a **larger** constant (so
+the constant build and the compare opcode differ) and it sums two **different**
+`u64` globals. Read the `+0x4` relocations to confirm the operands are 64-bit,
+the `lis`/`addi` for the bound, and the `bgtlr-` for the clamp direction.
 
 ## Your task
 
 The `u64` globals `gBytesIn` and `gBytesOut` are declared for you. Write
-`netBalance`, returning a `u32`, to reproduce the assembly above. Recover the
+`func_80049c00`, returning a `u32`, to reproduce the assembly above. Recover the
 clamp bound from the `lis`/`addi` pair and the cast from the fact that only the
 low halves are touched.
 
 <!-- solution -->
 ```c
-u32 netBalance(void) {
+u32 func_80049c00(void) {
     u64 total = gBytesIn + gBytesOut;
     u32 low = (u32)total;
     if (low > 1000000) return 1000000;

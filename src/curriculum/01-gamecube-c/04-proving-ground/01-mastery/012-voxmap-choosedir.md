@@ -8,7 +8,7 @@ concepts:
   - instruction-order
   - accumulation
   - interleaving
-symbol: voxmap_chooseDir
+symbol: func_803111dc
 hints:
   - "Declare both accumulators, then seed each with its first byte: `sumCur =
     scan->occ[0][0]; sumNext = scan->occ[1][0];`."
@@ -90,8 +90,8 @@ blr
 
 `r6` (sumA) and `r7` (sumB) climb in strict alternation, loads come in
 column-interleaved order. That lockstep is the signature of a *hand-interleaved*
-two-accumulator sum. There is no pragma — scheduling is on, as always at `-O4,p`;
-the lever is the **C shape** that feeds it. The real `voxmap_chooseDir` has four
+two-accumulator sum. There's no pragma — scheduling is on, as always at `-O4,p`;
+the lever is the **C shape** that feeds it. The real `func_803111dc` has four
 terms per column instead of three — the same technique, one more pair of steps.
 
 > Why doesn't the scheduler produce this from the flat form? Its priority order
@@ -109,7 +109,7 @@ term by term** — not write two flat `a+b+c+d` sums.
 
 <!-- solution -->
 ```c
-int voxmap_chooseDir(VoxScan* scan) {
+int func_803111dc(VoxScan* scan) {
     int sumCur, sumNext;
     sumCur = scan->occ[0][0];
     sumNext = scan->occ[1][0];

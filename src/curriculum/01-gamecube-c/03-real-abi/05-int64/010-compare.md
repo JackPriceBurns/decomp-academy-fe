@@ -7,7 +7,7 @@ concepts:
   - 64-bit
   - comparison
   - branchless
-symbol: lt_64
+symbol: func_8012e910
 hints:
   - A branchless u64 `a < b` is built from the subtract-with-borrow pair plus a trick to extract the borrow.
   - "`subfc`/`subfe` do the 64-bit subtract; a second `subfe r3,r4,r4` materializes the borrow bit, and `neg` turns it into 0/1."
@@ -18,7 +18,9 @@ hints:
 
 Now and then you'll find a 64-bit subtract whose result nobody uses, followed by
 a `subfe` that subtracts a register from itself and a `neg`. That's a comparison.
-It runs the subtract-with-borrow from `sub_64`, then keeps only the borrow bit.
+It runs the subtract-with-borrow from the subtraction lesson, then keeps only
+the borrow bit.
+
 Here's an unsigned `a < b` returned as a `0`/`1` boolean:
 
 ```asm
@@ -42,11 +44,11 @@ compare. It's among the surest signs the operands really are `long long`.
 
 ## Your task
 
-Write `lt_64`, returning whether `a` is less than `b` (as an `int`).
+Write `func_8012e910`, returning whether `a` is less than `b` (as an `int`).
 
 <!-- solution -->
 ```c
-int lt_64(u64 a, u64 b) {
+int func_8012e910(u64 a, u64 b) {
     return a < b;
 }
 ```

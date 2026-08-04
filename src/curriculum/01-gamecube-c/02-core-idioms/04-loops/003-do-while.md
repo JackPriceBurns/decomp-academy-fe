@@ -7,7 +7,7 @@ concepts:
   - do-while
   - control-flow
   - branch-elimination
-symbol: sum
+symbol: func_8021498c
 hints:
   - "`do { s += i; i++; } while (i < n);` puts the test at the bottom only."
   - There is no leading `b` — the body is entered directly, then the branch
@@ -40,11 +40,11 @@ blr
 ```
 
 The shape is clean enough that MWCC at full `-O4,p` leaves it rolled on its own,
-so this one needs no optimization adjustment at all. Run into a loop with **no pre-test branch at
-the top** and you're almost surely looking at a `do`/`while`, or at least a loop
-whose author knew the body would always run. And remember `sum` kicks its
-induction variable off at 0 rather than 1, which pushes its initializer and test
-away from what this example shows.
+so this one needs no optimization adjustment at all. Run into a loop with **no
+pre-test branch at the top** and you're almost surely looking at a `do`/`while`,
+or at least a loop whose author knew the body would always run. Remember
+`func_8021498c` kicks its induction variable off at 0 rather than 1, which pushes
+its initializer and test away from what this example shows.
 
 > **A caution on semantics.** A `do`/`while` runs its body even when the guard is
 > already false at entry. Here that's harmless luck. With `n == 0` the body runs
@@ -56,11 +56,11 @@ away from what this example shows.
 
 ## Your task
 
-Write `sum` as a `do`/`while` loop. Assume the body always runs at least once.
+Write `func_8021498c` as a `do`/`while` loop. Assume the body always runs at least once.
 
 <!-- solution -->
 ```c
-int sum(int n) {
+int func_8021498c(int n) {
     int i = 0, s = 0;
     do {
         s += i;

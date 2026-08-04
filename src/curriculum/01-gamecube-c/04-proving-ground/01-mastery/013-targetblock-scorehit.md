@@ -9,7 +9,7 @@ concepts:
   - live-range
   - calls
   - narrow-types
-symbol: targetblock_scoreHit
+symbol: func_803db3dc
 hints:
   - Read `kind = obj->hit->kind;` on the very first line — that chases
     `obj->hit` (`lwz`) and loads the `s16` (`lha r31, ...`) before any call.
@@ -42,10 +42,10 @@ extern void Block_AwardScore(int kind, int amount);
 extern void Block_LogHit(int kind);
 ```
 
-You need `obj->hit->kind` (an `s16`) at two call sites that come *after* a resolve
-call. Read it **once, up front, into a typed local** and the chase `obj->hit`
-happens immediately — then the parameter `obj` is dead, while `kind` is the thing
-that lives across the calls and lands in `r31`:
+You need `obj->hit->kind` (an `s16`) at two call sites that come *after* a
+resolve call. Read it **once, up front, into a typed local** and the chase
+`obj->hit` happens immediately — then the parameter `obj` is dead, while `kind`
+is the thing that lives across the calls and lands in `r31`:
 
 ```asm
 lwz   r4, 0(r3)          # obj->hit
@@ -86,14 +86,14 @@ forever.
 
 ## Your task
 
-With the structs above, write `targetblock_scoreHit` to match the first assembly
-listing above (where `kind` is in `r31`). Trace the call sequence and arguments
-from the assembly; choose your local variable placement to make `kind` — not
-`obj` — the value that spans the calls.
+With the structs above, write `func_803db3dc` to match the first assembly listing
+above (where `kind` is in `r31`). Trace the call sequence and arguments from the
+assembly; choose your local variable placement to make `kind` — not `obj` — the
+value that spans the calls.
 
 <!-- solution -->
 ```c
-void targetblock_scoreHit(TargetBlockObject* obj) {
+void func_803db3dc(TargetBlockObject* obj) {
     int kind;
 
     kind = obj->hit->kind;

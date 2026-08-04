@@ -8,7 +8,7 @@ concepts:
   - conversion
   - fctiwz
   - float-to-int
-symbol: f2i
+symbol: func_800bb6e8
 hints:
   - float→int is `fctiwz`, then a store/load to move the bits FPR→GPR.
   - Write `(int)x`; expect `fctiwz` then `stfd`/`lwz` of the low word.
@@ -16,10 +16,10 @@ hints:
 
 # `fctiwz` produces the bits in an FPR
 
-Converting a float to an integer uses **`fctiwz`** ("convert to integer word,
-round toward zero"). But there's a catch: the result lands in a *floating-point*
-register, and there is no direct FPR→GPR move. So MWCC stores the FPR to the
-stack and loads the low word back into a GPR. A function `to_int(f32 v)` produces:
+Converting a float to an integer uses `fctiwz` ("convert to integer word, round
+toward zero"). But the result lands in a floating-point register, and there's no
+direct FPR→GPR move. So MWCC stores the FPR to the stack and loads the low word
+back into a GPR. A function `to_int(f32 v)` produces:
 
 ```asm
 fctiwz f0, f1        # convert v, result in low half of f0
@@ -29,21 +29,21 @@ blr
 ```
 
 That `fctiwz` → `stfd` → `lwz` is the unmistakable signature of a float-to-int
-conversion in C. The integer result lands in the **low 32-bit word** of the 64-bit
-FPR; because PowerPC is big-endian, that low word lives at the *higher* address,
-so the `lwz` reads `12(r1)` — i.e. **+4** past the `stfd` base at `8(r1)`. The
-round-toward-zero `fctiwz` matches C's truncating conversion semantics.
+conversion in C. The integer result sits in the low 32-bit word of the 64-bit FPR;
+because PowerPC is big-endian, that low word is at the higher address, so the `lwz`
+reads `12(r1)` — +4 past the `stfd` base at `8(r1)`. The round-toward-zero
+`fctiwz` matches C's truncating conversion semantics.
 
-When you see `fctiwz` → `stfd` → `lwz` in disassembly, a single C operator
-produces this whole sequence. Identify it and apply it to the correct variable.
+When you see `fctiwz` → `stfd` → `lwz` in disassembly, a single C operator produces
+the whole sequence. Identify it and apply it to the correct variable.
 
 ## Your task
 
-Write `f2i` to match the target assembly above.
+Write `func_800bb6e8` to match the target assembly above.
 
 <!-- solution -->
 ```c
-int f2i(f32 x) {
+int func_800bb6e8(f32 x) {
     return (int)x;
 }
 ```

@@ -7,7 +7,7 @@ concepts:
   - arrays
   - ctr-loop
   - conditional-update
-symbol: amax
+symbol: func_801bb5c8
 hints:
   - Seed `m = a[0]`, then loop `i` from 1 to `n-1`.
   - "Update conditionally: `if (a[i] > m) m = a[i];` becomes a compare and a
@@ -47,16 +47,16 @@ the loop stayed put even at `-O4,p`.
 
 So, two souvenirs. `mtctr` cuddled up next to `bdnz`? Trip count was known before
 the loop ever ran. `blelr-`? Compare-and-return, fused, the early bail when
-there's nothing to scan. Keep that `mtctr`/`bdnz` couple in view, it walks back
-on stage in the break lesson driving a loop that bails early too.
+there's nothing to scan. Keep that `mtctr`/`bdnz` couple in view; it walks back
+on stage in the break lesson, driving a loop that bails early too.
 
 ## Your task
 
-Write `amax`, returning the largest of the `n` elements of `a` (assume `n >= 1`).
+Write `func_801bb5c8`, returning the largest of the `n` elements of `a` (assume `n >= 1`).
 
 <!-- solution -->
 ```c
-int amax(int *a, int n) {
+int func_801bb5c8(int *a, int n) {
     int i, m = a[0];
     for (i = 1; i < n; i++) {
         if (a[i] > m) m = a[i];

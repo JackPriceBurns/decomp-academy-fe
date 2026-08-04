@@ -7,7 +7,7 @@ concepts:
   - comparison
   - boolean
   - idiom
-symbol: is_equal
+symbol: func_800d5748
 hints:
   - Returning a comparison gives a 0/1 value with no branch.
   - Equality is the `subf` / `cntlzw` / `srwi r3, r0, 5` idiom.
@@ -41,11 +41,11 @@ write the equality expression using the corresponding parameters.
 
 ## Your task
 
-Write `is_equal` so it compiles to the `subf` / `cntlzw` / `srwi` idiom above.
+Write `func_800d5748` so it compiles to the `subf` / `cntlzw` / `srwi` idiom above.
 
 <!-- solution -->
 ```c
-int is_equal(int a, int b) {
+int func_800d5748(int a, int b) {
     return a == b;
 }
 ```

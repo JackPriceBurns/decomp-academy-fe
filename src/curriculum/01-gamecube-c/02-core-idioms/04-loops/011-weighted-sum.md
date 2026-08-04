@@ -7,7 +7,7 @@ concepts:
   - arrays
   - induction-variable
   - involved-body
-symbol: wsum
+symbol: func_8004b6f0
 hints:
   - The body both reads `a[i]` and uses `i` itself in the arithmetic — keep the
     index around as a value, not just a loop counter.
@@ -22,7 +22,7 @@ hints:
 Every loop so far added a single, simple thing per pass. The skeleton never
 changes when the body grows — the same `pre_loop` / `body` / `test` shape just
 holds *more* instructions between the label and the increment. The art is reading
-a longer body as one expression instead of a pile of unrelated instructions.
+a longer body as one expression instead of unrelated instructions.
 
 Here the induction variable does double duty: it indexes the array **and** feeds
 the arithmetic. Consider `sqsum(a, n)`, which adds each element multiplied by
@@ -53,7 +53,7 @@ tell that **both** factors are runtime values — there is no constant to
 strength-reduce into a shift. Read what flows into the `mullw`, then what flows
 into the final `add`, and the body collapses into one accumulation expression.
 
-Your `wsum` has a similar shape but the two factors going into the `mullw` are
+Your `func_8004b6f0` has a similar shape but the two factors going into the `mullw` are
 *different* — one is the loaded element, the other is built from the loop counter
 itself. Trace which value each operand of the `mullw` came from to recover the
 weight.
@@ -62,19 +62,19 @@ weight.
 
 ## Your task
 
-Write `wsum`: over `0 <= i < n`, weight each element by its 1-based position
+Write `func_8004b6f0`: over `0 <= i < n`, weight each element by its 1-based position
 before adding it into the running total. Reproduce the assembly above.
 
 <!-- starter -->
 ```c
 #pragma optimization_level 1
-// define wsum to match the target
+// define func_8004b6f0 to match the target
 ```
 
 <!-- solution -->
 ```c
 #pragma optimization_level 1
-int wsum(int *a, int n) {
+int func_8004b6f0(int *a, int n) {
     int i, s = 0;
     for (i = 0; i < n; i++) {
         s += a[i] * (i + 1);

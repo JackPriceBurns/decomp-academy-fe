@@ -8,7 +8,7 @@ concepts:
   - early-return
   - branch
   - guard
-symbol: safe_div
+symbol: func_803491cc
 hints:
   - A guard clause keeps a real branch when the arms do different work.
   - Expect `cmpwi r4, 0`, `bne-`, a `li r3, -1` bailout, then `divw`.
@@ -38,17 +38,17 @@ the `bne-` target. See a single compare whose taken branch leaps *over* a short
 return block and you're looking at an early-return guard.
 
 Reading it is mechanical. Find the register under test and the value it meets in
-`cmpwi r4, 0`. Watch `bne-` jump *past* the inline return when that register is
+`cmpwi r4, 0`: watch `bne-` jump *past* the inline return when that register is
 non-zero. Then check what runs at the target, here a `divw`. The sentinel `li`
 and the computation after the label are both right there in the listing.
 
 ## Your task
 
-Write `safe_div` to reproduce the assembly above.
+Write `func_803491cc` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int safe_div(int a, int b) {
+int func_803491cc(int a, int b) {
     if (b == 0) return -1;
     return a / b;
 }

@@ -9,7 +9,7 @@ concepts:
   - enum
   - volatile
   - state-machine
-symbol: step_state
+symbol: func_8011a1e0
 hints:
   - The volatile g_abort read is one `lwz` feeding a `cmpwi`/`beq-` early return
     of -1.
@@ -41,21 +41,21 @@ bctr                         # jump straight to the case for this state
 ```
 
 Walk it top to bottom and the three lessons fall out in order. The function
-opens by loading `g_abort` once and branching on it with `beq-`, which is the
-`volatile` guard taking its early return. Past `.run`, the state is still in a
-register as a plain 4-byte int, so the `enum` costs nothing but the names. The
-eight dense cases are too many for a compare chain, which is why the
+opens by loading `g_abort` once and branching on it with `beq-` — the volatile
+guard taking its early return. Past `.run`, the state is still in a register as a
+plain 4-byte int, so the `enum` costs nothing but the names. The eight dense
+cases are too many for a compare chain, which is why the
 `cmplwi`/`lwzx`/`mtctr`/`bctr` sequence shows up as a jump table. Recover it by
 recognising those three shapes and writing each in the C that produces it.
 
 ## Your task
 
-Write `step_state(GameState s)` to reproduce the assembly above. The `GameState`
-enum and `g_abort` are provided in context.
+Write `func_8011a1e0` to reproduce the assembly above. The `GameState` enum and
+`g_abort` are provided in context.
 
 <!-- solution -->
 ```c
-int step_state(GameState s) {
+int func_8011a1e0(GameState s) {
     if (g_abort) return -1;
     switch (s) {
         case ST_BOOT:  return 1;

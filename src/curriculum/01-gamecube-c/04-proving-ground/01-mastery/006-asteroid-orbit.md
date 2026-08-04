@@ -8,7 +8,7 @@ concepts:
   - fmadds
   - calls
   - paired-single
-symbol: asteroid_orbit
+symbol: func_8032a874
 hints:
   - Declare the trig/convert helpers as `f32 fn(...)` so no spurious `frsp`
     appears.
@@ -62,8 +62,8 @@ If you compute radius once and store it in a single local, the compiler will not
 match — it will cache the value across the calls. The trick is to call
 `s32AsFloat` again immediately before each use.
 
-**Call-order hygiene.** Declare trig helpers as `f32 fn(...)`, not `double` —
-a `double` return type injects a stray `frsp`. Keep the exact call sequence: each
+**Call-order hygiene.** Declare trig helpers as `f32 fn(...)`, not `double` — a
+`double` return type injects a stray `frsp`. Keep the exact call sequence: each
 result is consumed before the next call.
 
 For comparison, a simpler satellite variant that orbits a center using only `posX`
@@ -144,11 +144,11 @@ expressions.
 
 ## Your task
 
-With the structs above, write `asteroid_orbit` to reproduce the assembly above.
+With the structs above, write `func_8032a874` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-void asteroid_orbit(AsteroidObject* obj) {
+void func_8032a874(AsteroidObject* obj) {
     AsteroidState* state;
     AsteroidObject* anchor;
     f32 radius, s, c;

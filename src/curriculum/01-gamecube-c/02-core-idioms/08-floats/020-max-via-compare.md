@@ -8,7 +8,7 @@ concepts:
   - fcmpo
   - fmr
   - branch
-symbol: select2
+symbol: func_80164cd0
 hints:
   - The early-return arm is a conditional `blr` (e.g. `bgtlr-`); the fall-through
     `fmr` supplies the other result.
@@ -18,14 +18,13 @@ hints:
 
 # Selecting one of two floats
 
-Want the larger of two floats? Or the smaller? Either way it is one compare and
-one branch. `fcmpo` writes the result of the comparison into the condition
-register. Then a *conditional return* looks at that and decides. When the test
-holds, one argument is already where the return value lives, so nothing else
-happens. When it does not, `fmr` copies the other argument into `f1` and the
-`blr` follows.
+Want the larger of two floats? Or the smaller? Either way it's one compare and one
+branch. `fcmpo` writes the comparison result into the condition register. Then a
+conditional return looks at that and decides. If the test holds, one argument is
+already where the return value lives, so nothing else happens. If not, `fmr` copies
+the other argument into `f1` and `blr` follows.
 
-Take `smaller(p, q)`, handing back whichever value is the lesser one:
+Take `smaller(p, q)`, returning the lesser value:
 
 ```asm
 fcmpo cr0, f1, f2    # compare p against q
@@ -34,25 +33,24 @@ fmr   f1, f2         # else f1 = q
 blr
 ```
 
-Here is the shape. An `fcmpo`, a `b<cond>lr-` that returns the first argument
-while the test holds, and then an `fmr` + `blr` to cover the miss. Everything
-hinges on the *condition* glued to that branch. `bltlr` says "return if less
-than", which tells you the C `if` compared `p < q`. Don't read anything into the
-`-`; it is a static prediction hint and nothing more. And the argument that
-happens to be in `f1` at the early return is the one passed back as-is.
+Here's the shape: `fcmpo`, a `b<cond>lr-` that returns the first argument while
+the test holds, then `fmr` + `blr` for the miss. Everything hinges on the condition
+on that branch. `bltlr` means "return if less than", so the C compared `p < q`.
+Don't read anything into the `-`; it's a static prediction hint. The argument in
+`f1` at the early return is the one passed back as-is.
 
-Your target is built the same way, `fcmpo` → conditional-`blr` → `fmr`, except
-the branch condition is not the same. Decode it, name the comparison, and you
-will know which argument leaves by which path.
+Your target is built the same way: `fcmpo` → conditional-`blr` → `fmr`, but with a
+different branch condition. Decode it, name the comparison, and you'll know which
+argument leaves by which path.
 
 ## Your task
 
-Write `select2` to reproduce the assembly above. Use a plain
-`if` with an early `return`.
+Write `func_80164cd0` to reproduce the assembly above. Use a plain `if` with an
+early `return`.
 
 <!-- solution -->
 ```c
-f32 select2(f32 a, f32 b) {
+f32 func_80164cd0(f32 a, f32 b) {
     if (a > b) return a;
     return b;
 }

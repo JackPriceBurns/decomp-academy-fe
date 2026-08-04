@@ -9,7 +9,7 @@ concepts:
   - division
   - chaining
   - operand-order
-symbol: muldiv4
+symbol: func_80203a4c
 hints:
   - Two independent sub-expressions — `mullw` and `divw` — each write into their own
     register before the final instruction combines them.
@@ -21,13 +21,13 @@ hints:
 
 When an expression contains both `mullw` and `divw` and neither depends on the
 other's result, the compiler evaluates them independently — each into its own
-register — and then joins them with one final instruction. The order the
-compiler picks for the two independent operations can differ from their order in
-the source, so read the registers rather than the instruction sequence to
-reconstruct the expression.
+register — and then joins them with one final instruction. The order the compiler
+picks for the two independent operations can differ from their order in the
+source, so read the registers rather than the instruction sequence to reconstruct
+the expression.
 
-Consider `scale_ratio(p, q, r, s)`, which multiplies one pair and divides
-another, then subtracts the results:
+Consider `scale_ratio(p, q, r, s)`, multiplying one pair and dividing another,
+then subtracting the results:
 
 ```asm
 divw    r5,r5,r6   # r5 = r / s
@@ -47,11 +47,11 @@ produces, then determine what the final instruction does with both results.
 
 ## Your task
 
-Write `muldiv4` to reproduce the assembly above.
+Write `func_80203a4c` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int muldiv4(int a, int b, int c, int d) {
+int func_80203a4c(int a, int b, int c, int d) {
     return a * b + c / d;
 }
 ```

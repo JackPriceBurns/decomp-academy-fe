@@ -10,7 +10,7 @@ concepts:
   - arguments
   - arithmetic
   - chaining
-symbol: capstone
+symbol: func_8004287c
 hints:
   - Two parameters are used *after* the call, so both `r31` and `r30` are filled
     before the `bl`; the remaining parameter is marshalled into the call.
@@ -18,15 +18,15 @@ hints:
     pairing one survivor with the result, then an `add` folding in the other.
 ---
 
-# Everything at once
+# The whole ABI in one function
 
 This is the chapter finale: a single function that exercises every ABI rule you
-have learned. It allocates a frame, preserves the link register, keeps **two**
-parameters alive across a call in `r31`/`r30`, marshals another parameter into
-the callee's argument register, and then does arithmetic that combines both
-survivors with the returned result.
+have learned. It allocates a frame, preserves the link register, keeps two
+parameters alive across a call in `r31`/`r30`, marshals another parameter into the
+callee's argument register, and then does arithmetic combining both survivors with
+the returned result.
 
-Consider `mash(p, q, r)`, which calls `blendfn(p, r)` and then computes
+Consider `mash(p, q, r)`, which calls `blendfn(p, r)` and computes
 `q - blendfn(...) * p`:
 
 ```asm
@@ -49,30 +49,28 @@ addi   r1,r1,16
 blr
 ```
 
-Every layer is visible at once: the prologue/epilogue boilerplate, two
-saved-register slots, the survival moves (`q`→`r31`, `p`→`r30`), the single
-argument marshal (`r`→`r4`, while `p` is already in `r3` for the first arg), the
-`bl`, and finally the two-instruction arithmetic that weaves the call's result
-together with both preserved values. Note `p` does double duty — it is both the
-first argument to the call *and* a survivor needed afterward, so it sits in `r3`
-for the call and in `r30` for the arithmetic.
+Every layer is visible: prologue/epilogue, two saved-register slots, survival
+moves (`q`→`r31`, `p`→`r30`), one argument marshal (`r`→`r4`, while `p` is already
+in `r3` for the first arg), the `bl`, and finally the two-instruction arithmetic
+weaving the result with both preserved values. `p` does double duty — first
+argument to the call and survivor needed afterward — so it sits in `r3` for the
+call and in `r30` for the arithmetic.
 
-The target assembly for `capstone` has the identical shape, but the
-parameter-to-role mapping differs: a *different* parameter is the survivor used
-in the multiply, a different one is added at the end, and the marshalling into the
-call is arranged differently — note which parameter has to be *moved* into `r3`
-for the call rather than already being there. Trace each register from its
-argument origin, through its saved-register home, to its final use, and
-reconstruct the expression.
+The target for `func_8004287c` has the same shape, but the parameter-to-role
+mapping differs: a different parameter is the survivor used in the multiply, a
+different one is added at the end, and the marshalling is arranged differently —
+note which parameter has to be moved into `r3` for the call rather than already
+being there. Trace each register from its argument origin, through its
+saved-register home, to its final use, and reconstruct the expression.
 
 ## Your task
 
-Write `capstone`, which calls `work` and combines the result with two surviving
-parameters, to reproduce the target assembly. `work` is declared for you.
+Write `func_8004287c`, which calls `work` and combines the result with two
+surviving parameters, to reproduce the target assembly. `work` is declared for you.
 
 <!-- solution -->
 ```c
-int capstone(int a, int b, int c) {
+int func_8004287c(int a, int b, int c) {
     int r = work(b, c);
     return r * a + b;
 }

@@ -11,7 +11,7 @@ concepts:
   - volatile
   - globals
   - highlight
-symbol: sampleChannel
+symbol: func_802013bc
 hints:
   - "Eight dense enum cases force a jump table: `cmplwi 7` / `bgt-` bounds check,
     then `slwi`/`lwzx`/`mtctr`/`bctr` dispatch."
@@ -25,7 +25,7 @@ hints:
 
 The advanced chapter's pieces rarely appear alone in real code. A per-frame
 handler dispatches on an **enum** state through a **jump table**, and each arm
-reads a **volatile** global before returning. That is three lessons fused: the
+reads a **volatile** global before returning. That's three lessons fused: the
 `enum` (the state is just a 4-byte int — naming, no codegen cost), the
 **jump-table switch** (enough dense cases to cross the threshold from a decision
 tree into a `lwzx`/`mtctr`/`bctr` indirect jump), and the **volatile read** (the
@@ -68,7 +68,7 @@ plentiful. Second, every arm reloads the global with its own `lwz`: that
 repetition, with no store between, is the `volatile` signature — drop the
 `volatile` and the optimizer would hoist one load before the switch.
 
-Your `sampleChannel` has the same eight-arm shape, but it dispatches a
+Your `func_802013bc` has the same eight-arm shape, but it dispatches a
 **different enum** and each arm adds a **different constant** to the volatile
 read. Recover the enum from the case order, the bound from `cmplwi`, and each
 arm's offset from its `addi`.
@@ -76,13 +76,13 @@ arm's offset from its `addi`.
 ## Your task
 
 The `Channel` enum and the `volatile int gReg` are provided in context. Write
-`sampleChannel` to reproduce the assembly above. Read the
-table head to confirm the case count, and each arm's `addi` for its offset; the
-`default` arm returns the sentinel.
+`func_802013bc` to reproduce the assembly above. Read the table head to confirm
+the case count, and each arm's `addi` for its offset; the `default` arm returns
+the sentinel.
 
 <!-- solution -->
 ```c
-int sampleChannel(Channel c) {
+int func_802013bc(Channel c) {
     switch (c) {
         case CH_IDLE: return 0;
         case CH_ARM:  return gReg + 1;

@@ -7,7 +7,7 @@ concepts:
   - calling-convention
   - registers
   - arguments
-symbol: pick_arg
+symbol: func_800b3834
 hints:
   - Arguments map to r3, r4, r5, r6 in order — read the `mr`'s source register
     and count to find its position.
@@ -17,15 +17,15 @@ hints:
 
 # Your first one from scratch
 
-No starter this time — just an empty editor and the name `pick_arg` up in the
-header. Everything else you read off the target.
+No starter this time — just an empty editor and the name `func_800b3834` up in the
+header. Everything else comes from the target.
 
 Look at it: a single `mr` into `r3`, then `blr`. `mr` ("move register") copies one
 register straight into another, and `r3` is the return register — so this function
 takes one of its arguments and hands it right back, untouched. The only thing left
 to work out is *which* argument.
 
-That is pure register-counting. Take a function whose body is:
+That's pure register-counting. Take a function whose body is:
 
 ```asm
 mr   r3, r5
@@ -48,11 +48,11 @@ one to return.
 
 ## Your task
 
-Write `pick_arg` to reproduce the assembly above.
+Write `func_800b3834` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int pick_arg(int a, int b, int c, int d) {
+int func_800b3834(int a, int b, int c, int d) {
     return d;
 }
 ```

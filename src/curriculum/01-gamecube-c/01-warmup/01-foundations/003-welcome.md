@@ -26,7 +26,8 @@ li   r3, 7       # put the constant 7 in r3
 blr              # return
 ```
 
-It loads `7` into `r3`, then ends with `blr`. Written in C, that's just simply:
+It loads `7` into `r3`, then ends with `blr`. In C, that's just:
+
 ```c
 int answer(void) {
     return 7;
@@ -35,9 +36,9 @@ int answer(void) {
 
 ## Your task
 
-For the exercise we've changed the value, so it won't be exactly the same. Look
-closely at the **Target asm** and write the C. Hit **Compile & Check** (or
-⌘/Ctrl + Enter) to check your result.
+For the exercise we've changed the value, so it won't be the same. Check the
+**Target asm** and write the C. Hit **Compile & Check** (or ⌘/Ctrl + Enter) to
+check your result.
 
 <!-- starter -->
 ```c

@@ -7,7 +7,7 @@ concepts:
   - if-else
   - comparison
   - branch
-symbol: pick
+symbol: func_8031fa34
 hints:
   - Two different return values force a `cmpw` plus a branch.
   - Expect `cmpw`, a speculative `li r3, 20`, then `bnelr-`.
@@ -36,16 +36,16 @@ single instruction standing in for the entire else.
 
 Trace it. `cmpw` sets cr0. The first `li` plants a guess. The conditional return
 bails on the spot or drops through, and on the drop-through the second `li`
-overwrites that guess. Watch the branch mnemonic above all else. Where the early
+overwrites that guess. Watch the branch mnemonic above all else: where the early
 exit fires is what nails each `li` to its arm.
 
 ## Your task
 
-Write `pick` to reproduce the assembly above.
+Write `func_8031fa34` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int pick(int a, int b) {
+int func_8031fa34(int a, int b) {
     if (a == b) return 10;
     else return 20;
 }

@@ -8,7 +8,7 @@ concepts:
   - fp_contract
   - floating-point
   - chaining
-symbol: dot3
+symbol: func_801355f8
 hints:
   - A sum of products contracts into one `fmuls` seeded by the first term, then an
     `fmadds` per additional term — count the terms by counting the fused ops.
@@ -20,9 +20,9 @@ hints:
 
 Two passes from earlier in the chapter meet here. In lesson 6 the scheduler
 braided together the loads of a **two**-term dot product. In lesson 7
-`fp_contract` glued a multiply-then-add into one `fmadds`. Neither knows about the
-other, yet any sum of products sets both off. Bump up to a **larger arity** and
-the shape settles into something you can predict. The first product comes out as
+`fp_contract` glued a multiply-then-add into one `fmadds`. Neither knows about
+the other, yet any sum of products sets both off. Bump up to a **larger arity**
+and the shape settles into something predictable. The first product comes out as
 a bare `fmuls`, each term after it rolls in as an `fmadds`, and the scheduler
 keeps reshuffling the `lfs` loads so their latencies hide behind the math.
 
@@ -39,24 +39,23 @@ blr
 ```
 
 An `fmuls` and a single `fmadds` mean two terms. Tack on a third and nothing
-surprising happens; you get one more `fmadds` and two more `lfs`, the whole thing
+surprising happens: you get one more `fmadds` and two more `lfs`, the whole thing
 re-scheduled around them. So count the fused FP ops to get the term count, and
-read the load offsets to see which array elements pair off against each other.
+read the load offsets to see which array elements pair off.
 
-Your `dot3` is one notch larger. Use the `lfs` offsets to work out how many
-elements from each array take part and how they line up, then put the dot product
-down as one flat expression and leave the fusing to `fp_contract` and the
+Your `func_801355f8` is one notch larger. Use the `lfs` offsets to work out how
+many elements from each array take part and how they line up, then write the dot
+product as one flat expression and leave the fusing to `fp_contract` and the
 interleaving to the scheduler.
 
 ## Your task
 
-Write `dot3(f32 *a, f32 *b)` to reproduce the target assembly — a sum of
-element-wise products with the loads scheduled and the additions contracted into
-`fmadds`.
+Write `func_801355f8` to reproduce the target assembly — a sum of element-wise
+products with the loads scheduled and the additions contracted into `fmadds`.
 
 <!-- solution -->
 ```c
-f32 dot3(f32 *a, f32 *b) {
+f32 func_801355f8(f32 *a, f32 *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 ```

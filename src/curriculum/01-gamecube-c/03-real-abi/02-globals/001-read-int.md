@@ -8,7 +8,7 @@ concepts:
   - sda
   - sda21
   - r13
-symbol: readFrameCount
+symbol: func_80021258
 hints:
   - A global int is loaded with a single `lwz` relative to r13 (the SDA base).
   - "`return gFrameCount;` compiles to `lwz r3, gFrameCount@sda21(r13)` —
@@ -17,13 +17,12 @@ hints:
 
 # Globals live a short hop from r13
 
-Here is the problem. A GameCube address is 32 bits, and a single PowerPC
-instruction has nowhere to put all of them, so you cannot `lwz` a global from its
-absolute address. The **Small Data Area** is how MWCC gets around that. Boot code
-points register **`r13`** at one fixed base, and the globals a game leans on most
-are packed into a window that a signed 16-bit offset off `r13` can cover. It is
-not a big window, just 64 KB, ±32 KB to either side. Spill past it on a large
-game and a global has to take the long way around with `@ha`/`@l`, which shows up
+Here's the problem: a GameCube address is 32 bits, and a single PowerPC instruction
+has nowhere to put all of them, so you can't `lwz` a global from its absolute
+address. The Small Data Area is MWCC's workaround. Boot code points register `r13`
+at a fixed base, and the globals a game uses most are packed into a window that a
+signed 16-bit offset off `r13` can cover. It's not a big window — 64 KB, ±32 KB.
+Spill past it and a global has to take the long way with `@ha`/`@l`, which shows up
 later. While it fits, one load does the job, and the linker bakes the offset in:
 
 ```asm
@@ -34,20 +33,19 @@ blr
 R_PPC_EMB_SDA21   g
 ```
 
-The `@sda21` is a **relocation**, not a real address. An unlinked object
-disassembles to `lwz r3, 0(0)` plus a dangling `R_PPC_EMB_SDA21 g` line, because
-the offset and base register stay unresolved until link time. That
-`R_PPC_EMB_SDA21` line is your tell for a plain, non-array global, and it shows up
-the same way whether the global is `extern` or defined right here.
+`@sda21` is a relocation, not a real address. An unlinked object disassembles to
+`lwz r3, 0(0)` plus a dangling `R_PPC_EMB_SDA21 g` line, because the offset and
+base register stay unresolved until link time. That `R_PPC_EMB_SDA21` line is your
+tell for a plain, non-array global, whether it's `extern` or defined right here.
 
 ## Your task
 
 Declare nothing yourself — `extern int gFrameCount;` is already provided. Write
-`readFrameCount` to match the target assembly above.
+`func_80021258` to match the target assembly above.
 
 <!-- solution -->
 ```c
-int readFrameCount(void) {
+int func_80021258(void) {
     return gFrameCount;
 }
 ```

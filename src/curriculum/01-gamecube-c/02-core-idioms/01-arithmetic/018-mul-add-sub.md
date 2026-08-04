@@ -8,7 +8,7 @@ concepts:
   - multiplication
   - chaining
   - operand-order
-symbol: muladdsub4
+symbol: func_802c9ac8
 hints:
   - Three instructions mean three operations — count them and assign one C
     operator to each.
@@ -18,13 +18,11 @@ hints:
 
 # Three operations, one accumulator
 
-Three operations, three instructions, and they all hand work to each other through
-`r0`. That register holds the running result the whole way through; only the very
-last instruction writes anything to `r3`. You've traced shorter chains like this
-already, so this is just one more link.
+Three operations, three instructions, and they all hand work to each other
+through `r0`. That register holds the running result; only the last instruction
+writes `r3`. You've traced shorter chains already; this is one more link.
 
-A quick warm-up with `div_sub(p, q, r)`, which divides and then subtracts a third
-value:
+A quick warm-up: `div_sub(p, q, r)` divides, then subtracts a third value:
 
 ```asm
 divw r0, r3, r4   # r0 = p / q
@@ -33,7 +31,7 @@ blr
 ```
 
 `divw` drops the quotient into `r0`. `subf` then takes `r5` away from it. The only
-thing that trips people up is the order — `subf rD, rA, rB` is `rB − rA`, so
+thing that trips people up is the order: `subf rD, rA, rB` is `rB − rA`, so
 `subf r3, r5, r0` really does mean `r0 − r5`.
 
 Your target is one operation longer. Read it from the top, track what `r0` holds
@@ -42,11 +40,11 @@ expression back together.
 
 ## Your task
 
-Write `muladdsub4` to reproduce the assembly above.
+Write `func_802c9ac8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c
-int muladdsub4(int a, int b, int c, int d) {
+int func_802c9ac8(int a, int b, int c, int d) {
     return a * b + c - d;
 }
 ```
