@@ -39,7 +39,7 @@ export function LessonResultPanel({
 }: Props) {
   return (
     <div
-      className={`min-h-[260px] flex-[1] flex-col theme-light:bg-white/50 bg-bg-inset/60 lg:min-h-0 ${className}`}
+      className={`min-h-[260px] min-w-0 flex-col theme-light:bg-white/50 bg-bg-inset/60 lg:min-h-0 lg:overflow-hidden ${className}`}
     >
       <div className="flex items-center justify-between border-b border-line bg-bg-soft/50 px-2">
         <div className="space-x-2">

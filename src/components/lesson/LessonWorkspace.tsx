@@ -34,6 +34,8 @@ import { LessonResultPanel } from "./LessonResultPanel";
 import { LazyCodeEditor } from "@/components/LazyCodeEditor";
 import { WorkspaceResetButton } from "@/components/workspace/WorkspaceResetButton";
 import { WorkspaceRunButton } from "@/components/workspace/WorkspaceRunButton";
+import { SplitHandle } from "@/components/workspace/SplitHandle";
+import { useSplitPane } from "@/components/workspace/useSplitPane";
 
 const PANE_LABEL: Record<"brief" | "code" | "result", string> = {
   brief: "Brief",
@@ -63,6 +65,26 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   const seededRef = useRef(code);
   const { ready: progressReady } = useProgress();
   const router = useRouter();
+
+  const briefSplit = useSplitPane({
+    storageKey: "lesson-brief",
+    layout: "horizontal",
+    cssVar: "--brief-w",
+    defaultRatio: 0.3,
+    minFirstPx: 352,
+    minSecondPx: 576,
+    label: "Resize the lesson brief",
+  });
+
+  const editorSplit = useSplitPane({
+    storageKey: "lesson-editor",
+    layout: "vertical",
+    cssVar: "--editor-h",
+    defaultRatio: 0.55,
+    minFirstPx: 176,
+    minSecondPx: 208,
+    label: "Resize the code editor",
+  });
 
   const grader = GRADERS[lesson.grader];
   const asmDialect = grader.dialect;
@@ -250,8 +272,11 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
   const nextHref = lesson.next ? lessonPath(lesson.course, lesson.next.slug) : "/";
   const onRun = () => (solved ? router.push(nextHref) : run());
 
+  // On lg the workspace is one viewport, so every level of it clips: Monaco
+  // sizes its own DOM off a ResizeObserver and so trails a divider drag by a
+  // frame, which would otherwise grow the document and flash its scrollbars.
   return (
-    <div className="flex min-h-screen flex-col bg-bg lg:h-screen">
+    <div className="flex min-h-screen flex-col bg-bg lg:h-screen lg:overflow-hidden">
       <LessonTopBar lesson={lesson} />
 
       <div className="flex border-b border-line bg-bg-soft lg:hidden">
@@ -275,9 +300,13 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
         ))}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(20rem,440px)_minmax(0,1fr)]">
+      <div
+        ref={briefSplit.containerRef}
+        style={briefSplit.containerStyle}
+        className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[var(--brief-w)_auto_minmax(0,1fr)] lg:overflow-hidden"
+      >
         <aside
-          className={`min-h-0 flex-col border-r border-line bg-bg-soft/40 lg:flex ${
+          className={`min-h-0 min-w-0 flex-col border-r border-line bg-bg-soft/40 lg:flex lg:border-r-0 ${
             mobilePane === "brief" ? "flex" : "hidden"
           }`}
         >
@@ -322,8 +351,10 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
           </div>
         </aside>
 
+        <SplitHandle split={briefSplit} />
+
         <section
-          className={`min-h-[70vh] flex-col lg:flex lg:min-h-0 ${
+          className={`min-h-[70vh] min-w-0 flex-col lg:flex lg:min-h-0 lg:overflow-hidden ${
             mobilePane === "brief" ? "hidden" : "flex"
           }`}
         >
@@ -366,55 +397,67 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
           </div>
 
           <div
-            className={`min-h-[340px] flex-[1.2] flex-col border-b border-line lg:flex lg:min-h-0 ${
-              mobilePane === "result" ? "hidden" : "flex"
-            }`}
+            ref={editorSplit.containerRef}
+            style={editorSplit.containerStyle}
+            className="grid min-h-0 flex-1 grid-cols-1 lg:grid-rows-[var(--editor-h)_auto_minmax(0,1fr)] lg:overflow-hidden"
           >
-            {lesson.context && (
-              <div className="flex flex-wrap items-center gap-1.5 border-b border-line bg-bg-soft/30 px-3 py-1.5">
-                <span className="mr-1 font-mono text-2xs uppercase tracking-wider text-content-faint">
-                  src
-                </span>
+            <div
+              className={`min-h-[340px] min-w-0 flex-col border-b border-line lg:flex lg:min-h-0 lg:overflow-hidden lg:border-b-0 ${
+                mobilePane === "result" ? "hidden" : "flex"
+              }`}
+            >
+              {lesson.context && (
+                <div className="flex flex-wrap items-center gap-1.5 border-b border-line bg-bg-soft/30 px-3 py-1.5">
+                  <span className="mr-1 font-mono text-2xs uppercase tracking-wider text-content-faint">
+                    src
+                  </span>
 
-                <LessonSourceTab
-                  active={editorTab === "code"}
-                  onClick={() => setEditorTab("code")}
-                  text={`${lesson.symbol}.c`}
-                />
+                  <LessonSourceTab
+                    active={editorTab === "code"}
+                    onClick={() => setEditorTab("code")}
+                    text={`${lesson.symbol}.c`}
+                  />
 
-                <LessonSourceTab
-                  active={editorTab === "context"}
-                  onClick={() => setEditorTab("context")}
-                  text="context"
-                />
+                  <LessonSourceTab
+                    active={editorTab === "context"}
+                    onClick={() => setEditorTab("context")}
+                    text="context"
+                  />
+                </div>
+              )}
+
+              <div
+                className={`min-h-0 min-w-0 flex-1 overflow-hidden ${
+                  editorTab === "code" ? "" : "hidden"
+                }`}
+              >
+                <LazyCodeEditor value={code} onChange={setCode} onRun={onRun} />
               </div>
-            )}
 
-            <div className={`min-h-0 flex-1 ${editorTab === "code" ? "" : "hidden"}`}>
-              <LazyCodeEditor value={code} onChange={setCode} onRun={onRun} />
+              {editorTab === "context" && lesson.context && (
+                <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+                  <LazyCodeEditor value={lesson.context} readOnly />
+                </div>
+              )}
             </div>
 
-            {editorTab === "context" && lesson.context && (
-              <div className="min-h-0 flex-1">
-                <LazyCodeEditor value={lesson.context} readOnly />
-              </div>
-            )}
-          </div>
+            <SplitHandle split={editorSplit} />
 
-          <LessonResultPanel
-            tab={tab}
-            setTab={setTab}
-            check={check}
-            targetRows={targetRows}
-            overview={overview}
-            selectedSymbol={selectedSymbol}
-            onSelectSymbol={selectSymbol}
-            lessonSymbol={lesson.symbol}
-            bannerDismissed={bannerDismissed}
-            onDismissBanner={() => setBannerDismissed(true)}
-            dialect={asmDialect}
-            className={mobilePane === "code" ? "hidden lg:flex" : "flex"}
-          />
+            <LessonResultPanel
+              tab={tab}
+              setTab={setTab}
+              check={check}
+              targetRows={targetRows}
+              overview={overview}
+              selectedSymbol={selectedSymbol}
+              onSelectSymbol={selectSymbol}
+              lessonSymbol={lesson.symbol}
+              bannerDismissed={bannerDismissed}
+              onDismissBanner={() => setBannerDismissed(true)}
+              dialect={asmDialect}
+              className={mobilePane === "code" ? "hidden lg:flex" : "flex"}
+            />
+          </div>
         </section>
       </div>
     </div>

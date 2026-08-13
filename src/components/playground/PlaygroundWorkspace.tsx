@@ -30,6 +30,8 @@ import { LazyCodeEditor } from "@/components/LazyCodeEditor";
 import { WorkspaceTabButton } from "@/components/workspace/WorkspaceTabButton";
 import { WorkspaceResetButton } from "@/components/workspace/WorkspaceResetButton";
 import { WorkspaceRunButton } from "@/components/workspace/WorkspaceRunButton";
+import { SplitHandle } from "@/components/workspace/SplitHandle";
+import { useSplitPane } from "@/components/workspace/useSplitPane";
 
 const STORAGE_KEY = "decomp-playground-code";
 
@@ -74,6 +76,16 @@ export function PlaygroundWorkspace() {
   const userB64Ref = useRef<string | null>(null);
   const diffsRef = useRef<Analysis["diffs"]>({});
   const runIdRef = useRef(0);
+
+  const split = useSplitPane({
+    storageKey: "playground",
+    layout: "horizontal",
+    cssVar: "--editor-w",
+    defaultRatio: 0.5,
+    minFirstPx: 416,
+    minSecondPx: 416,
+    label: "Resize the code editor",
+  });
 
   const run = useCallback(async () => {
     const myRun = ++runIdRef.current;
@@ -197,7 +209,7 @@ export function PlaygroundWorkspace() {
   const canScratch = status === "ok" && !!userB64Ref.current && !!selected;
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg lg:h-screen">
+    <div className="flex min-h-screen flex-col bg-bg lg:h-screen lg:overflow-hidden">
       <header className="flex items-center gap-3 border-b border-line bg-bg-soft px-4 py-2.5">
         <Link
           href="/"
@@ -217,14 +229,20 @@ export function PlaygroundWorkspace() {
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-2">
-        <section className="flex min-h-[48vh] flex-col border-b border-line lg:min-h-0 lg:border-b-0 lg:border-r">
-          <div className="flex items-center gap-2 border-b border-line bg-bg-soft/60 px-4 py-2">
+      <div
+        ref={split.containerRef}
+        style={split.containerStyle}
+        className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[var(--editor-w)_auto_minmax(0,1fr)] lg:overflow-hidden"
+      >
+        <section className="flex min-h-[48vh] min-w-0 flex-col border-b border-line lg:min-h-0 lg:overflow-hidden lg:border-b-0">
+          {/* Wraps: the pane drags narrower than this row, and Compile has to
+              stay reachable. */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-line bg-bg-soft/60 px-4 py-2">
             <PlaygroundExampleSelect value={exampleId} onPick={onPickExample} />
             <span className="hidden items-center gap-1 rounded bg-bg-softer px-1.5 py-0.5 font-mono text-2xs text-content-faint md:inline-flex">
               mwcceppc.exe -O4,p
             </span>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-2">
               <WorkspaceResetButton onClick={reset} />
               <WorkspaceRunButton
                 running={status === "running"}
@@ -247,12 +265,14 @@ export function PlaygroundWorkspace() {
               </p>
             </div>
           )}
-          <div className="min-h-[320px] flex-1 lg:min-h-0">
+          <div className="min-h-[320px] min-w-0 flex-1 overflow-hidden lg:min-h-0">
             <LazyCodeEditor value={code} onChange={setCode} onRun={() => run()} />
           </div>
         </section>
 
-        <section className="flex min-h-[40vh] flex-col bg-bg-inset/60 lg:min-h-0">
+        <SplitHandle split={split} />
+
+        <section className="flex min-h-[40vh] min-w-0 flex-col bg-bg-inset/60 lg:min-h-0 lg:overflow-hidden">
           <div className="flex items-center gap-1 border-b border-line bg-bg-soft/50 px-2">
             <WorkspaceTabButton
               active={tab === "asm"}
