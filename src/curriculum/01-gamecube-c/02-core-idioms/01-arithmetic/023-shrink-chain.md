@@ -18,12 +18,12 @@ hints:
 
 # A shift-divide in a chain
 
-You already know `slwi` stands in for a power-of-two multiply. The unsigned divide
-pulls the same trick: `srwi` at the front of a chain is really `÷ 2ⁿ`. Read it
-that way and what follows is plain add/subtract threading.
+You already know `slwi` stands in for a power-of-two multiply. The unsigned
+divide pulls the same trick: an `srwi` at the front of a chain is really
+`÷ 2ⁿ`. Read it that way and what follows is plain add/subtract threading.
 
-Take `decay(p, q, r)`, dividing the first unsigned argument by a power of two,
-then adding the second and subtracting the third:
+Take `decay(p, q, r)` — divide the first unsigned argument by a power of two,
+then add the second and subtract the third:
 
 ```asm
 srwi r0, r3, 5    # r0 = p >> 5  =  p / 32
@@ -32,12 +32,12 @@ subf r3, r5, r0   # r3 = r0 - r5
 blr
 ```
 
-Here the `srwi` is the divide — a right shift of 5 means `÷ 32` — and it drops
-the result into `r0`. From there `add` and `subf` walk the total down to `r3`.
-The shift isn't anything exotic, just the first arithmetic step.
+The `srwi` is the divide — a right shift of 5 means `÷ 32` — and it drops the
+result into `r0`. From there, `add` and `subf` walk the total down to `r3`. The
+shift isn't anything exotic, just the first arithmetic step.
 
-Your target runs the same way with a different shift amount. Recover the divisor
-from the count, then follow the two operations after it.
+Your target runs the same way with a different shift amount. Recover the
+divisor from the count, then follow the two operations after it.
 
 ## Your task
 

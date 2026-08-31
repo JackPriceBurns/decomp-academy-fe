@@ -19,12 +19,11 @@ hints:
 
 # Both multiply and divide, side by side
 
-When an expression contains both `mullw` and `divw` and neither depends on the
-other's result, the compiler evaluates them independently — each into its own
-register — and then joins them with one final instruction. The order the compiler
-picks for the two independent operations can differ from their order in the
-source, so read the registers rather than the instruction sequence to reconstruct
-the expression.
+When an expression contains both a multiply and a divide and neither depends on
+the other's result, the compiler evaluates them independently — each into its
+own register — then joins them with one final instruction. The order it picks
+for the two can differ from their order in the source, so read the registers,
+not the instruction sequence, to reconstruct the expression.
 
 Consider `scale_ratio(p, q, r, s)`, multiplying one pair and dividing another,
 then subtracting the results:
@@ -36,14 +35,14 @@ subf    r3,r5,r0   # r3 = r0 - r5  =  (p * q) - (r / s)
 blr
 ```
 
-`divw` runs first, overwriting `r5` in place. `mullw` follows, writing `r0`.
-Neither depends on the other, so the order is the compiler's choice. The `subf`
-then combines them: `subf rD, rA, rB` is `rB − rA`, so `subf r3, r5, r0` gives
-`r0 − r5`, which is `(p * q) − (r / s)`.
+`divw` runs first, overwriting `r5` in place; `mullw` follows, writing `r0`.
+Neither depends on the other, so the order was the compiler's choice. The
+`subf` combines them: `subf rD, rA, rB` is `rB − rA`, so `subf r3, r5, r0`
+gives `r0 − r5`, which is `(p * q) − (r / s)`.
 
-The target assembly for this lesson uses a different combining instruction.
-Read the target carefully: identify what each of the first two instructions
-produces, then determine what the final instruction does with both results.
+This lesson's target uses a different combining instruction. Read it carefully:
+identify what each of the first two instructions produces, then work out what
+the final instruction does with both results.
 
 ## Your task
 

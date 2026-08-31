@@ -18,10 +18,10 @@ hints:
 
 # Why the parameter type matters
 
-Here's a common decompilation pitfall. When a parameter is typed as `double` but
-the function returns `f32`, the compiler does the arithmetic in double precision
-and then must `frsp` (round to single precision) to narrow the result. Consider a
-helper `scale` that doubles its argument:
+Here's a common decompilation pitfall. When a parameter is typed as `double`
+but the function returns `f32`, the compiler does the arithmetic in double
+precision and then must `frsp` (round to single precision) to narrow the
+result. Consider a helper `scale` that doubles its argument:
 
 ```asm
 lfd   f0, ...      # load 2.0 as a *double*
@@ -30,9 +30,8 @@ frsp  f1, f1       # ROUND result back down to single  ← spurious!
 blr
 ```
 
-That's four instructions. Keep the parameter type as `f32` instead, and the whole
-computation stays single precision — the compiler uses `lfs`/`fmuls` and no `frsp`
-is needed:
+Keep the parameter type as `f32` instead, and the whole computation stays
+single precision — the compiler uses `lfs`/`fmuls` and no `frsp` is needed:
 
 ```asm
 lfs   f0, ...      # load 2.0f from the SDA
@@ -40,17 +39,18 @@ fmuls f1, f0, f1   # single-precision multiply
 blr
 ```
 
-The `frsp` disappears because the math was never promoted to double. It also pulls
-in `fmul`/`lfd` instead of `fmuls`/`lfs`, so the whole instruction mix changes.
+The `frsp` disappears because the math was never promoted to double. It also
+pulls in `fmul`/`lfd` instead of `fmuls`/`lfs`, so the whole instruction mix
+changes.
 
-A good default: for single-precision helpers, keep both parameter and literal
-`f32`. An `f32` parameter with an `f` suffix keeps everything single precision; a
-`double` parameter (or a literal without `f`) widens the computation and inserts a
-spurious `frsp`.
+A good default: for single-precision helpers, keep both the parameter and the
+literal `f32`. An `f32` parameter with an `f` suffix keeps everything single
+precision; a `double` parameter (or a literal without the `f`) widens the
+computation and inserts a spurious `frsp`.
 
 ## Your task
 
-Write `func_80129288` to reproduce the assembly above — with **no `frsp`**.
+Write `func_80129288` to reproduce the target assembly — with **no `frsp`**.
 Match the parameter type and literal suffix to the instructions you see.
 
 <!-- solution -->

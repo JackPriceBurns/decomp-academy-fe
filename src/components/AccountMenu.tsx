@@ -66,7 +66,7 @@ export function AccountMenu() {
           <button
             onClick={() => {
               setOpen(false);
-              signOut();
+              void signOut();
             }}
             className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
           >

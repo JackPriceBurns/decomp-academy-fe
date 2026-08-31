@@ -15,14 +15,15 @@ hints:
 
 # Advancing a pointer in a loop
 
-Walking a byte buffer is a small loop. Each pass loads a byte with `lbz`, bumps the
-pointer with `addi`, and checks the result. The element is a `u8`, so it's unsigned,
-which pushes the zero test to `cmplwi` (compare logical word immediate) instead of
-the signed `cmpwi`.
+Walking a byte buffer is a small loop. Each pass loads a byte with `lbz`, bumps
+the pointer with `addi`, and checks the result. The element is a `u8`, so it's
+unsigned, which pushes the zero test to `cmplwi` (compare logical word
+immediate) instead of the signed `cmpwi`.
 
-MWCC puts the test at the bottom of the loop. An opening `b` jumps straight to that
-check, so an empty input never enters the body. The back-edge branch has a `+` hint
-— MWCC's guess that a loop usually loops, marking the taken path as likely.
+MWCC puts the test at the bottom of the loop. An opening `b` jumps straight to
+that check, so an empty input never enters the body. The back-edge branch has a
+`+` hint — MWCC's guess that a loop usually loops, marking the taken path as
+likely.
 
 Here's a different version, summing byte values instead of counting:
 
@@ -49,15 +50,14 @@ mr      r3,r4
 blr
 ```
 
-The `lbz`/`cmplwi`/`bne+` trio handles the loop check, the pointer inches forward
-with `addi r3,r3,1`, and `r4` holds the running total until the final `mr`. Now
-picture the body when you only want to *count* iterations instead of adding byte
-values. What replaces the `add`?
+The `lbz`/`cmplwi`/`bne+` trio handles the loop check, the pointer inches
+forward with `addi r3,r3,1`, and `r4` holds the running total until the final
+`mr`. Now picture the body when you only want to *count* iterations instead of
+adding byte values. What replaces the `add`?
 
 ## Your task
 
-Write `func_802d654c`, taking a `u8* s`, returning the number of bytes before the
-terminating zero.
+Write `func_802d654c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

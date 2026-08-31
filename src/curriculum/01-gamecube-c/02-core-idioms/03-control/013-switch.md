@@ -37,16 +37,15 @@ b     .case3
 
 Each `.caseN` is a tiny `li r3, <value>` / `blr` block, and anything that falls
 through every test lands in `.default`. Note the cases are tested **in value
-order**, not source order — the compiler sorts them to bisect. A cascade of
-`cmpwi`/`beq`/`bge` against ascending constants is the unmistakable shape of a
-dense `switch`. This compare-chain strategy is specific to small case sets;
+order**, not source order — the compiler sorts them so it can bisect. A cascade
+of `cmpwi`/`beq`/`bge` against ascending constants is the unmistakable shape of
+a dense `switch`. This compare-chain strategy is specific to small case sets;
 larger dense switches (around seven or more consecutive cases) flip to a jump
-table (a `b` through a computed table address), a pattern a later lesson covers.
+table — a `b` through a computed table address — which a later lesson covers.
 
 ## Your task
 
-Write `func_8030eee0`: a `switch` on `x` returning `10`, `20`, `30`, `40` for cases
-`0..3`, and `0` by default.
+Write `func_8030eee0` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

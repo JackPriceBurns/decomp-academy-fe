@@ -16,21 +16,21 @@ hints:
 # Folding a constant into the instruction
 
 Adding a small constant doesn't need a separate load. The compiler folds the
-number straight into the instruction with the immediate form `addi rD, rA, imm` —
-`imm` is the literal value, riding along inside the opcode:
+number straight into the instruction using the immediate form,
+`addi rD, rA, imm` — `imm` is a literal value carried inside the opcode itself:
 
 ```asm
 addi r3, r3, 5    # r3 = r3 + 5
 blr
 ```
 
-That immediate field is signed and 16 bits wide, so it reaches from -32768 up to
-32767; ask for a constant beyond that and the compiler splits the work across
-`lis` plus `addi`. You won't need that here, but it's worth remembering. And
-because the field is signed, the same `addi` can *subtract* too — that's the next
-lesson.
+The immediate field is signed and 16 bits wide, so it reaches from -32768 to
+32767. Ask for a constant bigger than that and the compiler splits the work
+across `lis` plus `addi` — not something you need here, but worth filing away.
+And because the field is signed, the same `addi` can *subtract* as well. That's
+the next lesson.
 
-The immediate in the target `addi` is the constant you want.
+The immediate in the target `addi` is the constant you're after.
 
 ## Your task
 

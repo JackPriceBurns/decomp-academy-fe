@@ -16,9 +16,9 @@ hints:
 
 # `li` the divisor, then `divw`
 
-Division has no immediate form — no instruction encodes the divisor. So to
-divide by a constant, the compiler first drops it into a register with `li`
-("load immediate"), then runs the real divide, `divw` ("divide word").
+Division has no immediate form — there's no instruction that can carry the
+divisor. So to divide by a constant, the compiler first drops it into a
+register with `li`, then runs the real divide, `divw` ("divide word").
 
 `sixth(n) = n / 6` comes out as a plain pair:
 
@@ -28,12 +28,12 @@ divw r3, r3, r0    # r3 = r3 / 6
 blr
 ```
 
-The `li` tells you the divisor outright. `divw` does signed division; the
-remainder is discarded.
+The `li` hands you the divisor outright. `divw` does signed division and throws
+the remainder away.
 
 > We've eased this lesson's optimizer back a notch to keep the divide this
-> honest. At the setting the rest of the course runs under, dividing by a constant
-> turns into something far stranger — you'll pull that apart later.
+> honest. At the setting the rest of the course runs under, dividing by a
+> constant turns into something much stranger — you'll pull that apart later.
 
 ## Your task
 

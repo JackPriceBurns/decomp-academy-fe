@@ -18,8 +18,9 @@ hints:
 
 A `break` hands a loop a second door out. This is a plain linear search, so the
 counted part still rides `mtctr`/`bdnz` to its normal finish, but there's an
-extra `beq-` tucked inside that bolts the instant it spots `k`. Notice both exits
-funnel into the same `mr r3, r6`, the one that hands back the index `i`.
+extra `beq-` tucked inside that bolts the instant it spots the target value.
+Notice both exits funnel into the same `mr r3, r6` — the one that hands back
+the index.
 
 ```asm
 li   r6, 0          # index = 0
@@ -39,13 +40,12 @@ blr
 ```
 
 The tell is simple. A CTR-driven `bdnz` plus a stray conditional branch leaping
-out of the middle? That middle branch is the `break`. Miss `k` entirely and the
-loop just runs out the normal way, leaving `i == n`.
+out of the middle? That middle branch is the `break`. Miss the value entirely
+and the loop just runs out the normal way, leaving `i == n`.
 
 ## Your task
 
-Write `func_800dcc78`, returning the index of the first element of `a` equal to `k`, or
-`n` if there is none.
+Write `func_800dcc78` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

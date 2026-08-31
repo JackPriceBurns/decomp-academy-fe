@@ -15,10 +15,10 @@ hints:
 
 # `subi`: an `addi` in disguise
 
-There's no separate subtract-immediate opcode. As the last lesson hinted,
-subtracting a constant is `addi` with a **negative** immediate. But the
-disassembler is helpful about it: when it sees an `addi` carrying a negative
-constant, it prints the friendlier mnemonic **`subi`** instead.
+There's no subtract-immediate opcode. As the last lesson hinted, subtracting a
+constant is just `addi` with a **negative** immediate. The disassembler is kind
+about it, though: when an `addi` carries a negative constant, it prints the
+friendlier mnemonic **`subi`** instead.
 
 So `dec7(n) = n - 7` shows up in the diff as:
 
@@ -27,9 +27,8 @@ subi r3, r3, 7    # r3 = r3 - 7   (encoded as addi r3, r3, -7)
 blr
 ```
 
-Same instruction, same bytes as an `addi` — `subi` is only the nicer name the
-diff prints, and the number it carries is positive: the amount being subtracted.
-Read that value off the target.
+Same instruction, same bytes — `subi` is only a nicer name, and the number it
+shows is positive: the amount being subtracted. Read that value off the target.
 
 ## Your task
 

@@ -18,10 +18,11 @@ hints:
 # One offset, two bases
 
 Index two arrays by the same variable and the compiler computes the scaled byte
-offset once, then reuses it. `i*size` ends up in one register. Each `lwzx` pairs
-that offset with its own base pointer, so the two array bases appear in `r3` and
-`r4`. This is the clearest demonstration that an indexed load wants two register
-operands. Freeze the offset, swap the base, and you're walking a second array.
+offset once, then reuses it. `i*size` ends up in one register, and each `lwzx`
+pairs that offset with its own base pointer — so the two array bases show up in
+`r3` and `r4`. This is the clearest demonstration that an indexed load wants
+two register operands: freeze the offset, swap the base, and you're walking a
+second array.
 
 `add_arrays(x, y, j)` reads `x[j]` and `y[j]`, then adds them:
 
@@ -33,10 +34,10 @@ add  r3, r3, r0   # x[j] + y[j]
 blr
 ```
 
-One `slwi` scales `j`. The offset sits in `r0` and drives both `lwzx` instructions;
-only the base register differs. Your target also combines two arrays at the same
-index, but with a different operation. Check the instruction after the two `lwzx`
-to find out which.
+One `slwi` scales `j`. The offset sits in `r0` and drives both `lwzx`
+instructions; only the base register differs. Your target also combines two
+arrays at the same index, but with a different operation — check the
+instruction after the two `lwzx` to find out which.
 
 ## Your task
 

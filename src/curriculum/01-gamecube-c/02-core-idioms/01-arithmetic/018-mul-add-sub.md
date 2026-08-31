@@ -18,9 +18,9 @@ hints:
 
 # Three operations, one accumulator
 
-Three operations, three instructions, and they all hand work to each other
-through `r0`. That register holds the running result; only the last instruction
-writes `r3`. You've traced shorter chains already; this is one more link.
+Three operations, three instructions, all handing work to each other through
+`r0`. That register holds the running result; only the last instruction writes
+`r3`. You've traced shorter chains already — this is one link longer.
 
 A quick warm-up: `div_sub(p, q, r)` divides, then subtracts a third value:
 
@@ -30,13 +30,13 @@ subf r3, r5, r0   # r3 = r0 - r5  =  (p / q) - r
 blr
 ```
 
-`divw` drops the quotient into `r0`. `subf` then takes `r5` away from it. The only
-thing that trips people up is the order: `subf rD, rA, rB` is `rB − rA`, so
-`subf r3, r5, r0` really does mean `r0 − r5`.
+`divw` drops the quotient into `r0`, and `subf` takes `r5` away from it. The
+only thing that trips people up is the order: `subf rD, rA, rB` is `rB − rA`,
+so `subf r3, r5, r0` really does mean `r0 − r5`.
 
-Your target is one operation longer. Read it from the top, track what `r0` holds
-after each line, and the last instruction's operands show you how to put the
-expression back together.
+Your target is one operation longer. Read it from the top, track what `r0`
+holds after each line, and the last instruction's operands show you how to put
+the expression back together.
 
 ## Your task
 

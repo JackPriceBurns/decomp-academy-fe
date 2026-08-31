@@ -15,13 +15,13 @@ hints:
 
 # Storing into a field
 
-Writing a field mirrors reading it: a store at the field's byte offset. `stw rS,
-off(rA)` writes the contents of `rS` to `rA + off`. No load is needed — a store
-overwrites the whole field. Note the operand order: source register first, then the
-address, the opposite of `lwz`.
+Writing a field mirrors reading it: a store at the field's byte offset.
+`stw rS, off(rA)` writes the contents of `rS` to `rA + off`. No load is needed
+— a store overwrites the whole field. Note the operand order: source register
+first, then the address, the opposite of `lwz`.
 
-Arguments arrive in order: the struct pointer in `r3`, the first value argument in
-`r4`.
+Arguments arrive in order: the struct pointer in `r3`, the first value argument
+in `r4`.
 
 For a three-field struct, writing the third field (offset 8) looks like:
 
@@ -38,14 +38,14 @@ stw     r4,8(r3)    # v->z = val
 blr
 ```
 
-The offset `8` tells you it's the third `int` field. Now figure out which field of
-a two-field struct matches the offset in the target assembly, and write the
+The offset `8` tells you it's the third `int` field. Now work out which field
+of a two-field struct matches the offset in the target assembly, and write the
 equivalent setter.
 
 ## Your task
 
-With the `Point` struct above, write `func_801e8610` to reproduce the target
-assembly.
+Using the `Point` struct provided, write `func_801e8610` to reproduce the
+target assembly.
 
 <!-- solution -->
 ```c

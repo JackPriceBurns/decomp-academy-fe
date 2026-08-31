@@ -12,3 +12,8 @@ export const API_URL = (
 // decomp.me knows as `mwcc_247_92`. The unversioned /target, /check, /compile
 // routes are being retired in favour of these.
 export const COMPILER_URL = `${API_URL}/compile/mwcc/247_92`;
+
+// SGI IDO 5.3, statically recompiled for the N64/MIPS course. Like the MWCC
+// route, the URL selects the toolchain; callers cannot supply arbitrary compiler
+// binaries or flags in the request body.
+export const IDO53_COMPILER_URL = `${API_URL}/compile/ido/5.3`;

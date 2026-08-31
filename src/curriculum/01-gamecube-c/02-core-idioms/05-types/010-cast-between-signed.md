@@ -15,20 +15,21 @@ hints:
 
 # Widening a signed type keeps its sign
 
-When both widths are *signed*, the conversion just carries the value's sign along
-with it. Widen an **`s8`** up to an **`s16`** and a negative byte still needs to
-read as negative, which means sign-extending it. The byte is the narrower side, so
-that job lands on **`extsb`**, and the halfword it produces is correct in its low
-16 bits:
+When both widths are *signed*, the conversion just carries the value's sign
+along with it. Widen an **`s8`** up to an **`s16`** and a negative byte still
+has to read as negative, which means sign-extending it. The byte is the
+narrower side, so the job lands on **`extsb`**, and the halfword it produces is
+correct in its low 16 bits:
 
 ```asm
 extsb r3, r3        # s8 -> s16, sign preserved
 blr
 ```
 
-Flip the source to unsigned and the picture changes. There is no sign worth
-preserving now, so a widening conversion zero-extends with a `clrlwi` rather than
-sign-extending. A `u8 → u16` widen keeps the low 8 bits and clears the rest:
+Flip the source to unsigned and the picture changes. There's no sign worth
+preserving now, so a widening conversion zero-extends with a `clrlwi` rather
+than sign-extending. A `u8 → u16` widen keeps the low 8 bits and clears the
+rest:
 
 ```asm
 clrlwi r3, r3, 24   # u8 -> u16, zero-extended (no sign to preserve)
@@ -40,8 +41,7 @@ unsigned source pulls in a mask.
 
 ## Your task
 
-Write `func_80094334`, taking an `s8 x` and returning it as an `s16`. The signed
-widen should emit a single `extsb`.
+Write `func_80094334` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

@@ -20,17 +20,17 @@ hints:
 
 # Several dereferences in one expression
 
-By now you've seen every move in this function separately. It loads an element at
-a fixed index, loads another at a variable index with `lwzx`, grabs a neighbor off
-the computed base, multiplies two loaded values register-to-register, and subtracts
-at the end. Nothing here is unfamiliar — the earlier lessons just got bolted
-together.
+By now you've seen every move in this function separately. It loads an element
+at a fixed index, loads another at a variable index with `lwzx`, grabs a
+neighbor off the computed base, multiplies two loaded values
+register-to-register, and subtracts at the end. Nothing here is unfamiliar —
+the earlier lessons just got bolted together.
 
-The efficiency to catch: the variable index only gets scaled once, by `slwi`. After
-that, the same offset does two jobs. It drives the indexed `lwzx`, and it also
-locates the neighbor, whose base falls out of an `add` before a displacement load
-finishes the read. The element at index 0 never needs that path; a plain
-`lwz 0(r3)` reaches it directly.
+The efficiency to catch: the variable index only gets scaled once, by `slwi`.
+After that, the same offset does two jobs — it drives the indexed `lwzx`, and
+it also locates the neighbor, whose base falls out of an `add` before a
+displacement load finishes the read. The element at index 0 never needs that
+path; a plain `lwz 0(r3)` reaches it directly.
 
 `mix(q, j)` blends the first element with the product of two neighbors:
 
@@ -46,11 +46,11 @@ blr
 ```
 
 The single `slwi` powers both the `lwzx` and the `add`-built base. Because the
-multiply takes two loaded values, it comes out as `mullw` rather than `mulli`, with
-the fixed element joining only at the end. Your target is built from the same
-parts, but the multiply and subtract sit in different places. Work each loaded
-register forward from its load to whatever consumes it, recover the indices from
-the displacements, and the expression reassembles itself.
+multiply takes two loaded values, it comes out as `mullw` rather than `mulli`,
+with the fixed element joining only at the end. Your target is built from the
+same parts, but the multiply and subtract sit in different places. Work each
+loaded register forward from its load to whatever consumes it, recover the
+indices from the displacements, and the expression reassembles itself.
 
 ## Your task
 

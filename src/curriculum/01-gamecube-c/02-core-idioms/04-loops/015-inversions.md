@@ -22,15 +22,15 @@ hints:
 
 # A triangular pair scan
 
-This capstone folds the whole chapter into one function: a **nested** loop whose
-inner bound follows the outer index (a triangle), which **loads two array
+This capstone folds the whole chapter into one function: a **nested** loop
+whose inner bound follows the outer index (a triangle), which **loads two array
 elements** per pass, **compares** them, and **conditionally** bumps a counter.
 Every piece appeared earlier — here they stack.
 
-Consider `gmax(a, rows, cols)`, which returns the largest element of a row-major
-grid. It is a full rectangular nest (inner runs the whole `cols` each pass), it
-addresses memory with the flattened `i * cols + j` formula, and it updates its
-running result only when a candidate beats it:
+Consider `gmax(a, rows, cols)`, which returns the largest element of a
+row-major grid. It's a full rectangular nest (the inner loop runs the whole
+`cols` each pass), it addresses memory with the flattened `i * cols + j`
+formula, and it updates its running result only when a candidate beats it:
 
 ```asm
 lwz  r8, 0(r3)      # m = a[0]  (seed)
@@ -63,28 +63,27 @@ mr   r3, r8
 blr
 ```
 
-Read it as layers: the two stacked skeletons are the nest, the `mullw`/`add`/
-`slwi`/`lwzx` is the 2-D load, the `cmpw`+`ble-` is the test, and the
-conditionally-reached `lwzx r8` is the update. Strip any one layer and you are
-back to an earlier lesson.
+Read it as layers: the two stacked skeletons are the nest, the
+`mullw`/`add`/`slwi`/`lwzx` is the 2-D load, the `cmpw`+`ble-` is the test, and
+the conditionally reached `lwzx r8` is the update. Strip any one layer and
+you're back to an earlier lesson.
 
-Your `func_802edd00` differs in three ways from this example, each one a layer you have
-already met:
+Your `func_802edd00` differs from this example in three ways, each a layer
+you've already met:
 
-- It scans a **flat** `int` array of length `n` (one index each, `a[i]` and
-  `a[j]` — `slwi`+`lwzx`, no `mullw` for the address).
-- The inner loop is **triangular with a shifted start**: it begins at `j = i + 1`
-  rather than 0 (look for the `addi` that seeds the inner counter from the outer
-  one), so every unordered pair is visited exactly once.
+- It scans a **flat** `int` array of length `n` — one index each, `a[i]` and
+  `a[j]`, so `slwi`+`lwzx` with no `mullw` for the address.
+- The inner loop is **triangular with a shifted start**: it begins at
+  `j = i + 1` rather than 0 (look for the `addi` that seeds the inner counter
+  from the outer one), so every unordered pair is visited exactly once.
 - The conditional updates a simple **counter** (`addi`), not a stored value.
 
-Trace the compare between the two loaded elements and which way the `ble-` falls
-to recover the condition being counted.
+Trace the compare between the two loaded elements and which way the `ble-`
+falls to recover the condition being counted.
 
 ## Your task
 
-Write `func_802edd00`, returning the number of pairs `(i, j)` with `i < j < n` and
-`a[i] > a[j]` (the inversion count of `a`).
+Write `func_802edd00` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

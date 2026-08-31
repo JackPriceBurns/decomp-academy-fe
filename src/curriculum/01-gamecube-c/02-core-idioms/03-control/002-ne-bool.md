@@ -16,8 +16,8 @@ hints:
 # Inequality flips the recipe
 
 Last lesson, equality used `cntlzw` to spot a zero result. Inequality wants the
-opposite, a non-zero result, and it needs its own trick to get there. MWCC
-subtracts the two inputs *both ways round*, ORs the pair, and then keeps only the
+opposite — a non-zero result — and needs its own trick to get there. MWCC
+subtracts the two inputs *both ways round*, ORs the pair, then keeps only the
 top bit of what comes out.
 
 ```asm
@@ -28,13 +28,12 @@ srwi r3, r0, 31    # pull bit 31 down to 0/1
 blr
 ```
 
-Why both directions? Because that pair of subtractions guarantees bit 31 is set
-the moment the inputs differ. At least one of the two will overflow into that
+Why both directions? Because the pair guarantees bit 31 is set the moment the
+inputs differ — at least one of the two subtractions will overflow into that
 bit. When the inputs match, both differences are zero and so is the OR. The
-closing `srwi r3, r0, 31` then drags bit 31 down to a tidy `0` or `1`. A corner
-case still behaves: if one difference wraps to `INT_MIN`, the other wraps to
-`INT_MIN` as well, the OR stays `INT_MIN`, bit 31 stays lit, and the answer
-holds.
+closing `srwi r3, r0, 31` drags bit 31 down to a tidy `0` or `1`. A corner case
+still behaves: if one difference wraps to `INT_MIN`, the other wraps to
+`INT_MIN` too, the OR stays `INT_MIN`, bit 31 stays lit, and the answer holds.
 
 ## Your task
 

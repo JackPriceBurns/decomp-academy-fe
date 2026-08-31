@@ -16,13 +16,13 @@ hints:
 
 # Chaining off a multiply
 
-`mullw rD, rA, rB` is *multiply low word*. It computes `rA * rB` and keeps the
-lower 32 bits, which is what a C `int` multiply means. The operands aren't
-reversed the way `subf`'s are, so what you read is what you get.
+`mullw rD, rA, rB` is *multiply low word*: it computes `rA * rB` and keeps the
+lower 32 bits, which is all a C `int` multiply means. The operands aren't
+reversed the way `subf`'s are — what you read is what you get.
 
-Most of the time a multiply isn't the whole story; something consumes its result.
-That gives the familiar chain: `mullw` writes a scratch register and the next
-instruction reads it.
+Most of the time a multiply isn't the whole story; something consumes its
+result. That gives the familiar chain: `mullw` writes a scratch register and
+the next instruction reads it.
 
 Take `scale_offset(p, q, r)` — multiply two arguments, then subtract the third:
 
@@ -33,12 +33,12 @@ blr
 ```
 
 The product lands in `r0`, and `subf` treats `r0` as the minuend before
-subtracting `r5`. (Watch out, `subf rD, rA, rB` computes `rB − rA`, which is why
+subtracting `r5`. (Remember, `subf rD, rA, rB` computes `rB − rA`, which is why
 `subf r3, r5, r0` yields `r0 − r5`.)
 
 Your target keeps the `mullw` but follows it with something other than a
-subtract. Decide what value the multiply hands off, then read what the second
-instruction does to it.
+subtract. Figure out what value the multiply hands off, then read what the
+second instruction does with it.
 
 ## Your task
 

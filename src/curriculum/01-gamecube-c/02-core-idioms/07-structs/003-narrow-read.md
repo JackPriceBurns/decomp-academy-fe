@@ -15,17 +15,19 @@ hints:
 
 # The field's type picks the load
 
-A field's C type fixes its size and its load instruction. The narrow unsigned types
-are the interesting case. An unsigned byte (`u8`) zero-extends through `lbz` (load
-byte zero-extend); a `u16` does the same through `lhz` (load halfword zero-extend).
-The offset pins the position; the mnemonic encodes width and signedness.
+A field's C type fixes its size and its load instruction. The narrow unsigned
+types are the interesting case: an unsigned byte (`u8`) zero-extends through
+`lbz` (load byte zero-extend); a `u16` does the same through `lhz` (load
+halfword zero-extend). The offset pins the position; the mnemonic encodes width
+and signedness.
 
-Treat each mnemonic as evidence. An `lbz` at some offset says the field is a `u8`;
-an `lhz` says `u16`; neither is a plain `int`. One trap: don't model an unsigned
-byte as `char`. Its signedness is implementation-defined, so the compiler may add a
-stray `extsb` after the load.
+Treat each mnemonic as evidence. An `lbz` at some offset says the field is a
+`u8`; an `lhz` says `u16`; neither is a plain `int`. One trap: don't model an
+unsigned byte as `char` — in MWCC `char` is signed, so the compiler may tack a
+stray `extsb` onto the load.
 
-The snippet below reads the third byte field of the `Color` struct, at offset 2:
+The snippet below reads the third byte field of the `Color` struct, at offset
+2:
 
 ```c
 typedef struct { u8 r; u8 g; u8 b; u8 a; } Color;
@@ -45,7 +47,7 @@ reading to the target assembly to see which field its offset names.
 
 ## Your task
 
-With the `Color` struct above, write `func_802102e0` to match the target.
+Using the `Color` struct provided, write `func_802102e0` to match the target.
 
 <!-- solution -->
 ```c

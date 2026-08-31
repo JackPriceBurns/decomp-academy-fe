@@ -16,14 +16,15 @@ hints:
 
 # Two bytes, shift by one — and sign matters
 
-A `u16`/`s16` is two bytes, so the byte address of element `i` is `base + i*2`.
-The compiler encodes that scale as `slwi` by 1 (left shift = multiply by 2). The
-load that follows fetches two bytes at the computed address.
+A `u16`/`s16` is two bytes, so the byte address of element `i` is
+`base + i*2`. The compiler encodes that scale as `slwi` by 1 (left shift =
+multiply by 2). The load that follows fetches two bytes at the computed
+address.
 
-Two halfword load instructions exist for indexed addressing: `lhzx` (load halfword
-zero-extend indexed) and `lhax` (load halfword algebraic indexed). They differ only
-in the upper bits: `lhzx` fills them with zeros (unsigned), `lhax` replicates the
-sign bit (signed).
+Two halfword load instructions exist for indexed addressing: `lhzx` (load
+halfword zero-extend indexed) and `lhax` (load halfword algebraic indexed).
+They differ only in the upper bits: `lhzx` fills them with zeros (unsigned),
+`lhax` replicates the sign bit (signed).
 
 Here's loading from an unsigned `u16` array:
 
@@ -39,9 +40,9 @@ lhzx    r3,r3,r0    # zero-extend load at arr[idx]
 blr
 ```
 
-The shift of 1 in `slwi` tells you the element size is 2 bytes. The `z` vs `a` in
-the load mnemonic tells you unsigned vs signed. Notice how the mnemonic changes
-when the pointer type is `s16*` instead of `u16*`.
+The shift of 1 in `slwi` tells you the element size is 2 bytes. The `z` vs `a`
+in the load mnemonic tells you unsigned vs signed. Notice how the mnemonic
+changes when the pointer type is `s16*` instead of `u16*`.
 
 ## Your task
 

@@ -35,9 +35,9 @@ the other — the two `li` constants give you the two possible return values.
 This lesson is one half of a pair; the next swaps the types to unsigned and
 watches the opcode change.
 
-To reconstruct the C: figure out which condition causes the `bgelr-` to fire
-(it exits early when that condition holds), then match the `li` values to the
-two arms.
+To reconstruct the C: work out which condition makes the `bgelr-` fire (it
+exits early when that condition holds), then match the `li` values to the two
+arms.
 
 ## Your task
 

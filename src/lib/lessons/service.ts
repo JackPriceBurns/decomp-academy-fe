@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { Instruction } from "@/lib/asm";
-import { API_URL, COMPILER_URL } from "@/lib/api-url";
-import { getLesson } from "./registry";
+import { API_URL, COMPILER_URL, IDO53_COMPILER_URL } from "@/lib/api-url";
+import { COURSE_BY_ID, getLesson } from "./registry";
 import { LessonSource } from "./types";
 import { postJson } from "./remote";
 
@@ -15,8 +15,14 @@ interface CachedTarget {
 }
 const targetCache = new Map<string, CachedTarget>();
 
+function compilerUrlForCourse(course: string): string {
+  return COURSE_BY_ID.get(course)?.grader === "remote-ido53" ? IDO53_COMPILER_URL : COMPILER_URL;
+}
+
 function targetKey(l: LessonSource): string {
   const h = createHash("sha1");
+  h.update(l.course);
+  h.update("\0");
   h.update(l.solution);
   h.update("\0");
   h.update(l.context || "");
@@ -48,7 +54,7 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
 
   // Ask the unified compile service for the authoritative target.
   try {
-    const d = await postJson<CompileResponse>(`${COMPILER_URL}/target`, {
+    const d = await postJson<CompileResponse>(`${compilerUrlForCourse(l.course)}/target`, {
       solution: l.solution,
       symbol: l.symbol,
       context: l.context,
@@ -56,7 +62,9 @@ export async function getTarget(l: LessonSource): Promise<TargetResult> {
       peephole: l.peephole,
       schedule: l.schedule,
     });
-    if (!d?.ok) return { ok: false, error: d?.error || "Compile service error." };
+    if (!d?.ok) {
+      return { ok: false, error: d?.compileError || d?.error || "Compile service error." };
+    }
     if (!d.objBase64) {
       return { ok: false, error: "Compile service returned no target object file." };
     }
@@ -99,7 +107,7 @@ export async function checkLesson(
   // no concept of lessons — the per-lesson stat is recorded separately against
   // the main API below, once we know whether the code built.
   try {
-    const d = await postJson<CompileResponse>(`${COMPILER_URL}/check`, {
+    const d = await postJson<CompileResponse>(`${compilerUrlForCourse(course)}/check`, {
       code,
       symbol: lesson.symbol,
       context: lesson.hideContext ? undefined : lesson.context,

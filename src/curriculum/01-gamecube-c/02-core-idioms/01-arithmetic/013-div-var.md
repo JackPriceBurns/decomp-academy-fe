@@ -16,8 +16,8 @@ hints:
 # When it really is a divide
 
 When the divisor is a *variable*, none of the constant-divisor tricks apply —
-not the power-of-two shift, not the reciprocal multiply. The compiler falls back
-on real hardware division, **`divw rD, rA, rB`** (signed divide word):
+not the power-of-two shift, not the reciprocal multiply. The compiler falls
+back on real hardware division, **`divw rD, rA, rB`** (signed divide word):
 
 ```asm
 divw r3, r3, r4
@@ -25,8 +25,8 @@ blr
 ```
 
 Swap to unsigned operands and you'd get `divwu` instead. Nothing in the source
-picks between them except the C types, which is one more case of *types decide
-the instruction*.
+picks between them except the C types — one more case of *types decide the
+instruction*.
 
 ## Your task
 

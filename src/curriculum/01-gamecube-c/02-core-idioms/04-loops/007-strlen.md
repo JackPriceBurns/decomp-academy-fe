@@ -17,9 +17,9 @@ hints:
 # No counter, just a moving pointer
 
 This one threw me the first time, because there's nothing to count. The loop
-just walks a pointer until it meets a **sentinel**, here the `'\0'` ending a C
-string. No loop variable anywhere. `r3` is the loop itself, and each turn loads a
-byte with `lbz` (load byte, zero-extended), checks it, and steps on.
+just walks a pointer until it meets a **sentinel** — here the `'\0'` ending a C
+string. No loop variable anywhere: `r3` is the loop itself, and each turn loads
+a byte with `lbz` (load byte, zero-extended), checks it, and steps on.
 
 ```asm
 li   r4, 0          # counter = 0
@@ -35,19 +35,18 @@ mr   r3, r4
 blr
 ```
 
-Two snags that bit me. The load is `lbz` only because the data is a `u8`. The
-compare is `cmplwi` only because that `u8` is unsigned. Type the pointer `u8*`
-rather than `char*` and the load comes out clean.
+Two snags that bit me. The load is `lbz` only because the data is a `u8`, and
+the compare is `cmplwi` only because that `u8` is unsigned. Type the pointer
+`u8*` rather than `char*` and the load comes out clean.
 
-That `u8` is the project's own unsigned byte, just `typedef unsigned char u8;` in
-a shared header — the `u8`/`u16`/`u32` style nearly every GC decomp uses. Pick
-`char` instead and you'd get a sign-extending load and slightly different asm, so
-I always match the type the target was built with.
+That `u8` is the project's own unsigned byte — just `typedef unsigned char u8;`
+in a shared header, the `u8`/`u16`/`u32` style nearly every GC decomp uses.
+Pick `char` instead and you'd get a sign-extending load and slightly different
+asm, so I always match the type the target was built with.
 
 ## Your task
 
-Write `func_800fd138`, counting bytes until the zero terminator (a from-scratch `strlen`).
-`p` is a `u8*`.
+Write `func_800fd138` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

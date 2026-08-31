@@ -17,12 +17,12 @@ hints:
 
 # A shift feeding an OR
 
-Chaining bitwise work means the result of one operation immediately becomes fuel
-for the next. The bread-and-butter version goes like this: you slide a value left
-to open up some room, then OR a second value down into the bits you just cleared.
+Chaining bitwise work means the result of one operation immediately becomes
+fuel for the next. The bread-and-butter version: slide a value left to open up
+some room, then OR a second value down into the bits you just cleared.
 
-`make_word(hi, lo)` is a fine example. It pushes the high part up by 16 and drops
-the low part in underneath it.
+`make_word(hi, lo)` is a fine example — it pushes the high part up by 16 and
+drops the low part in underneath it.
 
 ```asm
 slwi    r0,r3,16
@@ -30,17 +30,17 @@ or      r3,r0,r4
 blr
 ```
 
-`slwi r0, r3, 16` shifts `r3` left by 16. Every bit climbs 16 places and the
-result parks in `r0`, leaving the bottom 16 bits of `r0` at zero. There's your
-gap. Now `or r3, r0, r4` fills it straight from `r4`, because any bit set in
-either operand still shows up in `r3`.
+`slwi r0, r3, 16` shifts `r3` left by 16. Every bit climbs 16 places, the
+result parks in `r0`, and the bottom 16 bits of `r0` end up zero. There's your
+gap. Then `or r3, r0, r4` fills it straight from `r4`, since any bit set in
+either operand shows up in `r3`.
 
-Two instructions, sure, but one idea. The `slwi` output only has to stay alive
-for a single cycle before `or` eats it.
+Two instructions, one idea. The `slwi` output only has to stay alive for a
+single beat before `or` eats it.
 
 Your target unpacks the same way: the `slwi` amount is how far the high value
-travels, and the two `or` operands tell you which register is carrying which
-half, which between them is enough to write the C.
+travels, and the two `or` operands tell you which register carries which half —
+enough between them to write the C.
 
 ## Your task
 

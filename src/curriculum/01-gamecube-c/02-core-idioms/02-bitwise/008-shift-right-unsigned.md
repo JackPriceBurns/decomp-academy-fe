@@ -17,21 +17,21 @@ hints:
 
 # `srwi` — shift right, fill with zeros
 
-Shift an *unsigned* value rightward and you get a *logical* shift. The bits slide
-toward the low end and zeros pour in to fill the gap up top. MWCC handles it with
-`rlwinm`, which prints as the extended mnemonic `srwi`. Here's an unsigned value
-shifted right by 5:
+Shift an *unsigned* value rightward and you get a *logical* shift: the bits
+slide toward the low end and zeros pour in to fill the gap up top. MWCC handles
+it with `rlwinm`, which prints as the extended mnemonic `srwi`. Here's an
+unsigned value shifted right by 5:
 
 ```asm
 srwi    r3,r3,5
 blr
 ```
 
-The type is doing the work here. Since `x` is `u32`, the compiler knows fresh
-zeros belong in the top bits, and a single masked rotate covers that. `srwi r3,
-r3, 5` is `rlwinm r3, r3, 27, 5, 31` underneath. Make `x` signed and the story
-changes; the vacated bits would copy the sign bit, which calls for a wholly
-different instruction, the subject of the next lesson.
+The type is doing the work here. Because `x` is `u32`, the compiler knows fresh
+zeros belong in the top bits, and a single masked rotate covers that.
+`srwi r3, r3, 5` is `rlwinm r3, r3, 27, 5, 31` underneath. Make `x` signed and
+the story changes — the vacated bits would copy the sign bit, which calls for a
+wholly different instruction. That's the next lesson.
 
 Read the shift amount off the target `srwi`, keep the type `u32`, and the same
 instruction comes out.

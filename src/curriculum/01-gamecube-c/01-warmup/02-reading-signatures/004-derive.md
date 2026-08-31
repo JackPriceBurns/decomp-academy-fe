@@ -16,10 +16,10 @@ hints:
 
 # Mind the gap
 
-Same idea, but now the function actually *does* something with its arguments
-instead of handing one straight back. The counting rule doesn't change: find the
-highest argument register named in the instruction, and that's how many parameters
-there are — gaps and all.
+Same idea, except now the function actually *does* something with its arguments
+instead of handing one straight back. The counting rule doesn't change: find
+the highest argument register the instruction names, and that's how many
+parameters there are — gaps and all.
 
 Say an `add` takes its two sources from `r3` and `r6`:
 
@@ -29,8 +29,9 @@ blr
 ```
 
 `r3` is the 1st argument and `r6` is the 4th, so there are four parameters. The
-two in between, `r4` and `r5`, arrive and are ignored — but you still have to
-declare them, or the value you need would never land in `r6` to begin with:
+two in between, `r4` and `r5`, arrive and get ignored — but you still have to
+declare them, or the value you need would never land in `r6` in the first
+place:
 
 ```c
 int edge(int a, int b, int c, int d) {

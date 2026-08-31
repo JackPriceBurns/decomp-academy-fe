@@ -15,14 +15,15 @@ hints:
 
 # When the idioms stack up
 
-Real code rarely hands you one operation at a time. An affine expression is a
-good example: it multiplies by a power of two and then adds a constant, so it's
-two of this chapter's idioms back to back. The compiler encodes each one cheaply:
-a shift for the multiply and an immediate add for the constant.
+Real code rarely hands you one operation at a time. Take an affine expression:
+it multiplies by a power of two and then adds a constant — two of this
+chapter's idioms back to back. The compiler encodes each one cheaply: a shift
+for the multiply, an immediate add for the constant.
 
-Decoding runs the other way, and it's mechanical. Count how many places the value
-shifts left and that's the power of two — a shift by 3 means a multiply by 8.
-Whatever number is on the `addi` is the constant. So `n * 8 + 3` becomes:
+Decoding runs the other way, and it's mechanical. Count how many places the
+value shifts left and that's the power of two — a shift by 3 means a multiply
+by 8. Whatever number sits on the `addi` is the constant. So `n * 8 + 3`
+becomes:
 
 ```asm
 slwi r3, r3, 3    # left-shift by 3  →  n * 8

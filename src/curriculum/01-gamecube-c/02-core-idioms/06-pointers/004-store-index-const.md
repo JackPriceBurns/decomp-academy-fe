@@ -16,8 +16,8 @@ hints:
 # Displacement stores
 
 Writing at a constant index is the same idea as loading, just in reverse. The
-compiler knows the index up front, multiplies by element size, and bakes the offset
-into `stw`. No runtime add.
+compiler knows the index up front, multiplies by the element size, and bakes
+the offset into `stw`. No runtime add.
 
 Here, the function pokes element five:
 
@@ -32,15 +32,15 @@ stw  r4, 16(r3)   # write v to p + 16 bytes
 blr
 ```
 
-An `int` is 4 bytes. Index 4 times 4 is 16. Read it backward: an `stw` offset of 16
-through an `int*` means index 4, the fifth slot.
+An `int` is 4 bytes; index 4 times 4 is 16. Read it backward: an `stw` offset
+of 16 through an `int*` means index 4, the fifth slot.
 
-The tell is a non-zero constant displacement that's an exact multiple of the element
-size. When you see that, the C almost certainly indexed an array or touched a struct
-field. Divide it out and the index falls out.
+The tell is a non-zero constant displacement that's an exact multiple of the
+element size. When you see that, the C almost certainly indexed an array or
+touched a struct field. Divide it out and the index falls out.
 
-Now check `func_8027cb5c`. What displacement is on its `stw`, and what index does
-that work out to?
+Now check `func_8027cb5c`. What displacement is on its `stw`, and what index
+does that work out to?
 
 ## Your task
 

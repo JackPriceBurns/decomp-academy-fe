@@ -19,13 +19,13 @@ hints:
 
 Up to now control has only flowed downhill toward `blr`. A loop bends that line
 back on itself with a single **branch that jumps backwards**, letting the same
-instructions run more than once. Watch how MWCC threads a `for` loop. You enter
+instructions run more than once. Watch how MWCC threads a `for` loop: you enter
 at a `b` that skips ahead to the comparison; the comparison decides whether any
 work remains, and when it passes, control drops into the body. The body runs,
 bumps the counter, and lands back on that same comparison. The test is reached
 first, so the body can run zero times when the count begins empty. The loop is
-**pre-tested**; the jump-first wiring just makes it behave that way even though
-the compare physically sits at the bottom.
+**pre-tested** — the jump-first wiring just makes it behave that way even
+though the compare physically sits at the bottom.
 
 Take `squares(n)`, which totals the integers from 1 up through `n`:
 
@@ -43,22 +43,22 @@ mr   r3, r0         # return s
 blr
 ```
 
-The counter driving all this, `i` over in `r4`, is the loop's **induction
-variable**. And notice where the test lands, down at the bottom, reached first by
-way of that leading `b`, which is exactly why an `n` under 1 leaves the body
-untouched. Your own `func_802badb0` counts from 0 rather than 1 and quits one short of `n`
-instead of including it, so its starting value and its test won't match the ones
-here.
+The counter driving all this — `i`, over in `r4` — is the loop's **induction
+variable**. And notice where the test lands: at the bottom, reached first by
+way of that leading `b`. That's exactly why an `n` under 1 leaves the body
+untouched. Your own `func_802badb0` counts from 0 rather than 1 and quits one
+short of `n` instead of including it, so its starting value and its test won't
+match the ones here.
 
-> **A note on optimization.** Turn the dial up to the project's real `-O4,p` and
-> MWCC *unrolls* this little sum into a sprawling pipelined mess, having figured
-> out the trip count in advance. To keep the skeleton legible, we back the
-> optimizer off by one notch with `#pragma optimization_level 1`. Don't drop that
-> pragma; it's genuinely part of the target.
+> **A note on optimization.** Turn the dial up to the project's real `-O4,p`
+> and MWCC *unrolls* this little sum into a sprawling pipelined mess, having
+> figured out the trip count in advance. To keep the skeleton legible, we back
+> the optimizer off by one notch with `#pragma optimization_level 1`. Don't
+> drop that pragma — it's genuinely part of the target.
 
 ## Your task
 
-Write `func_802badb0`, returning the sum `0 + 1 + ... + (n-1)`.
+Write `func_802badb0` to reproduce the target assembly.
 
 <!-- starter -->
 ```c

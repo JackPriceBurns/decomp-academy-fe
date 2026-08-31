@@ -24,9 +24,9 @@ fadd f1, f1, f2    # f1 = a + b, double precision
 blr
 ```
 
-`fadd`/`fmul`/`fsub`/`fdiv` handle doubles; `fadds`/`fmuls`/`fsubs`/`fdivs` handle
-singles. One letter pins down the operand type. That little difference is gold when
-rebuilding the original C declarations from disassembly.
+`fadd`/`fmul`/`fsub`/`fdiv` handle doubles; `fadds`/`fmuls`/`fsubs`/`fdivs`
+handle singles. One letter pins down the operand type. That little difference
+is gold when you're rebuilding the original C declarations from a disassembly.
 
 ## Your task
 

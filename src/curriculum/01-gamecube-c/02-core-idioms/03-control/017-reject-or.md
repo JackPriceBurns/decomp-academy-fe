@@ -18,10 +18,10 @@ hints:
 
 # The complement: || rejects
 
-Where a range *accepts* what's inside with `&&`, the complement *rejects* what's
-outside with `||`. Write `x < lo || x > hi` and it's true the moment the value
-escapes either bound, so the first half to hold settles the whole thing. That's
-the spot where `||` short-circuits. And keep an eye on the two compares here,
+Where a range *accepts* what's inside with `&&`, the complement *rejects*
+what's outside with `||`. Write `x < lo || x > hi` and it's true the moment the
+value escapes either bound, so the first half to hold settles the whole thing —
+that's where `||` short-circuits. And keep an eye on the two compares here,
 because they don't even have to share a form.
 
 Take `rejected(x, lo)`, true when `x` dips below a *variable* floor or climbs
@@ -41,20 +41,19 @@ blr
 ```
 
 Two registers in the first compare, so it's `cmpw`. A literal in the second, so
-it's `cmpwi`. The operand kind picks the form, same rule as the earlier compare
-lessons. Now for the `||` twist. The *first passing* test jumps off to the
-reject path, and only the final test falls through into accept. Early operands
-head for one label, the last one for the other. That lopsided shape is how you
-fingerprint an `||`.
+it's `cmpwi`. The operand kind picks the form — same rule as the earlier
+compare lessons. Now for the `||` twist: the *first passing* test jumps off to
+the reject path, and only the final test falls through into accept. Early
+operands head for one label, the last one for the other. That lopsided shape is
+how you fingerprint an `||`.
 
-Your target rejects with that same `||` skeleton, just a different pair of
-bounds. Trace which compare jumps where, and you'll pull out both conditions plus
-the value waiting on each path.
+Your target rejects with the same `||` skeleton, just a different pair of
+bounds. Trace which compare jumps where, and you'll pull out both conditions
+plus the value waiting on each path.
 
 ## Your task
 
-Write `func_80357688` to reproduce the
-assembly above.
+Write `func_80357688` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

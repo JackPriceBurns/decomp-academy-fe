@@ -19,13 +19,13 @@ hints:
 
 # `for` and `while` compile identically
 
-A `for` loop is pure syntactic sugar. Once you hoist the initializer above the
-loop and drop the increment at the bottom of the body, a `for` *is* a `while`.
-The compiler erases the distinction completely — both produce the same
+A `for` loop is pure syntactic sugar. Hoist the initializer above the loop and
+drop the increment at the bottom of the body, and a `for` *is* a `while`. The
+compiler erases the distinction completely — both produce the same
 **pre-tested, bottom-branching** skeleton.
 
 Here is the `squares(n)` function from the previous lesson, now written as a
-`while` loop — notice the emitted assembly is byte-for-byte identical:
+`while` loop. The emitted assembly is byte-for-byte identical:
 
 ```asm
 # squares(int n): sum 1 + 2 + ... + n
@@ -42,20 +42,20 @@ mr   r3, r0
 blr
 ```
 
-This is worth internalizing as a decompiler: when you see this shape you cannot
-tell from the asm alone whether the dev wrote `for` or `while`. A simple rule:
-prefer `for` when a counter is explicit, and `while` when the condition reads
-more naturally as a standalone predicate. The compiler does not care and neither
-does the diff tool — the match is identical either way.
+This is worth internalizing as a decompiler: when you see this shape, you
+cannot tell from the asm alone whether the dev wrote `for` or `while`. A
+reasonable rule of thumb — prefer `for` when a counter is explicit, `while`
+when the condition reads more naturally as a standalone predicate. The compiler
+doesn't care, and neither does the diff tool; the match is identical either
+way.
 
 > Same as before, we keep `#pragma optimization_level 1` so the loop stays
 > rolled instead of being unrolled.
 
 ## Your task
 
-Write `func_801072d8` again, but this time express it as a `while` loop. It compiles to
-the same loop skeleton as the `for` version — the test, the branch, and the body
-come out identical.
+Write `func_801072d8` to reproduce the target assembly, this time expressed as
+a `while` loop.
 
 <!-- starter -->
 ```c

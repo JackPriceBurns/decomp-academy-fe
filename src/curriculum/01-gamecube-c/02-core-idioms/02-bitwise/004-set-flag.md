@@ -19,24 +19,25 @@ hints:
 
 # The `|=` idiom for flags
 
-Game code overflows with flag words, every bit standing for some piece of state,
-*visible*, *active*, *dirty*. Setting one of those flags means OR-ing in a
-single-bit mask, and in C that almost always shows up as the compound assignment
-`x |= mask`.
+Game code overflows with flag words — every bit standing for some piece of
+state: *visible*, *active*, *dirty*. Setting one of those flags means OR-ing in
+a single-bit mask, and in C that almost always shows up as the compound
+assignment `x |= mask`.
 
-Set bit 3, the mask `0x08`, and it collapses to one `ori`:
+Set bit 3 (the mask `0x08`) and it collapses to one `ori`:
 
 ```asm
 ori  r3, r3, 8
 blr
 ```
 
-The reason `|=` works is that it leaves every *other* flag where it was; only the
-bit you aimed at moves. So when you spot a lone `ori` carrying a power-of-two
-immediate, the source behind it was almost certainly `flags |= SOME_FLAG;`.
+The reason `|=` works is that it leaves every *other* flag where it was — only
+the bit you aimed at moves. So when you spot a lone `ori` carrying a
+power-of-two immediate, the source behind it was almost certainly
+`flags |= SOME_FLAG;`.
 
-The target below sets a different flag. Work out which power of two the immediate
-stands for, then write the compound assignment that flips it on.
+The target below sets a different flag. Work out which power of two the
+immediate stands for, then write the compound assignment that flips it on.
 
 ```asm
 ori  r3, r3, 64

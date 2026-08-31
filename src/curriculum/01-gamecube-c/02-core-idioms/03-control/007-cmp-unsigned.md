@@ -17,7 +17,7 @@ hints:
 # Flip the operands to unsigned and the opcode follows
 
 Take last lesson's `if`/`else` and retype the operands as `u32`. The control
-flow stays put. The compare does not. `cmpw` gives way to **`cmplw`**, the
+flow stays put; the compare does not. `cmpw` gives way to **`cmplw`**, the
 *logical* (unsigned) word compare.
 
 ```asm
@@ -29,19 +29,19 @@ blr
 ```
 
 One line differs. `cmplw` now sits where `cmpw` sat, and the four instructions
-below it are untouched.
+around it are untouched.
 
-It all comes down to ordering. As signed bits, `0xFFFFFFFF` is just `-1`. Flip
+It all comes down to ordering. As signed bits, `0xFFFFFFFF` is just `-1`; flip
 to unsigned and that same pattern becomes the largest value the register can
-hold. Feed `u32` data into a signed compare and it sorts to the wrong end, so the
-branch fires backwards. Which compare you get is dictated by the operand types
-and nothing else. Seeing `cmplw` where your source still says `int` is the
-giveaway that the real type was unsigned. The disassembly handed you something
-the symbol names could not.
+hold. Feed `u32` data into a signed compare and it sorts to the wrong end, so
+the branch fires backwards. Which compare you get is dictated by the operand
+types and nothing else. Seeing `cmplw` where your source still says `int` is
+the giveaway that the real type was unsigned — the disassembly just told you
+something the symbol names couldn't.
 
-After the compare, nothing here is new. The type is settled by `cmplw`. As for
-the rest, `bgelr-` carries the condition while the two `li` constants are the
-values it chooses between.
+After the compare, nothing here is new. The type is settled by `cmplw`; for the
+rest, `bgelr-` carries the condition and the two `li` constants are the values
+it chooses between.
 
 ## Your task
 

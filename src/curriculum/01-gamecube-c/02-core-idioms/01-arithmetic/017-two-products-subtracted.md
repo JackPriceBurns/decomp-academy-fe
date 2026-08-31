@@ -18,12 +18,13 @@ hints:
 
 # Two products in parallel
 
-Multiplications and additions compile to a chain of arithmetic instructions. Each
-result rides into the next one through a scratch register. You've seen this with
-add/subtract chains already; the only new face here is `mullw`.
+Multiplies, adds, and subtracts all compile to the same kind of chain: each
+arithmetic instruction hands its result to the next through a scratch register.
+You've seen it with add/subtract chains already; the only new face here is
+`mullw`.
 
-Take `fused_chain(p, q, r, s)`, multiplying a pair, adding a third value, and
-subtracting the fourth:
+Take `fused_chain(p, q, r, s)` — multiply a pair, add a third value, subtract
+the fourth:
 
 ```asm
 mullw r0, r4, r5   # r0 = q * r
@@ -32,13 +33,13 @@ subf  r3, r6, r0   # r3 = r0 - s
 blr
 ```
 
-Three instructions, run in dependency order. The multiply goes first because of
-precedence. Then `add` folds in `p`, and `subf` strips off `s` at the end. The
-product feeds the sum, the sum feeds the subtraction, so the compiler never has
-to reorder anything.
+Three instructions in dependency order. The multiply goes first because of
+precedence, `add` folds in `p`, and `subf` strips off `s` at the end. The
+product feeds the sum and the sum feeds the subtraction, so the compiler never
+has to reorder anything.
 
 The target assembly is laid out differently. Walk it one instruction at a time,
-note what each computes and which registers feed it, then let the operand order
+note what each computes and which registers feed it, and let the operand order
 on the final instruction tell you how the expression goes back together.
 
 ## Your task

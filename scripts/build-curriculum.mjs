@@ -54,7 +54,8 @@ const ORDER_PREFIX = /^([0-9.]+)-/;
 // Optimisation presets the compile service accepts — a validated allow-list (the
 // API rejects free-form flags, since forwarding them was a file-read risk). A
 // lesson's frontmatter `opt` must be one of these; omitting it means the default.
-const ALLOWED_OPT = new Set(["O0", "O1", "O2,p", "O2,s", "O3,p", "O3,s", "O4,p", "O4,s"]);
+const MWCC_ALLOWED_OPT = new Set(["O0", "O1", "O2,p", "O2,s", "O3,p", "O3,s", "O4,p", "O4,s"]);
+const IDO53_ALLOWED_OPT = new Set(["O0", "O1", "O1,g2", "O2,g0", "O2,g3", "O3"]);
 // Tier/chapter folders are "<order>-<id>" (e.g. 03-real-abi, 02-globals); the id
 // is what data references. A folder prefix orders siblings *within* its parent
 // only — chapter folders restart at 01 inside each tier. The global chapter
@@ -168,6 +169,7 @@ for (const courseEntry of subdirs(root)) {
 // the same slug; a collision *within* one course is the breaking case.
 const seenSlugs = new Set();
 const seenIds = new Set();
+const courseById = new Map(courses.map((course) => [course.id, course]));
 for (const l of lessons) {
   const key = `${l.course}/${l.slug}`;
   if (seenSlugs.has(key)) {
@@ -178,12 +180,16 @@ for (const l of lessons) {
   seenSlugs.add(key);
   // The UUID id keys progress globally, so a collision would merge two lessons.
   if (seenIds.has(l.id)) {
-    throw new Error(`Duplicate lesson id "${l.id}" (${l.slug}). Lesson ids must be globally unique.`);
+    throw new Error(
+      `Duplicate lesson id "${l.id}" (${l.slug}). Lesson ids must be globally unique.`,
+    );
   }
   seenIds.add(l.id);
-  if (l.opt && !ALLOWED_OPT.has(l.opt)) {
+  const grader = courseById.get(l.course)?.grader;
+  const allowedOpt = grader === "remote-ido53" ? IDO53_ALLOWED_OPT : MWCC_ALLOWED_OPT;
+  if (l.opt && !allowedOpt.has(l.opt)) {
     throw new Error(
-      `Lesson "${l.slug}" has invalid opt "${l.opt}". Allowed: ${[...ALLOWED_OPT].join(", ")}.`,
+      `Lesson "${l.slug}" has invalid opt "${l.opt}" for grader "${grader}". Allowed: ${[...allowedOpt].join(", ")}.`,
     );
   }
 }

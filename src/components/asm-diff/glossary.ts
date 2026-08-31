@@ -11,10 +11,12 @@ type RawEntry = { Name: string; DescriptiveName: string; Usage: string; Descript
 
 export const glossaryMaps: Record<AsmDialect, Map<string, InsnDoc> | null> = {
   ppc: null,
+  mips: new Map(),
   "arm:thumb": null,
 };
 const glossaryPromises: Record<AsmDialect, Promise<Map<string, InsnDoc>> | null> = {
   ppc: null,
+  mips: Promise.resolve(glossaryMaps.mips!),
   "arm:thumb": null,
 };
 
@@ -54,6 +56,9 @@ export function lookupInsn(
 ): InsnDoc | null {
   const direct = map.get(mnemonic);
   if (direct) return direct;
+  // The N64 course can diff MIPS objects today, but does not yet ship an
+  // instruction glossary. Avoid applying PowerPC mnemonic alias rules to it.
+  if (dialect === "mips") return null;
   if (dialect === "arm:thumb") {
     return mnemonic.endsWith("s") ? (map.get(mnemonic.slice(0, -1)) ?? null) : null;
   }

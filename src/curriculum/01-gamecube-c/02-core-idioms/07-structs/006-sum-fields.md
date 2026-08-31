@@ -18,11 +18,11 @@ hints:
 
 # Two loads, then combine
 
-Up to now every function read a single field. Real code grabs a handful of fields
-off the same struct and does something with them. The assembly is straightforward:
-a load per field, all off the same base pointer, then arithmetic to fold them
-together. Since the base stays in `r3`, every `lwz` points at `r3` and just changes
-the displacement.
+Up to now every function read a single field. Real code grabs a handful of
+fields off the same struct and does something with them. The assembly is
+straightforward: a load per field, all off the same base pointer, then
+arithmetic to fold them together. Since the base stays in `r3`, every `lwz`
+points at `r3` and just changes the displacement.
 
 Take a health struct whose function works out how much health is missing:
 
@@ -43,17 +43,18 @@ blr
 
 The two `lwz`s park each field in a scratch register, and `subf` glues them:
 `subf rD, rA, rB` is `rB − rA`. To find which field a load grabbed, look at its
-offset. To find how they were combined, look at the combining instruction. The one
-gotcha is ordering: the loads come out in the order the source expression mentions
-the fields, not necessarily by offset.
+offset; to find how they were combined, look at the combining instruction. The
+one gotcha is ordering — the loads come out in the order the source expression
+mentions the fields, not necessarily by offset.
 
-Your assembly pulls the same trick on a different struct and uses a different
-operation. Pair each `lwz` displacement with a field and rebuild the arithmetic.
+Your assembly pulls the same trick on a different struct with a different
+operation. Pair each `lwz` displacement with a field and rebuild the
+arithmetic.
 
 ## Your task
 
-With the `Point` struct above, write `func_80371e38` to reproduce the assembly
-above.
+Using the `Point` struct provided, write `func_80371e38` to reproduce the
+target assembly.
 
 <!-- solution -->
 ```c

@@ -16,9 +16,9 @@ hints:
 
 # A subtract that keeps its order, mid-chain
 
-Integer `subf` flips operands; `fsubs` doesn't. It just computes `fD = fA - fB`,
-left to right. That plain ordering matters mid-chain, where you need to stay clear
-on which value is subtracted from which.
+Integer `subf` flips operands; `fsubs` doesn't. It just computes
+`fD = fA - fB`, left to right. That plain ordering matters mid-chain, where you
+need to stay clear on which value is subtracted from which.
 
 Say `delta(p, q, r)` adds the first two arguments, then takes the third away:
 
@@ -30,11 +30,11 @@ blr
 
 The running total `p + q` sits in `f0`. `fsubs` leaves it on the left, so the
 result is `(p + q) - r`, not `r - (p + q)`. Swap to `fsubs f1, f3, f0` and the
-math swaps too. Whatever order you read in the operands is the order you write in
-C.
+math swaps too. Whatever order you read in the operands is the order you write
+in C.
 
-Same shape in the target: an add feeding a subtract. Read the operand order on the
-`fsubs` and you'll know which value gets subtracted from which.
+Same shape in the target: an add feeding a subtract. Read the operand order on
+the `fsubs` and you'll know which value gets subtracted from which.
 
 ## Your task
 

@@ -67,6 +67,10 @@ export function Footer({ startHref }: Props) {
             <FooterLink href="https://github.com/macabeus/kl-eod-decomp" external>
               Klonoa: Empire of Dreams
             </FooterLink>
+
+            <FooterLink href="https://github.com/zestydevy/dinosaur-planet" external>
+              Dinosaur Planet
+            </FooterLink>
           </FooterCol>
 
           <FooterCol title="Community">
@@ -86,8 +90,8 @@ export function Footer({ startHref }: Props) {
 
         <div className="mt-10 border-t border-line/60 pt-5 text-2xs leading-relaxed text-content-ghost">
           Not affiliated with Nintendo, Rare, Retro Studios, or Bandai Namco. Star Fox Adventures,
-          Pikmin, Metroid Prime, and Klonoa are trademarks of their respective owners. Linked
-          decompilation projects are independent and community-run.
+          Pikmin, Metroid Prime, Klonoa, and Dinosaur Planet are trademarks of their respective
+          owners. Linked decompilation projects are independent and community-run.
         </div>
       </div>
     </footer>

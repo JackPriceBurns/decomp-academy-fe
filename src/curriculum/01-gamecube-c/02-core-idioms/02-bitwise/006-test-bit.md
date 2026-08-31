@@ -18,8 +18,8 @@ hints:
 # Isolating one bit
 
 To **test** a flag you AND the value with that single bit and return the result
-(zero if clear, the bit's value if set). A single contiguous bit is all
-`rlwinm` needs. For example, isolating bit 4 (the `0x10` bit) produces:
+— zero if clear, the bit's value if set. A single contiguous bit is all
+`rlwinm` needs. Isolating bit 4 (the `0x10` bit) produces:
 
 ```asm
 rlwinm  r3,r3,0,27,27
@@ -28,12 +28,12 @@ blr
 
 The rotate is 0 and the mask is one bit wide: `[27,27]` selects PPC bit 27,
 which corresponds to `0x10`. (PPC counts bits from the MSB: bit 0 is
-`0x80000000`, bit 27 is `0x10`, bit 31 is `0x1`.) This is the mirror image of the
-AND-mask lesson — a *contiguous* mask (even a one-bit one) goes through `rlwinm`,
-while a *scattered* mask like `0x12` went through `andi.`. Contiguity, not size,
-is what steers AND between the two instructions.
+`0x80000000`, bit 27 is `0x10`, bit 31 is `0x1`.) This is the mirror image of
+the AND-mask lesson — a *contiguous* mask, even a one-bit one, goes through
+`rlwinm`, while a *scattered* mask like `0x12` went through `andi.`.
+Contiguity, not size, steers AND between the two instructions.
 
-For your target assembly, read the `[MB,ME]` field to find which PPC bit is being
+For your target, read the `[MB,ME]` field to find which PPC bit is being
 isolated, convert that back to the hex value, and express it as an AND in C.
 
 ## Your task

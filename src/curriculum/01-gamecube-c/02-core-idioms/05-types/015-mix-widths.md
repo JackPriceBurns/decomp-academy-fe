@@ -18,13 +18,13 @@ hints:
 
 # Don't mix widths before you extend each side
 
-PowerPC arithmetic uses full 32-bit registers. When you add two narrow operands of
-different widths, the compiler widens each one separately before the add. The choice
-of extend is per-operand: unsigned values get zero-extension, signed values get
-sign-extension. Then a single `add` does the real work.
+PowerPC arithmetic works on full 32-bit registers. When you add two narrow
+operands of different widths, the compiler widens each one separately before
+the add. The choice of extend is per-operand: unsigned values zero-extend,
+signed values sign-extend. Then a single `add` does the real work.
 
-Take `combine(a, b)`, adding a `u16` to a `u8`. Both are unsigned, so both use masks.
-The only difference is how many bits to keep:
+Take `combine(a, b)`, adding a `u16` to a `u8`. Both are unsigned, so both use
+masks — the only difference is how many bits to keep:
 
 ```asm
 clrlwi r3, r3, 16   # a: keep low 16 bits (u16, zero-extended)
@@ -33,12 +33,12 @@ add    r3, r3, r0   # 32-bit add of the widened values
 blr
 ```
 
-Two extends, one `add`. The shift counts in the `clrlwi` instructions tell you the
-source widths: `…,16` is 16-bit, `…,24` is 8-bit.
+Two extends, one `add`. The shift counts in the `clrlwi`s tell you the source
+widths: `…,16` is 16-bit, `…,24` is 8-bit.
 
-Your target pairs an unsigned operand with a signed one, so one extend is `clrlwi`
-and the other is `extsh` or `extsb`. Look at each one to recover its width and
-signedness, then figure out how they fit together.
+Your target pairs an unsigned operand with a signed one, so one extend is
+`clrlwi` and the other is `extsh` or `extsb`. Read each one to recover its
+width and signedness, then work out how they fit together.
 
 ## Your task
 

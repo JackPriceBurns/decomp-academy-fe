@@ -16,9 +16,10 @@ hints:
 
 # Indirect calls: load, mtctr, bctrl
 
-Stash a function pointer inside a struct and you've reinvented the virtual method
-without a line of C++. Calling it takes three moves: load the pointer from the
-struct, drop it into the count register (CTR), and branch through CTR. The struct:
+Stash a function pointer inside a struct and you've reinvented the virtual
+method without a line of C++. Calling it takes three moves: load the pointer
+from the struct, drop it into the count register (CTR), and branch through CTR.
+The struct:
 
 ```c
 typedef struct Actor {
@@ -47,13 +48,14 @@ blr
 Strip away the `stwu`/`mflr`/`stw` prologue and its mirror-image epilogue — the
 usual non-leaf bookkeeping — and the real work is three instructions in the
 middle: `lwz r12, off(rX)` → `mtctr r12` → `bctrl`. See that trio and you're
-looking at an indirect call through a struct field, whether it's a vtable dispatch
-or a plain callback. Notice `a` is already in `r3`, so nothing extra happens before
-the branch.
+looking at an indirect call through a struct field, whether it's vtable
+dispatch or a plain callback. Notice `a` is already in `r3`, so nothing extra
+happens before the branch.
 
 ## Your task
 
-With `Actor` above, write `func_80323014` to reproduce the assembly above.
+Using the `Actor` struct provided, write `func_80323014` to reproduce the
+target assembly.
 
 <!-- solution -->
 ```c

@@ -13,60 +13,54 @@ concept: true
 
 # Reading a line of assembly
 
-Assembly is the code the machine runs, tidied up just enough that it isn't
-completely unreadable to a human. On this site it'll look like this:
+Assembly is the code the machine actually runs, cleaned up just enough to be
+legible. On this site it looks like this:
 
 ```asm
 0:   li     r3, 20
 4:   blr
 ```
 
-Two lines, two instructions — assembly is **one instruction per line**, and it
-runs top to bottom.
+Two lines, two instructions. Assembly is **one instruction per line**, executed
+top to bottom.
 
 ## The numbers down the left are addresses
 
-The first thing to notice: the numbers on the left don't count up 1, 2, 3. They
-jump by 4, and they're written in hex. That's because they aren't line numbers at
-all — each one is the **address** of its instruction, where that instruction sits
-in memory. It'll matter in later lessons; for now you can ignore the exact values
-and know that's what they are.
+The numbers on the left don't count 1, 2, 3 — they jump by 4, and they're in
+hex. They aren't line numbers. Each is the **address** of its instruction:
+where that instruction sits in memory. That will matter later; for now, ignore
+the values and just know what they are.
 
 ## Mnemonic and operands
 
-Every instruction is a **mnemonic** followed by zero or more **operands**.
+Every instruction is a **mnemonic** followed by zero or more **operands**. The
+mnemonic says *what the instruction does* — load, add, subtract, return. The
+operands are what it does it to.
 
-- The **mnemonic** is *what the instruction does* — load a value, add, subtract,
-  multiply, return, and so on.
-- The **operands** are the *arguments* it acts on.
+Take `li r3, 20`. The mnemonic is `li`, the operands are `r3` and `20`. `li` is
+short for **load immediate**, where "immediate" just means a constant written
+directly into the instruction. PowerPC puts the **destination** first, so the
+line reads as "put the literal `20` into `r3`."
 
-Take the first line, `li r3, 20`. The mnemonic is `li` and the operands are `r3`
-and `20`. `li` is short for **load immediate** — "immediate" just means a constant
-written straight into the instruction. By PowerPC convention the **destination**
-comes first and the value second, so this line reads as "load the literal `20`
-into `r3`."
+`r3` is a **register** — one of the small, fast slots inside the processor that
+hold the values it's working with right now. There are 32 of them, `r0` through
+`r31`. So this one instruction drops the number `20` into register `r3`.
 
-That `r3` is a **register**. Registers are the small, fast slots inside the
-processor where it keeps the values it's actively working with — there are 32 of
-them, named `r0` through `r31`. So this single instruction drops the number `20`
-into register `r3`.
+## The second line
 
-## And the second line
-
-`blr` has no operands at all. It's the **return**: it ends the function and hands
-control back to whatever called it. You'll find a `blr` at the bottom of nearly
-every function you decompile.
+`blr` has no operands at all. It's the **return**: it ends the function and
+hands control back to whatever called it. Nearly every function you decompile
+ends with one.
 
 ## You don't have to memorize them
 
-There are a lot of mnemonics, and you'll meet them a few at a time — but you don't
-need to keep them all in your head. **Hover any instruction in the diff** and a
-tooltip explains what it does, with that line's own registers and values filled in.
-Lean on it as much as you like; the common ones will stick on their own soon
-enough.
+There are a lot of mnemonics, and you'll meet them a few at a time. You don't
+need to hold them all in your head — **hover any instruction in the diff** and
+a tooltip explains it, with that line's own registers and values filled in. Use
+it as much as you want. The common ones will stick on their own soon enough.
 
 ---
 
-This is a simplification — there's far more to assembly than two instructions, and
-you'll pick the rest up a few at a time, when a lesson needs them. But it's
-enough to read your first target. Time to match your first C function.
+This is a simplification, of course. There's more to assembly than two
+instructions, and you'll pick the rest up as lessons need it. But it's enough
+to read your first target — time to match your first C function.

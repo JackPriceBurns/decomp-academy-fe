@@ -13,76 +13,64 @@ concept: true
 
 # What you download was never the source
 
-When a studio ships a game — or anyone ships a piece of software — the thing you
-download is **not** the code the developers wrote. Computers can't run that code
-directly. Before anything ships it has to be **compiled**: translated from the
-human-friendly **source code** the developers typed into the low-level
-**assembly** that the CPU actually understands and runs.
+When a studio ships a game, the thing on the disc is not the code anyone wrote.
+A CPU can't run C, so before release the source gets **compiled** — translated
+into assembly, the raw stream of instructions the hardware actually executes.
+That compiled version is all that ships. The source stays on the developers'
+machines, and most of the time it never gets released at all.
 
-Only that compiled version goes out the door. The source stays behind with the
-developers. Assembly executes perfectly well, but it's miserable to read — all
-registers and raw instructions, none of the names and structure that made the
-original make sense. If you could turn it back into source code, you'd give
-everyone who wants to understand or modify that game a way in.
-
-That's **decompilation**: taking the shipped, compiled program and working it
-back toward the source it came from.
+Assembly runs fine, but reading it is grim. No names, no structure, just
+registers and instructions. If you could work it back into something like the
+original C, anyone who wanted to understand or modify the game would have a way
+in. That's **decompilation**: taking a compiled program and recovering the
+source it was built from.
 
 # What "matching" adds
 
-Matching decompilation adds one harder constraint. Source code that is
-*functionally identical* can compile to *different* assembly — two C functions
-that behave the same may come out as different instructions.
+There's a catch. Two C functions can behave identically and still compile to
+different instructions. For most decompilation work that's fine — if your C
+does what the assembly does, you've won.
 
-For ordinary decompilation, that doesn't matter. If you've written C that does
-what the assembly does, you've won; that's usually the end of the battle.
-**Matching decompilation** takes it further. You compile your C back into
-assembly a *second* time and ask a stricter question: does it produce *exactly*
-the same assembly as the original? If it doesn't — even when the behaviour is
-identical — the job isn't done.
+Matching decompilation refuses to stop there. You compile your C with the same
+compiler the game was built with, and ask a harsher question: is the output
+*exactly* the same assembly, instruction for instruction? If it isn't, the job
+isn't finished — even when the behaviour already matches.
 
-Why hold yourself to that harder bar? Two reasons make it worth it:
+Why hold yourself to that? Two reasons:
 
-- **You get a number.** Compile your C and diff the result against the target
-  instruction by instruction, and out falls an exact percentage of how close you
-  are. Without a metric like that, "how much is left?" is hand-wavey, and
-  collaborating with other people is awkward — nobody can really tell how far
-  along a project is until it's suddenly done. With it, everyone can see exactly
-  what's finished and what isn't.
-- **You get certainty.** If your source compiles to the target assembly 100%, bit
-  for bit, you have *categorically proven* it behaves like the original. There's
-  no room left for a subtle difference to hide.
+- **You get a measurement.** Diff your compiled output against the original and
+  you get an exact percentage. At any moment, anyone can see what's done and
+  what isn't. Without that, "how far along is the project?" is a guess right up
+  until the day it's finished.
+- **You get proof.** Source that compiles to the target bit for bit *provably*
+  behaves like the original. There's nowhere left for a subtle difference to
+  hide.
 
-Matching is harder than plain decompilation, but that measurable, provable
-result is the payoff. It's also the loop you'll run here: every exercise shows
-you the target assembly, you write the C you think produced it, and
-**Compile & Check** feeds it to the genuine Metrowerks compiler the GameCube
-games were built with, then diffs the output line by line. Match all of it and
-you score **100%**.
+It's a harder discipline, but that number and that certainty are the payoff.
+It's also the loop you'll run on this site: every exercise shows you a piece of
+target assembly, you write the C you think produced it, and **Compile & Check**
+feeds your answer to the actual Metrowerks compiler GameCube games were built
+with, then diffs the output line by line. Match all of it and you score
+**100%**.
 
 # Why decompile at all?
 
-People come to this from all kinds of directions:
+People show up for different reasons. Some just want the challenge — chasing
+the 100% is its own reward. Some grew up with a game and want to give something
+back to its community. Some treat 100% as the starting line: once the source is
+recovered they can mod it, fix it, or port it to hardware it was never meant to
+run on. Speedrunners read the source to understand a glitch down to the
+instruction, then turn that knowledge into a faster run.
 
-- Some are here purely for the challenge — chasing that 100% match is the whole
-  reward.
-- Some have a beloved childhood game and want to give something back to its
-  community.
-- Some treat 100% as a *starting* line rather than a finish: once the source is
-  recovered, they'll mod it, improve it, or port it somewhere it was never meant
-  to run.
-- Speedrunners dig into the source to understand a glitch down to the instruction,
-  then exploit it for a faster any%.
-
-…and plenty of reasons besides.
+Plenty of other reasons too, but those cover most of it.
 
 # The real goal
 
-Under all of it sits one aim: to recover the C the original developers actually
-wrote, years ago, when the game was made. For *Star Fox Adventures*, that's the
-code a Rare developer sat down and wrote back in 2002.
+Underneath all of that sits one aim: recover the C the original developers
+actually wrote. For *Star Fox Adventures*, that's the code someone at Rare sat
+down and wrote in 2002.
 
-Whether you're here for the nostalgia, the grind, the mods you'll build on top,
-or the bugs you'll hunt — this site is built to get you up to speed and
-contributing to a project. Next, let's look at what that assembly actually is,
-and how to read it.
+Whatever brought you here — nostalgia, mods, bug hunting, the grind itself —
+these lessons are meant to take you from never having read assembly to
+contributing to a real project. First, though, you need to know what assembly
+even looks like. That's next.

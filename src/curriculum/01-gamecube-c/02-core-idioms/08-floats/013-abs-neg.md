@@ -17,7 +17,7 @@ hints:
 
 # Sign-bit instructions
 
-A couple of one-instruction operations close out the chapter. Floating-point
+A couple of one-instruction operations round out the basics. Floating-point
 negation is `fneg`, which flips the sign bit. Absolute value is `fabs`, which
 clears it. Each costs one instruction:
 
@@ -33,14 +33,14 @@ blr
 
 Use the single-precision intrinsic `__fabsf` and it lowers straight to `fabs`.
 
-The quirk: these two skip the `s` suffix, so even on `f32` you'll read `fabs` and
-`fneg`, never an `s`-tagged form. That breaks the single/double naming rule, and
-for good reason. Toggling a sign bit gives identical bits at single or double
-width, so there's nothing to round and no second variant.
+The quirk: these two skip the `s` suffix, so even on `f32` you'll read `fabs`
+and `fneg`, never an `s`-tagged form. That breaks the single/double naming
+rule, and for good reason — toggling a sign bit gives identical bits at single
+or double width, so there's nothing to round and no second variant.
 
-Spot the two instructions one after another and the order matters. They don't
-commute, so which runs first and which runs second changes the meaning. The C that
-lays them down follows from the disassembly.
+Spot the two instructions one after another and the order matters: they don't
+commute, so which runs first changes the meaning. The C that lays them down
+follows from the disassembly.
 
 ## Your task
 

@@ -15,16 +15,16 @@ hints:
 
 # Two loads, two stores
 
-Swapping the values behind two pointers means loading both before writing either,
-so neither store overwrites a value that hasn't been saved. MWCC issues both loads
-first, keeps the values in registers, then writes both stores — the C assignment
-order doesn't constrain it.
+Swapping the values behind two pointers means loading both before writing
+either, so neither store overwrites a value that hasn't been saved. MWCC issues
+both loads first, keeps the values in registers, then writes both stores — the
+C assignment order doesn't constrain it.
 
-One loaded value lands in `r0`. `r0` is architecturally special on PowerPC: when it
-appears as the *base* register of a load or store (like `0(r0)`), the hardware
-treats it as literal `0` instead of the register's value. The compiler therefore
-avoids using `r0` as an address base and keeps it for scratch values like this
-temporary.
+One loaded value lands in `r0`. `r0` is architecturally special on PowerPC:
+when it appears as the *base* register of a load or store (like `0(r0)`), the
+hardware treats it as the literal `0` instead of the register's value. The
+compiler therefore avoids using `r0` as an address base and keeps it for
+scratch values like this temporary.
 
 Here's the pattern for `u32` values:
 
@@ -44,9 +44,9 @@ stw     r5,0(r4)    # *b = t
 blr
 ```
 
-Both loads come before both stores. The temporary stays in `r5` across the stores;
-the other loaded value sits in `r0`. Apply this to `int*` pointers to reproduce the
-target.
+Both loads come before both stores. The temporary stays in `r5` across the
+stores; the other loaded value sits in `r0`. Apply this to `int*` pointers to
+reproduce the target.
 
 ## Your task
 

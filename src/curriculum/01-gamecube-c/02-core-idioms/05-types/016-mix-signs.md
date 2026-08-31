@@ -20,10 +20,11 @@ hints:
 
 # Signedness is decided per operand, not per expression
 
-When an expression mixes signed and unsigned values, the compiler doesn't pick one
-rule for the whole expression. It asks each operand how it wants to be widened.
-Unsigned values get a `clrlwi` mask; signed values get their sign copied up with
-`extsb` or `extsh`. Only after both are full width does the arithmetic happen.
+When an expression mixes signed and unsigned values, the compiler doesn't pick
+one rule for the whole expression — it asks each operand how it wants to be
+widened. Unsigned values get a `clrlwi` mask; signed values get their sign
+copied up with `extsb` or `extsh`. Only after both are full width does the
+arithmetic happen.
 
 Take `merge(a, b)`, adding a signed `s16` to an unsigned `u8`:
 
@@ -34,14 +35,14 @@ add    r3, r3, r0
 blr
 ```
 
-`extsh` next to `clrlwi` tells you immediately: one signed operand, one unsigned.
-Read each extend on its own. Its kind gives you the signedness, and its reach gives
-you the width — either the `clrlwi` shift count or the choice between `extsb` and
-`extsh`.
+`extsh` next to `clrlwi` tells you immediately: one signed operand, one
+unsigned. Read each extend on its own — its kind gives you the signedness, and
+its reach gives you the width, either the `clrlwi` shift count or the choice
+between `extsb` and `extsh`.
 
-Your target uses `subf` instead of `add`. Remember that `subf rD, rA, rB` computes
-`rB − rA`, so the order of operands in C determines which widened value is
-subtracted from which.
+Your target uses `subf` instead of `add`. Remember that `subf rD, rA, rB`
+computes `rB − rA`, so the order of operands in C determines which widened
+value is subtracted from which.
 
 ## Your task
 

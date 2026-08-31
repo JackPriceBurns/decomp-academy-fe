@@ -17,10 +17,10 @@ hints:
 # An explicit cast can be a whole instruction
 
 Not every cast is free. Push a wide signed value *down* into a narrower signed
-type and then let it widen back, and the value has to be squeezed through that
-narrow range, so it gets sign-extended from the cast's width on the way out.
+type and let it widen back, and the value has to squeeze through that narrow
+range — so it gets sign-extended from the cast's width on the way out.
 
-Here is a function that narrows an `int` into the range of a signed halfword:
+Here's a function that narrows an `int` into the range of a signed halfword:
 
 ```asm
 extsh r3, r3        # narrow to s16 width, sign bit re-spread
@@ -37,7 +37,7 @@ extsb r3, r3        # narrow to s8 width, sign bit re-spread
 blr
 ```
 
-A stray `extsb` or `extsh` on its own in the disassembly usually comes from an
+A stray `extsb` or `extsh` on its own in a disassembly usually comes from an
 explicit narrowing cast in the source rather than from a load.
 
 ## Your task

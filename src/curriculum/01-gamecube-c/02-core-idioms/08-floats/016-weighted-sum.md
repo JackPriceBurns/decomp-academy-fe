@@ -19,9 +19,9 @@ hints:
 # Two scaled terms, one fused add
 
 A weighted sum `a*w1 + b*w2` looks like three operations, but the compiler is
-cheaper. With `fp_contract` on, it fuses the last multiply and the add into a
-single `fmadds`, leaving one standalone `fmuls`. The weights are constants, so each
-loads from the float pool with `lfs`.
+thriftier than that. With `fp_contract` on, it fuses the last multiply and the
+add into a single `fmadds`, leaving one standalone `fmuls`. The weights are
+constants, so each loads from the float pool with `lfs`.
 
 Take `blend(p, q)`, mixing values 0.875 / 0.125:
 
@@ -33,18 +33,18 @@ fmadds f1, f3, f1, f0 # f1 = 0.125 * q + f0  =  0.875*p + 0.125*q
 blr
 ```
 
-`fmadds` is the dense one. `fmadds fD, fA, fC, fB` computes `(fA * fC) + fB`, so
-here `fA` and `fC` are the second weight times its argument, and `fB` is the
+`fmadds` is the dense one. `fmadds fD, fA, fC, fB` computes `(fA * fC) + fB`,
+so here `fA` and `fC` are the second weight times its argument, and `fB` is the
 product `fmuls` left behind. Both scaled terms and the add, packed into two
 instructions. The constants are exactly what the two `lfs` pull from the pool.
 
-Same `lfs`/`lfs`/`fmuls`/`fmadds` skeleton in the target, only the weights change.
-Pin down each loaded constant and which argument it scales.
+Same `lfs`/`lfs`/`fmuls`/`fmadds` skeleton in the target — only the weights
+change. Pin down each loaded constant and which argument it scales.
 
 ## Your task
 
-Write `func_803e24a8` to reproduce the assembly above. Write it as a plain weighted
-sum and let the compiler fuse the tail.
+Write `func_803e24a8` to reproduce the assembly above. Write it as a plain
+weighted sum and let the compiler fuse the tail.
 
 <!-- solution -->
 ```c

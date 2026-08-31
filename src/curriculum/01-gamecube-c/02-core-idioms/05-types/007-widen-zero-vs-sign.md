@@ -16,16 +16,16 @@ hints:
 # Same value, two ways to fill the top bits
 
 This split is easiest to see when the narrow value is *already in a register*
-instead of coming from a fresh load. Widening a **`u8 → u32`** zero-extends, and
-the compiler does it with a rotate-mask that disassembles to **`clrlwi`** (clear
-left word immediate). Here it clears the top 24 bits:
+instead of coming from a fresh load. Widening a **`u8 → u32`** zero-extends,
+and the compiler does it with a rotate-mask that disassembles to **`clrlwi`**
+(clear left word immediate). Here it clears the top 24 bits:
 
 ```asm
 clrlwi r3, r3, 24   # keep low 8 bits, zero the rest
 blr
 ```
 
-The signed version, a **`s8 → s32`** widen, uses **`extsb`** instead. That copies
+The signed version — a **`s8 → s32`** widen — uses **`extsb`** instead, copying
 the sign bit upward rather than masking the high bits to zero:
 
 ```asm
@@ -33,19 +33,18 @@ extsb r3, r3        # replicate bit 7 into the top 24 bits
 blr
 ```
 
-So `clrlwi r3, r3, 24` and `extsb r3, r3` do almost the same job. The only
-difference is what lands in the high bits: zeros for the unsigned case and copies
+So `clrlwi r3, r3, 24` and `extsb r3, r3` do almost the same job; the only
+difference is what lands in the high bits — zeros for the unsigned case, copies
 of the sign bit for the signed one. (This lesson is the *unsigned* one.)
 
-Watch out for the `rlwinm` alias as well. `clrlwi` is just the readable name for a
-particular rotate-mask, so `clrlwi r3, r3, 24` and `rlwinm r3, r3, 0, 24, 31` are
-the same encoding. If your disassembler prints the raw `rlwinm`, treat it as the
-`clrlwi` you expected.
+Watch out for the `rlwinm` alias as well. `clrlwi` is just the readable name
+for a particular rotate-mask, so `clrlwi r3, r3, 24` and
+`rlwinm r3, r3, 0, 24, 31` are the same encoding. If your disassembler prints
+the raw `rlwinm`, treat it as the `clrlwi` you expected.
 
 ## Your task
 
-Write `func_803a8eb8`, taking a `u8 x` and returning it as a `u32`. The unsigned widen
-should emit a single `clrlwi`.
+Write `func_803a8eb8` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

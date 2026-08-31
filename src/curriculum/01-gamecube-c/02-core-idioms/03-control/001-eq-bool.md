@@ -15,10 +15,10 @@ hints:
 
 # A comparison with no branch in sight
 
-When a function *returns* a comparison result, the output is a 0/1 integer, not a
-jump. MWCC has a slick branchless idiom for equality. It subtracts the two values
-— the difference is zero exactly when they're equal — then counts the leading
-zero bits and shifts. For example, testing whether a value equals the constant 7:
+When a function *returns* a comparison result, the output is a 0/1 integer, not
+a jump. MWCC has a slick branchless idiom for equality: subtract the two values
+(the difference is zero exactly when they're equal), count the leading zero
+bits, and shift. For example, testing whether a value equals the constant 7:
 
 ```asm
 subfic  r0,r3,7
@@ -28,20 +28,21 @@ blr
 ```
 
 The trick: `cntlzw` returns **32** only for an all-zero word, and `32 >> 5` is
-`1`; any non-zero difference counts fewer than 32 leading zeros, so `>> 5` gives
-`0`. The `subf`/`subfic` → `cntlzw` → `srwi r3, r0, 5` trio is MWCC's signature
-for a branchless equality check.
+`1`. Any non-zero difference has fewer than 32 leading zeros, so `>> 5` gives
+`0`. The `subf`/`subfic` → `cntlzw` → `srwi r3, r0, 5` trio is MWCC's
+signature for a branchless equality check.
 
-Note that `subfic` is the immediate form (subtracting a constant), while `subf`
-is the register form (subtracting two variables). The surrounding instructions are
-the same either way; only the subtraction operand changes.
+Note that `subfic` is the immediate form (subtracting a constant) and `subf` is
+the register form (subtracting two variables). The surrounding instructions are
+the same either way — only the subtraction operand changes.
 
 Your target uses the register form. Look at which registers are subtracted and
-write the equality expression using the corresponding parameters.
+write the equality expression over the corresponding parameters.
 
 ## Your task
 
-Write `func_800d5748` so it compiles to the `subf` / `cntlzw` / `srwi` idiom above.
+Write `func_800d5748` so it compiles to the `subf` / `cntlzw` / `srwi` idiom
+above.
 
 <!-- solution -->
 ```c

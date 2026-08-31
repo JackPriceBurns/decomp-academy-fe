@@ -15,9 +15,9 @@ hints:
 
 # The quirk of `subf`
 
-There is no plain `sub` on PowerPC. What you get instead is `subf`, short for
-*subtract from*, and the catch is this: `subf rD, rA, rB` computes
-`rD = rB - rA`. The operands sit in the reverse order from what your gut expects.
+PowerPC has no plain `sub`. What you get instead is `subf`, short for *subtract
+from*, and here's the catch: `subf rD, rA, rB` computes `rD = rB - rA`. The
+operands sit in the reverse order from what your gut expects.
 
 Take `subf r3, r3, r4`. Here `rA` is `r3` and `rB` is `r4`, so the answer comes
 out as `r4 - r3`:
@@ -27,8 +27,8 @@ subf r3, r3, r4   # r3 = r4 - r3
 blr
 ```
 
-Your target wires the registers up differently. Run that same `rD = rB - rA`
-formula over it and you'll land on the C expression it wants.
+Your target wires the registers up differently. Run the same `rD = rB - rA`
+formula over it and the C expression falls out.
 
 ## Your task
 

@@ -1,27 +1,40 @@
 "use client";
 
+import { Amplify } from "aws-amplify";
 import {
-  CognitoUserPool,
-  CognitoUser,
-  CognitoUserAttribute,
-  AuthenticationDetails,
-  type CognitoUserSession,
-} from "amazon-cognito-identity-js";
+  confirmResetPassword,
+  confirmSignUp,
+  fetchAuthSession,
+  resendSignUpCode,
+  resetPassword,
+  signIn,
+  signOut,
+  signUp as amplifySignUp,
+} from "aws-amplify/auth";
 
-export const userPool = new CognitoUserPool({
-  UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
-  ClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
+      userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
+      loginWith: { email: true },
+      signUpVerificationMethod: "code",
+    },
+  },
 });
 
-function user(email: string) {
-  return new CognitoUser({ Username: email, Pool: userPool });
+function authFlowError(code: string, message: string): Error & { code: string } {
+  const error = new Error(message) as Error & { code: string };
+  error.name = code;
+  error.code = code;
+  return error;
 }
 
 // Turn a Cognito error (or any of its `code`s) into a sentence we can show. The
 // raw SDK messages are mostly fine; this just smooths the few opaque ones.
 export function authMessage(err: unknown): string {
-  const e = err as { code?: string; message?: string } | undefined;
-  switch (e?.code) {
+  const e = err as { code?: string; name?: string; message?: string } | undefined;
+  switch (e?.code ?? e?.name) {
     case "UsernameExistsException":
       return "That email is already registered. Try signing in instead.";
     case "UserNotConfirmedException":
@@ -43,66 +56,76 @@ export function authMessage(err: unknown): string {
   }
 }
 
-export function signUp(email: string, password: string, name?: string): Promise<void> {
-  const attrs = name ? [new CognitoUserAttribute({ Name: "name", Value: name })] : [];
-  return new Promise((resolve, reject) => {
-    userPool.signUp(email, password, attrs, [], (err) => (err ? reject(err) : resolve()));
+export async function signUp(email: string, password: string, name?: string): Promise<void> {
+  await amplifySignUp({
+    username: email,
+    password,
+    options: {
+      userAttributes: {
+        email,
+        ...(name ? { name } : {}),
+      },
+    },
   });
 }
 
-export function confirmRegistration(email: string, code: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    user(email).confirmRegistration(code, true, (err) => (err ? reject(err) : resolve()));
+export async function confirmRegistration(email: string, code: string): Promise<void> {
+  await confirmSignUp({
+    username: email,
+    confirmationCode: code,
+    // Match the v5 default so confirming a reused email alias behaves as before.
+    options: { forceAliasCreation: true },
   });
 }
 
-export function resendCode(email: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    user(email).resendConfirmationCode((err) => (err ? reject(err) : resolve()));
-  });
+export async function resendCode(email: string): Promise<void> {
+  await resendSignUpCode({ username: email });
 }
 
-export function login(email: string, password: string): Promise<CognitoUserSession> {
-  const details = new AuthenticationDetails({ Username: email, Password: password });
-  return new Promise((resolve, reject) => {
-    user(email).authenticateUser(details, {
-      onSuccess: (session) => resolve(session),
-      onFailure: (err) => reject(err),
-    });
-  });
+export async function login(email: string, password: string): Promise<void> {
+  const result = await signIn({ username: email, password });
+  if (result.isSignedIn) return;
+
+  switch (result.nextStep.signInStep) {
+    case "CONFIRM_SIGN_UP":
+      throw authFlowError("UserNotConfirmedException", "Your email isn't verified yet.");
+    case "RESET_PASSWORD":
+      throw authFlowError("PasswordResetRequiredException", "You need to reset your password.");
+    default:
+      throw authFlowError(
+        "UnsupportedAuthChallenge",
+        "This account requires an additional sign-in step that this app doesn't support yet.",
+      );
+  }
 }
 
-export function logout() {
-  userPool.getCurrentUser()?.signOut();
+export async function logout(): Promise<void> {
+  await signOut();
 }
 
-export function forgotPassword(email: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    user(email).forgotPassword({
-      onSuccess: () => resolve(),
-      onFailure: (err) => reject(err),
-    });
-  });
+export async function forgotPassword(email: string): Promise<void> {
+  await resetPassword({ username: email });
 }
 
-export function confirmPassword(email: string, code: string, newPassword: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    user(email).confirmPassword(code, newPassword, {
-      onSuccess: () => resolve(),
-      onFailure: (err) => reject(err),
-    });
+export async function confirmPassword(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<void> {
+  await confirmResetPassword({
+    username: email,
+    confirmationCode: code,
+    newPassword,
   });
 }
 
 // The current ID token, refreshed transparently via the stored refresh token
 // when the 60-minute ID token has expired. null when signed out.
-export function getIdToken(): Promise<string | null> {
-  return new Promise((resolve) => {
-    const current = userPool.getCurrentUser();
-    if (!current) return resolve(null);
-    current.getSession((err: Error | null, session: CognitoUserSession | null) => {
-      if (err || !session?.isValid()) return resolve(null);
-      resolve(session.getIdToken().getJwtToken());
-    });
-  });
+export async function getIdToken(): Promise<string | null> {
+  try {
+    const session = await fetchAuthSession();
+    return session.tokens?.idToken?.toString() ?? null;
+  } catch {
+    return null;
+  }
 }

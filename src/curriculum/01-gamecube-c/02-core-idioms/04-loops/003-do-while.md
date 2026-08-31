@@ -19,13 +19,13 @@ hints:
 
 Run a `do { } while ()` and the body always executes **at least once**, which
 means the compiler can skip the pre-test entirely. The leading `b test` you saw
-in the `for`/`while` shape just *disappears*. You're left with the leanest loop
-there is, body then test then a branch back, one conditional jump carrying the
-whole thing.
+in the `for`/`while` shape just *disappears*. What's left is the leanest loop
+there is — body, test, a branch back. One conditional jump carries the whole
+thing.
 
-Below, `squares(n)` sums 1 through `n` as a `do`/`while`. No pre-test branch this
-time; the body fires straight away and the compare shows up only at the very
-bottom:
+Below, `squares(n)` sums 1 through `n` as a `do`/`while`. No pre-test branch
+this time; the body fires straight away and the compare shows up only at the
+very bottom:
 
 ```asm
 li   r4, 1          # i = 1
@@ -39,24 +39,25 @@ mr   r3, r0
 blr
 ```
 
-The shape is clean enough that MWCC at full `-O4,p` leaves it rolled on its own,
-so this one needs no optimization adjustment at all. Run into a loop with **no
-pre-test branch at the top** and you're almost surely looking at a `do`/`while`,
-or at least a loop whose author knew the body would always run. Remember
-`func_8021498c` kicks its induction variable off at 0 rather than 1, which pushes
-its initializer and test away from what this example shows.
+The shape is clean enough that MWCC at full `-O4,p` leaves it rolled on its
+own, so this one needs no optimization adjustment. Run into a loop with **no
+pre-test branch at the top** and you're almost surely looking at a `do`/`while`
+— or at least a loop whose author knew the body would always run. Remember,
+`func_8021498c` kicks its induction variable off at 0 rather than 1, which
+pushes its initializer and test away from what this example shows.
 
-> **A caution on semantics.** A `do`/`while` runs its body even when the guard is
-> already false at entry. Here that's harmless luck. With `n == 0` the body runs
-> once (`s += 0`, and `i` becomes 1), `1 < 0` then fails, and we hand back 0,
-> which is right purely by accident of the arithmetic. When you actually
-> decompile, reach for `do`/`while` only once you can prove the loop is always
-> entered, often thanks to a caller-side check that keeps `n` positive. Dropping
-> the pre-test branch is never reason enough on its own.
+> **A caution on semantics.** A `do`/`while` runs its body even when the guard
+> is already false at entry. Here that's harmless luck: with `n == 0` the body
+> runs once (`s += 0`, and `i` becomes 1), `1 < 0` then fails, and we hand back
+> 0 — right purely by accident of the arithmetic. When you actually decompile,
+> reach for `do`/`while` only once you can prove the loop is always entered,
+> often thanks to a caller-side check that keeps `n` positive. Dropping the
+> pre-test branch is never reason enough on its own.
 
 ## Your task
 
-Write `func_8021498c` as a `do`/`while` loop. Assume the body always runs at least once.
+Write `func_8021498c` to reproduce the target assembly, expressed as a
+`do`/`while` loop.
 
 <!-- solution -->
 ```c

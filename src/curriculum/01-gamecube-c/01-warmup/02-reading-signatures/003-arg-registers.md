@@ -17,13 +17,13 @@ hints:
 
 # Your first one from scratch
 
-No starter this time — just an empty editor and the name `func_800b3834` up in the
-header. Everything else comes from the target.
+No starter this time — an empty editor, and `func_800b3834` up in the header.
+Everything else comes from the target.
 
-Look at it: a single `mr` into `r3`, then `blr`. `mr` ("move register") copies one
-register straight into another, and `r3` is the return register — so this function
-takes one of its arguments and hands it right back, untouched. The only thing left
-to work out is *which* argument.
+Look at it: a single `mr` into `r3`, then `blr`. `mr` ("move register") copies
+one register into another, and `r3` is the return register — so this function
+takes one of its arguments and hands it back untouched. The only thing left to
+work out is *which* one.
 
 That's pure register-counting. Take a function whose body is:
 
@@ -32,9 +32,9 @@ mr   r3, r5
 blr
 ```
 
-`r5` is the **3rd** argument register, so this returns its third parameter. And
-because the value it wants lives in `r5`, there must be a first and second
-argument sitting ahead of it — so the signature has three parameters, not one:
+`r5` is the **3rd** argument register, so this returns the third parameter. And
+since the value it wants lives in `r5`, there must be a first and second
+argument ahead of it — the signature has three parameters, not one:
 
 ```c
 int third(int a, int b, int c) {
@@ -43,8 +43,8 @@ int third(int a, int b, int c) {
 ```
 
 Now read your own target the same way. Which register does its `mr` copy from?
-Count from `r3`, and that tells you both how many arguments to declare and which
-one to return.
+Count from `r3`, and that tells you both how many arguments to declare and
+which one to return.
 
 ## Your task
 

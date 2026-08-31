@@ -15,14 +15,15 @@ hints:
 
 # Scale of one
 
-(`u8` is the GameCube SDK's name for `unsigned char`, spelled `typedef unsigned
-char u8;` in the headers. You'll see it constantly. Its siblings are `s8` for
-signed, then `u16`/`s16` and `u32`/`s32` for wider sizes.)
+(`u8` is the GameCube SDK's name for `unsigned char`, spelled
+`typedef unsigned char u8;` in the headers. You'll see it constantly. Its
+siblings are `s8` for signed, then `u16`/`s16` and `u32`/`s32` for wider
+sizes.)
 
 Last lesson the variable index got an `slwi` to scale it, with shift amount
-`log2(sizeof(T))`. A `u8` is one byte, though. `log2(1)` is 0, a zero shift does
-nothing, so the compiler drops it. The raw index register feeds the indexed load
-with no scaling in between.
+`log2(sizeof(T))`. A `u8` is one byte, though: `log2(1)` is 0, a zero shift
+does nothing, so the compiler drops it. The raw index register feeds the
+indexed load with no scaling in between.
 
 Here's a write through a `u8` pointer at a variable index:
 
@@ -37,14 +38,14 @@ stbx  r5, r3, r4  # store byte v at p + i
 blr
 ```
 
-No `slwi` before `stbx`, since `i * 1` is `i`. `stbx` and `lbzx` behave identically:
-two registers, no scaling.
+No `slwi` before `stbx`, since `i * 1` is `i`. `stbx` and `lbzx` behave
+identically: two registers, no scaling.
 
-There's a signedness tell hiding in `lbzx` too. It zero-extends the byte into the
-full register, which is what an unsigned `u8` wants. A lone `lbzx` with nothing
-after it usually means the source was unsigned. If you see `extsb` right after it,
-the byte was signed — a `char` or `s8` being widened. That sign extend is the
-giveaway.
+There's a signedness tell hiding in `lbzx` too. It zero-extends the byte into
+the full register, which is what an unsigned `u8` wants. A lone `lbzx` with
+nothing after it usually means the source was unsigned. If you see `extsb`
+right after it, the byte was signed — a `char` or `s8` being widened. That sign
+extend is the giveaway.
 
 ## Your task
 

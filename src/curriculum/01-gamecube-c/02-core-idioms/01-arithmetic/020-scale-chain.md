@@ -19,12 +19,12 @@ hints:
 # A shift inside a mixed chain
 
 This time the constant multiply lives partway down a longer chain. A `× 2ⁿ`
-strength-reduces to `slwi`, so the opening instruction is a shift even though the
-C says multiply; everything past it is the same add/subtract threading you've
-been doing all along.
+strength-reduces to `slwi`, so the opening instruction is a shift even though
+the C says multiply. Everything past it is the same add/subtract threading
+you've been doing all along.
 
-Take `offset(p, q, r)`, scaling the first argument by a power of two, adding the
-second, and subtracting the third:
+Take `offset(p, q, r)` — scale the first argument by a power of two, add the
+second, subtract the third:
 
 ```asm
 slwi r0, r3, 5    # r0 = p << 5  =  p * 32
@@ -34,11 +34,11 @@ blr
 ```
 
 Read the `slwi` as a multiply: shifting by 5 is `× 32`. It leaves the scaled
-value in `r0`, and `add` then `subf` carry the total down to `r3`. The shift only
-looks unusual; it's the first arithmetic step and nothing more.
+value in `r0`, and `add` then `subf` carry the total down to `r3`. The shift
+only looks unusual — it's just the first arithmetic step.
 
-Same shape in your target, just a different shift amount. Turn the count back
-into its multiplier, then trace the two operations that follow.
+Same shape in your target, different shift amount. Turn the count back into its
+multiplier, then trace the two operations that follow.
 
 ## Your task
 

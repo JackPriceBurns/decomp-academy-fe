@@ -8,11 +8,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 600;
 
-// Grader kinds whose target is compiled on the server (the MWCC "remote"
-// service). Browser-only graders — e.g. "wasm-agbcc", which runs agbcc as a WASM
-// module inside the lesson workspace — have no server-side compiler, so this
-// endpoint can't verify them and must not feed them to the wrong compiler.
-const SERVER_VERIFIABLE = new Set<GraderKind>(["remote"]);
+// Grader kinds whose target is compiled by a remote service. Browser-only
+// graders — e.g. "wasm-agbcc", which runs agbcc as a WASM module inside the
+// lesson workspace — have no server-side compiler, so this endpoint can't
+// verify them and must not feed them to the wrong compiler.
+const SERVER_VERIFIABLE = new Set<GraderKind>(["remote", "remote-ido53"]);
 
 type Result = {
   id: string;
@@ -29,8 +29,10 @@ type Result = {
 // the server has no compiler for them — so they never show up as false failures.
 export async function GET() {
   const results: Result[] = new Array(LESSONS.length);
-  // Bounded concurrency so we don't spawn hundreds of compilers at once.
-  const CONCURRENCY = 6;
+  // Run sequentially: each remote grader fronts a single Lambda function, and
+  // bursts here otherwise produce transient API Gateway 503s that look like
+  // broken lesson solutions. This is a QA endpoint, so accuracy beats speed.
+  const CONCURRENCY = 1;
   let next = 0;
   async function worker() {
     while (true) {

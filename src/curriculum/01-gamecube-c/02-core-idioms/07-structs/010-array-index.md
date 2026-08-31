@@ -16,17 +16,17 @@ hints:
 # The signature idiom: index × sizeof
 
 Of all the patterns in GameCube decompilation, this is probably the one you'll
-recognize first. When the code says `a[i].field`, the compiler builds the element
-address as `base + i * sizeof(element)` and then adds the field's own offset.
-Here's the element type:
+recognize first. When the code says `a[i].field`, the compiler builds the
+element address as `base + i * sizeof(element)` and then adds the field's own
+offset. Here's the element type:
 
 ```c
 typedef struct { int x; int y; int z; } Vec3i;   // sizeof == 12
 ```
 
-Getting to an element means scaling the index by the struct size. The first field
-sits at offset 0, so once the multiply is done there's nothing left to add. An
-indexed `lwzx` reads it directly:
+Getting to an element means scaling the index by the struct size. The first
+field sits at offset 0, so once the multiply is done there's nothing left to
+add — an indexed `lwzx` reads it directly:
 
 ```asm
 mulli  r0, r4, 12   # i * sizeof(Vec3i)
@@ -34,15 +34,16 @@ lwzx   r3, r3, r0   # load field at offset 0 of &a[i]
 blr
 ```
 
-When the multiply is `mulli` and the constant isn't a power of two, you're almost
-certainly looking at an array of structs. (A power-of-two size, like 8, would get
-`slwi` instead, e.g. `slwi r0, r4, 3`.) Anytime a `mulli` or `slwi` feeds an `add`
-that feeds a load, treat the multiplier as the element's `sizeof`, and let the
-load's displacement tell you which field inside the element got read.
+When the multiply is `mulli` and the constant isn't a power of two, you're
+almost certainly looking at an array of structs. (A power-of-two size, like 8,
+would get `slwi` instead — e.g. `slwi r0, r4, 3`.) Anytime a `mulli` or `slwi`
+feeds an `add` that feeds a load, treat the multiplier as the element's
+`sizeof`, and let the load's displacement tell you which field inside the
+element got read.
 
 ## Your task
 
-With `Vec3i` above, write `func_800921bc` to match the target.
+Using the `Vec3i` struct provided, write `func_800921bc` to match the target.
 
 <!-- solution -->
 ```c

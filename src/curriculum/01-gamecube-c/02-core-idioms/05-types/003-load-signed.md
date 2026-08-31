@@ -16,10 +16,10 @@ hints:
 # Filling the top bits with the sign
 
 Read a **signed** narrow value into a 32-bit register and zeroing the top bits
-won't do, since a negative `s8` such as `-1` (`0xFF`) has to widen into
-`0xFFFFFFFF` rather than `0x000000FF`. Halfwords get their own instruction for
-that, **`lha`** (*load halfword algebraic*), which fills the high bits with the
-sign as it reads:
+won't do — a negative `s8` like `-1` (`0xFF`) has to widen into `0xFFFFFFFF`,
+not `0x000000FF`. Halfwords get their own instruction for that: **`lha`**
+(*load halfword algebraic*), which fills the high bits with the sign as it
+reads:
 
 ```asm
 lha  r3, 0(r3)   # halfword, sign-extended into r3
@@ -28,8 +28,8 @@ blr
 
 The byte case is the awkward exception, because there is **no** "load byte
 algebraic" to match it. A signed byte that needs widening comes in on `lbz` and
-then gets a separate **`extsb`** (*extend sign byte*) to clean it up, a pairing
-you'll spot any time an `s8` is widened to an `int`:
+then gets a separate **`extsb`** (*extend sign byte*) to clean it up — a
+pairing you'll spot any time an `s8` is widened to an `int`:
 
 ```asm
 lbz   r3, 0(r3)
@@ -39,8 +39,8 @@ blr
 
 ## Your task
 
-Write `func_802795b8` to return an `s16` widened to `int`. Because the result is
-used as a 32-bit `int`, the load must sign-extend.
+Write `func_802795b8` to return an `s16` widened to `int`. Because the result
+is used as a 32-bit `int`, the load must sign-extend.
 
 <!-- solution -->
 ```c

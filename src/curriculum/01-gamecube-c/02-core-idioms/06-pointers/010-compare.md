@@ -16,12 +16,12 @@ hints:
 # Equality without a branch
 
 Two pointers are equal when their addresses are the same integer. MWCC avoids a
-branch with a three-instruction idiom: subtract the addresses, count leading zeros
-of the result, then shift right.
+branch with a three-instruction idiom: subtract the addresses, count leading
+zeros of the result, then shift right.
 
-The key instruction is `cntlzw rD, rA` — count leading zeros word. It counts how
-many of the 32 bits, starting from the top, are zero. That count is 32 only when
-the input is exactly zero; for anything non-zero it's at most 31.
+The key instruction is `cntlzw rD, rA` — count leading zeros word. It counts
+how many of the 32 bits, starting from the top, are zero. That count is 32 only
+when the input is exactly zero; for anything non-zero it's at most 31.
 
 Here's the idiom applied to `u8*` pointers:
 
@@ -39,14 +39,13 @@ blr
 ```
 
 `subf rD,rA,rB` computes `rB − rA` (not `rA − rB`). After the subtract, a zero
-result means the inputs were equal. `cntlzw` turns that zero into 32, and shifting
-right by 5 maps 32 → 1 while collapsing smaller counts to 0. Recognize this
-three-instruction sequence as a branchless `==`.
+result means the inputs were equal. `cntlzw` turns that zero into 32, and
+shifting right by 5 maps 32 → 1 while collapsing smaller counts to 0. Recognize
+this three-instruction sequence as a branchless `==`.
 
 ## Your task
 
-Write `func_8005569c`, taking two `int*` and returning whether they point at the
-same address.
+Write `func_8005569c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

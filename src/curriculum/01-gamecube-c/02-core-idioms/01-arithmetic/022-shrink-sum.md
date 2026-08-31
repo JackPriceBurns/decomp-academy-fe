@@ -21,8 +21,8 @@ hints:
 The mirror of the multiply-shift: dividing an **unsigned** value by a constant
 power of two never needs `divw`. The compiler strength-reduces it to a logical
 right shift — **`srwi rD, rA, n` computes `rA >> n`, which for an unsigned `rA`
-is `rA ÷ 2ⁿ`**. (Signed division can't do this directly; that's why these are
-`u32` arguments and the instruction is `srwi`, not `srawi`.)
+is `rA ÷ 2ⁿ`**. (Signed division can't do this directly, which is why these
+arguments are `u32` and the instruction is `srwi`, not `srawi`.)
 
 Consider `ratio(p, q)`, dividing two unsigned values by different powers of two
 and subtracting:
@@ -38,9 +38,9 @@ Each `srwi` divides one argument independently, then `subf` combines them
 (`subf rD, rA, rB` is `rB − rA`). The shift *amount* is the exponent: shifting
 right by 2 divides by 4, by 3 divides by 8.
 
-The target assembly uses the same shift-as-divide idea, but with different shift
-amounts and a different combining instruction. Read each `srwi`'s count, turn it
-into a divisor, and see how the two results are joined.
+The target uses the same shift-as-divide idea with different shift amounts and
+a different combining instruction. Read each `srwi`'s count, turn it into a
+divisor, and see how the two results are joined.
 
 ## Your task
 

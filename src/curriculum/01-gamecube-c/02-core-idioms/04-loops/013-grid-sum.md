@@ -20,12 +20,12 @@ hints:
 
 # A grid in memory is one flat array
 
-Real code rarely nests loops just to multiply counters — it nests them to walk a
-**2-D array**. A `rows × cols` grid is almost always stored *flat* in row-major
-order: element `(i, j)` lives at flat offset `i * cols + j`. So the address
-arithmetic inside the inner body computes that offset, which the compiler builds
-with a `mullw` (the row part `i * cols`), an `add` (the column `j`), and then the
-familiar `slwi`+`lwzx` to scale by 4 and load.
+Real code rarely nests loops just to multiply counters — it nests them to walk
+a **2-D array**. A `rows × cols` grid is almost always stored *flat* in
+row-major order: element `(i, j)` lives at flat offset `i * cols + j`. So the
+address arithmetic inside the inner body computes that offset, and the compiler
+builds it with a `mullw` (the row part `i * cols`), an `add` (the column `j`),
+then the familiar `slwi`+`lwzx` to scale by 4 and load.
 
 Consider `gnz(a, rows, cols)`, which counts how many cells of the grid are
 non-zero:
@@ -59,20 +59,21 @@ blr
 ```
 
 The two nested skeletons are exactly the ones from the previous lesson; what's
-new is the **address computation** in the inner body. Spot the `mullw`/`add` pair
-feeding the `slwi`/`lwzx` and you've found a flattened 2-D access. The `cols`
-operand of that `mullw` is the row stride — the second dimension of the array.
+new is the **address computation** in the inner body. Spot the `mullw`/`add`
+pair feeding the `slwi`/`lwzx` and you've found a flattened 2-D access. The
+`cols` operand of that `mullw` is the row stride — the second dimension of the
+array.
 
-Your `func_8036a3f0` uses the same nested skeleton and the same flattened addressing, but
-its inner body is *simpler* than this example — no compare, no branch. Read the
-target's inner body to see what it does with each element it loads.
+Your `func_8036a3f0` uses the same nested skeleton and the same flattened
+addressing, but its inner body is *simpler* than this example — no compare, no
+branch. Read the target's inner body to see what it does with each element it
+loads.
 
 > `#pragma optimization_level 1` keeps both loops rolled.
 
 ## Your task
 
-Write `func_8036a3f0`, returning the sum of all `rows * cols` elements of the row-major
-grid `a`.
+Write `func_8036a3f0` to reproduce the target assembly.
 
 <!-- starter -->
 ```c

@@ -14,23 +14,24 @@ hints:
 
 # `mulli` for constant multiplies
 
-Multiplying by a constant has its own instruction: the **immediate** multiply
-`mulli rD, rA, imm`, with the multiplier inside the instruction itself — no
-separate load.
+Multiplying by a constant gets its own instruction: the **immediate** multiply
+`mulli rD, rA, imm`. The multiplier lives inside the instruction, so again
+there's no separate load.
 
-For example, `times6(n) = n * 6` compiles to:
+`times6(n) = n * 6` compiles to:
 
 ```asm
 mulli r3, r3, 6
 blr
 ```
 
-The immediate field *is* the constant — read it out of the instruction.
+The immediate field *is* the constant — read it straight out of the
+instruction.
 
-(One kind of constant skips `mulli`: a power of two, which the compiler turns
-into a cheaper shift instead. That's a story for a later chapter.)
+(One kind of constant skips `mulli`: powers of two. The compiler turns those
+into a cheaper shift instead, which is a story for a later chapter.)
 
-Look at the immediate on the `mulli` in the target assembly: that value is your
+Look at the immediate on the `mulli` in the target. That value is your
 multiplier.
 
 ## Your task

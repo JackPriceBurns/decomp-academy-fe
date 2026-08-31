@@ -19,11 +19,11 @@ hints:
 
 # Chaining a struct copy with another step
 
-Real functions rarely copy a struct and stop. This lesson combines two techniques
-you already know — a struct copy and a plain field write — back to back. A struct
-copy can also happen between two members of the same object:
-`obj->a = obj->b` copies one sub-struct over another, with loads and stores hanging
-off the same base pointer at different offsets.
+Real functions rarely copy a struct and stop. This lesson combines two
+techniques you already know — a struct copy and a plain field write — back to
+back. A struct copy can also happen between two members of the same object:
+`obj->a = obj->b` copies one sub-struct over another, with loads and stores
+hanging off the same base pointer at different offsets.
 
 Consider an entity that snaps its velocity back to a saved value and bumps a
 counter:
@@ -53,18 +53,18 @@ blr
 
 Two steps sit side by side. The six `lwz`/`stw` that read `origin` (offsets
 12/16/20) and write `vel` (offsets 0/4/8) are the member copy
-`p->vel = p->origin` — both halves use the single base pointer `r3` because source
-and destination live in the same object. The trailing `lwz`/`addi`/`stw` on offset
-24 is the separate field update `p->frame += 1`. Mentally split the copy block from
-the scalar tail and each piece is familiar.
+`p->vel = p->origin` — both halves use the single base pointer `r3` because
+source and destination live in the same object. The trailing
+`lwz`/`addi`/`stw` on offset 24 is the separate field update `p->frame += 1`.
+Mentally split the copy block from the scalar tail and each piece is familiar.
 
-The target does the same — a member copy followed by one scalar field update (read
-its tail carefully; the second step differs from above). Pull the two apart, then
-write both.
+The target does the same — a member copy followed by one scalar field update
+(read its tail carefully; the second step differs from above). Pull the two
+apart, then write both.
 
 ## Your task
 
-With the `Mob` struct above, write `func_803868d0` to reproduce the target
+Using the `Mob` struct provided, write `func_803868d0` to reproduce the target
 assembly.
 
 <!-- solution -->

@@ -21,12 +21,12 @@ hints:
 # Every operator in one expression
 
 This is the capstone for arithmetic chains. When `+`, `−`, `×`, and `÷` all
-appear in a single expression, the compiler still follows the same rules: it
-evaluates independent sub-expressions separately, then combines them in order of
-dependency, one instruction at a time.
+appear in a single expression, the compiler follows the same rules as always:
+evaluate independent sub-expressions separately, then combine them in
+dependency order, one instruction at a time.
 
-Consider `weighted_offset(p, q, r, s)`, multiplying two values, then dividing
-that product by a third, and finally adding a fourth:
+Consider `weighted_offset(p, q, r, s)` — multiply two values, divide the
+product by a third, and finally add a fourth:
 
 ```asm
 mullw   r0,r3,r4   # r0 = p * q
@@ -36,14 +36,14 @@ blr
 ```
 
 Here `mullw` and `divw` are *dependent* — `divw` takes its dividend from the
-`mullw` result stored in `r0`. The `add` then folds in `s` (`r6`). This is a
-strictly sequential chain: each instruction feeds the next.
+`mullw` result in `r0`. The `add` then folds in `s` (`r6`). A strictly
+sequential chain: each instruction feeds the next.
 
-The target assembly for this lesson is arranged differently. Its first two
-instructions are *independent* of each other (neither reads the other's output),
-yet a third instruction combines their results, and a fourth applies the last
-operation. Trace each register from first write to final use to reconstruct all
-four operations.
+This lesson's target is arranged differently. Its first two instructions are
+*independent* of each other — neither reads the other's output — but a third
+instruction combines their results, and a fourth applies the last operation.
+Trace each register from first write to final use to reconstruct all four
+operations.
 
 ## Your task
 

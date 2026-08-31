@@ -15,11 +15,11 @@ hints:
 
 # A mask keeps low bits in a register
 
-Now and then you narrow a value but keep it in a register, with nothing written
-out to memory, like returning only the low half of an `int`. A narrow store is no
-help there, so the compiler masks the register instead. The instruction it uses is
-a rotate-mask, which the disassembler shows as **`clrlwi`** (*clear left word
-immediate*).
+Now and then you narrow a value but keep it in a register — nothing written out
+to memory — like returning only the low half of an `int`. A narrow store is no
+help there, so the compiler masks the register instead. The instruction it uses
+is a rotate-mask, which the disassembler shows as **`clrlwi`** (*clear left
+word immediate*).
 
 Take a function that returns the low 16 bits of an `int`:
 
@@ -28,14 +28,14 @@ clrlwi r3,r3,16   # keep low 16 bits, zero the rest
 blr
 ```
 
-It is the in-register version of a truncating store. `stb` and `sth` cut a value
-down on the way to memory, and `clrlwi` cuts one down while it stays in a register.
+It's the in-register version of a truncating store. `stb` and `sth` cut a value
+down on the way to memory; `clrlwi` cuts one down while it stays in a register.
 
-The shift count tells you the mask width: the number of **high** bits the
-instruction clears.
+The shift count tells you the mask width — the number of **high** bits the
+instruction clears:
 
 ```text
-clrlwi r3, r3, 16   →  24 bits remain  →  keep low 16 bits
+clrlwi r3, r3, 16   →  16 bits remain  →  keep low 16 bits
 clrlwi r3, r3, 24   →  8 bits remain   →  keep low 8 bits
 ```
 

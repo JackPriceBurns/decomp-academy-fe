@@ -15,8 +15,8 @@ hints:
 
 # Selecting one of two values based on a comparison
 
-A ternary `cond ? x : y` picking between the *same two input registers* lowers to
-a compare, a conditional skip, and a pair of `mr` instructions that move the
+A ternary `cond ? x : y` picking between the *same two input registers* lowers
+to a compare, a conditional skip, and a pair of `mr` instructions that move the
 chosen value into the return register.
 
 ```asm
@@ -31,12 +31,12 @@ blr
 Walk the registers through it. `r3` holds `a` and `r4` holds `b` at the start.
 Skip the branch and `mr r4, r3` overwrites `r4` with `a`, which the closing
 `mr r3, r4` then carries out as the result. Take the branch and that overwrite
-never runs, leaving `b` where it already sat in `r4` to ride through to the
-merge. The second `mr` is there only so both arms can leave through one `blr`.
+never runs — `b` stays where it already sat in `r4` and rides through to the
+merge. The second `mr` exists only so both arms can leave through one `blr`.
 
-The branch mnemonic carries the rest. Work out the case that leaves `r4`
-untouched, the case that keeps `b`, and you've found which arm returns `b` versus
-`a`. The comparison the ternary needs is forced from there.
+The branch mnemonic carries the rest. Work out which case leaves `r4`
+untouched — the case that keeps `b` — and you've found which arm returns `b`
+versus `a`. The comparison the ternary needs follows from there.
 
 ## Your task
 

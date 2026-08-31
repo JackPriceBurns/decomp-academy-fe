@@ -18,15 +18,16 @@ hints:
 
 # A common byte-matching mix-up: char vs u8
 
-The thing to internalise about MWCC is that a bare **`char`** is *signed*, and it
-causes more wrong diffs than almost anything else at this level. The moment a
-`char` is *promoted* into a wider context — say an argument or an `int` return
-value — an **`extsb`** has to run first to stretch its sign across the register.
-None of that touches a **`u8`**, which is unsigned to begin with, so there is no
-sign to carry upward.
+The thing to internalise about MWCC is that a bare **`char`** is *signed*, and
+it causes more wrong diffs than almost anything else at this level. The moment
+a `char` is *promoted* into a wider context — an argument, an `int` return
+value — an **`extsb`** has to run first to stretch its sign across the
+register. None of that touches a **`u8`**, which is unsigned to begin with, so
+there's no sign to carry upward.
 
-Load a byte, pass it into a function expecting an `int`, and the difference shows
-up right away. The `char` version drags an `extsb` along in front of the call:
+Load a byte, pass it into a function expecting an `int`, and the difference
+shows up right away. The `char` version drags an `extsb` along in front of the
+call:
 
 ```asm
 lbz   r3, 0(r4)
@@ -35,7 +36,7 @@ bl    scale
 stb   r3, 0(r31)
 ```
 
-The unsigned version carries no such baggage, and the byte feeds the call as-is:
+The unsigned version carries no such baggage; the byte feeds the call as-is:
 
 ```asm
 lbz   r3, 0(r4)
@@ -43,20 +44,20 @@ bl    scale       # no extsb: u8 is already zero-extended
 stb   r3, 0(r31)
 ```
 
-Either way the trailing `stb` is already correct, since a *store* drops
-everything above the low 8 bits on its own. So `scale`'s `int` result narrows
-back through the byte pointer for nothing, and adding `& 0xFF` would only conjure
-a `clrlwi` the target was never built with.
+Either way the trailing `stb` is already correct — a *store* drops everything
+above the low 8 bits on its own. So `scale`'s `int` result narrows back through
+the byte pointer for free, and adding `& 0xFF` would only conjure a `clrlwi`
+the target was never built with.
 
-A single orphaned `extsb` in your output, one the target does not have, is nearly
-always the fingerprint of a `char` where a `u8` belonged. **For a raw byte, reach
-for `u8` rather than `char`.**
+A single orphaned `extsb` in your output, one the target doesn't have, is
+nearly always the fingerprint of a `char` where a `u8` belonged. **For a raw
+byte, reach for `u8` rather than `char`.**
 
 ## Your task
 
-Here `scale` takes an `int`. Write `func_8006bacc` so it loads `s[0]`, passes it to
-`scale`, and stores the result to `d[0]` — **with no `extsb`**. Choose your
-pointer types carefully.
+Here `scale` takes an `int`. Write `func_8006bacc` so it loads `s[0]`, passes
+it to `scale`, and stores the result to `d[0]` — **with no `extsb`**. Choose
+your pointer types carefully.
 
 <!-- starter -->
 ```c

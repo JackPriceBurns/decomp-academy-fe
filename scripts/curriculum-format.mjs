@@ -84,7 +84,7 @@ export function formatTier(tier) {
 
 /** Serialize a Course to its _course.md content. Same shape as a tier. */
 export function formatCourse(course) {
-  const fm = { title: course.title, blurb: course.blurb };
+  const fm = { title: course.title, blurb: course.blurb, grader: course.grader };
   return `---\n${YAML.stringify(fm).trimEnd()}\n---\n`;
 }
 
@@ -163,9 +163,10 @@ export function parseTierFile(raw, { id, order, course }) {
  *  folder name (NN-<id>), supplied by the caller. */
 export function parseCourseFile(raw, { id, order }) {
   const { data } = splitFrontmatter(raw);
-  if (data.grader !== "remote" && data.grader !== "wasm-agbcc") {
+  const graders = ["remote", "remote-ido53", "wasm-agbcc"];
+  if (!graders.includes(data.grader)) {
     throw new Error(
-      `Course "${id}" _course.md must set grader to "remote" or "wasm-agbcc" (got ${JSON.stringify(data.grader)})`,
+      `Course "${id}" _course.md must set grader to one of ${graders.map((grader) => JSON.stringify(grader)).join(", ")} (got ${JSON.stringify(data.grader)})`,
     );
   }
   return {

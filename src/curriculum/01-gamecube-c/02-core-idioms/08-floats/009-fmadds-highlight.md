@@ -16,9 +16,9 @@ hints:
 
 # One instruction for multiply-then-add
 
-PowerPC can multiply and add in one shot, rounding only once. It's a fused
-multiply-add. Since `fp_contract` is on here, MWCC collapses a multiply that feeds
-an add into a single `fmadds`.
+PowerPC can multiply and add in one shot, rounding only once — a fused
+multiply-add. Since `fp_contract` is on here, MWCC collapses a multiply that
+feeds an add into a single `fmadds`.
 
 Say three `f32` arguments `p`, `q`, `r` arrive in `f1`, `f2`, `f3`:
 
@@ -28,17 +28,17 @@ blr
 ```
 
 Operand order is the part that bites. `fmadds fD, fA, fC, fB` means
-`fD = (fA * fC) + fB`, so `fmadds f1, f1, f2, f3` multiplies `f1` by `f2` and adds
-`f3`. The middle two get multiplied; the last is the addend.
+`fD = (fA * fC) + fB`, so `fmadds f1, f1, f2, f3` multiplies `f1` by `f2` and
+adds `f3`. The middle two get multiplied; the last is the addend.
 
-Learn to spot this one. Split it into separate `fmuls` and `fadds` and you'll miss a
-contracted target; the reverse fails too. The double-precision twin drops the `s`
-to become `fmadd`, and the neighbors are `fmsubs` (`a*b - c`), `fnmadds`, and
-`fnmsubs`.
+Learn to spot this one. Split it into separate `fmuls` and `fadds` and you'll
+miss a contracted target; the reverse fails too. The double-precision twin
+drops the `s` to become `fmadd`, and the neighbours are `fmsubs` (`a*b - c`),
+`fnmadds`, and `fnmsubs`.
 
 Back to the target for `func_800656e8`. Its arguments sit in `f1`, `f2`, `f3`.
-Match those to `a`, `b`, `c`, walk the operand order, and you'll know which pair is
-multiplied and which value is the addend.
+Match those to `a`, `b`, `c`, walk the operand order, and you'll know which
+pair is multiplied and which value is the addend.
 
 ## Your task
 

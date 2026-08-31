@@ -16,11 +16,11 @@ hints:
 
 # Two guards, stacked
 
-One condition was enough for every lesson before this. Most real functions aren't
-that tidy. Stacking shows up everywhere, and the cleanest case to learn it on is
-a **two-sided clamp**, which pushes a value up to a floor and then trims it down
-to a ceiling. Neither test depends on the other. Lay them end to end and the
-assembly is lesson 4's clamp followed by its mirror image.
+One condition was enough for every lesson before this. Most real functions
+aren't that tidy. Stacking shows up everywhere, and the cleanest case to learn
+it on is a **two-sided clamp**, which pushes a value up to a floor and then
+trims it down to a ceiling. Neither test depends on the other. Lay them end to
+end and the assembly is the earlier clamp lesson followed by its mirror image.
 
 Take `clamp_volume(v)`, pinning a value into `[10, 50]`:
 
@@ -40,8 +40,8 @@ blr
 ```
 
 The opening compare is the floor guard. A value that arrives too low returns
-immediately through its own `blr`. After that the code can assume the value sits
-at or above the floor, leaving the second compare to worry only about the
+immediately through its own `blr`. After that the code can assume the value
+sits at or above the floor, so the second compare only has to worry about the
 ceiling. It parks the ceiling in `r0` up front, then `bgt-` decides between
 keeping that ceiling and letting the original value pass. The two `mr`s shove
 whichever value wins into `r3`.

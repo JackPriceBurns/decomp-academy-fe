@@ -16,17 +16,16 @@ hints:
 
 # Your first match
 
-You've met `li` and `blr`. Here's the one new fact that brings them together: `r3`
-is a special register — it's where a function's **return value** lives. So a
-function that just returns a constant has very little to do: it loads that
-constant into `r3` and finishes with `blr`. Take a look:
+You've seen `li` and `blr`. One more fact ties them together: `r3` is where a
+function's **return value** lives. So a function that just returns a constant
+has almost nothing to do — load the constant into `r3`, then `blr`.
 
 ```asm
 li   r3, 7       # put the constant 7 in r3
 blr              # return
 ```
 
-It loads `7` into `r3`, then ends with `blr`. In C, that's just:
+In C, that's just:
 
 ```c
 int answer(void) {
@@ -36,9 +35,9 @@ int answer(void) {
 
 ## Your task
 
-For the exercise we've changed the value, so it won't be the same. Check the
+For the exercise we've changed the value, so yours won't be a 7. Check the
 **Target asm** and write the C. Hit **Compile & Check** (or ⌘/Ctrl + Enter) to
-check your result.
+see how you did.
 
 <!-- starter -->
 ```c

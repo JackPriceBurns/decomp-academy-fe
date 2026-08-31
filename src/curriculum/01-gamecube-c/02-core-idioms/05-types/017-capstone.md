@@ -22,10 +22,10 @@ hints:
 # Three types, one expression
 
 This lesson throws several operands of different widths and signs into a single
-expression. Nothing new happens — the same rules just fire together. Each operand
-widens according to its own type, and the arithmetic runs in dependency order. What
-you get is a catalog of extends, one per parameter, woven into the math instead of
-stacked at the top.
+expression. Nothing new happens — the same rules just fire together. Each
+operand widens according to its own type, and the arithmetic runs in dependency
+order. What you get is a catalog of extends, one per parameter, woven into the
+math instead of stacked at the top.
 
 Take `fold(a, b, c)` over a `u8`, an `s16`, and an `s8`, computing `a * b - c`:
 
@@ -38,20 +38,20 @@ subf   r3, r3, r0   # (a * b) - c
 blr
 ```
 
-Each extend is a fingerprint. `clrlwi …,24` is an unsigned byte, `extsh` a signed
-halfword, `extsb` a signed byte. Notice an operand's widen lands right before its
-first use, which is why the extends weave through the arithmetic rather than
-clustering at the top. The multiply is `mullw` — two variables, no immediate — and
-its result stays in a scratch register until the last step.
+Each extend is a fingerprint. `clrlwi …,24` is an unsigned byte, `extsh` a
+signed halfword, `extsb` a signed byte. Notice an operand's widen lands right
+before its first use, which is why the extends weave through the arithmetic
+rather than clustering at the top. The multiply is `mullw` — two variables, no
+immediate — and its result sits in a scratch register until the last step.
 
 Your target has the same three-types-in-one shape, but the widths and signs are
-assigned to different operands and the final operator differs. Take the extends one
-by one to pin down each parameter's type, then follow the arithmetic chain.
+assigned to different operands and the final operator differs. Take the extends
+one by one to pin down each parameter's type, then follow the arithmetic chain.
 
 ## Your task
 
-Write `func_803b5be0` to reproduce the target assembly. Each parameter's type is
-encoded in its extend instruction; the arithmetic chain is encoded in the
+Write `func_803b5be0` to reproduce the target assembly. Each parameter's type
+is encoded in its extend instruction; the arithmetic chain is encoded in the
 `mullw`/`add` that follow.
 
 <!-- solution -->

@@ -20,11 +20,11 @@ hints:
 # Independent operations combined at the end
 
 When two parts of an expression are independent — neither needs the other's
-result — the compiler computes each into its own register and then combines them
-in one final step, free to evaluate them in either order. The example below builds
-a product and a quotient, then joins them.
+result — the compiler computes each into its own register and combines them in
+one final step, evaluating them in whichever order it likes. The example below
+builds a product and a quotient, then joins them.
 
-Consider `mul_plus_div(p, q, r, s)`, multiplying a pair and dividing another pair,
+Consider `mul_plus_div(p, q, r, s)`, multiplying one pair and dividing another,
 then adding the results:
 
 ```asm
@@ -35,14 +35,13 @@ blr
 ```
 
 The compiler computed `r / s` first, even though it appears second in the
-expression — it was free to pick any order since the two sub-expressions are
-independent. The `divw` overwrites `r5` in place, clearing it for use as an
-intermediate, and `mullw` writes its product into `r0`. The `add` then combines
-both.
+expression — with the two sub-expressions independent, the order was its
+choice. The `divw` overwrites `r5` in place, freeing it up as an intermediate,
+and `mullw` writes its product into `r0`. The `add` combines both.
 
-For the target assembly in this lesson, the final instruction is a `subf` instead
-of an `add`. Identify which register feeds each slot of the `subf`, then use the
-`subf rD, rA, rB` = `rB − rA` rule to determine which result is the minuend and
+In this lesson's target, the final instruction is a `subf` instead of an `add`.
+Identify which register feeds each slot of the `subf`, then apply the
+`subf rD, rA, rB` = `rB − rA` rule to work out which result is the minuend and
 which is the subtrahend.
 
 ## Your task

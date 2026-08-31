@@ -16,12 +16,13 @@ hints:
 
 # A ladder of tests
 
-An `if` / `else if` / `else` chain is just a ladder. Each rung, a compare. Fail
-it and you're on the next rung down. First rung to hold wins and returns; the
-final `else` catches whatever nothing else matched. Assembly keeps that shape
-almost verbatim, one compare after another, each jumping past the body it guards.
+An `if` / `else if` / `else` chain is just a ladder: each rung a compare. Fail
+one and you drop to the next rung down. The first rung to hold wins and
+returns; the final `else` catches whatever nothing else matched. Assembly keeps
+that shape almost verbatim — one compare after another, each jumping past the
+body it guards.
 
-Take `temp_zone(t)`, three bands and three answers, `5`, `3`, or `1`.
+Take `temp_zone(t)`, three bands and three answers: `5`, `3`, or `1`.
 
 ```asm
 cmpwi r3,30        # top rung
@@ -36,17 +37,17 @@ li    r3,3         # otherwise the middle band
 blr
 ```
 
-Top rung's the easy one: compare holds, out you go through `blr`. The middle
-rung is sneakier. MWCC stashes the bottom band's value before testing anything,
-then `bltlr-` flings it back the moment the input drops under 20. Doesn't drop?
-You land on the middle band's `li`. One compare, one early exit, two bands
-covered.
+The top rung is the easy one: compare holds, out you go through `blr`. The
+middle rung is sneakier. MWCC stashes the bottom band's value before testing
+anything, then `bltlr-` flings it back the moment the input drops under 20.
+Doesn't drop? You land on the middle band's `li`. One compare, one early exit,
+two bands covered.
 
-Those answers, `5`, `3`, `1`, sit at uneven gaps on purpose. Give MWCC an even
-run and it might throw the branches away and compute the thing outright. Lumpy
-values keep the compare-per-rung shape you see above. So take the rungs one at a
-time. Each compare-and-branch pair tells you the threshold, and which band falls
-on which side.
+Those answers — `5`, `3`, `1` — sit at uneven gaps on purpose. Give MWCC an
+even run and it might throw the branches away and compute the thing outright.
+Lumpy values keep the compare-per-rung shape you see above. So take the rungs
+one at a time: each compare-and-branch pair tells you the threshold, and which
+band falls on which side.
 
 ## Your task
 

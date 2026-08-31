@@ -9,9 +9,10 @@
 // narrowed to an "<arch>:<encoding>" form only when one arch prints more than one
 // mnemonic set:
 //   - "ppc"       PowerPC (GameCube / Gekko)
+//   - "mips"      MIPS III (Nintendo 64 / VR4300)
 //   - "arm:thumb" ARMv4T Thumb (Game Boy Advance)
-// A MIPS track would add "mips"; ARM's 32-bit encoding would add "arm:a32".
-export type AsmDialect = "ppc" | "arm:thumb";
+// ARM's 32-bit encoding would add "arm:a32".
+export type AsmDialect = "ppc" | "mips" | "arm:thumb";
 
 export interface Instruction {
   /** Original mnemonic, e.g. "add", "stw", "bl". */

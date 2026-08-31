@@ -14,10 +14,10 @@ hints:
 
 # `stb` writes only the low 8 bits
 
-Stores are the easy direction, with nothing like the signed-versus-unsigned split
-that loads care about, only *width*. A write through a **`u8*`** picks **`stb`**
-(*store byte*), and all it moves to memory is the **low 8 bits** of the source
-register.
+Stores are the easy direction. There's nothing like the signed-versus-unsigned
+split that loads care about — only *width*. A write through a **`u8*`** picks
+**`stb`** (*store byte*), and all it moves to memory is the **low 8 bits** of
+the source register.
 
 Take a function that writes into index 2 of a byte array:
 
@@ -27,9 +27,9 @@ blr
 ```
 
 With the pointer in `r3` and the value in `r4`, `stb` quietly **truncates**,
-throwing away whatever was sitting in the upper 24 bits of `r4`. The nice part is
-that this costs nothing extra: the compiler never masks the value beforehand, it
-simply narrows the store down to a byte.
+throwing away whatever sat in the upper 24 bits of `r4`. The nice part is that
+it costs nothing extra: the compiler never masks the value beforehand — it just
+narrows the store down to a byte.
 
 ## Your task
 

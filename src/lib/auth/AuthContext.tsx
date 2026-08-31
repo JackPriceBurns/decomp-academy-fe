@@ -16,7 +16,7 @@ interface AuthValue {
   status: Status;
   user: AuthUser | null;
   refresh: () => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthValue | null>(null);
@@ -43,10 +43,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const signOut = useCallback(() => {
-    logout();
-    setUser(null);
-    setStatus("anon");
+  const signOut = useCallback(async () => {
+    try {
+      await logout();
+    } catch {
+      // Always clear the app's local auth state even if token cleanup fails.
+    } finally {
+      setUser(null);
+      setStatus("anon");
+    }
   }, []);
 
   useEffect(() => {

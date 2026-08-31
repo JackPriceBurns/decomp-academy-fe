@@ -16,9 +16,9 @@ hints:
 
 # XOR is left-associative in hardware too
 
-`xor` has no accumulator register; it always takes exactly two operands. When
-you chain three or more XOR operands in C, the compiler breaks it into a
-sequence where each instruction folds in one more value.
+`xor` always takes exactly two operands. When you chain three or more XOR
+operands in C, the compiler breaks it into a sequence where each instruction
+folds in one more value.
 
 Consider four values XORed together:
 
@@ -34,12 +34,12 @@ blr
 - `xor r3, r6, r0` computes `d ^ r0` — that is, `d ^ (c ^ (a ^ b))`.
 
 `r3` ends up holding `a ^ b ^ c ^ d`. Each step feeds its result into the next
-as one of the two source operands. The intermediate value lives in `r0` until
-the last XOR writes the final result into `r3` for the return.
+as one of the two source operands, and the intermediate lives in `r0` until the
+last XOR writes the final result into `r3` for the return.
 
 The target assembly is shorter — one fewer `xor`. Count the `xor` instructions
-to determine how many values are being combined, then trace the registers to work
-out the argument order.
+to see how many values are being combined, then trace the registers to work out
+the argument order.
 
 ## Your task
 

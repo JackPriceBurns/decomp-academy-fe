@@ -18,11 +18,12 @@ hints:
 
 # Float registers move integer data
 
-Drop a 64-bit member into a struct and the whole thing snaps to 8-byte alignment.
-That changes how copies are done. MWCC can move 8 bytes a step through `lfd` and
-`stfd`, the doubleword float load and store, instead of crawling 4 bytes with
-`lwz`/`stw`. The twist: the struct doesn't need a single float. The float registers
-are just wide buckets here. Nothing gets added, multiplied, or rounded.
+Drop a 64-bit member into a struct and the whole thing snaps to 8-byte
+alignment. That changes how copies are done: MWCC can move 8 bytes a step
+through `lfd` and `stfd`, the doubleword float load and store, instead of
+crawling along 4 bytes at a time with `lwz`/`stw`. The twist: the struct
+doesn't need a single float. The float registers are just wide buckets here —
+nothing gets added, multiplied, or rounded.
 
 Here's a 24-byte record built from three 64-bit integers:
 
@@ -44,18 +45,19 @@ stfd  f0, 16(r3)    # out->hi
 blr
 ```
 
-Three doublewords, moved in `lfd`/`stfd` pairs with one single left at the end.
-Same skeleton as the integer-word copy, just eight bytes a step. So when you spot
-`lfd`/`stfd` hauling a struct that holds no `f32`/`f64`, that's an aligned copy, not
-float math. Don't hand the struct floating-point members it never had.
+Three doublewords, moved in `lfd`/`stfd` pairs, with one lone pair left at the
+end. Same skeleton as the integer-word copy, just eight bytes a step. So when
+you spot `lfd`/`stfd` hauling a struct that holds no `f32`/`f64`, that's an
+aligned copy, not float math. Don't hand the struct floating-point members it
+never had.
 
 The target does this to a smaller 8-byte-aligned struct. Clock the doubleword
 float moves, then reproduce the assignment they came from.
 
 ## Your task
 
-With the `Record` struct above, write `func_8008f95c` to reproduce the target
-assembly.
+Using the `Record` struct provided, write `func_8008f95c` to reproduce the
+target assembly.
 
 <!-- solution -->
 ```c

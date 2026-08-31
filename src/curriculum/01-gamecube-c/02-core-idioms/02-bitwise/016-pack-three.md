@@ -17,12 +17,12 @@ hints:
 
 # Many shifts, many ORs, packing a full word
 
-Here's the capstone, leaning on every trick the chapter built up. Three separate
-shifts park three values in their own byte lanes, then a pair of chained ORs fuse
-the lot into one 32-bit word.
+Here's the capstone, leaning on every trick the chapter built up. Three
+separate shifts park three values in their own byte lanes, then a pair of
+chained ORs fuses the lot into one 32-bit word.
 
-Take `pack_word(hi, mid, lo)`. It drops three bytes at positions 24, 16, and 0 of
-the result.
+Take `pack_word(hi, mid, lo)`, which drops three bytes at positions 24, 16, and
+0 of the result.
 
 ```asm
 slwi    r3,r3,24
@@ -34,14 +34,14 @@ blr
 
 The first `slwi r3, r3, 24` lifts `hi` all the way up into bits 31–24, the top
 byte. Right behind it, `slwi r0, r4, 16` puts `mid` into bits 23–16. Those two
-get welded together by `or r0, r3, r0`, so `r0` is now carrying `hi` and `mid` in
-place with zeros everywhere else. Last comes `or r3, r5, r0`, which folds in `lo`
-untouched down at bits 7–0. Read top to bottom that's two shifts, an OR for the
+get welded together by `or r0, r3, r0`, so `r0` now carries `hi` and `mid` in
+place with zeros everywhere else. Last comes `or r3, r5, r0`, which folds in
+`lo` untouched down at bits 7–0. Read top to bottom: two shifts, an OR for the
 high pair, then an OR to seat the final byte.
 
-The target keeps that same four-instruction skeleton but moves the shift amounts.
-Read the two `slwi` counts to learn where each value lands, then follow the ORs
-back to the expression that produced them.
+The target keeps the same four-instruction skeleton but moves the shift
+amounts. Read the two `slwi` counts to learn where each value lands, then
+follow the ORs back to the expression that produced them.
 
 ## Your task
 

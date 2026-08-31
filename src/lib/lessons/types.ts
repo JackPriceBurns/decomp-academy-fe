@@ -1,9 +1,10 @@
 import { Instruction } from "../asm";
 
 // How a course's lessons are compiled for grading:
-//  - "remote":     proxied to the MWCC compile service (PowerPC tracks).
-//  - "wasm-agbcc": compiled in-browser by the agbcc WASM module (GBA).
-export type GraderKind = "remote" | "wasm-agbcc";
+//  - "remote":       proxied to the MWCC compile service (PowerPC tracks).
+//  - "remote-ido53": proxied to the IDO 5.3 compile service (N64 / MIPS).
+//  - "wasm-agbcc":   compiled in-browser by the agbcc WASM module (GBA).
+export type GraderKind = "remote" | "remote-ido53" | "wasm-agbcc";
 
 /** A self-contained learning track (e.g. "GameCube C"). Defined by a _course.md
  *  at src/curriculum/<NN>-<id>/ — order comes from the folder prefix. A learner
@@ -99,11 +100,11 @@ export interface LessonSource {
   /** Progressive hints. */
   hints: string[];
   /**
-   * Optimisation preset override for this lesson's compile, e.g. "O4,s". Must be
-   * one of the compile service's validated presets (O0, O1, O2,p, O2,s, O3,p,
-   * O3,s, O4,p, O4,s) — anything else is rejected at build time. Omit for the
-   * default O4,p. Replaces the old free-form `extraFlags`, which the API dropped
-   * because forwarding caller-supplied flags was a server-side file-read risk.
+   * Optimisation preset override for this lesson's compile, e.g. MWCC's "O4,s"
+   * or IDO's "O2,g0". Must be one of that course's compile service presets;
+   * anything else is rejected at build time. Omit for the compiler's default.
+   * Replaces the old free-form `extraFlags`, which the API dropped because
+   * forwarding caller-supplied flags was a server-side file-read risk.
    */
   opt?: string;
   /**

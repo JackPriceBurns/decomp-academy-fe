@@ -18,11 +18,11 @@ hints:
 
 # A member array is just more offset
 
-Last time, scaling a runtime index took a `mulli`. Here's the easy cousin. An array
-inside a struct, indexed by a constant, needs no multiply. Whatever offset the
-element works out to, the compiler folds it into the load. The array opens at the
-field's offset in the struct; element `i` adds `i * sizeof(element)`, and all of
-that is known at compile time.
+Last time, scaling a runtime index took a `mulli`. Here's the easy cousin: an
+array inside a struct, indexed by a constant, needs no multiply. Whatever
+offset the element works out to, the compiler folds it into the load. The array
+opens at the field's offset in the struct; element `i` adds
+`i * sizeof(element)` — and all of that is known at compile time.
 
 Picture a struct that parks an array after a scalar field:
 
@@ -44,19 +44,19 @@ add   r3, r4, r0
 blr
 ```
 
-No `mulli` or `lwzx`. Constant indices let the compiler bake each element to a
-fixed displacement. Reversing it: peel the array's base offset off the load's
-displacement, divide the leftover by element size, and out comes the index. Evenly
-spaced loads off a single base? Something is walking a member array.
+No `mulli`, no `lwzx` — constant indices let the compiler bake each element to
+a fixed displacement. Reversing it: peel the array's base offset off the load's
+displacement, divide the leftover by the element size, and out comes the index.
+Evenly spaced loads off a single base? Something is walking a member array.
 
-Two elements get read from a member array in your target and joined together.
-Recover the array's base offset from whatever fields come before it, turn each
-displacement back into an index, then assemble the combine.
+Your target reads two elements from a member array and joins them. Recover the
+array's base offset from whatever fields come before it, turn each displacement
+back into an index, then assemble the combine.
 
 ## Your task
 
-With the `Record` struct above, write `func_80179c60` to reproduce the assembly
-above.
+Using the `Record` struct provided, write `func_80179c60` to reproduce the
+target assembly.
 
 <!-- solution -->
 ```c

@@ -17,12 +17,13 @@ hints:
 
 # Guarding with more than one condition
 
-One bad input was enough to send lesson 8's guard packing. Most functions want
-more reassurance than that, screening two or three things before they commit to
-any work. That's what `||` buys you here. Both compares branch to the *same*
-sentinel block, and only the path that clears every check reaches the real math.
-The branch shape itself is lesson 16's. The one twist is that the surviving arm
-now computes something instead of parroting a constant.
+One bad input was enough to send the earlier guard clause packing. Most
+functions want more reassurance than that — they screen two or three things
+before committing to any work. That's what `||` buys you here. Both compares
+branch to the *same* sentinel block, and only the path that clears every check
+reaches the real math. The branch shape itself is the one from the `||`
+lessons; the twist is that the surviving arm now computes something instead of
+parroting a constant.
 
 Take `safe_avg(sum, count)`. Count zero or negative? Sum below zero? Either way
 it refuses the call; otherwise it divides.
@@ -40,12 +41,12 @@ divw  r3,r3,r4     # the real computation
 blr
 ```
 
-Notice both compares funnel into the one `.bail` block. That shared early-return
-target is what gives them away as two halves of a single `||` guard. Whichever
-condition trips *first* heads straight for the sentinel. The *last* condition, if
-it holds, drops through to the real work. Read the instruction at `.work`, a
-`divw` in this case, and you know what the function does once its inputs check
-out.
+Notice both compares funnel into the one `.bail` block. That shared
+early-return target is what gives them away as two halves of a single `||`
+guard. Whichever condition trips *first* heads straight for the sentinel; the
+*last* condition, if it holds, drops through to the real work. Read the
+instruction at `.work` — a `divw` here — and you know what the function does
+once its inputs check out.
 
 Your version screens two conditions of its own and finishes on its own
 operation. Follow each compare to wherever it lands. Once you've watched them
@@ -54,8 +55,7 @@ instruction past the fall-through hands you the rest.
 
 ## Your task
 
-Write `func_801f17c0` to reproduce the assembly
-above.
+Write `func_801f17c0` to reproduce the assembly above.
 
 <!-- solution -->
 ```c

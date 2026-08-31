@@ -22,13 +22,13 @@ hints:
 This one mixes a guard, arithmetic, and clamps. The function leans on an
 **early-return guard** to drop junk inputs, runs a little arithmetic, then uses
 **branchless-style clamps** to keep the answer in bounds. No new instruction
-appears. The challenge is recognising machinery you've already built, plus one
+appears — the challenge is recognising machinery you've already built, plus one
 MWCC habit of welding a clamp's compare onto the arithmetic that just ran.
 
-The weld hangs on the trailing dot. When a mnemonic carries a `.`, say `add.` or
-`subf.`, it updates the condition register as a *side effect* of its real work.
-So a freshly computed value that needs clamping skips its own `cmpwi`; the dotted
-op already set the flags the branch will test.
+The weld hangs on the trailing dot. When a mnemonic carries a `.` — say `add.`
+or `subf.` — it updates the condition register as a *side effect* of its real
+work. So a freshly computed value that needs clamping skips its own `cmpwi`;
+the dotted op already set the flags the branch will test.
 
 In `step(pos, delta, limit)`, a non-positive limit gets ignored outright, `pos`
 moves up by `delta`, and the result ends up wedged inside `[0, limit]`:
@@ -46,15 +46,17 @@ mr    r3,r5        # otherwise saturate to limit
 blr
 ```
 
-The `blelr-` near the top is the guard, gone the moment it must be. Right after,
-`add.` does the arithmetic and, for free, arms the floor's `bge-`. The tail,
-`cmpw` into `blelr-` into `mr`, holds the value under the ceiling. You've coded
-each move already; the real exercise is noticing them strung together.
+The `blelr-` near the top is the guard, gone the moment it must be. Right
+after, `add.` does the arithmetic and, for free, arms the floor's `bge-`. The
+tail — `cmpw` into `blelr-` into `mr` — holds the value under the ceiling.
+You've written each move already; the real exercise is noticing them strung
+together.
 
 Yours guards and clamps something different, but you read it the same way. The
-guard and its return value come first, the working arithmetic sits in the middle,
-a clamp or two fences the result at the end. Spot a dotted op pressed against a
-branch with no compare in the gap, and the fusion is showing its face again.
+guard and its return value come first, the working arithmetic sits in the
+middle, and a clamp or two fences the result at the end. Spot a dotted op
+pressed against a branch with no compare in the gap, and the fusion is showing
+its face again.
 
 ## Your task
 

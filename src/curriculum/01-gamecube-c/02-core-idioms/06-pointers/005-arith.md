@@ -15,9 +15,10 @@ hints:
 
 # `p + n` is not `+ n`
 
-Pointers count in elements. Add `5` to an `int*` and you move 5 ints, not 5 bytes.
-The compiler scales the offset by `sizeof(*p)`. For a constant offset, that scaling
-happens at compile time, so the byte count is already baked into the `addi`.
+Pointers count in elements. Add `5` to an `int*` and you move 5 ints, not 5
+bytes — the compiler scales the offset by `sizeof(*p)`. For a constant offset
+that scaling happens at compile time, so the byte count is already baked into
+the `addi`.
 
 Five elements into an `int` array:
 
@@ -32,16 +33,16 @@ addi r3, r3, 20   # advance p by 5 * sizeof(int) = 20 bytes
 blr
 ```
 
-An `int` is 4 bytes. Five times 4 is 20, and that's what `addi` carries. Going
-backward from disassembly, take the immediate and divide by the element size; the
-quotient is how many elements the pointer moved.
+An `int` is 4 bytes; five times 4 is 20, and that's what `addi` carries. Going
+backward from disassembly, take the immediate and divide by the element size —
+the quotient is how many elements the pointer moved.
 
-One note: `p + n` and `&p[n]` produce identical assembly, since both land on the nth
-element's address. You can't tell which the author typed, so write whichever reads
-better.
+One note: `p + n` and `&p[n]` produce identical assembly, since both land on
+the nth element's address. You can't tell which the author typed, so write
+whichever reads better.
 
-So `func_802fcf68`. What's the immediate on its `addi`, and how many elements does
-that work out to?
+So `func_802fcf68`. What's the immediate on its `addi`, and how many elements
+does that work out to?
 
 ## Your task
 

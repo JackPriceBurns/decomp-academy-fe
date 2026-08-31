@@ -15,8 +15,8 @@ hints:
 
 # The displacement field earns its keep
 
-Index a pointer by a constant and the compiler does the scaling itself, baking the
-byte offset into the load's displacement. No extra add appears at runtime.
+Index a pointer by a constant and the compiler does the scaling itself, baking
+the byte offset into the load's displacement. No extra add appears at runtime.
 
 Take a function that grabs the sixth element of an `int` array:
 
@@ -31,10 +31,10 @@ lwz  r3, 20(r3)   # fetch word at p + 20 bytes
 blr
 ```
 
-An `int` is 4 bytes, so index 5 gives byte offset `5 * 4 = 20`. Run that backward:
-a displacement of `20` on an `int*` means `20 / 4 = 5`, the sixth element. Dividing
-the displacement by the element size is the trick to reading constant-index accesses
-in disassembly.
+An `int` is 4 bytes, so index 5 gives byte offset `5 * 4 = 20`. Run that
+backward: a displacement of `20` on an `int*` means `20 / 4 = 5`, the sixth
+element. Dividing the displacement by the element size is the trick to reading
+constant-index accesses in disassembly.
 
 Look at the target assembly for `func_803495b0`. Its displacement points to one
 element; divide by `sizeof(int)` to find which.

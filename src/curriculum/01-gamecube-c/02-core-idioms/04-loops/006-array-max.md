@@ -17,11 +17,11 @@ hints:
 
 # When the trip count is known up front
 
-I still remember the first max-scan that fooled me. The count was no secret, `n`
-sat right there, and MWCC noticed. Watch what it did. `n - 1` went straight into
-the **count register** via `mtctr`, and from then on `bdnz` ("decrement CTR,
-branch if non-zero") carried the loop. Search the body all you like, you won't
-find a counter compare.
+I still remember the first max-scan that fooled me. The count was no secret —
+`n` sat right there, and MWCC noticed. Watch what it did. `n - 1` went straight
+into the **count register** via `mtctr`, and from then on `bdnz` ("decrement
+CTR, branch if non-zero") carried the loop. Search the body all you like: you
+won't find a counter compare.
 
 ```asm
 subi r0, r4, 1      # trip count = n - 1
@@ -42,17 +42,17 @@ blr
 ```
 
 What fooled me was expecting an unrolled body. Nope. My running max only budged
-when a candidate beat it, and MWCC won't unroll across a dependency like that, so
-the loop stayed put even at `-O4,p`.
+when a candidate beat it, and MWCC won't unroll across a dependency like that,
+so the loop stayed put even at `-O4,p`.
 
-So, two souvenirs. `mtctr` cuddled up next to `bdnz`? Trip count was known before
-the loop ever ran. `blelr-`? Compare-and-return, fused, the early bail when
-there's nothing to scan. Keep that `mtctr`/`bdnz` couple in view; it walks back
-on stage in the break lesson, driving a loop that bails early too.
+Two souvenirs, then. `mtctr` cuddled up next to `bdnz`? The trip count was
+known before the loop ever ran. `blelr-`? Compare-and-return fused — the early
+bail when there's nothing to scan. Keep the `mtctr`/`bdnz` couple in view; it
+walks back on stage in the break lesson, driving a loop that bails early too.
 
 ## Your task
 
-Write `func_801bb5c8`, returning the largest of the `n` elements of `a` (assume `n >= 1`).
+Write `func_801bb5c8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -18,10 +18,9 @@ hints:
 
 # Two masks, joined by OR, plus an instruction you haven't met yet
 
-You AND two values against masks that don't overlap, OR the pieces back
-together, and you've merged two fields. Write that in C and MWCC will frequently
-skip the obvious pair of `andi.` instructions, reaching for `rlwinm` + `rlwimi`
-instead.
+AND two values against masks that don't overlap, OR the pieces back together,
+and you've merged two fields. Write that in C and MWCC will frequently skip the
+obvious pair of `andi.` instructions, reaching for `rlwinm` + `rlwimi` instead.
 
 Here's `combine_nibbles(a, b)`. It grabs the low nibble of `a` and the next
 nibble up from `b`, then sets them side by side.
@@ -33,11 +32,11 @@ rlwimi  r3,r0,0,28,31
 blr
 ```
 
-Read it top to bottom. The `mr r0, r3` just stashes `a` over in `r0`, because
-`r3` is about to get clobbered and we still need `a` later. Then
+Read it top to bottom. The `mr r0, r3` stashes `a` in `r0`, because `r3` is
+about to get clobbered and we still need `a` later. Then
 `rlwinm r3, r4, 0, 24, 27` rotates `r4` by zero (no rotation at all) and masks
 it down to PPC bits 24–27. Bit 0 is the MSB in PPC land, so those bits sit at
-the range `0x000000F0`, which is exactly `b & 0xF0`.
+the range `0x000000F0` — exactly `b & 0xF0`.
 
 The last line is the one to learn. `rlwimi r3, r0, 0, 28, 31` is
 **rotate-left-and-insert**: it lifts bits 28–31 of `r0` (the range `0x0000000F`,
@@ -47,12 +46,12 @@ every other bit of `r3` exactly as it was. So `r3` ends up holding
 
 That insert is the whole trick. `rlwimi` splices a field from one register into
 another without disturbing anything outside the [MB, ME] range. Doing the same
-in C is fiddly: an AND on the source, an AND-with-complement on the destination,
-then an OR. The compiler folds all three into one instruction.
+in C is fiddly — an AND on the source, an AND-with-complement on the
+destination, then an OR. The compiler folds all three into one instruction.
 
 Your target runs the same `mr` / `rlwinm` / `rlwimi` dance, just with different
-masks. Pull the [MB, ME] fields out of each instruction to see which byte-wide
-fields meet up, and which argument supplies which one.
+masks. Pull the [MB, ME] fields out of each instruction to see which fields
+meet up, and which argument supplies which one.
 
 ## Your task
 

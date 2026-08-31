@@ -15,10 +15,9 @@ hints:
 
 # A longer running total
 
-With four operands you've got three operations, hence three arithmetic
-instructions. A partial result builds up in `r0`, passed along from each
-instruction to the next, and the final instruction writes `r3` to hand the answer
-back.
+Four operands means three operations, so three arithmetic instructions. A
+partial result builds up in `r0`, passed from each instruction to the next, and
+the final one writes `r3` to hand the answer back.
 
 Here's `delta(p, q, r, s)`, running two subtracts and then an add:
 
@@ -31,11 +30,11 @@ blr
 
 Every instruction grabs whatever `r0` held and applies the next operation. The
 `subf` reversal is in force the whole way down: `subf rD, rA, rB` is always
-`rB − rA`, so the most recent `r0` becomes the *minuend* of the next `subf`. Count
-the instructions and you know the number of operations. Decode them one by one and
-the chain reads off left-to-right.
+`rB − rA`, so the most recent `r0` becomes the *minuend* of the next `subf`.
+Count the instructions and you have the number of operations. Decode them one
+by one and the chain reads off left to right.
 
-This target leans on the same plan. Pin down which register carries which
+This target runs on the same plan. Pin down which register carries which
 argument (`r3`→`a`, `r4`→`b`, `r5`→`c`, `r6`→`d`), then follow the accumulator
 instruction by instruction until the expression falls out.
 

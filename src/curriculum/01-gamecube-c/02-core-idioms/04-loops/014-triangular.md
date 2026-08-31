@@ -19,14 +19,14 @@ hints:
 
 # A triangle, not a rectangle
 
-Every nested loop up to now swept a full rectangle, the inner loop running the
-same number of times on each outer pass. Let the inner bound *depend on the outer
-index*, though, and the iteration space turns into a **triangle**, where pass 0
-barely does a thing and the last pass does the most. That one change is the entire
-lesson, and it surfaces in a single spot. The inner condition checks against the
-outer counter, not a fixed `n`.
+Every nested loop up to now swept a full rectangle — the inner loop ran the
+same number of times on each outer pass. Let the inner bound *depend on the
+outer index*, though, and the iteration space turns into a **triangle**, where
+pass 0 barely does a thing and the last pass does the most. That one change is
+the entire lesson, and it surfaces in a single spot: the inner condition checks
+against the outer counter, not a fixed `n`.
 
-Take `tcount(n)`, which counts the cells `(i, j)` where `j < i`, the entries
+Take `tcount(n)`, which counts the cells `(i, j)` where `j < i` — the entries
 strictly below the diagonal of an `n × n` grid:
 
 ```asm
@@ -50,22 +50,22 @@ mr   r3, r6
 blr
 ```
 
-Look at the inner test. `cmpw r5, r4` pits `j`, the inner counter, against `r4`,
-which is `i`, the outer counter, and **not** `r3`, the bound `n`. That's the whole
-signature of a triangular nest. On the first outer pass `i == 0`, so the
+Look at the inner test. `cmpw r5, r4` pits `j`, the inner counter, against
+`r4`, which is `i`, the outer counter — **not** `r3`, the bound `n`. That's the
+whole signature of a triangular nest. On the first outer pass `i == 0`, so the
 inner loop never runs; by the final pass it runs `n - 1` times. Once the inner
 `cmpw` is reading the *outer* induction variable, you know the inner `for` was
 bounded by the outer index.
 
-Your `func_801c7748` runs the identical control flow, the same `j < i` inner bound, but its
-body folds in the inner counter `j` itself instead of a flat `+1`. Read what the
-inner `body` adds to the running total and write that.
+Your `func_801c7748` runs the identical control flow — the same `j < i` inner
+bound — but its body folds in the inner counter `j` itself instead of a flat
+`+1`. Read what the inner body adds to the running total and write that.
 
 > `#pragma optimization_level 1` keeps both loops rolled.
 
 ## Your task
 
-Write `func_801c7748`, returning the sum of `j` over all pairs with `0 <= j < i < n`.
+Write `func_801c7748` to reproduce the target assembly.
 
 <!-- starter -->
 ```c

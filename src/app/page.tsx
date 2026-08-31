@@ -48,7 +48,9 @@ export default function Home() {
       <Navbar />
       <Hero
         total={total}
-        firstLesson={firstLesson ? { slug: firstLesson.slug, course: firstLesson.course } : undefined}
+        firstLesson={
+          firstLesson ? { slug: firstLesson.slug, course: firstLesson.course } : undefined
+        }
       />
       <Curriculum courses={courses} />
       <Footer startHref={startHref} />

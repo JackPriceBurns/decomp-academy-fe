@@ -21,12 +21,12 @@ hints:
 
 Every loop so far added a single, simple thing per pass. The skeleton never
 changes when the body grows — the same `pre_loop` / `body` / `test` shape just
-holds *more* instructions between the label and the increment. The art is reading
-a longer body as one expression instead of unrelated instructions.
+holds *more* instructions between the label and the increment. The art is
+reading a longer body as one expression instead of unrelated instructions.
 
-Here the induction variable does double duty: it indexes the array **and** feeds
-the arithmetic. Consider `sqsum(a, n)`, which adds each element multiplied by
-itself — a sum of squares:
+Here the induction variable does double duty: it indexes the array **and**
+feeds the arithmetic. Consider `sqsum(a, n)`, which adds each element
+multiplied by itself — a sum of squares:
 
 ```asm
 li   r7, 0          # s = 0
@@ -48,22 +48,21 @@ blr
 ```
 
 The `slwi`+`lwzx` pair you already know loads `a[i]`; the new piece is the
-`mullw` combining two *variable* operands. A `mullw` (rather than a `slwi`) is the
-tell that **both** factors are runtime values — there is no constant to
+`mullw` combining two *variable* operands. A `mullw` rather than a `slwi` is
+the tell that **both** factors are runtime values — there's no constant to
 strength-reduce into a shift. Read what flows into the `mullw`, then what flows
 into the final `add`, and the body collapses into one accumulation expression.
 
-Your `func_8004b6f0` has a similar shape but the two factors going into the `mullw` are
-*different* — one is the loaded element, the other is built from the loop counter
-itself. Trace which value each operand of the `mullw` came from to recover the
-weight.
+Your `func_8004b6f0` has a similar shape, but the two factors going into the
+`mullw` are *different* — one is the loaded element, the other is built from
+the loop counter itself. Trace where each operand of the `mullw` came from to
+recover the weight.
 
 > `#pragma optimization_level 1` keeps the loop rolled so the body is readable.
 
 ## Your task
 
-Write `func_8004b6f0`: over `0 <= i < n`, weight each element by its 1-based position
-before adding it into the running total. Reproduce the assembly above.
+Write `func_8004b6f0` to reproduce the target assembly.
 
 <!-- starter -->
 ```c

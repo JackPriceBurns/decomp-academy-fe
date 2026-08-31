@@ -16,16 +16,16 @@ hints:
 
 # The mirror image
 
-You already saw `max`. Compare `r3` against `r4`, then conditionally copy the
+You already saw `max`: compare `r3` against `r4`, then conditionally copy the
 larger of the two into the return register with a pair of `mr` instructions.
-`min` reuses that exact two-`mr` skeleton. The only thing that moves is a single
-bit in the branch condition.
+`min` reuses that exact two-`mr` skeleton — the only thing that moves is a
+single bit in the branch condition.
 
 In `max` the branch is `ble-`. It skips the copy whenever `a` is already ≤ `b`,
-which leaves `b` sitting in place to be returned. Swap `ble-` for `bge-` and the
-choice inverts. The copy is now skipped when `a` is already ≥ `b`, so the case
-that stages `a` becomes `a < b`, and the value that survives to the end is the
-*smaller* one rather than the larger.
+which leaves `b` sitting in place to be returned. Swap `ble-` for `bge-` and
+the choice inverts: the copy is now skipped when `a` is already ≥ `b`, so the
+case that stages `a` becomes `a < b`, and the value that survives to the end is
+the *smaller* one rather than the larger.
 
 Here's the `max` listing again, to hold up against your answer:
 
@@ -39,12 +39,12 @@ blr
 ```
 
 The `min` version is the same code with exactly one mnemonic changed. Work out
-what the condition has to become so the *smaller* argument is the one that lands
-in `r3`.
+what the condition has to become for the *smaller* argument to be the one that
+lands in `r3`.
 
 ## Your task
 
-Write `func_8004014c`, returning the smaller of two signed `int`s using a ternary.
+Write `func_8004014c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

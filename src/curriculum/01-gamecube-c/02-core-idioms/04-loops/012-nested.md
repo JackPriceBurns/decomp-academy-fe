@@ -17,10 +17,11 @@ hints:
 
 # A loop inside a loop
 
-A nested loop is just two skeletons stacked, where the outer loop's body *is* the
-inner loop. The inner counter `j` resets to 0 at the top of every outer pass,
-while the outer counter `i` waits and only moves on once the inner loop has run to
-completion. Each half is the same pre-tested loop you've seen all chapter.
+A nested loop is just two skeletons stacked, where the outer loop's body *is*
+the inner loop. The inner counter `j` resets to 0 at the top of every outer
+pass, while the outer counter `i` waits — it only moves on once the inner loop
+has run to completion. Each half is the same pre-tested loop you've seen all
+chapter.
 
 ```asm
 li   r6, 0          # accumulator = 0
@@ -44,15 +45,16 @@ mr   r3, r6
 blr
 ```
 
-That `mullw` is there because the inner body multiplies two variable quantities,
-with no constant to turn into a shift. The dead giveaway that you're looking at a
-nest: the inner-counter reset, that `li r5, 0` tucked inside the outer body.
+That `mullw` is there because the inner body multiplies two variable
+quantities, with no constant to turn into a shift. The dead giveaway that
+you're looking at a nest: the inner-counter reset — that `li r5, 0` tucked
+inside the outer body.
 
 > `#pragma optimization_level 1` keeps both loops rolled.
 
 ## Your task
 
-Write `func_8032ffc4`, returning the sum of `i * j` over all `0 <= i < n` and `0 <= j < n`.
+Write `func_8032ffc4` to reproduce the target assembly.
 
 <!-- starter -->
 ```c

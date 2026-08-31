@@ -84,6 +84,18 @@ const remote: GraderProfile = {
   },
 };
 
+const remoteIdo53: GraderProfile = {
+  ...remote,
+  dialect: "mips",
+  compilerLabel: (opt) => {
+    const flags = (opt ?? "O2,g3")
+      .split(",")
+      .map((flag) => `-${flag}`)
+      .join(" ");
+    return `IDO 5.3 cc ${flags} -mips2`;
+  },
+};
+
 const wasmAgbcc: GraderProfile = {
   dialect: "arm:thumb",
   compilerLabel: () => "agbcc -O2",
@@ -114,5 +126,6 @@ const wasmAgbcc: GraderProfile = {
 
 export const GRADERS: Record<GraderKind, GraderProfile> = {
   remote,
+  "remote-ido53": remoteIdo53,
   "wasm-agbcc": wasmAgbcc,
 };

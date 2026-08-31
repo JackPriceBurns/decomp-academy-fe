@@ -15,10 +15,10 @@ hints:
 
 # When the compiler regroups your chain
 
-Addition is associative. `(a + b) + c` and `a + (b + c)` come out the same, and
-the compiler happily exploits that to schedule the arithmetic however suits it.
-Rather than march left-to-right through the registers, it might hold one operand
-back and pair off two others first.
+Addition is associative — `(a + b) + c` and `a + (b + c)` come out the same —
+and the compiler happily exploits that to schedule the arithmetic however it
+likes. Rather than marching left to right through the registers, it might hold
+one operand back and pair off two others first.
 
 Here's a sum of several arguments:
 
@@ -30,16 +30,17 @@ add  r3, r4, r3   # r3 = a + ((b + c) + d)
 blr
 ```
 
-That `mr` (*move register*) is just a register-to-register copy, no math
-attached. Here it tucks `a` aside so the compiler can knock out `b + c` first,
-fold in `d`, and slot `a` back in at the end. Sum it left-to-right or sum it this
-way, the number is identical; only the grouping moved.
+That `mr` (*move register*) is a register-to-register copy, no math attached.
+Here it tucks `a` aside so the compiler can knock out `b + c` first, fold in
+`d`, and slot `a` back in at the end. Sum left to right or sum this way — the
+number is identical. Only the grouping moved.
 
-An `mr` near the top of a function is a tell. The operand it saves will resurface
-in a later `add`, so go hunting for it. Count the instructions and you know how
-many operations the expression holds; read the registers and you know which
-arguments take part. Chase every `add`'s sources back to the argument registers
-(`r3`→`a`, `r4`→`b`, `r5`→`c`) and the expression comes back together.
+An `mr` near the top of a function is a tell: the operand it saves will
+resurface in a later `add`, so go hunting for it. Count the instructions and
+you know how many operations the expression holds; read the registers and you
+know which arguments take part. Chase every `add`'s sources back to the
+argument registers (`r3`→`a`, `r4`→`b`, `r5`→`c`) and the expression comes back
+together.
 
 ## Your task
 

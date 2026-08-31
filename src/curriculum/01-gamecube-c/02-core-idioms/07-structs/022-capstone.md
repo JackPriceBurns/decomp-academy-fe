@@ -19,10 +19,10 @@ hints:
 
 # Several fields, one expression
 
-This is where the chapter cashes out. A real accessor doesn't touch just one field.
-It grabs several fields of one struct at once — some scalars and a member-array
-element — and crushes them into a single number. Nothing below is new, though. Each
-field loads from its byte offset. An array element is the same idea plus a fixed
+This is where the chapter cashes out. A real accessor doesn't touch just one
+field — it grabs several at once, some scalars and a member-array element, and
+crushes them into a single number. Nothing below is new, though. Each field
+loads from its byte offset; an array element is the same idea plus a fixed
 displacement. The values gather in scratch registers in whatever order the
 expression calls for, and `r3` keeps doubling as the load address until there's
 nothing left to load.
@@ -57,18 +57,19 @@ subf   r3, r3, r0    # - offset
 blr
 ```
 
-Four fields, four offsets, one expression. Match each `lwz` displacement to a field
-through the layout, and the `mullw`, `add`, and `subf` tell you how they combine
-(`subf rD, rA, rB` is `rB − rA`). The loads ignore offset order; they appear exactly
-when the arithmetic wants them.
+Four fields, four offsets, one expression. Match each `lwz` displacement to a
+field through the layout, and the `mullw`, `add`, and `subf` tell you how they
+combine (`subf rD, rA, rB` is `rB − rA`). The loads ignore offset order — they
+appear exactly when the arithmetic wants them.
 
 The target works a different struct the same way: scalar fields plus one
-member-array element, multiplied and added and subtracted into a result. Decode
-each offset against the layout below, then rebuild the expression.
+member-array element, multiplied, added, and subtracted into a result. Decode
+each offset against the layout provided, then rebuild the expression.
 
 ## Your task
 
-With the `Hero` struct above, write `func_80046b10` to reproduce the assembly above.
+Using the `Hero` struct provided, write `func_80046b10` to reproduce the target
+assembly.
 
 <!-- solution -->
 ```c

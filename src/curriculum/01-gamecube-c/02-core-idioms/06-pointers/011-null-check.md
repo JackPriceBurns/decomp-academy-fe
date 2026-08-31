@@ -15,15 +15,16 @@ hints:
 
 # Branch on the pointer itself
 
-NULL is just address `0`. So `if (p)` and `if (p != NULL)` compile identically: an
-unsigned compare of the pointer register against `0`. MWCC uses `cmplwi` (compare
-logical word immediate) rather than `cmpwi`, since an address is unsigned.
+NULL is just address `0`. So `if (p)` and `if (p != NULL)` compile identically:
+an unsigned compare of the pointer register against `0`. MWCC uses `cmplwi`
+(compare logical word immediate) rather than `cmpwi`, since an address is
+unsigned.
 
 Don't read the `-` and `+` on a branch as part of the condition. They're static
-prediction bits encoded into the branch itself. `beq-` means branch if equal, but
-the compiler bets you won't. `bne+` means branch if not equal, and the compiler
-bets you will. NULL guards almost never trip, so the taken-on-NULL branch gets the
-`-`. Two `blr`s appear, one for each return path.
+prediction bits encoded into the branch itself. `beq-` means branch if equal,
+but the compiler bets you won't; `bne+` means branch if not equal, and the
+compiler bets you will. NULL guards almost never trip, so the taken-on-NULL
+branch gets the `-`. Two `blr`s appear, one for each return path.
 
 Here's that pattern around a `u32*` load:
 
@@ -45,13 +46,12 @@ li      r3,0
 blr
 ```
 
-When `p` is zero the `beq-` hops over the load. Count the `blr`s: two, one for each
-path. Now do the same for a function guarding an `int*` load.
+When `p` is zero the `beq-` hops over the load. Count the `blr`s: two, one for
+each path. Now do the same for a function guarding an `int*` load.
 
 ## Your task
 
-Write `func_800f27cc`, taking an `int* p`, returning `*p` when `p` is non-NULL and
-`0` otherwise.
+Write `func_800f27cc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c
