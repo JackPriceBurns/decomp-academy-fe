@@ -11,6 +11,7 @@ import {
 import { useProgress } from "@/lib/progress";
 import { LESSONS } from "@/lib/lessons/registry.client";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useResume } from "@/lib/resume";
 import { lessonPath } from "@/lib/seo";
 import { HeroMatchPreview } from "./HeroMatchPreview";
 import { HeroStat } from "./HeroStat";
@@ -25,7 +26,10 @@ export function Hero({ total, firstLesson }: Props) {
   const solvedCount = LESSONS.filter((l) => bestPercent(l.course, l.slug) >= 100).length;
   const pct = total ? Math.round((solvedCount / total) * 100) : 0;
 
-  const resume = LESSONS.find((l) => bestPercent(l.course, l.slug) < 100) ?? firstLesson;
+  // Resume inside the course they were last studying, not whichever course
+  // happens to come first in the curriculum.
+  const { lesson } = useResume();
+  const resume = lesson ?? firstLesson;
   const resumeHref = resume ? lessonPath(resume.course, resume.slug) : "#";
 
   return (

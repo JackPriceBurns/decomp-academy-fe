@@ -315,6 +315,20 @@
         "Modifiers": []
     },
     {
+        "Name": "bhs",
+        "DescriptiveName": "Branch if Unsigned Higher or Same",
+        "Usage": "bhs label",
+        "Description": "Branches to {label} on an unsigned 'greater than or equal' after a compare. The same condition as bcs, in the spelling this disassembler prints.",
+        "Modifiers": []
+    },
+    {
+        "Name": "blo",
+        "DescriptiveName": "Branch if Unsigned Lower",
+        "Usage": "blo label",
+        "Description": "Branches to {label} on an unsigned 'less than' after a compare. The same condition as bcc, in the spelling this disassembler prints.",
+        "Modifiers": []
+    },
+    {
         "Name": "bls",
         "DescriptiveName": "Branch if Unsigned Lower or Same",
         "Usage": "bls label",

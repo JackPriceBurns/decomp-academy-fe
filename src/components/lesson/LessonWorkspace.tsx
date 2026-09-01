@@ -18,6 +18,7 @@ import { GRADERS } from "@/lib/lessons/graders";
 import {
   loadCode,
   recordResult,
+  recordVisit,
   saveCode,
   solvedWithoutHints,
   totalSolved,
@@ -181,6 +182,13 @@ export function LessonWorkspace({ lesson }: { lesson: LessonDTO }) {
     },
     [lesson.symbol],
   );
+
+  // Remember where they are (concept lessons included — the early return below
+  // is after every hook), so the curriculum reopens on this course rather than
+  // the first one.
+  useEffect(() => {
+    recordVisit(lesson.course, lesson.slug);
+  }, [lesson.course, lesson.slug]);
 
   useEffect(() => {
     const myLoad = ++loadIdRef.current;

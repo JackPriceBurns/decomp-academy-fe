@@ -351,6 +351,73 @@ export function solvedWithoutHints(course: string, lessonId: string): boolean {
   return lessons[resolveId(course, lessonId)]?.solvedWithoutHints === true;
 }
 
+/* ------------------------------ last lesson ------------------------------ */
+// Where the learner actually is, so every route back to the curriculum (the
+// home page, the lesson back button, "Resume training") opens their course
+// instead of always the first one. Two independent signals, newest wins:
+//   - this device's last-opened lesson, stamped on every lesson mount, and
+//   - the newest row in the account's progress (the server stamps updatedAt),
+//     which is all a freshly signed-in browser has to go on.
+
+const LAST_KEY = "decomp-last-lesson";
+
+export interface LastLesson {
+  course: string;
+  slug: string;
+  at?: string;
+}
+
+const PID_TO_LESSON = new Map(LESSONS.map((l) => [l.progressId, l]));
+
+const isKnownLesson = (course: string, slug: string) =>
+  SLUG_TO_PID.has(courseSlugKey(course, slug));
+
+export function recordVisit(course: string, slug: string) {
+  if (!isKnownLesson(course, slug)) return;
+  try {
+    localStorage.setItem(LAST_KEY, JSON.stringify({ course, slug, at: new Date().toISOString() }));
+  } catch {
+    /* ignore quota / unavailable storage */
+  }
+}
+
+function readLastVisit(): LastLesson | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(LAST_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<LastLesson>;
+    if (typeof v?.course !== "string" || typeof v?.slug !== "string") return null;
+    // A lesson that's since been renamed or retired is no signal at all.
+    if (!isKnownLesson(v.course, v.slug)) return null;
+    return { course: v.course, slug: v.slug, at: typeof v.at === "string" ? v.at : undefined };
+  } catch {
+    return null;
+  }
+}
+
+// The newest lesson row in the hydrated map. Only the server sends updatedAt,
+// so this is the cross-device half: sign in on a new browser and you still land
+// back in the course you were last working in.
+function mostRecentSaved(): LastLesson | null {
+  primeLocal();
+  let best: LastLesson | null = null;
+  for (const [id, l] of Object.entries(lessons)) {
+    if (!l.updatedAt || (best?.at && best.at >= l.updatedAt)) continue;
+    const meta = PID_TO_LESSON.get(id);
+    if (meta) best = { course: meta.course, slug: meta.slug, at: l.updatedAt };
+  }
+  return best;
+}
+
+export function lastLesson(): LastLesson | null {
+  const visited = readLastVisit();
+  const saved = mostRecentSaved();
+  if (!visited) return saved;
+  if (!saved) return visited;
+  return (saved.at ?? "") > (visited.at ?? "") ? saved : visited;
+}
+
 /* ---------------------------- reconciliation ----------------------------- */
 // When a learner signs in with progress on this device *and* on their account,
 // we don't silently pick a winner — we surface a choice (merge / keep this

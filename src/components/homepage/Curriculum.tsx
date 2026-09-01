@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CurriculumMap } from "./CurriculumMap";
 import { MatchLog, HeatLesson } from "./MatchLog";
+import { useResume } from "@/lib/resume";
 import { lessonPath } from "@/lib/seo";
 import type { ChapterLite, TierLite } from "./curriculum-map/types";
 
@@ -21,8 +22,25 @@ type Props = { courses: CourseView[] };
 
 export function Curriculum({ courses }: Props) {
   const [selectedId, setSelectedId] = useState(courses[0]?.id);
+  const { course: resumeCourse } = useResume();
+  const picked = useRef(false);
+
+  // The page is statically rendered, so the tab starts on the first course and
+  // settles onto the learner's own once the client knows it: an explicit
+  // ?course= (a lesson's back link) first, else where they last were.
+  useEffect(() => {
+    if (picked.current) return;
+    const param = new URLSearchParams(window.location.search).get("course");
+    const wanted = [param, resumeCourse].find((id) => id && courses.some((c) => c.id === id));
+    if (wanted) setSelectedId(wanted);
+  }, [resumeCourse, courses]);
+
   const course = courses.find((c) => c.id === selectedId) ?? courses[0];
+  // The selected course's resume point, for "Jump back in".
+  const { lesson: jumpTo } = useResume(course?.id);
   if (!course) return null;
+
+  const jumpSlug = jumpTo?.slug ?? course.firstLessonId;
 
   return (
     <section id="curriculum" className="mx-auto max-w-5xl scroll-mt-16 px-5 pb-24 pt-14">
@@ -34,9 +52,9 @@ export function Curriculum({ courses }: Props) {
           </p>
         </div>
 
-        {course.firstLessonId && (
+        {jumpSlug && (
           <Link
-            href={lessonPath(course.id, course.firstLessonId)}
+            href={lessonPath(course.id, jumpSlug)}
             className="shrink-0 text-sm text-accent transition hover:text-accent-hover hover:underline"
           >
             Jump back in →
@@ -56,7 +74,10 @@ export function Curriculum({ courses }: Props) {
               key={c.id}
               role="tab"
               aria-selected={active}
-              onClick={() => setSelectedId(c.id)}
+              onClick={() => {
+                picked.current = true; // an explicit choice outranks the resume default
+                setSelectedId(c.id);
+              }}
               title={c.blurb}
               className={`rounded-lg px-4 py-2 text-sm transition ${
                 active

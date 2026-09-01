@@ -15,8 +15,10 @@ export function LessonTopBar({ lesson }: Props) {
   return (
     <>
       <header className="flex items-center gap-3 border-b border-line bg-bg-soft px-4 py-2.5">
+        {/* ?course= so the curriculum opens on the course this lesson belongs
+            to, without waiting on the stored last-lesson pointer. */}
         <Link
-          href="/"
+          href={`/?course=${lesson.course}`}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-sm text-content-secondary transition hover:bg-bg-softer hover:text-content-primary"
         >
           <IconArrowLeft size={16} />
