@@ -1,0 +1,1206 @@
+[
+    {
+        "Name": "add",
+        "DescriptiveName": "Add",
+        "Usage": "add rd, rs, rt",
+        "Description": "Adds {rs} and {rt} and places the sum in {rd}, trapping on signed overflow. IDO normally emits addu instead.",
+        "Modifiers": []
+    },
+    {
+        "Name": "addu",
+        "DescriptiveName": "Add Unsigned",
+        "Usage": "addu rd, rs, rt",
+        "Description": "Adds {rs} and {rt} and places the sum in {rd}. The 'u' means no overflow trap, not unsigned: this is the everyday 32-bit add for signed and unsigned values alike.",
+        "Modifiers": []
+    },
+    {
+        "Name": "addi",
+        "DescriptiveName": "Add Immediate",
+        "Usage": "addi rt, rs, imm",
+        "Description": "Adds the sign-extended 16-bit immediate {imm} to {rs} and places the sum in {rt}, trapping on signed overflow. IDO normally emits addiu instead.",
+        "Modifiers": []
+    },
+    {
+        "Name": "addiu",
+        "DescriptiveName": "Add Immediate Unsigned",
+        "Usage": "addiu rt, rs, imm",
+        "Description": "Adds the sign-extended 16-bit immediate {imm} to {rs} and places the sum in {rt}, with no overflow trap. With rs = zero it simply loads the constant {imm}; it also moves the stack pointer in the prologue and epilogue and adds the low half of an address after a lui.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sub",
+        "DescriptiveName": "Subtract",
+        "Usage": "sub rd, rs, rt",
+        "Description": "Subtracts {rt} from {rs} and places the difference in {rd}, trapping on signed overflow. IDO normally emits subu instead.",
+        "Modifiers": []
+    },
+    {
+        "Name": "subu",
+        "DescriptiveName": "Subtract Unsigned",
+        "Usage": "subu rd, rs, rt",
+        "Description": "Subtracts {rt} from {rs} and places the difference in {rd}, with no overflow trap. Used for signed and unsigned subtraction alike.",
+        "Modifiers": []
+    },
+    {
+        "Name": "negu",
+        "DescriptiveName": "Negate Unsigned",
+        "Usage": "negu rd, rt",
+        "Description": "Negates {rt} and places the result in {rd}. An alias for subu rd, zero, rt.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mult",
+        "DescriptiveName": "Multiply",
+        "Usage": "mult rs, rt",
+        "Description": "Multiplies {rs} by {rt} as signed 32-bit values. The 64-bit product lands in the HI/LO register pair; mflo reads the low 32 bits (the C result) and mfhi the high 32.",
+        "Modifiers": []
+    },
+    {
+        "Name": "multu",
+        "DescriptiveName": "Multiply Unsigned",
+        "Usage": "multu rs, rt",
+        "Description": "Multiplies {rs} by {rt} as unsigned 32-bit values. The 64-bit product lands in HI/LO; mflo reads the low 32 bits and mfhi the high 32. IDO also uses multu for signed multiplies when only the low word matters.",
+        "Modifiers": []
+    },
+    {
+        "Name": "div",
+        "DescriptiveName": "Divide",
+        "Usage": "div zero, rs, rt",
+        "Description": "Divides {rs} by {rt} as signed 32-bit values. The quotient goes to LO (read with mflo) and the remainder to HI (read with mfhi), so the same instruction serves both / and %. IDO follows it with a break 7 guard against dividing by zero and a break 6 guard against overflow.",
+        "Modifiers": []
+    },
+    {
+        "Name": "divu",
+        "DescriptiveName": "Divide Unsigned",
+        "Usage": "divu zero, rs, rt",
+        "Description": "Divides {rs} by {rt} as unsigned 32-bit values. The quotient goes to LO (mflo) and the remainder to HI (mfhi). IDO follows it with a break 7 guard against dividing by zero.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mflo",
+        "DescriptiveName": "Move From LO",
+        "Usage": "mflo rd",
+        "Description": "Copies the LO register into {rd}: the low 32 bits of the last multiply, or the quotient of the last divide.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mfhi",
+        "DescriptiveName": "Move From HI",
+        "Usage": "mfhi rd",
+        "Description": "Copies the HI register into {rd}: the high 32 bits of the last multiply, or the remainder of the last divide.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mtlo",
+        "DescriptiveName": "Move To LO",
+        "Usage": "mtlo rs",
+        "Description": "Copies {rs} into the LO register.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mthi",
+        "DescriptiveName": "Move To HI",
+        "Usage": "mthi rs",
+        "Description": "Copies {rs} into the HI register.",
+        "Modifiers": []
+    },
+    {
+        "Name": "daddu",
+        "DescriptiveName": "Doubleword Add Unsigned",
+        "Usage": "daddu rd, rs, rt",
+        "Description": "Adds the full 64-bit values in {rs} and {rt} and places the sum in {rd}, with no overflow trap.",
+        "Modifiers": []
+    },
+    {
+        "Name": "daddiu",
+        "DescriptiveName": "Doubleword Add Immediate Unsigned",
+        "Usage": "daddiu rt, rs, imm",
+        "Description": "Adds the sign-extended 16-bit immediate {imm} to the full 64-bit value in {rs} and places the sum in {rt}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsubu",
+        "DescriptiveName": "Doubleword Subtract Unsigned",
+        "Usage": "dsubu rd, rs, rt",
+        "Description": "Subtracts the 64-bit value in {rt} from {rs} and places the difference in {rd}, with no overflow trap.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dmult",
+        "DescriptiveName": "Doubleword Multiply",
+        "Usage": "dmult rs, rt",
+        "Description": "Multiplies {rs} by {rt} as signed 64-bit values. The 128-bit product lands in HI/LO.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dmultu",
+        "DescriptiveName": "Doubleword Multiply Unsigned",
+        "Usage": "dmultu rs, rt",
+        "Description": "Multiplies {rs} by {rt} as unsigned 64-bit values. The 128-bit product lands in HI/LO.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ddiv",
+        "DescriptiveName": "Doubleword Divide",
+        "Usage": "ddiv zero, rs, rt",
+        "Description": "Divides {rs} by {rt} as signed 64-bit values. The quotient goes to LO and the remainder to HI.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ddivu",
+        "DescriptiveName": "Doubleword Divide Unsigned",
+        "Usage": "ddivu zero, rs, rt",
+        "Description": "Divides {rs} by {rt} as unsigned 64-bit values. The quotient goes to LO and the remainder to HI.",
+        "Modifiers": []
+    },
+    {
+        "Name": "and",
+        "DescriptiveName": "And",
+        "Usage": "and rd, rs, rt",
+        "Description": "Bitwise ANDs {rs} with {rt} and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "andi",
+        "DescriptiveName": "And Immediate",
+        "Usage": "andi rt, rs, imm",
+        "Description": "Bitwise ANDs {rs} with the zero-extended 16-bit immediate {imm} and places the result in {rt}. Common for masking (& 0xff, & 0xffff) and for testing single bits; it also zero-extends a narrow value.",
+        "Modifiers": []
+    },
+    {
+        "Name": "or",
+        "DescriptiveName": "Or",
+        "Usage": "or rd, rs, rt",
+        "Description": "Bitwise ORs {rs} with {rt} and places the result in {rd}. With rt = zero this is a plain register copy, which is how IDO moves a value into another register; or rd, zero, zero sets {rd} to 0.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ori",
+        "DescriptiveName": "Or Immediate",
+        "Usage": "ori rt, rs, imm",
+        "Description": "Bitwise ORs {rs} with the zero-extended 16-bit immediate {imm} and places the result in {rt}. After a lui it fills in the low half of a 32-bit constant; with rs = zero it loads an unsigned 16-bit constant.",
+        "Modifiers": []
+    },
+    {
+        "Name": "xor",
+        "DescriptiveName": "Exclusive Or",
+        "Usage": "xor rd, rs, rt",
+        "Description": "Bitwise XORs {rs} with {rt} and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "xori",
+        "DescriptiveName": "Exclusive Or Immediate",
+        "Usage": "xori rt, rs, imm",
+        "Description": "Bitwise XORs {rs} with the zero-extended 16-bit immediate {imm} and places the result in {rt}. xori with 1 flips a boolean; IDO also uses it to compare against a constant (the result is zero only on equality).",
+        "Modifiers": []
+    },
+    {
+        "Name": "nor",
+        "DescriptiveName": "Nor",
+        "Usage": "nor rd, rs, rt",
+        "Description": "Bitwise NORs {rs} with {rt} into {rd}: each bit is set only if it is clear in both. With rt = zero it is a bitwise NOT of {rs}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "not",
+        "DescriptiveName": "Not",
+        "Usage": "not rd, rs",
+        "Description": "Inverts every bit of {rs} and places the result in {rd}. An alias for nor rd, rs, zero.",
+        "Modifiers": []
+    },
+    {
+        "Name": "move",
+        "DescriptiveName": "Move",
+        "Usage": "move rd, rs",
+        "Description": "Copies {rs} into {rd}. An alias for or rd, rs, zero (or addu rd, rs, zero).",
+        "Modifiers": []
+    },
+    {
+        "Name": "li",
+        "DescriptiveName": "Load Immediate",
+        "Usage": "li rt, imm",
+        "Description": "Loads the constant {imm} into {rt}. An alias for addiu rt, zero, imm or ori rt, zero, imm.",
+        "Modifiers": []
+    },
+    {
+        "Name": "lui",
+        "DescriptiveName": "Load Upper Immediate",
+        "Usage": "lui rt, imm",
+        "Description": "Places {imm} in the upper 16 bits of {rt} and zeroes the lower 16. The first half of building a 32-bit constant or the address of a global: an ori, addiu, or the offset of a following load/store supplies the low half.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sll",
+        "DescriptiveName": "Shift Left Logical",
+        "Usage": "sll rd, rt, sa",
+        "Description": "Shifts {rt} left by {sa} bits and places the result in {rd}, filling with zeros. A left shift by n multiplies by 2 to the n, which is how IDO scales an array index; sll by 24 or 16 followed by sra is how it sign-extends a byte or halfword.",
+        "Modifiers": []
+    },
+    {
+        "Name": "srl",
+        "DescriptiveName": "Shift Right Logical",
+        "Usage": "srl rd, rt, sa",
+        "Description": "Shifts {rt} right by {sa} bits and places the result in {rd}, filling from the left with zeros: an unsigned divide by 2 to the {sa}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sra",
+        "DescriptiveName": "Shift Right Arithmetic",
+        "Usage": "sra rd, rt, sa",
+        "Description": "Shifts {rt} right by {sa} bits and places the result in {rd}, copying the sign bit into the vacated positions: a signed divide by 2 to the {sa}, rounding toward negative infinity. Also the second half of an sll/sra sign-extension pair.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sllv",
+        "DescriptiveName": "Shift Left Logical Variable",
+        "Usage": "sllv rd, rt, rs",
+        "Description": "Shifts {rt} left by the amount in the low 5 bits of {rs} and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "srlv",
+        "DescriptiveName": "Shift Right Logical Variable",
+        "Usage": "srlv rd, rt, rs",
+        "Description": "Shifts {rt} right by the amount in the low 5 bits of {rs}, filling with zeros, and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "srav",
+        "DescriptiveName": "Shift Right Arithmetic Variable",
+        "Usage": "srav rd, rt, rs",
+        "Description": "Shifts {rt} right by the amount in the low 5 bits of {rs}, copying the sign bit in, and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsll",
+        "DescriptiveName": "Doubleword Shift Left Logical",
+        "Usage": "dsll rd, rt, sa",
+        "Description": "Shifts the 64-bit value in {rt} left by {sa} bits and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsll32",
+        "DescriptiveName": "Doubleword Shift Left Logical + 32",
+        "Usage": "dsll32 rd, rt, sa",
+        "Description": "Shifts the 64-bit value in {rt} left by {sa} + 32 bits and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsrl",
+        "DescriptiveName": "Doubleword Shift Right Logical",
+        "Usage": "dsrl rd, rt, sa",
+        "Description": "Shifts the 64-bit value in {rt} right by {sa} bits, filling with zeros, and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsrl32",
+        "DescriptiveName": "Doubleword Shift Right Logical + 32",
+        "Usage": "dsrl32 rd, rt, sa",
+        "Description": "Shifts the 64-bit value in {rt} right by {sa} + 32 bits, filling with zeros, and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsra",
+        "DescriptiveName": "Doubleword Shift Right Arithmetic",
+        "Usage": "dsra rd, rt, sa",
+        "Description": "Shifts the 64-bit value in {rt} right by {sa} bits, copying the sign bit in, and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsra32",
+        "DescriptiveName": "Doubleword Shift Right Arithmetic + 32",
+        "Usage": "dsra32 rd, rt, sa",
+        "Description": "Shifts the 64-bit value in {rt} right by {sa} + 32 bits, copying the sign bit in, and places the result in {rd}. dsra32 by 0 extracts the high word of a 64-bit value.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsllv",
+        "DescriptiveName": "Doubleword Shift Left Logical Variable",
+        "Usage": "dsllv rd, rt, rs",
+        "Description": "Shifts the 64-bit value in {rt} left by the amount in the low 6 bits of {rs} and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsrlv",
+        "DescriptiveName": "Doubleword Shift Right Logical Variable",
+        "Usage": "dsrlv rd, rt, rs",
+        "Description": "Shifts the 64-bit value in {rt} right by the amount in the low 6 bits of {rs}, filling with zeros, and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dsrav",
+        "DescriptiveName": "Doubleword Shift Right Arithmetic Variable",
+        "Usage": "dsrav rd, rt, rs",
+        "Description": "Shifts the 64-bit value in {rt} right by the amount in the low 6 bits of {rs}, copying the sign bit in, and places the result in {rd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "slt",
+        "DescriptiveName": "Set on Less Than",
+        "Usage": "slt rd, rs, rt",
+        "Description": "Sets {rd} to 1 if {rs} is less than {rt} as signed values, otherwise 0. Comparisons that are not a simple branch condition are built from this plus xori or a branch on the result.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sltu",
+        "DescriptiveName": "Set on Less Than Unsigned",
+        "Usage": "sltu rd, rs, rt",
+        "Description": "Sets {rd} to 1 if {rs} is less than {rt} as unsigned values, otherwise 0. sltu rd, zero, rt tests whether {rt} is non-zero.",
+        "Modifiers": []
+    },
+    {
+        "Name": "slti",
+        "DescriptiveName": "Set on Less Than Immediate",
+        "Usage": "slti rt, rs, imm",
+        "Description": "Sets {rt} to 1 if {rs} is less than the sign-extended immediate {imm} as signed values, otherwise 0.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sltiu",
+        "DescriptiveName": "Set on Less Than Immediate Unsigned",
+        "Usage": "sltiu rt, rs, imm",
+        "Description": "Sets {rt} to 1 if {rs} is less than the sign-extended immediate {imm} as unsigned values, otherwise 0. sltiu rt, rs, 1 tests whether {rs} is zero; sltiu against a small constant is how IDO range-checks a switch value.",
+        "Modifiers": []
+    },
+    {
+        "Name": "lb",
+        "DescriptiveName": "Load Byte",
+        "Usage": "lb rt, offset(base)",
+        "Description": "Loads the byte at {base} + {offset} into {rt}, sign-extending it to 32 bits: a signed char (s8).",
+        "Modifiers": []
+    },
+    {
+        "Name": "lbu",
+        "DescriptiveName": "Load Byte Unsigned",
+        "Usage": "lbu rt, offset(base)",
+        "Description": "Loads the byte at {base} + {offset} into {rt}, zero-extending it to 32 bits: an unsigned char (u8).",
+        "Modifiers": []
+    },
+    {
+        "Name": "lh",
+        "DescriptiveName": "Load Halfword",
+        "Usage": "lh rt, offset(base)",
+        "Description": "Loads the 16-bit halfword at {base} + {offset} into {rt}, sign-extending it to 32 bits: a signed short (s16).",
+        "Modifiers": []
+    },
+    {
+        "Name": "lhu",
+        "DescriptiveName": "Load Halfword Unsigned",
+        "Usage": "lhu rt, offset(base)",
+        "Description": "Loads the 16-bit halfword at {base} + {offset} into {rt}, zero-extending it to 32 bits: an unsigned short (u16).",
+        "Modifiers": []
+    },
+    {
+        "Name": "lw",
+        "DescriptiveName": "Load Word",
+        "Usage": "lw rt, offset(base)",
+        "Description": "Loads the 32-bit word at {base} + {offset} into {rt}: an int, a pointer, or a saved register coming back off the stack.",
+        "Modifiers": []
+    },
+    {
+        "Name": "lwu",
+        "DescriptiveName": "Load Word Unsigned",
+        "Usage": "lwu rt, offset(base)",
+        "Description": "Loads the 32-bit word at {base} + {offset} into {rt}, zero-extending it to 64 bits.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ld",
+        "DescriptiveName": "Load Doubleword",
+        "Usage": "ld rt, offset(base)",
+        "Description": "Loads the 64-bit doubleword at {base} + {offset} into {rt}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "lwl",
+        "DescriptiveName": "Load Word Left",
+        "Usage": "lwl rt, offset(base)",
+        "Description": "Loads the high-order bytes of an unaligned word starting at {base} + {offset} into the left part of {rt}. Paired with lwr; IDO emits the pair to copy or read packed struct data that is not 4-byte aligned.",
+        "Modifiers": []
+    },
+    {
+        "Name": "lwr",
+        "DescriptiveName": "Load Word Right",
+        "Usage": "lwr rt, offset(base)",
+        "Description": "Loads the low-order bytes of an unaligned word ending at {base} + {offset} into the right part of {rt}, completing an lwl.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sb",
+        "DescriptiveName": "Store Byte",
+        "Usage": "sb rt, offset(base)",
+        "Description": "Stores the low byte of {rt} to {base} + {offset}: a write to a char / s8 / u8.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sh",
+        "DescriptiveName": "Store Halfword",
+        "Usage": "sh rt, offset(base)",
+        "Description": "Stores the low 16 bits of {rt} to {base} + {offset}: a write to a short / s16 / u16.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sw",
+        "DescriptiveName": "Store Word",
+        "Usage": "sw rt, offset(base)",
+        "Description": "Stores the 32-bit word in {rt} to {base} + {offset}: an int, a pointer, or a register being saved to the stack.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sd",
+        "DescriptiveName": "Store Doubleword",
+        "Usage": "sd rt, offset(base)",
+        "Description": "Stores the 64-bit doubleword in {rt} to {base} + {offset}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "swl",
+        "DescriptiveName": "Store Word Left",
+        "Usage": "swl rt, offset(base)",
+        "Description": "Stores the high-order bytes of {rt} to an unaligned word starting at {base} + {offset}. Paired with swr for unaligned or packed struct writes.",
+        "Modifiers": []
+    },
+    {
+        "Name": "swr",
+        "DescriptiveName": "Store Word Right",
+        "Usage": "swr rt, offset(base)",
+        "Description": "Stores the low-order bytes of {rt} to an unaligned word ending at {base} + {offset}, completing an swl.",
+        "Modifiers": []
+    },
+    {
+        "Name": "beq",
+        "DescriptiveName": "Branch on Equal",
+        "Usage": "beq rs, rt, target",
+        "Description": "Branches to {target} if {rs} equals {rt}. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bne",
+        "DescriptiveName": "Branch on Not Equal",
+        "Usage": "bne rs, rt, target",
+        "Description": "Branches to {target} if {rs} does not equal {rt}. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "beqz",
+        "DescriptiveName": "Branch on Equal to Zero",
+        "Usage": "beqz rs, target",
+        "Description": "Branches to {target} if {rs} is zero. An alias for beq rs, zero, target; a test for 0, NULL, or false. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bnez",
+        "DescriptiveName": "Branch on Not Equal to Zero",
+        "Usage": "bnez rs, target",
+        "Description": "Branches to {target} if {rs} is not zero. An alias for bne rs, zero, target. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "b",
+        "DescriptiveName": "Branch",
+        "Usage": "b target",
+        "Description": "Branches unconditionally to {target}. An alias for beq zero, zero, target. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "blez",
+        "DescriptiveName": "Branch on Less Than or Equal to Zero",
+        "Usage": "blez rs, target",
+        "Description": "Branches to {target} if {rs} is less than or equal to zero (signed). The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bgtz",
+        "DescriptiveName": "Branch on Greater Than Zero",
+        "Usage": "bgtz rs, target",
+        "Description": "Branches to {target} if {rs} is greater than zero (signed). The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bltz",
+        "DescriptiveName": "Branch on Less Than Zero",
+        "Usage": "bltz rs, target",
+        "Description": "Branches to {target} if {rs} is negative (its sign bit is set). The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bgez",
+        "DescriptiveName": "Branch on Greater Than or Equal to Zero",
+        "Usage": "bgez rs, target",
+        "Description": "Branches to {target} if {rs} is zero or positive (its sign bit is clear). The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bltzal",
+        "DescriptiveName": "Branch on Less Than Zero and Link",
+        "Usage": "bltzal rs, target",
+        "Description": "Branches to {target} if {rs} is negative, saving the return address in ra. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bgezal",
+        "DescriptiveName": "Branch on Greater Than or Equal to Zero and Link",
+        "Usage": "bgezal rs, target",
+        "Description": "Branches to {target} if {rs} is zero or positive, saving the return address in ra. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bal",
+        "DescriptiveName": "Branch and Link",
+        "Usage": "bal target",
+        "Description": "Branches unconditionally to {target} and saves the return address in ra: a PC-relative call. An alias for bgezal zero, target. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "beql",
+        "DescriptiveName": "Branch on Equal Likely",
+        "Usage": "beql rs, rt, target",
+        "Description": "Branches to {target} if {rs} equals {rt}. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bnel",
+        "DescriptiveName": "Branch on Not Equal Likely",
+        "Usage": "bnel rs, rt, target",
+        "Description": "Branches to {target} if {rs} does not equal {rt}. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "beqzl",
+        "DescriptiveName": "Branch on Equal to Zero Likely",
+        "Usage": "beqzl rs, target",
+        "Description": "Branches to {target} if {rs} is zero (an alias for beql rs, zero, target). Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bnezl",
+        "DescriptiveName": "Branch on Not Equal to Zero Likely",
+        "Usage": "bnezl rs, target",
+        "Description": "Branches to {target} if {rs} is not zero (an alias for bnel rs, zero, target). Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "blezl",
+        "DescriptiveName": "Branch on Less Than or Equal to Zero Likely",
+        "Usage": "blezl rs, target",
+        "Description": "Branches to {target} if {rs} is less than or equal to zero (signed). Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bgtzl",
+        "DescriptiveName": "Branch on Greater Than Zero Likely",
+        "Usage": "bgtzl rs, target",
+        "Description": "Branches to {target} if {rs} is greater than zero (signed). Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bltzl",
+        "DescriptiveName": "Branch on Less Than Zero Likely",
+        "Usage": "bltzl rs, target",
+        "Description": "Branches to {target} if {rs} is negative. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bgezl",
+        "DescriptiveName": "Branch on Greater Than or Equal to Zero Likely",
+        "Usage": "bgezl rs, target",
+        "Description": "Branches to {target} if {rs} is zero or positive. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bltzall",
+        "DescriptiveName": "Branch on Less Than Zero and Link Likely",
+        "Usage": "bltzall rs, target",
+        "Description": "Branches to {target} if {rs} is negative, saving the return address in ra. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bgezall",
+        "DescriptiveName": "Branch on Greater Than or Equal to Zero and Link Likely",
+        "Usage": "bgezall rs, target",
+        "Description": "Branches to {target} if {rs} is zero or positive, saving the return address in ra. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bc1t",
+        "DescriptiveName": "Branch on FPU True",
+        "Usage": "bc1t target",
+        "Description": "Branches to {target} if the FPU condition flag is set by the most recent c.xx.s / c.xx.d compare. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bc1f",
+        "DescriptiveName": "Branch on FPU False",
+        "Usage": "bc1f target",
+        "Description": "Branches to {target} if the FPU condition flag is clear after the most recent c.xx.s / c.xx.d compare. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bc1tl",
+        "DescriptiveName": "Branch on FPU True Likely",
+        "Usage": "bc1tl target",
+        "Description": "Branches to {target} if the FPU condition flag is set by the most recent c.xx.s / c.xx.d compare. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "bc1fl",
+        "DescriptiveName": "Branch on FPU False Likely",
+        "Usage": "bc1fl target",
+        "Description": "Branches to {target} if the FPU condition flag is clear after the most recent c.xx.s / c.xx.d compare. Branch-likely form: the delay slot instruction executes only when the branch is taken and is skipped otherwise, so IDO uses these for loop back-edges and puts the next iteration's first instruction in the slot.",
+        "Modifiers": []
+    },
+    {
+        "Name": "j",
+        "DescriptiveName": "Jump",
+        "Usage": "j target",
+        "Description": "Jumps unconditionally to {target}. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "jal",
+        "DescriptiveName": "Jump and Link",
+        "Usage": "jal target",
+        "Description": "Calls the function at {target}: saves the return address in ra and jumps. The delay slot instruction executes first, so IDO often sets up the last argument there.",
+        "Modifiers": []
+    },
+    {
+        "Name": "jr",
+        "DescriptiveName": "Jump Register",
+        "Usage": "jr rs",
+        "Description": "Jumps to the address in {rs}. jr ra returns from the function; a jr through another register is usually a switch jump table. The delay slot instruction executes first, which is why the return value or a final store often sits right after jr ra.",
+        "Modifiers": []
+    },
+    {
+        "Name": "jalr",
+        "DescriptiveName": "Jump and Link Register",
+        "Usage": "jalr rs",
+        "Description": "Calls the function whose address is in {rs}, saving the return address in ra: a call through a function pointer. The instruction in the delay slot below always executes before the branch takes effect.",
+        "Modifiers": []
+    },
+    {
+        "Name": "nop",
+        "DescriptiveName": "No Operation",
+        "Usage": "nop",
+        "Description": "Does nothing. Fills a branch or jump delay slot when the compiler has nothing useful to put there, or pads the schedule between dependent instructions.",
+        "Modifiers": []
+    },
+    {
+        "Name": "break",
+        "DescriptiveName": "Breakpoint",
+        "Usage": "break code",
+        "Description": "Raises a breakpoint exception with code {code}. IDO emits break 7 right after a div or divu to trap division by zero, and break 6 in its signed-overflow check for dividing INT_MIN by -1.",
+        "Modifiers": []
+    },
+    {
+        "Name": "syscall",
+        "DescriptiveName": "System Call",
+        "Usage": "syscall",
+        "Description": "Raises a system call exception to the kernel.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sync",
+        "DescriptiveName": "Synchronize",
+        "Usage": "sync",
+        "Description": "Waits for all earlier loads and stores to complete before any later ones begin.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cache",
+        "DescriptiveName": "Cache Operation",
+        "Usage": "cache op, offset(base)",
+        "Description": "Performs cache operation {op} on the line containing {base} + {offset}. Only seen in OS and driver code.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mfc0",
+        "DescriptiveName": "Move From Coprocessor 0",
+        "Usage": "mfc0 rt, rd",
+        "Description": "Copies system control register {rd} into {rt}. Only seen in OS and exception code.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mtc0",
+        "DescriptiveName": "Move To Coprocessor 0",
+        "Usage": "mtc0 rt, rd",
+        "Description": "Copies {rt} into system control register {rd}. Only seen in OS and exception code.",
+        "Modifiers": []
+    },
+    {
+        "Name": "lwc1",
+        "DescriptiveName": "Load Word to FPU",
+        "Usage": "lwc1 ft, offset(base)",
+        "Description": "Loads the 32-bit float at {base} + {offset} into FPU register {ft}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "swc1",
+        "DescriptiveName": "Store Word from FPU",
+        "Usage": "swc1 ft, offset(base)",
+        "Description": "Stores the single-precision float in FPU register {ft} to {base} + {offset}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ldc1",
+        "DescriptiveName": "Load Doubleword to FPU",
+        "Usage": "ldc1 ft, offset(base)",
+        "Description": "Loads the 64-bit double at {base} + {offset} into FPU register {ft}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sdc1",
+        "DescriptiveName": "Store Doubleword from FPU",
+        "Usage": "sdc1 ft, offset(base)",
+        "Description": "Stores the double in FPU register {ft} to {base} + {offset}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mtc1",
+        "DescriptiveName": "Move To FPU",
+        "Usage": "mtc1 rt, fs",
+        "Description": "Copies the raw 32 bits of {rt} into FPU register {fs} with no conversion. This is how an int reaches the FPU ahead of a cvt.s.w, and how a float constant assembled in an integer register gets there; mtc1 zero, fs loads 0.0f.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mfc1",
+        "DescriptiveName": "Move From FPU",
+        "Usage": "mfc1 rt, fs",
+        "Description": "Copies the raw 32 bits of FPU register {fs} into {rt} with no conversion. This is how the integer produced by trunc.w.s reaches a general register.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dmtc1",
+        "DescriptiveName": "Doubleword Move To FPU",
+        "Usage": "dmtc1 rt, fs",
+        "Description": "Copies the full 64 bits of {rt} into FPU register {fs} with no conversion.",
+        "Modifiers": []
+    },
+    {
+        "Name": "dmfc1",
+        "DescriptiveName": "Doubleword Move From FPU",
+        "Usage": "dmfc1 rt, fs",
+        "Description": "Copies the full 64 bits of FPU register {fs} into {rt} with no conversion.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ctc1",
+        "DescriptiveName": "Move Control To FPU",
+        "Usage": "ctc1 rt, fs",
+        "Description": "Writes {rt} into FPU control register {fs}, usually to change the rounding mode.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cfc1",
+        "DescriptiveName": "Move Control From FPU",
+        "Usage": "cfc1 rt, fs",
+        "Description": "Reads FPU control register {fs} into {rt}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "add.s",
+        "DescriptiveName": "Add Single",
+        "Usage": "add.s fd, fs, ft",
+        "Description": "Adds the single-precision floats {fs} and {ft} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sub.s",
+        "DescriptiveName": "Subtract Single",
+        "Usage": "sub.s fd, fs, ft",
+        "Description": "Subtracts the single-precision float {ft} from {fs} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mul.s",
+        "DescriptiveName": "Multiply Single",
+        "Usage": "mul.s fd, fs, ft",
+        "Description": "Multiplies the single-precision floats {fs} and {ft} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "div.s",
+        "DescriptiveName": "Divide Single",
+        "Usage": "div.s fd, fs, ft",
+        "Description": "Divides the single-precision float {fs} by {ft} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "abs.s",
+        "DescriptiveName": "Absolute Value Single",
+        "Usage": "abs.s fd, fs",
+        "Description": "Places the absolute value of the single-precision float {fs} in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "neg.s",
+        "DescriptiveName": "Negate Single",
+        "Usage": "neg.s fd, fs",
+        "Description": "Negates the single-precision float {fs} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mov.s",
+        "DescriptiveName": "Move Single",
+        "Usage": "mov.s fd, fs",
+        "Description": "Copies the single-precision float {fs} into {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sqrt.s",
+        "DescriptiveName": "Square Root Single",
+        "Usage": "sqrt.s fd, fs",
+        "Description": "Places the square root of the single-precision float {fs} in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "trunc.w.s",
+        "DescriptiveName": "Truncate Single to Word",
+        "Usage": "trunc.w.s fd, fs",
+        "Description": "Converts the float (f32) in {fs} to a 32-bit integer in {fd}, rounding toward zero: the C (s32) cast of a float (f32). An mfc1 usually follows to move the result to an integer register.",
+        "Modifiers": []
+    },
+    {
+        "Name": "trunc.l.s",
+        "DescriptiveName": "Truncate Single to Long",
+        "Usage": "trunc.l.s fd, fs",
+        "Description": "Converts the float (f32) in {fs} to a 64-bit integer in {fd}, rounding toward zero.",
+        "Modifiers": []
+    },
+    {
+        "Name": "round.w.s",
+        "DescriptiveName": "Round Single to Word",
+        "Usage": "round.w.s fd, fs",
+        "Description": "Converts the float (f32) in {fs} to a 32-bit integer in {fd}, rounding to nearest.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ceil.w.s",
+        "DescriptiveName": "Ceiling Single to Word",
+        "Usage": "ceil.w.s fd, fs",
+        "Description": "Converts the float (f32) in {fs} to a 32-bit integer in {fd}, rounding up.",
+        "Modifiers": []
+    },
+    {
+        "Name": "floor.w.s",
+        "DescriptiveName": "Floor Single to Word",
+        "Usage": "floor.w.s fd, fs",
+        "Description": "Converts the float (f32) in {fs} to a 32-bit integer in {fd}, rounding down.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.w.s",
+        "DescriptiveName": "Convert Single to Word",
+        "Usage": "cvt.w.s fd, fs",
+        "Description": "Converts the float (f32) in {fs} to a 32-bit integer in {fd} using the current rounding mode. IDO prefers trunc.w.s for C casts.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.l.s",
+        "DescriptiveName": "Convert Single to Long",
+        "Usage": "cvt.l.s fd, fs",
+        "Description": "Converts the float (f32) in {fs} to a 64-bit integer in {fd} using the current rounding mode.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.eq.s",
+        "DescriptiveName": "Compare Equal Single",
+        "Usage": "c.eq.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} equals {ft} as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag. A != compare uses the same instruction with the branch sense inverted.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.lt.s",
+        "DescriptiveName": "Compare Less Than Single",
+        "Usage": "c.lt.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than {ft} as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag. IDO compiles a > b as c.lt with the operands swapped.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.le.s",
+        "DescriptiveName": "Compare Less Than or Equal Single",
+        "Usage": "c.le.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than or equal to {ft} as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag. IDO compiles a >= b as c.le with the operands swapped.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.un.s",
+        "DescriptiveName": "Compare Unordered Single",
+        "Usage": "c.un.s fs, ft",
+        "Description": "Sets the FPU condition flag if either {fs} or {ft} is NaN as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ueq.s",
+        "DescriptiveName": "Compare Unordered or Equal Single",
+        "Usage": "c.ueq.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} equals {ft} or either is NaN as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ult.s",
+        "DescriptiveName": "Compare Unordered or Less Than Single",
+        "Usage": "c.ult.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than {ft} or either is NaN as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ule.s",
+        "DescriptiveName": "Compare Unordered or Less Than or Equal Single",
+        "Usage": "c.ule.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than or equal to {ft} or either is NaN as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.olt.s",
+        "DescriptiveName": "Compare Ordered Less Than Single",
+        "Usage": "c.olt.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than {ft} and neither is NaN as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ole.s",
+        "DescriptiveName": "Compare Ordered Less Than or Equal Single",
+        "Usage": "c.ole.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than or equal to {ft} and neither is NaN as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.nge.s",
+        "DescriptiveName": "Compare Not Greater Than or Equal Single",
+        "Usage": "c.nge.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is not greater than or equal to {ft} (true for NaN) as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ngt.s",
+        "DescriptiveName": "Compare Not Greater Than Single",
+        "Usage": "c.ngt.s fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is not greater than {ft} (true for NaN) as single-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "add.d",
+        "DescriptiveName": "Add Double",
+        "Usage": "add.d fd, fs, ft",
+        "Description": "Adds the double-precision floats {fs} and {ft} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sub.d",
+        "DescriptiveName": "Subtract Double",
+        "Usage": "sub.d fd, fs, ft",
+        "Description": "Subtracts the double-precision float {ft} from {fs} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mul.d",
+        "DescriptiveName": "Multiply Double",
+        "Usage": "mul.d fd, fs, ft",
+        "Description": "Multiplies the double-precision floats {fs} and {ft} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "div.d",
+        "DescriptiveName": "Divide Double",
+        "Usage": "div.d fd, fs, ft",
+        "Description": "Divides the double-precision float {fs} by {ft} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "abs.d",
+        "DescriptiveName": "Absolute Value Double",
+        "Usage": "abs.d fd, fs",
+        "Description": "Places the absolute value of the double-precision float {fs} in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "neg.d",
+        "DescriptiveName": "Negate Double",
+        "Usage": "neg.d fd, fs",
+        "Description": "Negates the double-precision float {fs} and places the result in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "mov.d",
+        "DescriptiveName": "Move Double",
+        "Usage": "mov.d fd, fs",
+        "Description": "Copies the double-precision float {fs} into {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "sqrt.d",
+        "DescriptiveName": "Square Root Double",
+        "Usage": "sqrt.d fd, fs",
+        "Description": "Places the square root of the double-precision float {fs} in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "trunc.w.d",
+        "DescriptiveName": "Truncate Double to Word",
+        "Usage": "trunc.w.d fd, fs",
+        "Description": "Converts the double (f64) in {fs} to a 32-bit integer in {fd}, rounding toward zero: the C (s32) cast of a double (f64). An mfc1 usually follows to move the result to an integer register.",
+        "Modifiers": []
+    },
+    {
+        "Name": "trunc.l.d",
+        "DescriptiveName": "Truncate Double to Long",
+        "Usage": "trunc.l.d fd, fs",
+        "Description": "Converts the double (f64) in {fs} to a 64-bit integer in {fd}, rounding toward zero.",
+        "Modifiers": []
+    },
+    {
+        "Name": "round.w.d",
+        "DescriptiveName": "Round Double to Word",
+        "Usage": "round.w.d fd, fs",
+        "Description": "Converts the double (f64) in {fs} to a 32-bit integer in {fd}, rounding to nearest.",
+        "Modifiers": []
+    },
+    {
+        "Name": "ceil.w.d",
+        "DescriptiveName": "Ceiling Double to Word",
+        "Usage": "ceil.w.d fd, fs",
+        "Description": "Converts the double (f64) in {fs} to a 32-bit integer in {fd}, rounding up.",
+        "Modifiers": []
+    },
+    {
+        "Name": "floor.w.d",
+        "DescriptiveName": "Floor Double to Word",
+        "Usage": "floor.w.d fd, fs",
+        "Description": "Converts the double (f64) in {fs} to a 32-bit integer in {fd}, rounding down.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.w.d",
+        "DescriptiveName": "Convert Double to Word",
+        "Usage": "cvt.w.d fd, fs",
+        "Description": "Converts the double (f64) in {fs} to a 32-bit integer in {fd} using the current rounding mode. IDO prefers trunc.w.d for C casts.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.l.d",
+        "DescriptiveName": "Convert Double to Long",
+        "Usage": "cvt.l.d fd, fs",
+        "Description": "Converts the double (f64) in {fs} to a 64-bit integer in {fd} using the current rounding mode.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.eq.d",
+        "DescriptiveName": "Compare Equal Double",
+        "Usage": "c.eq.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} equals {ft} as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag. A != compare uses the same instruction with the branch sense inverted.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.lt.d",
+        "DescriptiveName": "Compare Less Than Double",
+        "Usage": "c.lt.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than {ft} as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag. IDO compiles a > b as c.lt with the operands swapped.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.le.d",
+        "DescriptiveName": "Compare Less Than or Equal Double",
+        "Usage": "c.le.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than or equal to {ft} as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag. IDO compiles a >= b as c.le with the operands swapped.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.un.d",
+        "DescriptiveName": "Compare Unordered Double",
+        "Usage": "c.un.d fs, ft",
+        "Description": "Sets the FPU condition flag if either {fs} or {ft} is NaN as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ueq.d",
+        "DescriptiveName": "Compare Unordered or Equal Double",
+        "Usage": "c.ueq.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} equals {ft} or either is NaN as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ult.d",
+        "DescriptiveName": "Compare Unordered or Less Than Double",
+        "Usage": "c.ult.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than {ft} or either is NaN as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ule.d",
+        "DescriptiveName": "Compare Unordered or Less Than or Equal Double",
+        "Usage": "c.ule.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than or equal to {ft} or either is NaN as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.olt.d",
+        "DescriptiveName": "Compare Ordered Less Than Double",
+        "Usage": "c.olt.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than {ft} and neither is NaN as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ole.d",
+        "DescriptiveName": "Compare Ordered Less Than or Equal Double",
+        "Usage": "c.ole.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is less than or equal to {ft} and neither is NaN as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.nge.d",
+        "DescriptiveName": "Compare Not Greater Than or Equal Double",
+        "Usage": "c.nge.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is not greater than or equal to {ft} (true for NaN) as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "c.ngt.d",
+        "DescriptiveName": "Compare Not Greater Than Double",
+        "Usage": "c.ngt.d fs, ft",
+        "Description": "Sets the FPU condition flag if {fs} is not greater than {ft} (true for NaN) as double-precision floats, and clears it otherwise. A following bc1t or bc1f branches on the flag.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.s.w",
+        "DescriptiveName": "Convert Word to Single",
+        "Usage": "cvt.s.w fd, fs",
+        "Description": "Converts the 32-bit integer in {fs} to a single-precision float in {fd}: the (f32) cast of an int, after an mtc1 moved the integer into the FPU.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.d.w",
+        "DescriptiveName": "Convert Word to Double",
+        "Usage": "cvt.d.w fd, fs",
+        "Description": "Converts the 32-bit integer in {fs} to a double in {fd}: the (f64) cast of an int, after an mtc1 moved the integer into the FPU.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.s.l",
+        "DescriptiveName": "Convert Long to Single",
+        "Usage": "cvt.s.l fd, fs",
+        "Description": "Converts the 64-bit integer in {fs} to a single-precision float in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.d.l",
+        "DescriptiveName": "Convert Long to Double",
+        "Usage": "cvt.d.l fd, fs",
+        "Description": "Converts the 64-bit integer in {fs} to a double in {fd}.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.s.d",
+        "DescriptiveName": "Convert Double to Single",
+        "Usage": "cvt.s.d fd, fs",
+        "Description": "Converts the double in {fs} to a single-precision float in {fd}: the (f32) cast of a double, or the narrowing back after arithmetic was promoted to double.",
+        "Modifiers": []
+    },
+    {
+        "Name": "cvt.d.s",
+        "DescriptiveName": "Convert Single to Double",
+        "Usage": "cvt.d.s fd, fs",
+        "Description": "Converts the single-precision float in {fs} to a double in {fd}: the promotion that happens when a float meets a double, a double constant, or an unprototyped function argument.",
+        "Modifiers": []
+    }
+]
