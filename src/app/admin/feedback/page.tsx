@@ -24,7 +24,11 @@ const SENTIMENT_META: Record<Sentiment, { label: string; emoji: string; cls: str
     emoji: "👍",
     cls: "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft",
   },
-  confusing: { label: "Confusing", emoji: "😕", cls: "bg-warn/15 text-warn" },
+  confusing: {
+    label: "Confusing",
+    emoji: "😕",
+    cls: "bg-warn/15 theme-light:bg-amber-500/15 text-warn theme-light:text-amber-500",
+  },
   bug: { label: "Bug", emoji: "🐞", cls: "bg-bad/15 text-bad" },
 };
 

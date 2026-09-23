@@ -6,6 +6,7 @@ import { useProgress } from "@/lib/progress";
 import { lessonPath } from "@/lib/seo";
 import { Difficulty } from "@/components/Difficulty";
 import type { LessonLite } from "./types";
+import { Pill } from "@/components/ui/Pill";
 
 type Props = {
   courseId: string;
@@ -35,16 +36,16 @@ export function CurriculumLessonRow({ courseId, lesson, isResume }: Props) {
         {lesson.title}
       </span>
       {isResume && (
-        <span className="rounded-full bg-accent/15 px-2 py-0.5 text-2xs font-semibold text-accent">
-          Resume
-        </span>
+        <Pill text="Resume" variant="accent"/>
       )}
       {lesson.concept ? (
         <span className="text-2xs uppercase tracking-wide text-content-faint">Concept</span>
       ) : (
         <Difficulty level={lesson.difficulty} />
       )}
-      {pct > 0 && !ok && <span className="text-xs tabular-nums text-warn">{pct}%</span>}
+      {pct > 0 && !ok && (
+        <span className="text-xs tabular-nums text-warn theme-light:text-amber-500">{pct}%</span>
+      )}
     </Link>
   );
 }

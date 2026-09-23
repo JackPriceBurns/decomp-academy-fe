@@ -14,7 +14,6 @@ export function LessonHints({ hints, shown, onReveal, onHide }: Props) {
     <div className="mt-6 border-t border-line pt-4">
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-content-muted">
         <IconBulb size={14} className="text-warn theme-light:text-amber-500" /> Hints
-
         {shown > 0 && (
           <button
             onClick={onHide}
@@ -31,7 +30,9 @@ export function LessonHints({ hints, shown, onReveal, onHide }: Props) {
             key={i}
             className="animate-slide-up-fade rounded-lg border border-line bg-bg-softer/50 px-3 py-2 text-sm text-content-secondary"
           >
-            <span className="mr-1.5 font-semibold text-warn">{i + 1}.</span>
+            <span className="mr-1.5 font-semibold text-warn theme-light:text-amber-500">
+              {i + 1}.
+            </span>
             {h}
           </div>
         ))}
@@ -40,7 +41,7 @@ export function LessonHints({ hints, shown, onReveal, onHide }: Props) {
       {shown < hints.length && (
         <button
           onClick={onReveal}
-          className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-bg-softer/60 px-3 py-1.5 text-xs text-content-muted transition hover:bg-bg-softer hover:text-warn"
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-bg-softer/60 px-3 py-1.5 text-xs text-content-muted transition hover:bg-bg-softer hover:text-warn theme-light:hover:text-amber-500"
         >
           <IconBulb size={13} /> Reveal hint {shown + 1} of {hints.length}
         </button>
