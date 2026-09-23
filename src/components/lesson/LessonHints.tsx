@@ -13,7 +13,8 @@ export function LessonHints({ hints, shown, onReveal, onHide }: Props) {
   return (
     <div className="mt-6 border-t border-line pt-4">
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-content-muted">
-        <IconBulb size={14} className="text-warn" /> Hints
+        <IconBulb size={14} className="text-warn theme-light:text-amber-500" /> Hints
+
         {shown > 0 && (
           <button
             onClick={onHide}
