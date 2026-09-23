@@ -46,6 +46,7 @@ function LoginForm() {
     <AuthCard title="Welcome back" subtitle="Sign in to sync your progress.">
       <form onSubmit={onSubmit} className="space-y-3">
         <AuthError message={error} />
+
         <Field
           label="Email"
           type="email"
@@ -54,6 +55,7 @@ function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
+
         <Field
           label="Password"
           type="password"

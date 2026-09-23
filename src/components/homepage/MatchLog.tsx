@@ -56,7 +56,7 @@ export function MatchLog({ lessons, courseId }: Props) {
           </div>
         </div>
         <MatchLogStat
-          icon={<IconFlame size={16} className="text-warn" />}
+          icon={<IconFlame size={16} className="text-warn theme-light:text-amber-500" />}
           value={attempted.toString()}
           label="in progress"
         />

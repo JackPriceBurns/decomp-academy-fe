@@ -7,15 +7,19 @@ export function CurriculumLegend() {
       <span className="inline-flex items-center gap-1.5">
         <IconCircleCheckFilled size={14} className="text-good theme-light:text-good-soft" /> Solved
       </span>
+
       <span className="inline-flex items-center gap-1.5">
-        <IconCircleDashed size={14} className="text-warn" /> Attempted
+        <IconCircleDashed size={14} className="text-warn theme-light:text-amber-500" /> Attempted
       </span>
+
       <span className="inline-flex items-center gap-1.5">
         <IconCircleDashed size={14} className="text-content-ghost" /> Not started
       </span>
+
       <span className="inline-flex items-center gap-1.5">
         <IconBook2 size={14} className="text-content-faint" /> Concept (reading)
       </span>
+
       <span className="ml-auto inline-flex items-center gap-1.5">
         <Difficulty level={3} /> Difficulty 1–5
       </span>

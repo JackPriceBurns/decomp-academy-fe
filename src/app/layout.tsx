@@ -79,12 +79,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // data-theme defaults to dark for SSR; the pre-paint script (below) corrects
-    // it from storage / OS preference before first paint. suppressHydrationWarning
+    // data-theme defaults to light for SSR; the pre-paint script (below) applies
+    // the stored preference before first paint. suppressHydrationWarning
     // because that script mutates the attribute before React hydrates.
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="light"
       suppressHydrationWarning
       className={`${sans.variable} ${mono.variable}`}
     >

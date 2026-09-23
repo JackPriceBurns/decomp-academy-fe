@@ -1,10 +1,10 @@
 // Single source of truth for the design palette.
 //
-// The app ships a dark theme (default) and a light theme. Both are defined here
+// The app ships a dark theme and a light theme (default). Both are defined here
 // as hex; everything downstream is derived from these two objects so colours can
 // never drift between Tailwind, the raw CSS in globals.css, and the Monaco editor:
 //
-//   • `themeStyles`   — the `:root` / `[data-theme=light]` CSS-variable blocks
+//   • `themeStyles`   — the `:root` / `[data-theme=dark]` CSS-variable blocks
 //                       (RGB *channels*, so Tailwind's `/opacity` modifiers work),
 //                       injected once in the document <head>.
 //   • `tailwindColors`— the semantic colour scale for tailwind.config.ts, every
@@ -235,9 +235,9 @@ function toCssVarColors(node: PaletteNode, prefix: string): ColorTree {
   return out;
 }
 
-/** Injected once in <head>: dark vars on :root, light vars under [data-theme=light]. */
+/** Injected once in <head>: light vars on :root, dark vars under [data-theme=dark]. */
 export const themeStyles =
-  `:root{${cssVarBlock(palette)}}` + `:root[data-theme="light"]{${cssVarBlock(paletteLight)}}`;
+  `:root{${cssVarBlock(paletteLight)}}` + `:root[data-theme="dark"]{${cssVarBlock(palette)}}`;
 
 /** Semantic colour scale for tailwind.config.ts — every leaf is a CSS-var reference. */
 export const tailwindColors = toCssVarColors(palette, "") as Record<string, ColorTree>;

@@ -7,15 +7,15 @@ export type Theme = "dark" | "light";
 const STORAGE_KEY = "theme";
 
 // Runs before paint (injected in <head>) so the first frame already has the
-// right theme — no flash. Stored choice wins, else the OS preference, else dark.
+// right theme — no flash. Stored choice wins, otherwise default to light.
 // Mirrors the resolution in ThemeProvider/useState below; keep them in sync.
-export const themeInitScript = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.dataset.theme=t;}catch(e){}})();`;
+export const themeInitScript = `(function(){var t='light';try{var stored=localStorage.getItem('${STORAGE_KEY}');if(stored==='light'||stored==='dark'){t=stored;}}catch(e){}document.documentElement.dataset.theme=t;})();`;
 
 function readTheme(): Theme {
-  if (typeof document !== "undefined" && document.documentElement.dataset.theme === "light") {
-    return "light";
+  if (typeof document !== "undefined" && document.documentElement.dataset.theme === "dark") {
+    return "dark";
   }
-  return "dark";
+  return "light";
 }
 
 interface ThemeCtx {

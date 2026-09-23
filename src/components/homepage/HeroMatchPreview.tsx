@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconCheck } from "@tabler/icons-react";
+import { Pill } from "@/components/ui/Pill";
 
 export function HeroMatchPreview() {
   const [matched, setMatched] = useState(true);
@@ -29,30 +30,22 @@ export function HeroMatchPreview() {
 
   return (
     <div className="animate-slide-up-fade overflow-hidden rounded-xl theme-light:bg-white bg-bg-inset/90 theme-light:shadow-lg shadow-2xl ring-1 ring-white/5 backdrop-blur lg:translate-y-0">
-      <div className="flex items-center gap-2 border-b border-line bg-bg-soft/80 px-3.5 py-2">
-        <span className="flex gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-bad/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-warn/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-good/70 theme-light:bg-good-soft/70" />
-        </span>
+      <div className="flex items-center justify-between border-b border-line bg-bg-soft/80 theme-light:border-gray-200 px-3.5 py-2">
+        <div className="flex items-center gap-2">
+          <span className="flex gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-bad/70" />
+            <span className="h-2.5 w-2.5 rounded-full bg-warn/70 theme-light:bg-amber-500" />
+            <span className="h-2.5 w-2.5 rounded-full bg-good/70 theme-light:bg-good-soft/70" />
+          </span>
 
-        <span className="ml-1 font-mono text-2xs text-content-muted">match Vec_Normalize</span>
+          <span className="ml-1 font-mono text-2xs text-content-muted">match Vec_Normalize</span>
+        </div>
 
-        <span
-          className={`ml-auto inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-semibold transition-colors duration-500 ${
-            matched
-              ? "bg-good/15 theme-light:bg-good-soft/15 text-good theme-light:text-good-soft"
-              : "bg-warn/15 theme-light:bg-amber-50 text-warn theme-light:text-amber-500"
-          }`}
-        >
-          {matched ? (
-            <>
-              <IconCheck size={11} /> 100% byte-match
-            </>
-          ) : (
-            <>87.5% — 2 instrs left</>
-          )}
-        </span>
+        <Pill
+          text={matched ? '100% byte-match' : '87.5% — 2 instrs left'}
+          variant={matched ? 'success' : 'warning'}
+          icon={matched ? IconCheck : undefined}
+        />
       </div>
 
       <div className="grid grid-cols-2 font-mono text-[11px] leading-none">

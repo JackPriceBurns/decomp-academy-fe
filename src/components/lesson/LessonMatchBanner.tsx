@@ -1,4 +1,5 @@
-import { IconBulb, IconGitCompare } from "@tabler/icons-react";
+import { IconBulb, IconCheck, IconGitCompare, IconPill } from "@tabler/icons-react";
+import { Pill } from "@/components/ui/Pill";
 
 type Props = {
   percent: number;
@@ -37,9 +38,11 @@ export function LessonMatchBanner({ percent, firstEver, noHints, onViewDiff }: P
       </p>
 
       {noHints && (
-        <span className="inline-flex items-center gap-1.5 rounded-full border theme-light:border-amber-200 border-warn/30 theme-light:bg-amber-50 theme-light:text-amber-600 bg-warn/10 px-3 py-1 text-xs font-semibold text-warn">
-          <IconBulb size={13} /> Solved with no hints
-        </span>
+        <Pill
+          text="Solved with no hints"
+          variant="warning"
+          icon={IconBulb}
+        />
       )}
 
       <button
