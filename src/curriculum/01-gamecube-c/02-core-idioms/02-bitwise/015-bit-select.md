@@ -16,35 +16,58 @@ hints:
     the two results are ORed together.
 ---
 
-# Bit select: choosing bits from two sources with a mask
+# Bit select: taking bits from two values with a mask
 
-A bit-select — a bitwise mux, if you prefer — builds a result one bit at a time
-out of two sources. Where the mask bit is 1 you copy from one source, where
-it's 0 from the other. In C that's three operations: two ANDs and an OR.
-PowerPC shaves it to two by killing one of the ANDs.
+A bit select builds a result from two values and a mask. For each bit
+position, the mask decides which value the bit comes from. Where the mask bit is
+1, the result takes that bit from one value. Where it is 0, it takes the bit
+from the other value.
 
-The instruction that saves the step is **`andc rD, rA, rB`**. It works out
-`rA & ~rB` by itself — no separate `not` sitting in front of it.
+In C this takes four operations: an AND to keep one value's bits where the mask
+is 1, a NOT to invert the mask, a second AND to keep the other value's bits
+where the mask is 0, and an OR to combine the two. PowerPC needs only three
+instructions, because it has one instruction that does the NOT and an AND
+together.
 
-Say `bit_blend(x, y, mask)` pulls bits from `x` where the mask is clear and
-from `y` where it's set.
+## `andc`: AND with complement
+
+`andc rD, rA, rB` computes `rA & ~rB`. The second source register, `rB`, is
+inverted before the AND, so no separate NOT instruction is needed. The operand
+order matters: only `rB` is inverted.
+
+Here is a function that clears some bits in a flags word and then sets others:
+
+```c
+u32 update_flags(u32 flags, u32 clear, u32 set) {
+    return (flags & ~clear) | set;
+}
+```
 
 ```asm
-andc    r3,r3,r5
-and     r0,r4,r5
-or      r3,r3,r0
+andc    r0,r3,r4
+or      r3,r5,r0
 blr
 ```
 
-The `andc r3, r3, r5` gives you `x & ~mask`, so `x` survives only where the
-mask reads 0. Its partner `and r0, r4, r5` does the mirror image, `y & mask`,
-keeping `y` where the mask reads 1. The two halves cover disjoint positions, so
-`or r3, r3, r0` glues them into a single word — exactly one bit, from `x` or
-`y`, at every position. Never both, never neither.
+The arguments arrive in `r3`, `r4` and `r5`. `andc r0, r3, r4` computes
+`flags & ~clear`, and the `or` then adds the bits from `set`. There is no NOT
+instruction in the output. When you see `andc`, the `~` belongs on the operand
+in the `rB` slot.
 
-Your target walks the same three instructions in the same order, just with the
-registers shuffled. Spot which one carries the mask, which feeds the `andc`,
-and which feeds the `and`, and the C falls right out.
+## Reading a bit select
+
+A bit select compiles to an `and`, an `andc` and an `or`. To read one:
+
+- The register that appears in both the `and` and the `andc` is the mask.
+- The other input to the `and` is the value kept where the mask is 1.
+- The `rA` input to the `andc` is the value kept where the mask is 0.
+- The `or` combines the two results. The two ANDs keep different bit positions,
+  so every bit of the result comes from exactly one of the values.
+
+MWCC computes the left side of the `|` first, so the order of the `and` and
+the `andc` tells you which side you wrote each term on. If your version
+compiles to the right instructions in the wrong order, swap the two sides of
+the `|`.
 
 ## Your task
 
