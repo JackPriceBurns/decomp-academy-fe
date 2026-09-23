@@ -62,7 +62,7 @@ export function Hero({ total, firstLesson }: Props) {
 
             <div className="flex items-center gap-5 rounded-lg bg-bg-soft/70 px-5 py-3 text-sm backdrop-blur">
               <HeroStat
-                icon={<IconBolt size={16} className="text-warn" />}
+                icon={<IconBolt size={16} className="text-warn theme-light:text-amber-500" />}
                 label="Lessons"
                 value={`${total}`}
               />

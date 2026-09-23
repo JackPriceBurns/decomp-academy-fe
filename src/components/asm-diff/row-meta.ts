@@ -6,21 +6,21 @@ export const ROW_META: Record<
 > = {
   none: { bg: "", mark: "", markColor: "", label: "matches" },
   replace: {
-    bg: "bg-warn/[0.07] theme-light:bg-amber-50",
+    bg: "bg-warn/[0.07] theme-light:bg-amber-500/[0.07]",
     mark: "≠",
-    markColor: "text-warn",
+    markColor: "text-warn theme-light:text-amber-500",
     label: "differs",
   },
   "op-mismatch": {
-    bg: "bg-warn/[0.07] theme-light:bg-amber-50",
+    bg: "bg-warn/[0.07] theme-light:bg-amber-500/[0.07]",
     mark: "≠",
-    markColor: "text-warn",
+    markColor: "text-warn theme-light:text-amber-500",
     label: "opcode differs",
   },
   "arg-mismatch": {
-    bg: "bg-warn/[0.07] theme-light:bg-amber-50",
+    bg: "bg-warn/[0.07] theme-light:bg-amber-500/[0.07]",
     mark: "≠",
-    markColor: "text-warn",
+    markColor: "text-warn theme-light:text-amber-500",
     label: "operand differs",
   },
   delete: {

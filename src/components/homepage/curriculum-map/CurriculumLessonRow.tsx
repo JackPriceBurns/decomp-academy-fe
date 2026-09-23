@@ -44,7 +44,9 @@ export function CurriculumLessonRow({ courseId, lesson, isResume }: Props) {
       ) : (
         <Difficulty level={lesson.difficulty} />
       )}
-      {pct > 0 && !ok && <span className="text-xs tabular-nums text-warn">{pct}%</span>}
+      {pct > 0 && !ok && (
+        <span className="text-xs tabular-nums text-warn theme-light:text-amber-500">{pct}%</span>
+      )}
     </Link>
   );
 }

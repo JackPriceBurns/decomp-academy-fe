@@ -42,8 +42,8 @@ export function HeroMatchPreview() {
         </div>
 
         <Pill
-          text={matched ? '100% byte-match' : '87.5% — 2 instrs left'}
-          variant={matched ? 'success' : 'warning'}
+          text={matched ? "100% byte-match" : "87.5% — 2 instrs left"}
+          variant={matched ? "success" : "warning"}
           icon={matched ? IconCheck : undefined}
         />
       </div>
@@ -63,7 +63,7 @@ export function HeroMatchPreview() {
             <div key={i} className="contents">
               <div
                 className={`border-t border-line/40 px-3 py-1.5 transition-colors duration-500 ${
-                  isMatch ? "" : "bg-warn/[0.07]"
+                  isMatch ? "" : "bg-warn/[0.07] theme-light:bg-amber-500/[0.07]"
                 } text-content-secondary`}
               >
                 {t}

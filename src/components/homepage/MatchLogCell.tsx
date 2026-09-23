@@ -13,7 +13,7 @@ export function MatchLogCell({ courseId, lesson, pct }: Props) {
     pct >= 100
       ? "bg-good theme-light:bg-good-soft hover:ring-good"
       : pct > 0
-        ? "bg-warn/70 theme-light:bg-amber-400 hover:ring-warn"
+        ? "bg-warn/70 theme-light:bg-amber-500/70 hover:ring-warn"
         : "bg-line-strong/70 theme-light:bg-line-faint hover:ring-accent";
   return (
     <Link
