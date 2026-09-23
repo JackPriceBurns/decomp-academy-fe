@@ -36,7 +36,7 @@ function tokClass(tok: string): string {
 function segClass(s: Seg): string {
   switch (s.color) {
     case "replace":
-      return "rounded-[3px] bg-warn/20 text-warn ring-1 ring-warn/30 theme-light:bg-amber-500/15 theme-light:text-amber-500 theme-light:ring-warn/50";
+      return "rounded-[3px] bg-warn/20 text-warn ring-1 ring-warn/30 theme-light:bg-warn/[0.15] theme-light:text-content-bright theme-light:ring-warn/50";
     case "delete":
       return "text-bad";
     case "insert":
