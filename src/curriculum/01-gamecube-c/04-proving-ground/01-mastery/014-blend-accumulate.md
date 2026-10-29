@@ -91,7 +91,7 @@ them there.
 ## Your task
 
 With the externs above, write `func_8000e94c`. The logic is in the starter and
-the assembly above: loop `i` over `[0, count)`, accumulate three sums per
+the target assembly: loop `i` over `[0, count)`, accumulate three sums per
 iteration and `emit` the combined total, then emit each sum after the loop. The
 challenge is register assignment: read the `li r28`, `li r29`, `li r30` init
 sequence and the `mr r4, rX` tail to identify which accumulator (`a`, `b`, or

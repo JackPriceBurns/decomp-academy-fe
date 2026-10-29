@@ -76,7 +76,7 @@ exit, so pick whichever reads clearest.
 
 ## Your task
 
-With the structs above, write `func_801fa790` to match the assembly above. Read
+With the structs above, write `func_801fa790` to match the target assembly. Read
 `collider` and `def` up front. Trace the three-way guard chain, determine what
 work the innermost block performs on `obj`'s fields and which helper calls it
 makes, and reconstruct the `hitEvent != -1` optional-event guard and the biased

@@ -67,7 +67,7 @@ the `lis`/`addi` for the bound, and the `bgtlr-` for the clamp direction.
 ## Your task
 
 The `u64` globals `gBytesIn` and `gBytesOut` are declared for you. Write
-`func_80049c00`, returning a `u32`, to reproduce the assembly above. Recover the
+`func_80049c00`, returning a `u32`, to reproduce the target assembly. Recover the
 clamp bound from the `lis`/`addi` pair and the cast from the fact that only the
 low halves are touched.
 

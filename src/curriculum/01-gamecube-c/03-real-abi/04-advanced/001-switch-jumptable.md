@@ -46,7 +46,7 @@ dispatch is O(1) flat.
 ## Your task
 
 Write `dispatch(int x)`: a `switch` on `x` with eight consecutive cases and a
-default. Read the `li r3, N` values in each case arm from the assembly above to
+default. Read the `li r3, N` values in each case arm from the target assembly to
 recover what each case returns. Eight dense cases is past the threshold, so this
 compiles to the table form.
 

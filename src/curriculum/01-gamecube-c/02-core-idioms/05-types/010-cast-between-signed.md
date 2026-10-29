@@ -41,7 +41,7 @@ unsigned source pulls in a mask.
 
 ## Your task
 
-Write `func_80094334` to reproduce the assembly above.
+Write `func_80094334` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -45,7 +45,7 @@ it chooses between.
 
 ## Your task
 
-Write `func_8033f2ac` to reproduce the assembly above.
+Write `func_8033f2ac` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

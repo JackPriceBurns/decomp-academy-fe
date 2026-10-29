@@ -117,7 +117,7 @@ arguments.
 
 ## Your task
 
-With the structs above, write `func_801c9624` to reproduce the assembly above.
+With the structs above, write `func_801c9624` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

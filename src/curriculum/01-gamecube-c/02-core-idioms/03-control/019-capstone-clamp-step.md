@@ -25,10 +25,10 @@ This one mixes a guard, arithmetic, and clamps. The function leans on an
 appears — the challenge is recognising machinery you've already built, plus one
 MWCC habit of welding a clamp's compare onto the arithmetic that just ran.
 
-The weld hangs on the trailing dot. When a mnemonic carries a `.` — say `add.`
-or `subf.` — it updates the condition register as a *side effect* of its real
-work. So a freshly computed value that needs clamping skips its own `cmpwi`;
-the dotted op already set the flags the branch will test.
+The trailing dot on `add.` or `subf.` records the result in `cr0`: LT, GT,
+and EQ indicate whether the signed result is less than, greater than, or equal
+to zero; SO copies the summary-overflow flag. A following branch can test
+those flags without a separate `cmpwi` against zero.
 
 In `step(pos, delta, limit)`, a non-positive limit gets ignored outright, `pos`
 moves up by `delta`, and the result ends up wedged inside `[0, limit]`:
@@ -60,7 +60,7 @@ its face again.
 
 ## Your task
 
-Write `func_8011fd9c` to reproduce the assembly above.
+Write `func_8011fd9c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

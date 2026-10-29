@@ -45,7 +45,7 @@ of the source matters as much as what it computes.
 
 ## Your task
 
-Write `func_8002fc94` to reproduce the assembly above.
+Write `func_8002fc94` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -14,52 +14,92 @@ hints:
   - Expect two `cmpwi ..., 0` with a `ble-` after each jumping to the false exit.
 ---
 
-# Two compares, lazily evaluated
+# Reading short-circuit branches
 
-`&&` and `||` are lazy in C — the right-hand operand runs only if the left one
-left the answer open. In asm that shows up as *two compares with branches
-wedged between them*.
+`&&` evaluates its right-hand operand only if the left one is true. `||`
+evaluates its right-hand operand only if the left one is false. Both can
+produce compares separated by branches, but the surrounding C also affects
+where those branches lead.
 
-Take `&&` first. The instant a test fails, control bails to the false exit and
-the right-hand operand never executes. In the listing below, `r3` is checked
-and a `bge-` to `.false` fires the moment it isn't negative, so `r4` never gets
-looked at once the first half has lost.
+Consider a check with three conditions: a mode must differ from 3, an offset
+must be below -2, and a count must be at least 5. Returning the logical
+expression directly gives early returns:
+
+```c
+int mixed_expression(int mode, int offset, int count) {
+    return mode != 3 && offset < -2 && count >= 5;
+}
+```
 
 ```asm
-# both_negative(int a, int b): return 1 if a < 0 && b < 0
-cmpwi r3, 0
-bge-  .false     # a >= 0 -> whole && is false, skip the b test
-cmpwi r4, 0
-bge-  .false     # b >= 0 -> false
-li    r3, 1      # both passed
-blr
-.false:
-li    r3, 0
+cmpwi   r3,3
+li      r3,0
+beqlr-
+cmpwi   r4,-2
+bgelr-
+cmpwi   r5,5
+bltlr-
+li      r3,1
 blr
 ```
 
-`||` flips that around. Now a *passing* test is the one that jumps, straight to
-the true exit. Below, a single argument hitting 10 declares the whole thing
-true via a `bge-` to `.true`, leaving the second `cmpwi` unreached.
+MWCC sets `r3` to zero before the conditional returns. Each branch tests a
+different failure: mode equal to 3, offset at least -2, or count below 5.
+If all three tests pass, the function reaches `li r3,1`.
 
-```asm
-# either_large(int a, int b): return 1 if a >= 10 || b >= 10
-cmpwi r3, 10
-bge-  .true      # a >= 10 -> short-circuit, the || is already true
-cmpwi r4, 10
-blt-  .false     # last test still gates: b < 10 -> false
-.true:
-li    r3, 1
-blr
-.false:
-li    r3, 0
-blr
+Writing the same condition with an `if` and separate return statements changes
+the branch layout:
+
+```c
+int mixed_if(int mode, int offset, int count) {
+    if (mode != 3 && offset < -2 && count >= 5) return 1;
+    return 0;
+}
 ```
 
-The tail has a wrinkle: only the leading operand can shortcut to true. The
-final compare gets none — it falls through onto the true path and diverts to
-false only on failure. Count the `cmpwi`s, follow the branch leaving each, and
-the `&&`/`||` behind them is yours to rebuild.
+```asm
+ 0: cmpwi   r3,3
+ 4: beq-    20 <mixed_if+0x20>
+ 8: cmpwi   r4,-2
+ c: bge-    20 <mixed_if+0x20>
+10: cmpwi   r5,5
+14: blt-    20 <mixed_if+0x20>
+18: li      r3,1
+1c: blr
+20: li      r3,0
+24: blr
+```
+
+Here `beq-`, `bge-`, and `blt-` jump to the shared false exit at offset `0x20`,
+where `li r3,0` is followed by `blr`. The functions return the same values,
+but only the second form has this shared-exit layout. Check the target's
+branch destinations when deciding which form to write.
+
+For `||`, a successful first test skips the second test. This example checks
+whether either value is at least 10:
+
+```c
+int either_large(int a, int b) {
+    if (a >= 10 || b >= 10) return 1;
+    return 0;
+}
+```
+
+```asm
+ 0: cmpwi   r3,10
+ 4: bge-    10 <either_large+0x10>
+ 8: cmpwi   r4,10
+ c: blt-    18 <either_large+0x18>
+10: li      r3,1
+14: blr
+18: li      r3,0
+1c: blr
+```
+
+The first branch jumps to the true exit at `0x10`. If the first test fails,
+the second compare decides whether to fall through to that exit or branch to
+the false exit at `0x18`. Follow each branch to the value it returns before
+reconstructing the condition.
 
 ## Your task
 

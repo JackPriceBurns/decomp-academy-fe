@@ -89,7 +89,7 @@ blr
 
 ## Your task
 
-With the structs above, write `func_801fc510` to reproduce the assembly above.
+With the structs above, write `func_801fc510` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

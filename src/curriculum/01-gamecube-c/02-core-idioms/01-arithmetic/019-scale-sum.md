@@ -43,7 +43,7 @@ see how the two scaled values come together.
 
 ## Your task
 
-Write `func_8007bb88` to reproduce the assembly above.
+Write `func_8007bb88` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -38,7 +38,7 @@ isolated, convert that back to the hex value, and express it as an AND in C.
 
 ## Your task
 
-Write `func_80395cf8` to reproduce the assembly above.
+Write `func_80395cf8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

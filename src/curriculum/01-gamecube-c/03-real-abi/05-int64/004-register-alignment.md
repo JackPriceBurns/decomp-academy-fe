@@ -40,7 +40,7 @@ the gap. Find the skipped register first and the rest of the signature lines up.
 
 ## Your task
 
-Write `func_803350bc` to reproduce the assembly above.
+Write `func_803350bc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

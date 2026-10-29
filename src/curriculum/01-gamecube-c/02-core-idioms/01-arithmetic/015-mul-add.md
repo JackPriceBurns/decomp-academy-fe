@@ -42,7 +42,7 @@ second instruction does with it.
 
 ## Your task
 
-Write `func_803afd7c` to reproduce the assembly above.
+Write `func_803afd7c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -44,7 +44,7 @@ divisor, and see how the two results are joined.
 
 ## Your task
 
-Write `func_8006bff0` to reproduce the assembly above.
+Write `func_8006bff0` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -43,7 +43,7 @@ the three arguments and you can tell base from target from fraction.
 
 ## Your task
 
-Write `func_80288c88` to reproduce the assembly above.
+Write `func_80288c88` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

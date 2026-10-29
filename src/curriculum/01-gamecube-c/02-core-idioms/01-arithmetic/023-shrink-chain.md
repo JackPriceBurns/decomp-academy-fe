@@ -41,7 +41,7 @@ divisor from the count, then follow the two operations after it.
 
 ## Your task
 
-Write `func_802f5a88` to reproduce the assembly above.
+Write `func_802f5a88` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

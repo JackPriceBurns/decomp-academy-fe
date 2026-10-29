@@ -54,7 +54,7 @@ indices from the displacements, and the expression reassembles itself.
 
 ## Your task
 
-Write `func_8023b078` to reproduce the assembly above.
+Write `func_8023b078` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

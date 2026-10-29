@@ -43,7 +43,7 @@ registers, pull out the two products, and check that they're added.
 
 ## Your task
 
-Write `func_80265844` to reproduce the assembly above.
+Write `func_80265844` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

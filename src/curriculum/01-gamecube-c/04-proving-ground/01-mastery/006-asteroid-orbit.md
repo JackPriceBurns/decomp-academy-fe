@@ -144,7 +144,7 @@ expressions.
 
 ## Your task
 
-With the structs above, write `func_8032a874` to reproduce the assembly above.
+With the structs above, write `func_8032a874` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

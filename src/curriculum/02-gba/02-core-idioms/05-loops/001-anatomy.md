@@ -48,10 +48,10 @@ branch at 4. That forward branch is the entry test, or guard, and it exists
 because the loop might have to run zero times.
 
 Notice the two tests are the same condition spelled opposite ways. The bottom
-test is written straight: stay in the loop while the value is still greater than
-99. The guard is written inverted: skip the loop if it is not.
-Whenever you see a `bXX` out to the exit label followed later by the inverse
-`bYY` back to the top, those two branches came from one C condition.
+test is written straight: stay in the loop while the value is still greater
+than 99. The guard is written inverted: skip the loop if it is not. Whenever you
+see a `bXX` out to the exit label followed later by the inverse `bYY` back to
+the top, those two branches came from one C condition.
 
 The compare is against 99 rather than 100 because gcc rewrites a signed `>=`
 against a constant into a `>` against one less, and a `<` into a `<=` the

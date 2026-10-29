@@ -42,7 +42,7 @@ multiplier, then trace the two operations that follow.
 
 ## Your task
 
-Write `func_800c0dbc` to reproduce the assembly above.
+Write `func_800c0dbc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

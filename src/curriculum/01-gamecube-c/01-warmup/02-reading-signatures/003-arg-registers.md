@@ -48,7 +48,7 @@ which one to return.
 
 ## Your task
 
-Write `func_800b3834` to reproduce the assembly above.
+Write `func_800b3834` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

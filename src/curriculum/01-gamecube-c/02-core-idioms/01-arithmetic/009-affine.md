@@ -42,7 +42,7 @@ blr
 
 ## Your task
 
-Write `func_8032b554` to reproduce the assembly above.
+Write `func_8032b554` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

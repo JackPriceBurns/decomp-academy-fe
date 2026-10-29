@@ -65,7 +65,7 @@ limit and direction.
 ## Your task
 
 `compute` is declared for you, along with the int global `gThreshold`. Write
-`func_800af8d8` to reproduce the assembly above. Expect a full prologue and
+`func_800af8d8` to reproduce the target assembly. Expect a full prologue and
 epilogue around the `bl`; the real work is the load, the arithmetic, and the
 clamp in the middle.
 

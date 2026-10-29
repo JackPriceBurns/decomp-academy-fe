@@ -50,7 +50,7 @@ position in the provided enum.
 
 ## Your task
 
-Write `func_8013f594` to match the assembly above. The `State` enum and `Actor`
+Write `func_8013f594` to match the target assembly. The `State` enum and `Actor`
 struct are provided. Confirm for yourself that replacing the enum constant with
 its numeric value produces the same asm.
 

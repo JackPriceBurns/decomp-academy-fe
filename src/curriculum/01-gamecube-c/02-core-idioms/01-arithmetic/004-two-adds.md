@@ -10,37 +10,35 @@ concepts:
 symbol: func_800ef650
 hints:
   - Addition is associative, so the compiler is free to regroup the operands.
-  - Watch for an `mr` that just parks `a` while `b + c` is computed first.
+  - Write the natural left-to-right sum. MWCC reassociates it on its own; adding
+    parentheses to copy the instruction order can change the output.
 ---
 
 # When the compiler regroups your chain
 
-Addition is associative — `(a + b) + c` and `a + (b + c)` come out the same —
-and the compiler happily exploits that to schedule the arithmetic however it
-likes. Rather than marching left to right through the registers, it might hold
-one operand back and pair off two others first.
+MWCC can reassociate a chain of additions while scheduling instructions. The
+order of the machine operations need not follow the left-to-right grouping
+of the C expression.
 
-Here's a sum of several arguments:
+For example, consider the assembly for a four-term sum:
 
 ```asm
-add  r0, r4, r5   # r0 = b + c  (computed first)
-mr   r4, r3       # r4 = a      (saved aside)
-add  r3, r0, r6   # r3 = (b + c) + d
-add  r3, r4, r3   # r3 = a + ((b + c) + d)
+add     r0,r4,r5
+mr      r4,r3
+add     r3,r0,r6
+add     r3,r4,r3
 blr
 ```
 
-That `mr` (*move register*) is a register-to-register copy, no math attached.
-Here it tucks `a` aside so the compiler can knock out `b + c` first, fold in
-`d`, and slot `a` back in at the end. Sum left to right or sum this way — the
-number is identical. Only the grouping moved.
+The first `add` combines `b` and `c`. The `mr` saves `a` in `r4`, the next
+`add` includes `d`, and the final `add` brings in the saved value. MWCC chose
+that order from a natural left-to-right expression.
 
-An `mr` near the top of a function is a tell: the operand it saves will
-resurface in a later `add`, so go hunting for it. Count the instructions and
-you know how many operations the expression holds; read the registers and you
-know which arguments take part. Chase every `add`'s sources back to the
-argument registers (`r3`→`a`, `r4`→`b`, `r5`→`c`) and the expression comes back
-together.
+An `mr` is a register-to-register copy. Follow the saved value to its later
+use, then trace each `add` back to its inputs to find which operands belong
+to the sum. Write the natural left-to-right expression and let MWCC choose
+the instruction order. Parenthesizing the C to imitate the compiler's
+regrouping can produce different assembly.
 
 ## Your task
 

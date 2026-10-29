@@ -50,7 +50,7 @@ you read off it.
 ## Your task
 
 The globals are already declared: `gRaw` (`int`) and `gLevel` (`u8`). Write
-`func_8000bd28` (no arguments, no return) to reproduce the assembly above.
+`func_8000bd28` (no arguments, no return) to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -46,7 +46,7 @@ which is the subtrahend.
 
 ## Your task
 
-Write `func_80092880` to reproduce the assembly above.
+Write `func_80092880` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

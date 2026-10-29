@@ -43,7 +43,7 @@ Read your target, find its two source registers, and count from `r3`.
 
 ## Your task
 
-Write `func_80030bc8` to reproduce the assembly above.
+Write `func_80030bc8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

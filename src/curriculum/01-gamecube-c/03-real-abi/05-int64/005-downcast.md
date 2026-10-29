@@ -43,7 +43,7 @@ result is a reliable signal that a 64-bit type is hiding in the source.
 
 ## Your task
 
-Write `func_803901dc` to reproduce the assembly above.
+Write `func_803901dc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

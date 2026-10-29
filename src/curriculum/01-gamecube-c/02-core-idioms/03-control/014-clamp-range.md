@@ -52,7 +52,7 @@ falls back out of the compare it rides on.
 
 ## Your task
 
-Write `func_802340c0` to reproduce the assembly above.
+Write `func_802340c0` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

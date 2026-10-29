@@ -50,7 +50,7 @@ joined.
 
 ## Your task
 
-Write `func_80051b68` to reproduce the assembly above — one `divw`, one `slwi`,
+Write `func_80051b68` to reproduce the target assembly — one `divw`, one `slwi`,
 one combining op.
 
 <!-- solution -->

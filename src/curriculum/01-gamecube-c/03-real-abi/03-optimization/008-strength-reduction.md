@@ -53,7 +53,7 @@ you can work backward to the source expression.
 
 ## Your task
 
-Write `fill(int *dst, int n)` to reproduce the assembly above. Use the natural
+Write `fill(int *dst, int n)` to reproduce the target assembly. Use the natural
 loop-and-multiply form; let `-O4,p` handle the reduction.
 
 <!-- solution -->

@@ -45,7 +45,7 @@ argument leaves by which path.
 
 ## Your task
 
-Write `func_80164cd0` to reproduce the assembly above. Use a plain `if` with an
+Write `func_80164cd0` to reproduce the target assembly. Use a plain `if` with an
 early `return`.
 
 <!-- solution -->

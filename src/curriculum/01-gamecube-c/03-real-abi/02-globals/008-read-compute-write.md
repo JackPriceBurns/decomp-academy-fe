@@ -50,7 +50,7 @@ the store.
 ## Your task
 
 The globals are declared for you: `gAlpha`, `gBeta`, `gTotal` (all `int`). Write
-`func_800b4afc` (no arguments, no return) to reproduce the assembly above.
+`func_800b4afc` (no arguments, no return) to reproduce the target assembly.
 
 <!-- solution -->
 ```c

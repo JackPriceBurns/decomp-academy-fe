@@ -45,7 +45,7 @@ sequence.
 
 ## Your task
 
-Write `func_8011cc48` to reproduce the assembly above.
+Write `func_8011cc48` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

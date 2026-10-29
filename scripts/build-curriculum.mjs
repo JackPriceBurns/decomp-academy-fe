@@ -46,6 +46,50 @@ function stampId(filePath, id) {
   console.warn(`  minted id ${id} for ${filePath}`);
 }
 
+// renderMarkdown (src/lib/markdown.ts) only starts a list after a blank line, so
+// a paragraph line that merely looks like a list item ("32767. Ask...", "- so
+// the...") renders as part of the sentence. That's right for hard-wrapped prose
+// but silently wrong for a real list missing its blank line, and the two look
+// identical in the source — so reject both and make the author choose: add a
+// blank line before the list, or rewrap so no line starts with a marker. Mirrors
+// the renderer's block rules; returns the offending [previous, line] pairs.
+const LIST_MARKER = /^([-*]|\d+\.)\s+/;
+function listMarkersInParagraphs(md) {
+  const found = [];
+  let fenced = false;
+  let block = null; // "para" | "list" | null — what the previous line belongs to
+  let prev = "";
+  for (const line of md.split("\n")) {
+    if (/^```/.test(line)) {
+      fenced = !fenced;
+      block = null;
+    } else if (fenced) {
+      continue;
+    } else if (
+      line.trim() === "" ||
+      /^#{1,3}\s+/.test(line) ||
+      /^>/.test(line) ||
+      line.trim().startsWith("|")
+    ) {
+      block = null;
+    } else if (LIST_MARKER.test(line)) {
+      if (block === "para") found.push([prev, line]);
+      block = "list";
+    } else if (block !== "list") {
+      block = "para"; // a non-marker line inside a list is that item's wrap
+    }
+    prev = line;
+  }
+  return found;
+}
+
+/** 1-based line of `line` (preceded by `prev`) in the raw lesson file. */
+function lineNumberOf(raw, prev, line) {
+  const lines = raw.split("\n");
+  const i = lines.findIndex((l, j) => j > 0 && l === line && lines[j - 1] === prev);
+  return i + 1;
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "src", "curriculum");
 const outDir = join(root, "generated");
@@ -67,6 +111,8 @@ const courses = [];
 const tiers = [];
 const chapters = [];
 const lessons = [];
+// Collected across the whole tree so one build reports every offending line.
+const proseListErrors = [];
 
 // Sorted dir listing so a numeric prefix collision surfaces deterministically.
 const subdirs = (dir) =>
@@ -141,10 +187,15 @@ for (const courseEntry of subdirs(root)) {
         const m = file.match(ORDER_PREFIX);
         if (!m) throw new Error(`Lesson file missing "<order>-" prefix: ${chEntry.name}/${file}`);
         const filePath = join(dir, file);
-        const lesson = parseLessonFile(readFileSync(filePath, "utf8"), {
+        const raw = readFileSync(filePath, "utf8");
+        const lesson = parseLessonFile(raw, {
           chapter: chId,
           order: parseFloat(m[1]),
         });
+        for (const [prev, line] of listMarkersInParagraphs(lesson.brief)) {
+          const at = `${filePath.slice(root.length + 1)}:${lineNumberOf(raw, prev, line)}`;
+          proseListErrors.push(`  ${at}: ${line.slice(0, 60)}`);
+        }
         lesson.course = courseId;
         // The enclosing tier. Chapter ids are only unique within a tier (e.g.
         // two "finale" chapters in different tiers), so a lesson is bound to its
@@ -162,6 +213,12 @@ for (const courseEntry of subdirs(root)) {
       }
     }
   }
+}
+
+if (proseListErrors.length) {
+  throw new Error(
+    `A paragraph line starts with a list marker (renders as prose, not a list). Add a blank line before the list, or rewrap so the line doesn't start with "N. " or "- ":\n${proseListErrors.join("\n")}`,
+  );
 }
 
 // A lesson is addressed by (course, id) — in URLs, getLesson, and static params

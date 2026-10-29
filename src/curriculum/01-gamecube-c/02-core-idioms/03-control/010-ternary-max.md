@@ -40,7 +40,7 @@ versus `a`. The comparison the ternary needs follows from there.
 
 ## Your task
 
-Write `func_801a77f4` to reproduce the assembly above.
+Write `func_801a77f4` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

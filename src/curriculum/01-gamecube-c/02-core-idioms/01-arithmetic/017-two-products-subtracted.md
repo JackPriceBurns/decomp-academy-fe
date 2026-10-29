@@ -44,7 +44,7 @@ on the final instruction tell you how the expression goes back together.
 
 ## Your task
 
-Write `func_801c25bc` to reproduce the assembly above.
+Write `func_801c25bc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

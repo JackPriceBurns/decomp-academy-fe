@@ -71,9 +71,9 @@ typedef struct { f32 value; f32 target; f32 rate; } Slider;
 typedef struct { f32 value; f32 target; f32 rate; } Slider;
 ```
 
-With the `Slider` struct above, write `func_80129fdc` to reproduce the assembly
-above. Compute the interpolated step into one local, clamp it against the relevant
-field, and store it back.
+With the `Slider` struct above, write `func_80129fdc` to reproduce the target
+assembly. Compute the interpolated step into one local, clamp it against the
+relevant field, and store it back.
 
 <!-- solution -->
 ```c

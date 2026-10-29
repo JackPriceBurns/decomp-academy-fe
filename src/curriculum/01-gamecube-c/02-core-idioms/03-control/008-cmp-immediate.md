@@ -41,7 +41,7 @@ opposite arm.
 
 ## Your task
 
-Write `func_8027b954` to reproduce the assembly above.
+Write `func_8027b954` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

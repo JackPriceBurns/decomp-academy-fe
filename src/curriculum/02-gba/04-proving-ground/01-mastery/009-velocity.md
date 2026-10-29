@@ -30,8 +30,9 @@ stops it running away by clamping it to a terminal value, and adds the result to
 the position.
 
 Reading that narrow field is where the machine gets in the way. Thumb has an
-`ldrsh` but only in the register-offset form - there is no `ldrsh r0, [r1, #10]`
-- so the compiler has to put the offset in a register before it can load:
+`ldrsh` but only in the register-offset form - there is no
+`ldrsh r0, [r1, #10]` - so the compiler has to put the offset in a register
+before it can load:
 
 ```asm
 0        mov       r1, #0

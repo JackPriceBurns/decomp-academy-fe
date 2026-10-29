@@ -32,7 +32,7 @@ zero work?
 
 ## Your task
 
-Write `identity`, taking an `int x`, to reproduce the assembly above.
+Write `identity`, taking an `int x`, to reproduce the target assembly.
 
 <!-- starter -->
 ```c

@@ -71,7 +71,7 @@ the `|`.
 
 ## Your task
 
-Write `func_800cf2c8` to reproduce the assembly above.
+Write `func_800cf2c8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

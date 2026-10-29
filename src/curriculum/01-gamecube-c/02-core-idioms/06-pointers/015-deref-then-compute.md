@@ -45,7 +45,7 @@ how the other one enters.
 
 ## Your task
 
-Write `func_800f69dc` to reproduce the assembly above.
+Write `func_800f69dc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

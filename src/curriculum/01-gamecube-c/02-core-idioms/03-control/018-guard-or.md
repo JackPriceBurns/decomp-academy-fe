@@ -55,7 +55,7 @@ instruction past the fall-through hands you the rest.
 
 ## Your task
 
-Write `func_801f17c0` to reproduce the assembly above.
+Write `func_801f17c0` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

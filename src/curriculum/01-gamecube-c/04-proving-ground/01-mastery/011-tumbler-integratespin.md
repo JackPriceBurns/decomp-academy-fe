@@ -73,7 +73,7 @@ and that is exactly the edit the real match made.
 ## Your task
 
 With the structs above, write `func_80015cc0` under `#pragma peephole off`. For
-each of X, Y, Z, integrate the rate into the angle to match the assembly above.
+each of X, Y, Z, integrate the rate into the angle to match the target assembly.
 Cast directly on the store value — do **not** route through an `int` local, or the
 `extsh` masks will reappear and break the match.
 

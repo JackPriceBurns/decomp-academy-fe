@@ -43,7 +43,7 @@ the argument order.
 
 ## Your task
 
-Write `func_801c1c40` to reproduce the assembly above.
+Write `func_801c1c40` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

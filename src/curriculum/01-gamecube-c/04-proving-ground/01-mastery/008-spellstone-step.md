@@ -78,7 +78,7 @@ mismatches even though the logic is identical.
 
 ## Your task
 
-With the structs above, write `func_800c823c` to match the assembly above. Pay
+With the structs above, write `func_800c823c` to match the target assembly. Pay
 attention to which rotation fields change and by how much, the direction of the
 `GameBit_Get` branch and which event it reads, and the `(s16)` on the flag write.
 

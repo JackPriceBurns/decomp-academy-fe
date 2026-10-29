@@ -54,7 +54,7 @@ fingerprint — a plain `int` would have loaded once and done `add r3, r0, r0`.
 
 ## Your task
 
-Write `sample(struct Dev *d)` to reproduce the assembly above. The `Mode` enum,
+Write `sample(struct Dev *d)` to reproduce the target assembly. The `Mode` enum,
 `Dev` struct, and the `volatile int g_ticks` are provided in context. Read the
 `cmpwi` immediate to find which enum value passes the guard and the `li` to find
 the sentinel; the global must be read twice past the guard.

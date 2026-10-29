@@ -49,7 +49,7 @@ is to cast that address through a `volatile` pointer.
 
 ## Your task
 
-Write `func_80225298` to match the assembly above. The `vu32` typedef is part of
+Write `func_80225298` to match the target assembly. The `vu32` typedef is part of
 the shared preamble. Both loads must survive as separate `lwz`.
 
 <!-- solution -->

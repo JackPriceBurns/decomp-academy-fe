@@ -50,7 +50,7 @@ the `addi`, then let `cmpwi`/`bgtlr-` give you the bound and clamp direction.
 
 ## Your task
 
-Write `func_802efcf4` to reproduce the assembly above.
+Write `func_802efcf4` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

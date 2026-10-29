@@ -39,7 +39,7 @@ that an argument spilled onto the stack. The first eight (`a`–`h`) showed up i
 
 ## Your task
 
-Write `func_80367020` to reproduce the assembly above — a single `lwz` from
+Write `func_80367020` to reproduce the target assembly — a single `lwz` from
 `8(r1)` followed by `blr`.
 
 <!-- solution -->

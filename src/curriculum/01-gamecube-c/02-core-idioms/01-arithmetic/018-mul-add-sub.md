@@ -40,7 +40,7 @@ the expression back together.
 
 ## Your task
 
-Write `func_802c9ac8` to reproduce the assembly above.
+Write `func_802c9ac8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

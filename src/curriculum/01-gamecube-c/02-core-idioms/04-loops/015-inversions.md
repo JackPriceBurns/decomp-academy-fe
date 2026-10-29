@@ -1,7 +1,7 @@
 ---
 id: 4bb740e4-ae99-5359-9cc4-7e6addc402a0
 slug: loops-inversions
-title: "Capstone: Counting Pairs in a Grid Scan"
+title: "Capstone: Reading Nested Array Loops"
 difficulty: 4
 concepts:
   - nested-loops
@@ -20,66 +20,55 @@ hints:
     `addi` is the `if` body.
 ---
 
-# A triangular pair scan
+# Reading a nested loop in layers
 
-This capstone folds the whole chapter into one function: a **nested** loop
-whose inner bound follows the outer index (a triangle), which **loads two array
-elements** per pass, **compares** them, and **conditionally** bumps a counter.
-Every piece appeared earlier — here they stack.
+Nested loops combine several familiar patterns. Separate loop control,
+address calculations, and conditional updates before trying to reconstruct
+the whole function.
 
-Consider `gmax(a, rows, cols)`, which returns the largest element of a
-row-major grid. It's a full rectangular nest (the inner loop runs the whole
-`cols` each pass), it addresses memory with the flattened `i * cols + j`
-formula, and it updates its running result only when a candidate beats it:
+Consider `gmax(a, rows, cols)`, which finds the largest element of a row-major
+grid. Its inner loop visits every column of each row:
 
 ```asm
-lwz  r8, 0(r3)      # m = a[0]  (seed)
-li   r6, 0          # i = 0
-b    otest
-obody:
-li   r7, 0          # j = 0
-b    itest
-ibody:
-mullw r0, r6, r5    # i * cols
-add  r0, r7, r0     # + j
-slwi r0, r0, 2      # * 4
-lwzx r0, r3, r0     # load a[i*cols + j]
-cmpw r0, r8         # candidate vs running max
-ble- iskip          # not greater -> keep m
-mullw r0, r6, r5    # recompute index for the store
-add  r0, r7, r0
-slwi r0, r0, 2
-lwzx r8, r3, r0     # m = a[i*cols + j]
-iskip:
-addi r7, r7, 1      # j++
-itest:
-cmpw r7, r5         # j < cols ?
-blt+ ibody
-addi r6, r6, 1      # i++
-otest:
-cmpw r6, r4         # i < rows ?
-blt+ obody
-mr   r3, r8
-blr
+ 0: lwz     r10,0(r3)
+ 4: li      r9,0
+ 8: li      r0,0
+ c: b       48 <gmax+0x48>
+10: mr      r7,r0
+14: slwi    r6,r0,2
+18: mtctr   r5
+1c: cmpwi   r5,0
+20: ble-    40 <gmax+0x40>
+24: lwzx    r8,r3,r6
+28: cmpw    r8,r10
+2c: ble-    34 <gmax+0x34>
+30: mr      r10,r8
+34: addi    r7,r7,1
+38: addi    r6,r6,4
+3c: bdnz+   24 <gmax+0x24>
+40: add     r0,r0,r5
+44: addi    r9,r9,1
+48: cmpw    r9,r4
+4c: blt+    10 <gmax+0x10>
+50: mr      r3,r10
+54: blr
 ```
 
-Read it as layers: the two stacked skeletons are the nest, the
-`mullw`/`add`/`slwi`/`lwzx` is the 2-D load, the `cmpw`+`ble-` is the test, and
-the conditionally reached `lwzx r8` is the update. Strip any one layer and
-you're back to an earlier lesson.
+Start with the backward branches. The `bdnz+` at `0x3c` repeats the inner
+loop using CTR, loaded from the column count by `mtctr`. The `blt+` at `0x4c`
+repeats the outer loop after comparing its index with the row count.
 
-Your `func_802edd00` differs from this example in three ways, each a layer
-you've already met:
+Then trace the address calculation. MWCC advances `r6` by four bytes per inner
+pass and adds the column count to `r0` between rows. It has replaced repeated
+row-index multiplication with running offsets. The `lwzx` uses that byte
+offset to load a candidate, and `cmpw` followed by `ble-` decides whether the
+`mr r10,r8` updates the running maximum.
 
-- It scans a **flat** `int` array of length `n` — one index each, `a[i]` and
-  `a[j]`, so `slwi`+`lwzx` with no `mullw` for the address.
-- The inner loop is **triangular with a shifted start**: it begins at
-  `j = i + 1` rather than 0 (look for the `addi` that seeds the inner counter
-  from the outer one), so every unordered pair is visited exactly once.
-- The conditional updates a simple **counter** (`addi`), not a stored value.
-
-Trace the compare between the two loaded elements and which way the `ble-`
-falls to recover the condition being counted.
+Use the same reading process on the target: find each loop's entry, backward
+branch, and exit test. Trace where its control register is initialized and
+updated, including any dependence on the enclosing loop. Finally, separate
+the loads from the conditional updates and follow which branch reaches each
+update. Those details tell you how to reconstruct the loops and their body.
 
 ## Your task
 

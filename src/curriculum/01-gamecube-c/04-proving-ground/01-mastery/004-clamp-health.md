@@ -89,7 +89,7 @@ initial arithmetic.
 
 ## Your task
 
-With the struct above, write `func_803fddb8` to reproduce the assembly above.
+With the struct above, write `func_803fddb8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

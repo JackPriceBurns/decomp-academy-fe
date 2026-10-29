@@ -46,7 +46,7 @@ the final instruction does with both results.
 
 ## Your task
 
-Write `func_80203a4c` to reproduce the assembly above.
+Write `func_80203a4c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

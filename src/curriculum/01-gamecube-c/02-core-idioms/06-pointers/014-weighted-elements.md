@@ -46,7 +46,7 @@ indices, a different multiplier, and a different final combine.
 
 ## Your task
 
-Write `func_8013e3b0` to reproduce the assembly above.
+Write `func_8013e3b0` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

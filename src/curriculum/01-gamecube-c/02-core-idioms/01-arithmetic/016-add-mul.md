@@ -41,7 +41,7 @@ and which argument register only surfaces in the second instruction.
 
 ## Your task
 
-Write `func_8010f884` to reproduce the assembly above.
+Write `func_8010f884` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -47,7 +47,7 @@ expression is yours.
 
 ## Your task
 
-Write `func_80326e6c` to reproduce the assembly above.
+Write `func_80326e6c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

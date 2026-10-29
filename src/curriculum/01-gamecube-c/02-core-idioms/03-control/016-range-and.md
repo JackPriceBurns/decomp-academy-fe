@@ -47,7 +47,7 @@ From there, rebuild the one `&&` expression that lets the `1` through.
 
 ## Your task
 
-Write `func_80282f28` to reproduce the assembly above.
+Write `func_80282f28` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

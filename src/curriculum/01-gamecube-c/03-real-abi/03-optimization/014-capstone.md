@@ -62,7 +62,7 @@ how many arrays show up and how many elements each one reaches; every
 
 ## Your task
 
-Write `blend(f32 *a, f32 *b, f32 t)` to reproduce the assembly above. Write the
+Write `blend(f32 *a, f32 *b, f32 t)` to reproduce the target assembly. Write the
 lerps in the natural form and let the optimizer fuse and interleave.
 
 <!-- solution -->

@@ -47,7 +47,7 @@ When writing or editing an exercise, these rules are **mandatory**:
   MWCC GC/2.0 toolchain and paste its actual disassembly; never invent or
   hand-write assembly.
 - **The `## Your task` line points at the assembly to reproduce**, naming only the
-  symbol (e.g. "Write `foo` to reproduce the assembly above."), never the C and
+  symbol (e.g. "Write `foo` to reproduce the target assembly."), never the C and
   never the signature.
 - When editing an existing lesson, change **only the prose body** — keep the
   frontmatter `id`/`symbol`/`context` and the solution block byte-identical.

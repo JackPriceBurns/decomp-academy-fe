@@ -41,7 +41,7 @@ arms.
 
 ## Your task
 
-Write `func_80321ad4` to reproduce the assembly above.
+Write `func_80321ad4` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

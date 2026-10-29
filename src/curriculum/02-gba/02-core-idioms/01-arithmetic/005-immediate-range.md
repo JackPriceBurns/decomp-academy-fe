@@ -17,8 +17,8 @@ hints:
 
 # Two immediate fields, one cliff between them
 
-Thumb encodes an add-or-subtract-a-constant two different ways, and the boundary
-between them is somewhere you would never expect.
+Thumb has two encodings for adding or subtracting a constant. The constant
+and destination register determine which one gcc can use.
 
 The three-operand form carries a **three-bit** immediate, so it covers 0 to 7,
 and it can write its answer anywhere. Here is `y + 7`:

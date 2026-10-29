@@ -46,7 +46,7 @@ Name each operator from its pair, and since every pair feeds the next, the
 
 ## Your task
 
-Write `func_803a6dd8` to reproduce the assembly above.
+Write `func_803a6dd8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

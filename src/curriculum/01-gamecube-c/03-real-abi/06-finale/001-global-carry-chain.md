@@ -57,7 +57,7 @@ globals. Trace which symbol each load and store touches.
 ## Your task
 
 The globals are already declared: `gPacketBytes` and `gFrameBytes`, both `u64`.
-Write `func_800778c0` to reproduce the assembly above. Read the relocations to
+Write `func_800778c0` to reproduce the target assembly. Read the relocations to
 see which global is read, which is written, and how the low and high halves pair
 up.
 

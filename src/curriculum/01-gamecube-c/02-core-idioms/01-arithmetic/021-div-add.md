@@ -43,7 +43,7 @@ check the second instruction for what happens to the quotient.
 
 ## Your task
 
-Write `func_800a0a34` to reproduce the assembly above.
+Write `func_800a0a34` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

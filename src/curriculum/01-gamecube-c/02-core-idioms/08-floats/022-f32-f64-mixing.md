@@ -14,6 +14,8 @@ hints:
     `fmul`/`fadd` and pulls constants in as `lfd` doubles.
   - Returning `f32` from double math forces a final `frsp` to round the result
     back to single precision.
+  - Store the double-precision product in an `f64` temporary, then add in a
+    separate statement. This prevents MWCC from fusing the operations into `fmadd`.
 ---
 
 # When the math goes double and comes back single
@@ -28,12 +30,14 @@ math and the result must be rounded down with `frsp`.
 Take `avg2(p, q)`, averaging two values in double precision then narrowing:
 
 ```asm
-fadd  f0, f1, f2     # double add: (double)p + (double)q
-lfd   f1, ...        # load 0.5 as a *double* (lfd, not lfs)
-fmul  f1, f1, f0     # double multiply by 0.5
-frsp  f1, f1         # round the f64 result back to f32 for return
+fadd  f0, f1, f2
+lfd   f1, lit@sda21(r2)  # load 0.5 as a double
+fmul  f1, f1, f0
+frsp  f1, f1
 blr
 ```
+
+Here `lit` names the double constant `0.5` in the small data area.
 
 Double math leaves fingerprints: `fadd` and `fmul` with no `s`, `lfd` instead of
 `lfs`, and `frsp` at the close. The `frsp` is the giveaway for double-computed,
@@ -41,14 +45,14 @@ single-returned code. Write the same thing in straight `f32` and you'd see
 `fadds`/`fmuls`/`lfs` with no `frsp`. So whenever `frsp` shows up next to
 suffix-less ops, the original C cast its operands to `double`.
 
-Your target runs a different double-precision computation that still ends with
-`frsp`. Read the suffix-less ops, the `lfd` constant, and the closing `frsp` to
-locate where the cast to `f64` happens and what the final narrowing does.
+When reading separate multiply and add instructions, recall the product
+temporary from **Fused Multiply-Add**: separate statements can keep those
+operations apart even with `fp_contract on`. Read the arithmetic suffixes and
+conversions in the target to work out where each precision is needed.
 
 ## Your task
 
-Write `func_80316c98` to reproduce the assembly above. Cast as needed so the
-arithmetic happens in `f64` and is narrowed back on return.
+Write `func_80316c98` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

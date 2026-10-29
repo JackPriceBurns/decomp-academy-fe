@@ -21,7 +21,9 @@ For an **unsigned** value, dividing by a power of two is a logical right shift,
 division truncates toward zero, and the shift simply discards the low bits that
 would have been the remainder.
 
-Run `udiv8(n) = n / 8` through the compiler and you get:
+In this example, declaring the parameter `n` as unsigned makes `udiv8(n) = n / 8`
+compile to `srwi` instead of the signed `srawi`/`addze` sequence; no cast is
+needed in the expression:
 
 ```asm
 srwi r3, r3, 3    # n >> 3  ==  n / 8 (unsigned)
@@ -41,7 +43,7 @@ toward zero for negative inputs, so instead of one clean shift MWCC emits a
 (`u32` is the GameCube SDK's typedef for `unsigned int` — it's pre-declared for
 you here, not a built-in C type.)
 
-Write `func_802f0570` to reproduce the assembly above.
+Write `func_802f0570` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

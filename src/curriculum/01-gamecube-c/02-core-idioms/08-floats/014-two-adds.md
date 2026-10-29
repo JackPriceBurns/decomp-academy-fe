@@ -38,7 +38,7 @@ and the order the arguments combine is yours to reconstruct.
 
 ## Your task
 
-Write `func_801dadf8` to reproduce the assembly above.
+Write `func_801dadf8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -43,7 +43,7 @@ argument is `rA` and which is `rB` in that `subf`?
 
 ## Your task
 
-Write `func_80185a7c` to reproduce the assembly above.
+Write `func_80185a7c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

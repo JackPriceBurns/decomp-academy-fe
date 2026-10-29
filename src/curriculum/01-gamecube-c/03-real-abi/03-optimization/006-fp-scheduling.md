@@ -50,7 +50,7 @@ the scheduler as the explanation before you invent some exotic source expression
 
 ## Your task
 
-Write `func_800cbd90` to reproduce the assembly above. Read the load offsets to
+Write `func_800cbd90` to reproduce the target assembly. Read the load offsets to
 determine which elements from each array are paired together, then write the
 natural C and let the scheduler interleave.
 

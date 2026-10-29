@@ -47,7 +47,7 @@ its C operator, since the cast already pruned the high half and whatever reaches
 
 ## Your task
 
-Write `func_8036fcdc` to reproduce the assembly above.
+Write `func_8036fcdc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

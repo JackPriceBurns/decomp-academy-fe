@@ -61,7 +61,7 @@ you the exact case labels to write.
 ## Your task
 
 Write `route(int x)`: a sparse `switch` on `x`. Read the `cmpwi` probe values from
-the assembly above to recover which case labels to write, and read the `li r3, N`
+the target assembly to recover which case labels to write, and read the `li r3, N`
 in each arm to recover the return value. Four scattered cases stays a compare
 chain.
 

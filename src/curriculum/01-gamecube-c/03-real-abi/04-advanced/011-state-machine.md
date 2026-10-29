@@ -50,7 +50,7 @@ recognising those three shapes and writing each in the C that produces it.
 
 ## Your task
 
-Write `func_8011a1e0` to reproduce the assembly above. The `GameState` enum and
+Write `func_8011a1e0` to reproduce the target assembly. The `GameState` enum and
 `g_abort` are provided in context.
 
 <!-- solution -->

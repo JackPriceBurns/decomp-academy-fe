@@ -41,7 +41,7 @@ element; divide by `sizeof(int)` to find which.
 
 ## Your task
 
-Write `func_803495b0` to reproduce the assembly above.
+Write `func_803495b0` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

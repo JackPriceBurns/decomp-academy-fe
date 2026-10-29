@@ -51,7 +51,7 @@ way the relation points.
 
 ## Your task
 
-Write `func_8007401c` to reproduce the assembly above.
+Write `func_8007401c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

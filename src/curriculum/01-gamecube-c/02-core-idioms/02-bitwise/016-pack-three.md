@@ -45,7 +45,7 @@ follow the ORs back to the expression that produced them.
 
 ## Your task
 
-Write `func_800156b4` to reproduce the assembly above.
+Write `func_800156b4` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -51,7 +51,7 @@ band falls on which side.
 
 ## Your task
 
-Write `func_8035b59c` to reproduce the assembly above.
+Write `func_8035b59c` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

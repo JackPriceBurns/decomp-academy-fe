@@ -54,7 +54,7 @@ the op.
 
 ## Your task
 
-Write `func_8012e7e0` to reproduce the assembly above — both loads at the top, a
+Write `func_8012e7e0` to reproduce the target assembly — both loads at the top, a
 `clrlwi.` that merges the test, a `beqlr-`, then the arithmetic.
 
 <!-- solution -->

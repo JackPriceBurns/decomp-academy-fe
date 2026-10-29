@@ -43,7 +43,7 @@ change. Pin down each loaded constant and which argument it scales.
 
 ## Your task
 
-Write `func_803e24a8` to reproduce the assembly above. Write it as a plain
+Write `func_803e24a8` to reproduce the target assembly. Write it as a plain
 weighted sum and let the compiler fuse the tail.
 
 <!-- solution -->

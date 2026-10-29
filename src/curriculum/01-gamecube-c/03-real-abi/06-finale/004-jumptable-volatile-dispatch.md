@@ -76,7 +76,7 @@ arm's offset from its `addi`.
 ## Your task
 
 The `Channel` enum and the `volatile int gReg` are provided in context. Write
-`func_802013bc` to reproduce the assembly above. Read the table head to confirm
+`func_802013bc` to reproduce the target assembly. Read the table head to confirm
 the case count, and each arm's `addi` for its offset; the `default` arm returns
 the sentinel.
 

@@ -44,7 +44,7 @@ the raw `rlwinm`, treat it as the `clrlwi` you expected.
 
 ## Your task
 
-Write `func_803a8eb8` to reproduce the assembly above.
+Write `func_803a8eb8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

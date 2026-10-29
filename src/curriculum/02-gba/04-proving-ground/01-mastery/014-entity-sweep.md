@@ -43,10 +43,10 @@ nothing but addressing loses its index entirely:
 26       bx        lr
 ```
 
-The guard at the top handles a count of zero, the pointer walks by `add r2, #8`
-- the size of one element - and the trip counter runs down to zero. The stride
-in that `add` is the most useful number in the whole listing: it tells you how
-big the structure is before you have read a single field.
+The guard at the top handles a count of zero, the pointer walks by
+`add r2, #8` - the size of one element - and the trip counter runs down to zero.
+The stride in that `add` is the most useful number in the whole listing: it
+tells you how big the structure is before you have read a single field.
 
 Now the piece that will stop you. A narrow signed field that is written and then
 read back gets loaded twice, with different instructions:

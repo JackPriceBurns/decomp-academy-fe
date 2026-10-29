@@ -53,7 +53,7 @@ plus the value waiting on each path.
 
 ## Your task
 
-Write `func_80357688` to reproduce the assembly above.
+Write `func_80357688` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

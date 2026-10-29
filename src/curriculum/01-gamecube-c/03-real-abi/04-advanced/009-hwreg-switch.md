@@ -56,7 +56,7 @@ value.
 
 ## Your task
 
-Write `func_8014fbc0` to reproduce the assembly above. Read the address off the
+Write `func_8014fbc0` to reproduce the target assembly. Read the address off the
 `lis`/`lwz` to recover which register is polled, then read the `cmpwi` probes and
 `li r3, N` arms to recover the switch. The `vu32` typedef is in the shared
 preamble; the single volatile read must feed the compare chain.

@@ -44,7 +44,7 @@ operation.
 
 ## Your task
 
-Write `func_801ae9bc` to reproduce the assembly above.
+Write `func_801ae9bc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

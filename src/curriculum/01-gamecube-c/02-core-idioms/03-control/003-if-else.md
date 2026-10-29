@@ -41,7 +41,7 @@ early exit fires is what nails each `li` to its arm.
 
 ## Your task
 
-Write `func_8031fa34` to reproduce the assembly above.
+Write `func_8031fa34` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

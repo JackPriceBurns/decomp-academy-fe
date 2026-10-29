@@ -15,29 +15,33 @@ hints:
 
 # Inequality flips the recipe
 
-Last lesson, equality used `cntlzw` to spot a zero result. Inequality wants the
-opposite — a non-zero result — and needs its own trick to get there. MWCC
-subtracts the two inputs *both ways round*, ORs the pair, then keeps only the
-top bit of what comes out.
+Last lesson, equality used `cntlzw` to spot a zero result. Inequality can use
+a different trick: subtract in both directions, OR the differences, then keep
+the sign bit (PowerPC bit 0).
+
+For a worked example, compare `a` with `b + 4`. The addition happens first:
 
 ```asm
-subf r5, r3, r4    # one direction
-subf r0, r4, r3    # the other direction
-or   r0, r5, r0    # combine
-srwi r3, r0, 31    # pull bit 31 down to 0/1
+addi    r0,r4,4
+subf    r4,r3,r0
+subf    r0,r0,r3
+or      r0,r4,r0
+srwi    r3,r0,31
 blr
 ```
 
-Why both directions? Because the pair guarantees bit 31 is set the moment the
-inputs differ — at least one of the two subtractions will overflow into that
-bit. When the inputs match, both differences are zero and so is the OR. The
-closing `srwi r3, r0, 31` drags bit 31 down to a tidy `0` or `1`. A corner case
-still behaves: if one difference wraps to `INT_MIN`, the other wraps to
-`INT_MIN` too, the OR stays `INT_MIN`, bit 31 stays lit, and the answer holds.
+If the compared values differ, at least one of the two differences has its
+sign bit set. When they match, both differences are zero and so is the OR.
+The closing `srwi r3, r0, 31` shifts the sign bit down into the low bit,
+producing `0` or `1`.
+
+The wraparound case works too: if one difference is `INT_MIN`, the other is
+also `INT_MIN`. Their OR keeps the sign bit set, so the shift still produces
+`1`.
 
 ## Your task
 
-Write `func_80002498` to reproduce the assembly above.
+Write `func_80002498` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

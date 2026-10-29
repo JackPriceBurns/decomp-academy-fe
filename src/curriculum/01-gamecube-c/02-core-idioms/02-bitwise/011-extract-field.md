@@ -55,7 +55,7 @@ Now your target. The rotate amount hands you the right-shift count, the mask
 
 ## Your task
 
-Write `func_803666fc` to reproduce the assembly above.
+Write `func_803666fc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

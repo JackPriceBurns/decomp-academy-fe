@@ -21,9 +21,8 @@ compiles into, and we begin where the machine is friendliest: **integer
 arithmetic**. Over the next few lessons you'll learn to read:
 
 - **add, subtract, multiply, and divide** between registers,
-- the tricks the compiler plays — a multiply or divide by a constant that
-  becomes a **shift**, a division with **no divide instruction** at all, and a
-  **modulo** the hardware doesn't have,
+- how multiplication and division by constants can use shifts or other
+  arithmetic, and how remainders are calculated from a quotient,
 - and how **operator precedence** decides the order the instructions come out
   in.
 

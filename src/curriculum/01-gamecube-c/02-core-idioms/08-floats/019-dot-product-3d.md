@@ -54,8 +54,7 @@ typedef struct { f32 x, y, z; } Vec3;
 
 ## Your task
 
-With the `Vec3` struct above, write `func_80199c74` to reproduce the assembly
-above.
+With the `Vec3` struct above, write `func_80199c74` to reproduce the target assembly.
 
 <!-- context -->
 ```c

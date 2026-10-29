@@ -51,7 +51,7 @@ literal's value are all there in the disassembly.
 ## Your task
 
 The globals are declared for you: `gVelocity` and `gScaled` (both `f32`). Write
-`func_80246a2c` (no arguments, no return) to reproduce the assembly above.
+`func_80246a2c` (no arguments, no return) to reproduce the target assembly.
 
 <!-- solution -->
 ```c

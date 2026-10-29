@@ -45,7 +45,7 @@ assembly into two pairs. Label each `add` or `subf`. Then write the expression.
 
 ## Your task
 
-Write `func_80326844` to reproduce the assembly above.
+Write `func_80326844` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

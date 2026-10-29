@@ -47,7 +47,7 @@ the operation.
 
 ## Your task
 
-Write `func_80037ad8` to reproduce the assembly above.
+Write `func_80037ad8` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

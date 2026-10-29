@@ -2197,7 +2197,7 @@
         "ParentOpcode": "rlwinm",
         "DescriptiveName": "Shift Left Word Immediate",
         "Usage": "slwi rA, rS, SH",
-        "Description": "equivalent to rlwinm {rA}, {rS}, {SH}, 0, 31-{SH}",
+        "Description": "Shift {rS} left by {SH} bits, fill the vacated low bits with zeros, and write the result to {rA}. Bits shifted out are discarded. Equivalent to rlwinm {rA}, {rS}, {SH}, 0, 31-{SH}",
         "Modifiers": []
     },
     {
@@ -2231,8 +2231,8 @@
         "Name": "srwi",
         "ParentOpcode": "rlwinm",
         "DescriptiveName": "Shift Right Word Immediate",
-        "Usage": "srwi rA, rS, MB",
-        "Description": "equivalent to rlwinm {rA}, {rS}, 32-{MB}, {MB}, 31",
+        "Usage": "srwi rA, rS, SH",
+        "Description": "Shift {rS} right by {SH} bits, fill the vacated high bits with zeros, and write the result to {rA}. Bits shifted out are discarded. Equivalent to rlwinm {rA}, {rS}, 32-{SH}, {SH}, 31",
         "Modifiers": []
     },
     {

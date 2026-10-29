@@ -38,7 +38,7 @@ about to get clobbered and we still need `a` later. Then
 it down to PPC bits 24–27. Bit 0 is the MSB in PPC land, so those bits sit at
 the range `0x000000F0` — exactly `b & 0xF0`.
 
-The last line is the one to learn. `rlwimi r3, r0, 0, 28, 31` is
+The `rlwimi` line is the one to learn. `rlwimi r3, r0, 0, 28, 31` is
 **rotate-left-and-insert**: it lifts bits 28–31 of `r0` (the range `0x0000000F`,
 the low nibble of `a`) and drops them into `r3` at positions 28–31, leaving
 every other bit of `r3` exactly as it was. So `r3` ends up holding
@@ -55,7 +55,7 @@ meet up, and which argument supplies which one.
 
 ## Your task
 
-Write `func_8036c628` to reproduce the assembly above.
+Write `func_8036c628` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

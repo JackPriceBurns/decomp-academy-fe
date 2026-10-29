@@ -64,7 +64,7 @@ the plain multiply-then-add — the compiler fuses and schedules it for you.
 ## Your task
 
 The float globals `gGainA` and `gGainB` are declared for you. Write
-`func_802fcf98` to reproduce the assembly above. Recover the bias literals from
+`func_802fcf98` to reproduce the target assembly. Recover the bias literals from
 the `@N` rodata slots and write each channel in its natural form.
 
 <!-- solution -->

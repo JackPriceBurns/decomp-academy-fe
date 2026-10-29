@@ -49,7 +49,7 @@ arm is the value that case returns.
 
 ## Your task
 
-Write `func_80255b54` to reproduce the assembly above. The `Tile` enum is
+Write `func_80255b54` to reproduce the target assembly. The `Tile` enum is
 provided in context. Eight dense enum values land in table form — read the
 `li r3, N` in each arm to recover what each tile costs.
 

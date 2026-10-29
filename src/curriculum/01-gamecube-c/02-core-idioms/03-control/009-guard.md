@@ -44,7 +44,7 @@ and the computation after the label are both right there in the listing.
 
 ## Your task
 
-Write `func_803491cc` to reproduce the assembly above.
+Write `func_803491cc` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

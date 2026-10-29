@@ -41,7 +41,7 @@ instruction after the two `lwzx` to find out which.
 
 ## Your task
 
-Write `func_800a85f4` to reproduce the assembly above.
+Write `func_800a85f4` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

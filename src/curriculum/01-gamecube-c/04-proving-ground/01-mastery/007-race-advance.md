@@ -62,7 +62,7 @@ structure for you.
 
 Write `func_8033feec` taking a `RaceObject* obj`. Switch on `s->phase` with cases
 0 through 3 and a `default`, reading `s` from `obj->state`. Match the comparison
-tree and all per-case behaviour shown in the assembly above.
+tree and all per-case behaviour shown in the target assembly.
 
 <!-- solution -->
 ```c

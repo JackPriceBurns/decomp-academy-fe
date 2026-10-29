@@ -63,7 +63,7 @@ which symbol is which, and pick the literal's value out of the constant pool.
 ## Your task
 
 The globals are already declared: `gSamples` (`f32[]`) and `gOut` (`f32`). Write
-`func_802df228` to reproduce the assembly above.
+`func_802df228` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

@@ -11,7 +11,7 @@ symbol: func_803564a0
 hints:
   - AND against a small constant mask uses the immediate form.
   - "`x & 0x12` compiles to `andi. r3, r3, 18` (0x12 == 18)."
-  - The dot on `andi.` is just a flag side effect; ignore it.
+  - The dot records flags in `cr0`; this target does not use them.
 ---
 
 # Keeping only the bits you want
@@ -29,21 +29,17 @@ blr
 ```
 
 Only 16 bits fit in that immediate, which pins `andi.` to the low half-word and
-nothing above it. The dot riding on the mnemonic is a separate matter: it
-writes `cr0` as a side effect. MWCC keeps emitting `andi.` even where the flags
-go unread, because PowerPC has no dotless immediate AND.
+nothing above it. The dot marks the record form: `cr0` gets LT, GT, or EQ
+from a signed comparison of the result with zero, plus SO copied from the
+summary-overflow flag. MWCC emits `andi.` even when these flags go unread,
+because PowerPC has no dotless immediate AND.
 
 (A run of contiguous bits compiles another way — "Testing Whether a Bit Is Set"
 covers that. Because `0x0A` splits its set bits apart, `andi.` is what you land
 on.)
 
-The target is below. Recover the mask from its immediate, then write the C
-expression that reproduces it.
-
-```asm
-andi.  r3, r3, 18
-blr
-```
+Recover the target mask from its immediate, then write the C expression that
+reproduces it.
 
 ## Your task
 

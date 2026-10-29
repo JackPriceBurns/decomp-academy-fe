@@ -50,7 +50,7 @@ constant and each branch condition to pin down the floor, ceiling, and order.
 
 ## Your task
 
-Write `func_800db020` to reproduce the assembly above. Use two plain `if`
+Write `func_800db020` to reproduce the target assembly. Use two plain `if`
 statements that overwrite the value.
 
 <!-- solution -->

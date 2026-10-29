@@ -54,7 +54,7 @@ cast from the floats chapter, here landing in a byte global.
 
 The globals are already declared:
 `gCounter` (int), `gSrcA`/`gSrcB`/`gLerpT` (f32), `gColor` (u8). Write
-`func_80233fa0` to reproduce the assembly above. Read each opcode to determine
+`func_80233fa0` to reproduce the target assembly. Read each opcode to determine
 each global's type, which operands feed each instruction, and what the
 float-to-byte path looks like.
 

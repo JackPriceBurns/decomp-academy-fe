@@ -44,7 +44,7 @@ enough between them to write the C.
 
 ## Your task
 
-Write `func_803c6618` to reproduce the assembly above.
+Write `func_803c6618` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

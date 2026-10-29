@@ -60,7 +60,7 @@ float expression — read which saved FPRs feed it to recover the formula.
 
 ## Your task
 
-Write `combine(Op op, f32 *p)` to reproduce the assembly above. The `Op` enum and
+Write `combine(Op op, f32 *p)` to reproduce the target assembly. The `Op` enum and
 `extern f32 transform(f32)` are provided in context. Call `transform` on
 `p[0]..p[3]`, hold the results live, and `switch (op)` to pick the combination —
 read each case's `fadds`/`fsubs`/`fmuls`/`fmadds` block to recover that arm's

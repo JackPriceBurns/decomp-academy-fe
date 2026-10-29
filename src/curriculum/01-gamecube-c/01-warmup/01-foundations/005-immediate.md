@@ -24,8 +24,8 @@ addi r3, r3, 5    # r3 = r3 + 5
 blr
 ```
 
-The immediate field is signed and 16 bits wide, so it reaches from -32768 to
-32767. Ask for a constant bigger than that and the compiler splits the work
+The immediate field is signed and 16 bits wide, so it reaches from -32768
+to 32767. Ask for a constant bigger than that and the compiler splits the work
 across `lis` plus `addi` — not something you need here, but worth filing away.
 And because the field is signed, the same `addi` can *subtract* as well. That's
 the next lesson.

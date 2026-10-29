@@ -38,7 +38,7 @@ the `fsubs` and you'll know which value gets subtracted from which.
 
 ## Your task
 
-Write `func_801a8424` to reproduce the assembly above.
+Write `func_801a8424` to reproduce the target assembly.
 
 <!-- solution -->
 ```c
