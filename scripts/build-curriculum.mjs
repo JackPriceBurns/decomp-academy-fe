@@ -26,6 +26,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  listMarkersInParagraphs,
   parseChapterFile,
   parseCourseFile,
   parseLessonFile,
@@ -44,43 +45,6 @@ function stampId(filePath, id) {
   const raw = readFileSync(filePath, "utf8");
   writeFileSync(filePath, raw.replace(/^---\n/, `---\nid: ${id}\n`));
   console.warn(`  minted id ${id} for ${filePath}`);
-}
-
-// renderMarkdown (src/lib/markdown.ts) only starts a list after a blank line, so
-// a paragraph line that merely looks like a list item ("32767. Ask...", "- so
-// the...") renders as part of the sentence. That's right for hard-wrapped prose
-// but silently wrong for a real list missing its blank line, and the two look
-// identical in the source — so reject both and make the author choose: add a
-// blank line before the list, or rewrap so no line starts with a marker. Mirrors
-// the renderer's block rules; returns the offending [previous, line] pairs.
-const LIST_MARKER = /^([-*]|\d+\.)\s+/;
-function listMarkersInParagraphs(md) {
-  const found = [];
-  let fenced = false;
-  let block = null; // "para" | "list" | null — what the previous line belongs to
-  let prev = "";
-  for (const line of md.split("\n")) {
-    if (/^```/.test(line)) {
-      fenced = !fenced;
-      block = null;
-    } else if (fenced) {
-      continue;
-    } else if (
-      line.trim() === "" ||
-      /^#{1,3}\s+/.test(line) ||
-      /^>/.test(line) ||
-      line.trim().startsWith("|")
-    ) {
-      block = null;
-    } else if (LIST_MARKER.test(line)) {
-      if (block === "para") found.push([prev, line]);
-      block = "list";
-    } else if (block !== "list") {
-      block = "para"; // a non-marker line inside a list is that item's wrap
-    }
-    prev = line;
-  }
-  return found;
 }
 
 /** 1-based line of `line` (preceded by `prev`) in the raw lesson file. */

@@ -8,26 +8,27 @@ concepts:
   - branches
   - shifts
 hints:
-  - The `lsr` in the body is applied to the register that still holds the
-    scanline shifted left by sixteen, so subtract 16 from the shift amount to
-    recover the shift the source wrote.
-  - "One `u8` goes in and nothing comes out. Read 0x04000006, do nothing when it
-    is 160 or more, and otherwise write a single halfword to 0x04000040 whose
-    high byte is the shifted scanline and whose low byte is that same value plus
-    the parameter."
+  - The `lsr` in the body works on the register that still holds the scanline
+    shifted left by sixteen. Subtract 16 from the shift amount to get the shift
+    the source wrote.
+  - "One `u8` goes in and nothing comes out. Read 0x04000006, and do nothing
+    when it is 160 or more. Otherwise, write a single halfword to 0x04000040.
+    Its high byte is the shifted scanline, and its low byte is that same value
+    plus the parameter."
 symbol: func_08387034
 ---
 
 # Everything in this chapter, in fifteen instructions
 
-Raster effects are the reason GBA games poll `VCOUNT`. An interrupt fires per
-scanline, the handler asks which line the display is on, and it rewrites a
-display register before the beam gets there — scrolling one row of a background
-sideways, sliding a window edge, fading a layer as it descends the screen. Every
-such handler has the same three parts: a volatile read of the counter, a guard
-that does nothing outside the visible region, and a packed write.
+Raster effects are the reason GBA games poll `VCOUNT`. An interrupt fires for
+each scanline. The handler checks which line the display is on, and it rewrites
+a display register before that line is drawn. For example, it might scroll one
+row of a background sideways, move a window edge, or fade a layer further down
+the screen. Every such handler has the same three parts: a volatile read of the
+counter, a guard that does nothing outside the visible region, and a packed
+write.
 
-Here is one that walks the blend weights of `BLDALPHA` down the screen:
+Here is one that changes the blend weights of `BLDALPHA` down the screen:
 
 ```asm
 0        ldr       r0, [pc, #24] (->28)
@@ -48,32 +49,32 @@ Here is one that walks the blend weights of `BLDALPHA` down the screen:
 32       .word     67108946
 ```
 
-The first two instructions are the read: 67108870 is `0x04000006`. Then the
-guard — the same `cmp #159` / `bhi` pair you met in the polling lesson, except
-here the branch clears the entire body and lands on the `bx lr`. Skipping the
-work is spelled as a branch to the return, so a function like this has one exit
-and a large forward jump over everything.
+The first two instructions are the read: 67108870 is `0x04000006`. Next comes
+the guard. It is the same `cmp #159` / `bhi` pair you saw in the polling
+lesson, but here the branch jumps over the whole body and lands on the `bx lr`.
+Skipping the work is written as a branch to the return. So a function like this
+has one exit and a long forward jump over everything else.
 
-Offsets 4 and 6 are where it gets interesting. Widening the halfword to a 32-bit
-value is the usual `lsl #16` / `lsr #16` pair, except gcc used the three-operand
-form and put the intermediate in a **different** register. `r1` is left holding
+Offsets 4 and 6 need a closer look. Widening the halfword to a 32-bit value uses
+the usual `lsl #16` / `lsr #16` pair. But gcc used the three-operand form and
+put the intermediate value in a **different** register. `r1` is left holding
 the scanline shifted up by sixteen, and it stays live.
 
-Which is why offset 14 says `lsr r1, #20` and means `y >> 4`. Shifting left by
-16 and then right by 20 lands four places lower than where you started, so a
-single instruction does the zero-extension and the shift together, reusing a
-value that was only supposed to be scaffolding. Whenever you see a right shift
-somewhere between 17 and 31 applied to a register produced by an `lsl #16`,
-subtract 16 to recover the shift the programmer actually wrote.
+That is why offset 14 says `lsr r1, #20` and means `y >> 4`. Shifting left by
+16 and then right by 20 leaves the value four places lower than where it
+started. So a single instruction does the zero-extension and the shift
+together. It reuses a value that was only meant to be temporary. Whenever you
+see a right shift between 17 and 31 applied to a register produced by an
+`lsl #16`, subtract 16 to get the shift the programmer wrote.
 
-The rest is the packing you already know: `mov #16` / `sub` computes the
-complementary weight, `lsl #8` moves it into the high byte, `orr` joins the two
-halves, and `strh` writes the halfword to `0x04000052`. Two pool words sit after
-the return, one for each hardware address the function names.
+The rest is the packing you already know. `mov #16` / `sub` computes the
+complementary weight. `lsl #8` moves it into the high byte. `orr` joins the two
+halves, and `strh` writes the halfword to `0x04000052`. Two pool words sit
+after the return, one for each hardware address the function uses.
 
-Your target reads the same counter and guards it the same way. Past the branch
-it builds its halfword out of the scanline, and one of the shifts you see there
-has sixteen baked into it.
+Your target reads the same counter and guards it the same way. After the
+branch, it builds its halfword from the scanline. One of the shifts you see
+there includes an extra sixteen from the widening.
 
 ## Your task
 

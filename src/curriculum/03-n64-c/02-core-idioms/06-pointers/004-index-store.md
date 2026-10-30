@@ -9,14 +9,15 @@ concepts:
   - stores
 symbol: func_80180690
 hints:
-  - "Same trio as the last lesson, but the third instruction is a store — and what it stores comes straight from a register, no computation."
-  - "Which argument register does the `sw` push into memory? That's your right-hand side."
+  - "This is the same trio as in the last lesson, but the third instruction is a store. The value it stores comes straight from a register, with no computation."
+  - "Find the argument register that the `sw` writes to memory. That register is your right-hand side."
 ---
 
 # The trio, writing
 
-The shift-add-load trio has a writing twin: shift, add, **store**.
-Here's `blank`, which zeroes one element of a word array:
+The indexing trio of shift, add and load has a matching form for writing:
+shift, add, **store**. Here is `blank`, which sets one element of a word
+array to zero:
 
 ```c
 void blank(s32 *a, s32 i) {
@@ -32,20 +33,21 @@ jr    ra
 nop
 ```
 
-The address side is identical to the load version — same `sll` by the
-stride, same `addu` with the base. Only the final mnemonic and the
-direction of data flow change. And this listing shows off an old friend
-in a new role: storing the constant `0` needs no `addiu` to build it,
-because the `zero` register *is* the constant, usable directly as a
-store's source. `sw zero, …` is the compiler's free "write a zero".
+The address part is the same as in the load version: the same `sll` by the
+stride, and the same `addu` with the base. Only the last mnemonic and the
+direction of the data change. This listing also uses a register you already
+know in a new way. Storing the constant `0` needs no `addiu` to build it,
+because the `zero` register already holds that value, and a store can use it
+directly as its source. `sw zero, …` is how the compiler writes a zero
+without an extra instruction.
 
-So an assignment to `a[i]` reads, bottom-up: the `sw` says *what* goes
-to memory, the `addu`/`sll` pair above it says *where*. When the stored
-register is an argument rather than `zero`, the C's right-hand side is
-just that parameter.
+So read an assignment to `a[i]` from the bottom up. The `sw` tells you *what*
+goes to memory, and the `addu`/`sll` pair above it tells you *where*. When the
+stored register is an argument instead of `zero`, the right-hand side of the C
+is that parameter.
 
 The target stores one of its arguments into a word array at a variable
-index — every argument pulling its weight.
+index. Every argument is used.
 
 ## Your task
 

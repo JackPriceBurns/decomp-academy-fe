@@ -9,15 +9,16 @@ concepts:
   - registers
 symbol: func_800381ac
 hints:
-  - "The `sll` scales the first argument by a power of two; the `addu` brings in the second argument, not a copy of the first."
-  - "Read the shift amount off the target and convert it back to the multiplier it stands for."
+  - "The `sll` multiplies the first argument by a power of two. The `addu` then adds the second argument, not another copy of the first."
+  - "Read the shift amount from the target and turn it back into the multiplier it stands for."
 ---
 
 # Two arguments, one scaled
 
-So far every shift chain fed on a single input. Mix in a second argument and
-you get one of the most important little shapes in MIPS: scale one value, add
-another. Here's `stride(x, y)` returning `x * 8 + y`:
+So far, every shift chain has used a single input. Add a second argument and
+you get one of the most important small patterns in MIPS: scale one value by a
+power of two, then add another value. Here's `stride(x, y)` returning
+`x * 8 + y`:
 
 ```asm
 sll  t6, a0, 3     # t6 = x * 8
@@ -26,18 +27,18 @@ jr   ra
 nop
 ```
 
-The decode is nothing new — `sll` by 3 is ×8, then an add. What's new is what
-the `addu` folds in: **`a1`, the second argument**, not the original `a0`. In
-the pure chains of the last few lessons, `addu` with `a0` meant "+1× the same
-input". Here it means "+ the other variable". Same instruction, completely
-different C — and the only way to tell them apart is to check the register.
-This is why the margin-math habit insists you note *which* register every
-operand is.
+You already know how to decode this: `sll` by 3 is ×8, then an add. The new
+part is what the `addu` adds: **`a1`, the second argument**, instead of the
+original `a0`. In the chains of the last few lessons, `addu` with `a0` meant
+"+1× the same input". Here it means "+ the other variable". The instruction is
+the same, but the C is completely different, and the only way to tell them
+apart is to check the register. This is why, when you track the running
+multiplier, you also note *which* register each operand is.
 
-File this shape away with extra care. "Shift by k, then add a different
-register" is exactly how array indexing will compile in a few chapters — the
-shift scales an index by the element size, the add attaches it to a base. When
-you meet it there, you'll already know how to read it.
+Remember this shape well. "Shift by k, then add a different register" is how
+array indexing compiles, which you will see in a few chapters. The shift
+multiplies an index by the element size, and the add combines it with a base
+address. When you meet it there, you will already know how to read it.
 
 ## Your task
 

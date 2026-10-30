@@ -10,15 +10,16 @@ concepts:
   - capstone
 symbol: func_80173968
 hints:
-  - "Offset 0 gates everything — `beqz` on a `lbu` is \"do nothing unless this byte is set\". Then the middle is a decrement RMW on offset 2 with a re-read and an equality test."
+  - "Offset 0 controls everything. A `beqz` on a `lbu` means \"do nothing unless this byte is set\". The middle part is a decrement RMW on offset 2, followed by a re-read and an equality test."
   - "On the expiry path, offset 0 is zeroed and offset 1 is incremented. Match each store to a field of `Timer`."
 ---
 
-# Guard, decrement, expire
+# A guarded countdown
 
-Every game object owns a few of these: a counter that steps toward
-zero each frame and does something when it lands. Here's `coolGun`,
-which bleeds heat out of a weapon and re-arms it at zero:
+Most game objects have a few counters like this. Each one moves toward
+zero every frame and does something when it reaches zero. Here is
+`coolGun`, which lowers a weapon's heat and makes the weapon ready again
+when the heat reaches zero:
 
 ```c
 typedef struct {
@@ -41,7 +42,7 @@ void coolGun(Gun *g) {
 ```asm
  0:  lh    v0, 2(a0)        # heat
  4:  blez  v0, 0x28         # not hot? nothing to do
- 8:  addiu t6, v0, -2       #   (slot) heat - 2 — computed either way
+ 8:  addiu t6, v0, -2       #   (slot) heat - 2, computed either way
  c:  sh    t6, 2(a0)        # store it
 10:  lh    t7, 2(a0)        # the narrow-field re-read
 14:  addiu t8, zero, 1
@@ -53,21 +54,23 @@ void coolGun(Gun *g) {
 2c:  nop
 ```
 
-Two readings worth pausing on:
+Two details here are worth a closer look:
 
-- **The guard's delay slot computes the decrement** — even when the
-  branch is taken and the result gets thrown away. Harmless
-  speculative work in a slot is cheaper than a `nop`; don't let it
-  trick you into thinking the subtraction is unconditional in C.
-- **Nested `if`s flatten into two forward branches to the same exit.**
-  Both `blez` and `bgtz` aim at `0x28` — the function's one true
-  exit. Reconstructing the nesting is a matter of seeing that the
-  second test only runs on the first's fall-through.
+- **The guard's delay slot computes the decrement.** It does this even
+  when the branch is taken and the result is thrown away. Putting
+  harmless work in a slot, even work that may be wasted, is cheaper than
+  a `nop`. Don't let it make you think the subtraction is unconditional
+  in C.
+- **Nested `if`s become two forward branches to the same exit.** Both
+  `blez` and `bgtz` jump to `0x28`, which is the function's only exit.
+  To rebuild the nesting, notice that the second test only runs when the
+  first branch falls through.
 
-The target is a sibling: a countdown gated by an *enable byte*
-rather than by its own value, decrementing by one, and doing two
-things on expiry. Lay the offsets against the `Timer` layout below,
-un-flip the branches, and the nesting writes itself.
+The target is a similar function. Its countdown is controlled by an
+*enable byte* instead of by the counter's own value. It decrements by
+one, and it does two things when the counter expires. Match the offsets
+against the `Timer` layout below, and flip each branch back to its C
+condition. The nesting then follows directly.
 
 ## Your task
 

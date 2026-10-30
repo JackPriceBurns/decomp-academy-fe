@@ -9,17 +9,19 @@ concepts:
   - globals
 symbol: func_083aabd4
 hints:
-  - "The two `mov rX, #0` instructions before the `bl` are high halves being built. A zero fill means the value being widened was unsigned."
-  - Two `u32` parameters and nothing returned. The 64-bit product goes to the global named by the `.word` row.
+  - "The two `mov rX, #0` instructions before the `bl` build high halves. A
+    zero fill means the value being widened was unsigned."
+  - It takes two `u32` parameters and returns nothing. The 64-bit product is
+    stored in the global named by the `.word` row.
 ---
 
 # __muldi3
 
-ARM7TDMI in Thumb state has one multiply: `mul rd, rm`, 32 bits by 32 bits,
-keeping the low 32 bits of the product. There is no `umull`, no high-half
-multiply, nothing wider. A 64-bit product needs a widening 32x32 multiply plus
-two cross-products and the carries between them, none of which this instruction
-set provides, so gcc hands the whole thing to libgcc:
+In Thumb state, the ARM7TDMI has one multiply instruction: `mul rd, rm`. It
+multiplies 32 bits by 32 bits and keeps the low 32 bits of the product. There is
+no `umull` and no multiply that returns the high half. A 64-bit product needs a
+widening 32x32 multiply, two cross-products, and the carries between them. This
+instruction set has none of those, so gcc passes the whole job to libgcc:
 
 ```asm
 0        push      {lr}
@@ -28,12 +30,12 @@ set provides, so gcc hands the whole thing to libgcc:
 8        bx        r2
 ```
 
-Two pairs are already in `r0:r1` and `r2:r3`, which is exactly where `__muldi3`
-wants them, so the call is the entire function.
+The two pairs are already in `r0:r1` and `r2:r3`, which is where `__muldi3`
+expects them, so the call is the whole function.
 
-The interesting case is a **widening** multiply, where both operands are 32 bits
-and only the product is 64. ARM state has an `smull` that does exactly that in
-one instruction, and Thumb has no way to reach it:
+A **widening** multiply is different. Both operands are 32 bits and only the
+product is 64. ARM state has an `smull` that does this in one instruction, but
+Thumb code cannot use it:
 
 ```asm
 0        push      {r4, r5, lr}
@@ -50,16 +52,16 @@ one instruction, and Thumb has no way to reach it:
 ```
 
 `asr r5, r4, #31` and `asr r3, r2, #31` widen both operands to full pairs, and
-then the same 64x64 helper runs. gcc 2.9 has no narrower helper and will not
-reach for one - there is no version of this that costs less than a call. Note
-also that only one operand carries a cast in the C that produced this; the other
-is promoted implicitly and widened just the same.
+then the same 64x64 helper runs. gcc 2.9 has no narrower helper and does not use
+one, so every version of this costs at least a call. Also, in the C that
+produced this listing, only one operand has a cast. The other is promoted
+implicitly and widened in the same way.
 
-The register shuffle in the middle is the compiler getting the two pairs into
-`r0:r1` and `r2:r3` after having parked the arguments somewhere safe, and the
-`push {r4, r5, lr}` pays for the two extra registers that shuffle needs.
+The register moves in the middle get the two pairs into `r0:r1` and `r2:r3`,
+after the compiler first moved the arguments into other registers. The
+`push {r4, r5, lr}` saves the two extra registers that those moves need.
 
-Your target does a widening multiply as well, and the product does not stay in
+Your target also does a widening multiply, and the product does not stay in
 registers. The fills before the `bl` tell you what was widened.
 
 ## Your task

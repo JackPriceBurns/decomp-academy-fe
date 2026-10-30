@@ -9,27 +9,28 @@ concepts:
   - comparisons
 symbol: func_0816ac60
 hints:
-  - "Three case arms converge on the `cmp r1, #120` at address 40, and two
-    branches in the tree jump past it to 46. The arms that converge left the
-    switch and carried on; the path that skips it left the function."
-  - The guard at the top has an arm of its own, a `mov` and a `b`, which means
-    the value it hands back is a constant rather than an untouched argument.
-  - Two `s32` arguments and an `s32` result. A negative second argument is
-    rejected up front; the first selects between adding eight, subtracting eight
-    and tripling; anything else leaves immediately with the value as it stands;
-    and the three arms that carry on are capped at 120.
+  - "Three case arms meet at the `cmp r1, #120` at address 40, and two branches
+    in the tree jump past it to 46. The arms that meet there left the switch and
+    continued. The path that skips it left the function."
+  - The guard at the top has an arm of its own, a `mov` and a `b`. So the value
+    it returns is a constant. A guard that returns an unchanged argument would
+    need no arm.
+  - There are two `s32` arguments and an `s32` result. A negative second
+    argument is rejected at the start. The first argument selects between
+    adding eight, subtracting eight and tripling. For any other first argument,
+    the function returns the second one immediately, unchanged. The three arms
+    that continue are capped at 120.
 ---
 
 # Where each arm goes when the switch is over
 
-Everything in this chapter shows up in one function here, and the piece that
-takes the most reading is not the switch itself. It is what each case arm does
-when it finishes.
+This function uses everything from this chapter. The part that needs the most
+careful reading is what each case arm does when it finishes.
 
 A case that ends in `return` leaves the function. A case that ends in `break`
-falls out of the switch and into whatever code follows it. In a listing those
-two look identical — both are a `b` to a forward address — and the only way to
-tell them apart is to notice that they go to *different* forward addresses.
+leaves the switch and continues into the code that follows it. In a listing the
+two look the same: both are a `b` to a forward address. The only way to tell
+them apart is to notice that they go to *different* forward addresses.
 
 Here is a function where every arm returns:
 
@@ -57,26 +58,26 @@ Here is a function where every arm returns:
 40     ~>bx        lr
 ```
 
-A ceiling clamp at 0 through 4, the compare tree at 6 through 24, and four
-bodies: three of them branch to 40 — the `bx lr` — and the default at 38 falls
-straight into it. One destination for every arm means no code after the switch
-at all, and the clamp had to run before it because there is nowhere else for it
-to go.
+There is a ceiling clamp at 0 through 4, the compare tree at 6 through 24, and
+four bodies. Three of the bodies branch to 40, which is the `bx lr`, and the
+default at 38 falls straight into it. Every arm has the same destination, so
+there is no code after the switch. The clamp had to run before the switch,
+because there is nowhere after it for the clamp to go.
 
-Your target arranges the same three ingredients differently. The clamp sits on
-the far side of the switch this time, and the case bodies below the tree have
-two forward destinations rather than one: some land on the clamp's compare and
-one steps over it. Work out what that difference says about how each arm left
-the switch.
+Your target arranges the same three parts differently. This time the clamp
+comes after the switch, and the case bodies below the tree have two forward
+destinations instead of one. Some land on the clamp's compare, and one jumps
+over it. Work out what that difference tells you about how each arm left the
+switch.
 
-The guard is the other thing to weigh. A bail-out returning a value that is
-already in `r0` costs a single branch, as it did in the guard lesson; a bail-out
-returning a constant has to build it and carry it to the exit. Count the
-instructions in the guard and you know which kind you are looking at before you
+The guard is the other thing to check. An early return of a value that is
+already in `r0` needs only a single branch, as in the guard lesson. An early
+return of a constant has to build the constant and then jump to the exit. Count
+the instructions in the guard, and you will know which kind it is before you
 read anything else.
 
-Work outwards: guard first, then the tree's case labels, then each body, then
-where each body goes.
+Work in this order: the guard first, then the tree's case labels, then each
+body, and then where each body goes.
 
 ## Your task
 

@@ -9,20 +9,20 @@ concepts:
   - immediates
 symbol: func_080e4cc8
 hints:
-  - Do the arithmetic on the `mov`/`lsl` pair before anything else — 255 shifted
-    left by 7 is the mask the C actually wrote.
-  - Two `u32` arguments, one `u32` result. The first is masked; the second is
-    or-ed on whole.
+  - Do the arithmetic on the `mov`/`lsl` pair first. 255 shifted left by 7 is
+    the mask that the C wrote.
+  - The function takes two `u32` arguments and returns a `u32`. The first
+    argument is masked. The second is or-ed in as it is, with no mask.
 ---
 
 # Building a mask out of a mov and a shift
 
 A mask has to be in a register before `and` can use it, and `mov Rd, #imm`
-carries only 8 bits. Masks above 255 therefore get *built*, and the shape of the
-build tells you the value.
+holds only 8 bits. So masks above 255 have to be *built*, and the way they are
+built tells you the value.
 
-The cheap case is a mask whose set bits form a run of at most 8 that can be
-slid into place with one shift:
+The cheap case is a mask whose set bits form a run of at most 8 bits, which one
+shift can move into place:
 
 ```asm
 0        mov       r0, #252
@@ -33,17 +33,18 @@ slid into place with one shift:
 
 252 shifted left by 3 is `0x7E0`, so that function masks its second argument
 with `0x7E0`. Read every `mov`/`lsl` pair this way: multiply the moved constant
-by two to the power of the shift amount and you have the number the C wrote.
+by two to the power of the shift amount, and you have the number the C wrote.
 
-The shift count is forced, which makes the read unambiguous. gcc puts the
-highest set bit at bit 7 of the `mov` and shifts up from there. That is why the
-constant above is 252 where a person writing a six-bit run by hand would have
-reached for 63, and why `0x300` arrives as `mov #192, lsl #2`. If the constant
-is not the one you expected, count from the top bit.
+The compiler always chooses the shift count the same way, so there is only one
+way to read the pair. gcc puts the highest set bit at bit 7 of the `mov`, and
+shifts up from there. That is why the constant above is 252. A person building
+a run of six bits by hand would probably use 63. It is also why `0x300` becomes
+`mov #192, lsl #2`. If the constant is not the one you expected, count from the
+top bit.
 
-When the mask needs more than 8 significant bits it cannot be built this way at
-all, and the compiler falls back to a PC-relative load from a word parked at the
-end of the function:
+When the mask needs more than 8 significant bits, it cannot be built this way.
+Instead, the compiler uses a PC-relative load from a word stored at the end of
+the function:
 
 ```asm
 0        mov       r1, r0
@@ -53,12 +54,13 @@ end of the function:
 8        .word     65535
 ```
 
-`.word 65535` is `0xFFFF`. The pool row is part of the function and part of the
-match, and the workspace prints it in decimal, so keep a converter handy.
+`.word 65535` is `0xFFFF`. This literal pool entry is part of the function, and
+it has to match too. The workspace prints it in decimal, so keep a converter
+handy.
 
-The mask in your target is built rather than loaded, so it is a run of at most
-eight bits. Do that multiplication first and the rest of the listing reads
-straight off.
+The mask in your target is built with a `mov` and a shift, so it is a run of at
+most eight bits. Do that multiplication first, and the rest of the listing
+follows from it.
 
 ## Your task
 

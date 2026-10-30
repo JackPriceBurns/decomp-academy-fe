@@ -9,24 +9,24 @@ concepts:
   - addressing
 symbol: func_0826064c
 hints:
-  - "The `#n` in the three-operand `add rD, rB, #n` is where the array member starts inside the struct. An `lsl` on the index beside it gives the element size; no shift at all means byte elements."
-  - A `struct Deck *` and an `s32` in, a `u32` out. One indexed read from the array member and one plain read of a field that sits after it.
+  - "The `#n` in the three-operand `add rD, rB, #n` is where the array member starts inside the struct. An `lsl` on the index next to it gives the element size. If there is no shift at all, the elements are bytes."
+  - The function takes a `struct Deck *` and an `s32`, and returns a `u32`. It does one indexed read from the array member and one plain read of a field that comes after the array.
 ---
 
 # Two offsets, one address
 
-An array member inside a struct needs both kinds of offset at once: a constant
-one to reach the member, and a scaled one to reach the element. The compiler
-emits them as separate instructions, and the shape is distinctive — a
-three-operand `add rD, rB, #n` that copies the base while adding the member's
-offset, then a second `add` that folds in the scaled index.
+An array member inside a struct needs two kinds of offset at once: a constant
+offset to reach the member, and a scaled offset to reach the element. The
+compiler emits them as separate instructions, in a pattern you can recognise.
+First a three-operand `add rD, rB, #n` copies the base and adds the member's
+offset in one step. Then a second `add` adds the scaled index.
 
-Watch which register survives. The struct base is usually kept in a second
-register, because the function still needs it for the other fields, and the
-address of the element is built alongside it.
+Watch which register keeps the base. The struct base usually stays in a second
+register, because the function still needs it for the other fields. The
+address of the element is built in a separate register.
 
-Here is a function reading one element of a byte array inside a struct, plus a
-field in front of it:
+Here is a function that reads one element of a byte array inside a struct, plus
+a field in front of the array:
 
 ```asm
 0        mov       r2, r0
@@ -39,19 +39,19 @@ field in front of it:
 ```
 
 The struct is `{ u8 count; u8 cell[16]; }`. `cell` starts at offset 1, which is
-the `#1` in the first add; the index needs no scaling at all because the
-elements are single bytes, so it goes straight in with the second add. Then the
-load at `[r0, #0]` — offset zero, because the whole address is already in the
-register — and a separate `ldrb` at `[r2, #0]` for `count`, from the base that
+the `#1` in the first add. The elements are single bytes, so the index needs no
+scaling and goes straight in with the second add. Then comes the load at
+`[r0, #0]`. Its offset is zero because the whole address is already in the
+register. A separate `ldrb` at `[r2, #0]` reads `count`, using the base that
 was saved in instruction 0.
 
-If the elements had been halfwords or words there would be an `lsl` on the index
-before that second add, exactly as in the array-of-structs case. The member
-offset and the element scale are independent; read them separately and you get
+If the elements had been halfwords or words, there would be an `lsl` on the
+index before that second add, as in an array of structs. The member offset and
+the element scale do not depend on each other. Read them separately and you get
 the member and the index.
 
-Your target indexes an array member of its own, and reads one more field
-afterwards. Mind the width of both loads.
+Your target indexes an array member of its own, and reads one more field after
+it. Check the width of both loads.
 
 ## Your task
 

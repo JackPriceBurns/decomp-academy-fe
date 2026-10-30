@@ -9,14 +9,14 @@ concepts:
   - fpu
 symbol: func_80207008
 hints:
-  - "Read it exactly like the `.s` chain lesson — two ops through `ft0`, one argument used twice."
-  - "Which argument rides in the second slot of both instructions?"
+  - "Read it exactly like the `.s` chain lesson: two ops through `ft0`, and one argument used twice."
+  - "Which argument is the second operand of both instructions?"
 ---
 
 # The same grammar, twice as wide
 
-`f64` — double precision — gets its own instruction suffix: **`.d`**.
-Here's `areaD(w, h)`, multiplying two doubles:
+`f64` (double precision) has its own instruction suffix: **`.d`**. This is
+`areaD(w, h)`, which multiplies two doubles:
 
 ```asm
 mul.d  fv0, fa0, fa1   # w * h
@@ -25,31 +25,30 @@ jr     ra
 nop
 ```
 
-Familiar to the point of anticlimax: same registers, same operand
-order, same mul-before-return pad. The differences hide under the
-hood:
+This looks almost the same as before: the same registers, the same operand
+order, and the same padding `nop` between a multiply and the return. The
+differences are not visible in the listing:
 
-- **Each named register is now a *pair*.** A double is 64 bits, and
-  the FPU holds it across two adjacent hardware registers — `fv0` is
-  the `$f0`/`$f1` pair, `fa0` is `$f12`/`$f13`, and so on. In `.d`
-  instructions you only ever name the pair; the second half is
-  implicit. (The halves *can* be touched individually — next lesson
-  does it on purpose — and the odd half shows up under the name
-  `ft0f`, `fv0f`: the familiar name plus an `f`.)
-- **Arguments still arrive in `fa0` and `fa1`** — two doubles fill
-  both argument pairs, and a double result leaves in the `fv0` pair.
-- The full arithmetic set carries over: `add.d`, `sub.d`, `mul.d`,
-  `div.d`, plus `mov.d`, `neg.d`, and the `c.lt.d` compare family,
-  all behaving exactly like their `.s` twins.
+- **Each named register is now a *pair*.** A double is 64 bits, and the FPU
+  holds it in two neighbouring hardware registers. `fv0` is the `$f0`/`$f1`
+  pair, `fa0` is `$f12`/`$f13`, and so on. In `.d` instructions you only name
+  the pair, and the second half is implied. (You *can* use the halves
+  separately, and the next lesson does that on purpose. The odd half has the
+  familiar name plus an `f`, such as `ft0f` or `fv0f`.)
+- **Arguments still arrive in `fa0` and `fa1`.** Two doubles fill both
+  argument pairs, and a double result is returned in the `fv0` pair.
+- The full arithmetic set carries over: `add.d`, `sub.d`, `mul.d`, `div.d`,
+  plus `mov.d`, `neg.d` and the `c.lt.d` compare family. They all behave
+  exactly like their `.s` versions.
 
-So *reading* double code costs you nothing new — every technique
-from this chapter applies with a wider suffix. What you should
-notice is *that* it's double: a `.d` in a game function is a choice
-somebody made, and your C must say `f64` (or an unsuffixed constant
-— that story in two lessons) to reproduce it.
+So *reading* double code needs nothing new. Every technique from this chapter
+works with the wider suffix. What you should notice is *that* the code uses
+doubles. A `.d` in a game function means someone chose doubles, and your C
+must use `f64` to reproduce it (or an unsuffixed constant, which is covered
+two lessons from now).
 
-The target chains two `.d` operations through a temporary, one
-argument pulling double shifts. Bottom-up, as ever.
+The target chains two `.d` operations through a temporary, and one argument
+is used twice. Read it from the bottom up, as always.
 
 ## Your task
 

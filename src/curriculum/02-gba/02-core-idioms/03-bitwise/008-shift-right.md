@@ -10,17 +10,18 @@ concepts:
 symbol: func_080edbb0
 hints:
   - The two shifts use different mnemonics, and the mnemonic is decided by the
-    declared type of the value being shifted. That is two different parameter
-    types.
-  - Two arguments and an `s32` result — the first parameter is signed, the
-    second is not, each shifted right by its own amount and the two added.
+    declared type of the value being shifted. So the two parameters have
+    different types.
+  - The function takes two arguments and returns an `s32`. The first parameter
+    is signed and the second is not. Each is shifted right by its own amount,
+    and the two results are added.
 ---
 
 # lsr and asr
 
-Right shifts come in two flavours. `lsr` feeds zeros in at the top; `asr`
-feeds copies of the sign bit. Same count, same register, different answer for
-any value with bit 31 set:
+Right shifts come in two kinds. `lsr` shifts zeros in at the top, and `asr`
+shifts in copies of the sign bit. With the same count and the same register,
+they give different answers for any value that has bit 31 set:
 
 ```asm
 0        lsr       r0, #6
@@ -35,15 +36,15 @@ any value with bit 31 set:
 Those are the same C expression, `a >> 6`, compiled twice. The only difference
 is the declared type of `a`.
 
-That is the whole rule, and it is worth being precise about: the mnemonic is
-decided by the *static type* of the left operand, never by what the compiler can
-prove about the value. A `u32` gets `lsr`, an `s32` gets `asr`, and a plain hex
-literal gets `asr` because a literal that fits in `int` is an `int`. One `u`
-suffix or one cast moves the mnemonic, so when a right shift mismatches, check
-the declared type before you change anything else.
+That is the whole rule, and it is worth stating exactly. The mnemonic is decided
+by the *static type* of the left operand. What the compiler can prove about the
+value makes no difference. A `u32` gets `lsr`, an `s32` gets `asr`, and a plain
+hex literal gets `asr`, because a literal that fits in `int` is an `int`. A
+single `u` suffix or a single cast changes the mnemonic. So when a right shift
+does not match, check the declared type before you change anything else.
 
-The trap next door is division. A signed `>>` is one instruction, and a signed
-`/` by the same power of two is not:
+A related trap is division. A signed `>>` is one instruction, but a signed `/`
+by the same power of two is not:
 
 ```asm
 0        cmp       r0, #0
@@ -54,13 +55,13 @@ The trap next door is division. A signed `>>` is one instruction, and a signed
 ```
 
 That is `a / 64` on an `s32`. C rounds division toward zero, so a negative
-dividend has to be nudged up by 63 first, and gcc 2.9 does it with a real
-branch. On unsigned types the two spellings do coincide — `/ 64` and `>> 6` are
-both a bare `lsr` — but on signed types choosing the wrong one costs three
-instructions.
+dividend has to be increased by 63 first, and gcc 2.9 does this with a real
+branch. On unsigned types the two forms give the same code: `/ 64` and `>> 6`
+both compile to a single `lsr`. On signed types, picking the wrong one costs
+three extra instructions.
 
-Your target has both mnemonics in it. Read each one as a statement about the
-type of the value it is shifting.
+Your target contains both mnemonics. Read each one as a statement about the
+type of the value it shifts.
 
 ## Your task
 

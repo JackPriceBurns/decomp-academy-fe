@@ -9,28 +9,26 @@ concepts:
   - delay-slots
 symbol: func_803c37bc
 hints:
-  - "`sra` by 3 plus `andi` 0x7 is a length in bits becoming a length in
-    bytes, with a check for stragglers. The double store to `4(a0)` is a
-    round-up `if`, not two statements."
-  - "Five plain field stores follow — map each register to a parameter by the offsets in the context. The `or v0, a0, zero` at the end is a returned pointer."
+  - "`sra` by 3 plus `andi` 0x7 turns a length in bits into a length in bytes, with a check for leftover bits. The double store to `4(a0)` is a round-up `if`. Do not write it as two separate statements."
+  - "Five plain field stores follow. Map each register to a parameter using the offsets in the context. The `or v0, a0, zero` at the end is a returned pointer."
 ---
 
-# A round-up, scheduled sideways
+# A round-up, reordered by the scheduler
 
-This game packs save data and compressed streams bit by bit, through a little
-`BitStream` cursor struct. Today's target is its constructor. Most of it is
-plain field stores — but the first field is a *computed* one: the stream is
-given a length in **bits**, and must derive the length in **bytes**, rounded up
-when the bits don't divide evenly.
+This game packs save data and compressed streams bit by bit, using a small
+`BitStream` cursor struct. This target is its constructor. Most of it is plain
+field stores, but the first field is *computed*. The stream is given a length
+in **bits**, and it must work out the length in **bytes**, rounded up when the
+bits do not divide evenly.
 
-You know every piece of that: shift right to divide by a power of two, mask to
-get the remainder, branch on it. What makes the real function worth reading is
-how the scheduler *arranges* the round-up. Here's the same idiom in `gridResize`,
-which converts a cell count into full rows of 16:
+You know every piece of that. A right shift divides by a power of two, a mask
+gives the remainder, and a branch tests the remainder. The part worth reading
+in the real function is how the scheduler *arranges* the round-up. Here is the
+same idiom in `gridResize`, which converts a cell count into full rows of 16:
 
 ```asm
- 0:  sra   t6, a1, 4       # cells >> 4 — full rows
- 4:  andi  t7, a1, 0xf     # cells & 15 — any leftover?
+ 0:  sra   t6, a1, 4       # cells >> 4: full rows
+ 4:  andi  t7, a1, 0xf     # cells & 15: any leftover?
  8:  beqz  t7, 0x18        # none → the rows count is already right
  c:  sw    t6, 0(a0)       #   (slot) store the rounded-DOWN count either way
 10:  addiu t9, t6, 1       # leftover: bump…
@@ -41,14 +39,15 @@ which converts a cell count into full rows of 16:
 ```
 
 The store in the branch's delay slot runs on *both* paths, and the "round up"
-path simply stores again on top of it. Two `sw` to the same offset, a few
-lines apart, is not two C statements — it's one store plus an
-`if (...) field += 1;` whose scheduling folded them together. You saw this
-store-then-overwrite move in tier 3's finale; here it is in shipped code.
+path stores again on top of it. So two `sw` to the same offset, a few lines
+apart, come from one store plus an `if (...) field += 1;`. The scheduler folded
+the two together. Do not read them as two separate C statements. You saw this
+pattern, a store followed by an overwrite, in tier 3's finale. Here it is in
+shipped code.
 
-The target does the same dance with its own shift amount and mask, then fills
-in the rest of the struct from the parameters — ending with the constructor's
-signature move, handing the stream pointer back in `v0`.
+The target does the same thing with its own shift amount and mask. It then
+fills in the rest of the struct from the parameters. Look at the last
+instructions to see what the function leaves in `v0`.
 
 ## Your task
 

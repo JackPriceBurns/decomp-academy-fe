@@ -9,19 +9,19 @@ concepts:
   - literal-pool
 symbol: func_082a3618
 hints:
-  - The pool holds four words in two pairs, high half first. 0x3FF80000 with a
-    zero low half, then 0x40000000 with a zero low half.
-  - "One `f32` in, an `f32` out. The two constants are 1.5 and 2.0 and neither
-    carries an `f` suffix, which is what drags the whole expression into
-    double."
+  - The pool holds four words in two pairs, high half first. The first pair is
+    0x3FF80000 with a zero low half, and the second is 0x40000000 with a zero
+    low half.
+  - "One `f32` in, an `f32` out. The two constants are 1.5 and 2.0, and neither
+    has an `f` suffix. That is what pulls the whole expression into double."
 ---
 
-# The suffix that costs three calls
+# A missing suffix costs three calls
 
-An `f64` does not fit in a register, so it travels in a pair: `r0:r1` for the
-first argument, `r2:r3` for the second, `r0:r1` for the return. The helpers
-change their suffix from `sf` to `df` and everything else about the shape
-stays:
+An `f64` does not fit in one register, so it is passed in a pair: `r0:r1` for
+the first argument, `r2:r3` for the second, and `r0:r1` for the return value.
+The helpers change their suffix from `sf` to `df`, and the rest of the shape
+stays the same:
 
 ```asm
 0        push      {lr}
@@ -30,15 +30,15 @@ stays:
 8        bx        r2
 ```
 
-Look at the epilogue. `lr` came back in `r2`, not `r1`, because the return
-value occupies `r0` **and** `r1`. That single register is a complete answer to
-"how wide is the return value": `pop {r0}` means `void`, `pop {r1}` means one
-word, `pop {r2}` means two.
+Look at the epilogue. `lr` is popped into `r2` instead of `r1`, because the
+return value uses `r0` **and** `r1`. That one register tells you how wide the
+return value is: `pop {r0}` means `void`, `pop {r1}` means one word, and
+`pop {r2}` means two words.
 
-Now the trap. C89 says an unsuffixed floating literal is a `double`, so writing
-`0.25` instead of `0.25f` in an `f32` expression triggers the usual arithmetic
-conversions — widen the float, do the arithmetic in double, narrow the result
-back:
+Now a common mistake. In C89, a floating literal without a suffix is a
+`double`. So if you write `0.25` instead of `0.25f` in an `f32` expression,
+the usual arithmetic conversions apply. The float is widened, the arithmetic
+is done in double, and the result is narrowed back:
 
 ```asm
 0        push      {lr}
@@ -54,21 +54,22 @@ back:
 28       .word     0
 ```
 
-One add became three calls and a two-word pool entry. With the `f` suffix the
-whole function would have been a single `bl __addsf3` and one pool word.
+One add has become three calls and a pool entry of two words. With the `f`
+suffix, the whole function would have been a single `bl __addsf3` and one pool
+word.
 
-Decoding those two words needs one more piece of knowledge. A double's 64 bits
-are split with the **high half at the lower address and in the lower
-register**, which is backwards from what a little-endian machine leads you to
-expect. So the pair here is 0x3FD00000_00000000: sign 0, an 11-bit exponent of
-0x3FD = 1021 against a bias of 1023 giving 2^-2, and a zero mantissa for a
-significand of 1.0. That is 0.25.
+To decode those two words, you need one more fact. A double's 64 bits are
+split with the **high half at the lower address and in the lower register**.
+That is the opposite of what you would expect on a little-endian machine. So
+the pair here is 0x3FD00000_00000000. The sign is 0. The 11-bit exponent is
+0x3FD = 1021, and with a bias of 1023 that gives 2^-2. The mantissa is zero,
+so the significand is 1.0. The value is 0.25.
 
-The `.hword 0` at address 22 is alignment padding — the pool needs a 4-byte
-boundary and the body ended on an odd halfword.
+The `.hword 0` at address 22 is alignment padding. The pool must start on a
+4-byte boundary, and the body ended on an odd halfword.
 
 Your target does its arithmetic in double, and its pool holds four words.
-Decode the two pairs to recover the literals, and the helper names tell you what
+Decode the two pairs to get the literals back. The helper names tell you what
 was done with them.
 
 ## Your task

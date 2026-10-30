@@ -9,21 +9,21 @@ concepts:
   - control-flow
 symbol: func_8014c9a8
 hints:
-  - "Every case computes into the same register, then a `b` jumps to the shared exit. Read each case's one instruction and translate it to a statement."
-  - "One case doubles the argument with a shift — that's the multiply-by-2 spelling. An add-of-itself would have compiled to `addu` instead."
+  - "Every case writes its result into the same register, and then a `b` jumps to the shared exit. Read each case's one instruction and turn it into a C statement."
+  - "One case doubles the argument with a shift. That is how multiplying by 2 compiles. Adding the argument to itself would have compiled to `addu` instead."
 ---
 
-# break means "meet me at the exit"
+# A break jumps to one shared exit
 
-Cases that `return` end in `jr ra`. Cases that **`break`** instead all funnel
-to one shared exit — and the jump table shape bends to match. Here's
-`apply(mode, x)`, which computes a result `r` from `x` differently per mode
-and returns it through one exit:
+Cases that `return` end in `jr ra`. Cases that **`break`** instead all jump to
+one shared exit, and the jump table code changes to match. Here is
+`apply(mode, x)`. It computes a result `r` from `x` in a different way for each
+mode, and returns it through one exit:
 
 ```asm
  0:  sltiu  at, a0, 6
  4:  beqz   at, 0x50
- 8:  or     v1, zero, zero       # r = 0 — doubles as the default
+ 8:  or     v1, zero, zero       # r = 0, which is also the default
  c:  sll    t6, a0, 2
 10:  lui    at, %hi(.rodata)
 14:  addu   at, at, t6
@@ -40,27 +40,30 @@ and returns it through one exit:
 40:  addu   v1, a1, a1
 44:  b      0x50                 # case 4:
 48:  addiu  v1, zero, 100
-4c:  or     v1, a1, zero         # case 5 sits right above the exit — no b
+4c:  or     v1, a1, zero         # case 5 sits right above the exit: no b
 50:  or     v0, v1, zero         # the shared exit: return r
 54:  jr     ra
 58:  nop
 ```
 
-The dispatcher is identical to last lesson. What changed is downstream:
+The dispatcher is the same as in the last lesson. The changes come after it:
 
-- **Each case is `b` to the exit, with its work in the slot.** One statement
-  per case, one instruction per statement, the `break` compiled into the `b`.
-- **`r` has a register**, `v1`, that every case writes. Its zero-init in the
-  dispatcher's slot serves double duty as the default path's value.
-- **The last case drops the `b`** — it sits immediately above the exit, so
-  falling off its one instruction *is* arriving. Don't mistake that for a
-  missing `break` in the C; it's just layout.
-- Case 3 reads `addu v1, a1, a1` — the argument added to itself. Case 2 is a
-  shift. IDO keeps the spelling you choose for these, so the diff tells you
-  which C to write.
+- **Each case is a `b` to the exit, with its work in the delay slot.** There
+  is one statement per case and one instruction per statement. The `break`
+  compiles to the `b`.
+- **`r` lives in a register**, `v1`, and every case writes to it. It is set to
+  zero in the dispatcher's delay slot, and that zero is also the value on the
+  default path.
+- **The last case has no `b`.** It sits directly above the exit, so after its
+  one instruction the code is already at the exit. This does not mean the C
+  is missing a `break`. It is only how the code is laid out.
+- Case 3 is `addu v1, a1, a1`, which adds the argument to itself. Case 2 is a
+  shift. IDO keeps the form you write for these, so the diff tells you which
+  C to write.
 
-The target has the same skeleton: six cases, each one small statement
-computing into the result register. Decode them one delay slot at a time.
+The target has the same structure: six cases, and each one is a small
+statement that writes the result register. Decode them one delay slot at a
+time.
 
 ## Your task
 

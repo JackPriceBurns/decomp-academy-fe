@@ -11,20 +11,20 @@ concepts:
 symbol: func_801c7484
 hints:
   - "Two `slt`s with mirrored operand orders = the classic less-than / greater-than pair on the same two values. An if / else if in C."
-  - "Each `beqzl`'s likely slot holds work for the taken path — one holds the OTHER comparison, one holds the copy-out. The `addiu`s tell you what each case does to `cur`."
+  - "Each `beqzl`'s likely slot holds work for the taken path: one holds the OTHER comparison, and one holds the copy to `v0`. The `addiu`s tell you what each case does to `cur`."
 ---
 
 # Everything at once
 
-Last stop in this chapter — a tiny function you'd find in any game's
-animation or camera code, and a listing where every line is in a delay slot,
-a likely slot, or a branch. First, a warmup in the same spirit: a counter
-that increments and wraps to zero at a limit:
+This is the last lesson in this chapter. It is a tiny function of the kind you
+would find in any game's animation or camera code, and every line of its
+listing is in a delay slot, a likely slot, or a branch. First, a warmup of the
+same kind: a counter that increments and wraps to zero at a limit:
 
 ```asm
  0:  addiu a0, a0, 1      # straight-line work first: i + 1
  4:  slt   at, a0, a1     # still below n?
- 8:  bnezl at, 0x18       # yes: that's the answer —
+ 8:  bnezl at, 0x18       # yes: that's the answer...
  c:  or    v0, a0, zero   # (likely slot) return the incremented i
 10:  or    a0, zero, zero # no: wrap to 0
 14:  or    v0, a0, zero   # …and return that
@@ -32,27 +32,27 @@ that increments and wraps to zero at a limit:
 1c:  nop
 ```
 
-That's `i = i + 1; if (i >= n) i = 0; return i;` — plain work, then a
-guarded reset, if-converted onto a likely branch. (Note the branch tests the
-condition that *keeps* `i`, so the C's `>=` shows up as an un-taken `<` —
-one more flip to keep you honest.)
+That is `i = i + 1; if (i >= n) i = 0; return i;`: plain work, then a guarded
+reset, if-converted onto a likely branch. (Note that the branch tests the
+condition that *keeps* `i`, so the C's `>=` shows up as a `<` that is not
+taken. That is one more flip to watch for.)
 
-The target below is its two-sided cousin: nudge a value one step toward a
-target — up if it's below, down if it's above, untouched if equal. Three
-outcomes, so expect:
+The target below is the two-sided version: it moves a value one step toward a
+target. It goes up if the value is below, down if it is above, and stays the
+same if they are equal. There are three outcomes, so expect:
 
-- **Two mirrored `slt`s** on the same two registers, one per direction —
-  the min/max lesson taught you to read their operand order literally.
-- **A `beqzl` whose likely slot computes the *second* `slt`** — the
-  hoisted-test trick from the clamp lesson, riding a likely slot this time:
-  the taken path is exactly the path that needs the next comparison.
-- **A `b`** hopping the first outcome over the rest, its slot carrying that
-  outcome's `addiu`.
-- A shared copy-out that the equal case reaches without doing anything.
+- **Two mirrored `slt`s** on the same two registers, one for each direction.
+  The min/max lesson taught you to read their operand order literally.
+- **A `beqzl` whose likely slot computes the *second* `slt`.** This is the
+  test computed early, as in the clamp lesson, but in a likely slot this
+  time. The taken path is exactly the path that needs the next comparison.
+- **A `b`** that sends the first outcome past the rest, with that outcome's
+  `addiu` in its slot.
+- A shared copy to `v0` that the equal case reaches without doing anything.
 
-Write it as the C you'd naturally write: `if` / `else if`, one small
-adjustment in each body, one return at the end. Then enjoy watching five
-lessons' worth of fingerprints reassemble themselves.
+Write it as the C you would naturally write: `if` / `else if`, one small
+change in each body, and one return at the end. Then you will see the
+patterns from five lessons come together.
 
 ## Your task
 

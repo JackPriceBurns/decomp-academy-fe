@@ -8,19 +8,21 @@ concepts:
   - immediates
 symbol: func_8019c380
 hints:
-  - "The immediate on the `andi` is the mask — the bits it keeps. Use the same constant in your C."
-  - "Write the constant in hex; it describes bit positions, not a quantity."
+  - "The immediate on the `andi` is the mask. It marks the bits that are kept. Use the same constant in your C."
+  - "Write the constant in hex, because it describes bit positions and is not used as a quantity."
 ---
 
 # AND as a filter
 
-This chapter is about instructions that treat a register not as a number but
-as **32 individual switches**. The first is AND: a bit survives only where
-*both* inputs have a 1. Give one input a constant — a **mask** — and AND
-becomes a filter: ones in the mask mark the bits to keep, zeros erase.
+In this chapter, the instructions treat a register as **32 individual
+switches**, one for each bit. The value as a whole number does not matter. The
+first instruction is AND. A bit of the result is 1 only where *both* inputs
+have a 1. If one input is a constant, called a **mask**, AND works as a
+filter. The ones in the mask mark the bits to keep, and the zeros clear the
+other bits.
 
-The immediate form is `andi`. Here's a function keeping bits 8 through 15 —
-the second byte — of its input:
+The immediate form of AND is `andi`. Here is a function that keeps bits 8
+through 15 (the second byte) of its input:
 
 ```asm
 andi v0, a0, 0xff00   # keep bits 8-15, clear everything else
@@ -28,22 +30,22 @@ jr   ra
 nop
 ```
 
-Everything outside the mask's ones is now zero; everything inside came through
-untouched. In C that's `x & 0xff00`.
+Every bit outside the mask's ones is now zero. Every bit inside them is
+unchanged. In C this is `x & 0xff00`.
 
-Two things worth knowing about `andi` specifically:
+There are two things to know about `andi`:
 
-- **The immediate is *zero*-extended**, not sign-extended like `addiu`'s.
-  The 16-bit field fills the low half; the upper 16 bits of the mask are
-  always zero. A mask touching the top half of the register can't use `andi`
-  at all — remember `lui` when you meet one.
-- You saw `andi` do arithmetic duty as `% 2^k` last chapter, where its mask
-  was a solid run of ones ending at bit 0. A mask that *isn't* that shape —
-  like 0xff00, floating up in the middle — is genuine bit work, and the C
-  should say `&`, not `%`.
+- **The immediate is *zero*-extended.** `addiu` sign-extends its immediate,
+  and `andi` does not. The 16-bit field fills the low half of the mask, so the
+  upper 16 bits of the mask are always zero. A mask with bits in the top half
+  of the register can't use `andi` at all. When you meet one, remember `lui`.
+- In the last chapter you saw `andi` used for arithmetic, as `% 2^k`. There
+  its mask was a solid run of ones ending at bit 0. A mask with a different
+  shape, like 0xff00 with its ones in the middle, is real bit work. For that
+  mask the C should use `&` instead of `%`.
 
-Read the target's mask, and mind the second habit: hex, because masks are
-positions.
+Read the mask in the target. Write it in hex in your C, because a mask
+describes bit positions.
 
 ## Your task
 

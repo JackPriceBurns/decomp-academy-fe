@@ -9,17 +9,17 @@ concepts:
   - offsets
 symbol: func_8012d0a8
 hints:
-  - "Three stores at climbing offsets, three value arguments in order, then one `addiu` producing the returned pointer. Count the bytes the `addiu` skips."
-  - "The C writes each argument through the pointer with `*p++ = …;` and returns `p`. No arithmetic beyond the increments."
+  - "There are three stores at increasing offsets, with the three value arguments in order, then one `addiu` that produces the returned pointer. Count the bytes that the `addiu` skips."
+  - "The C writes each argument through the pointer with `*p++ = …;` and returns `p`. There is no arithmetic apart from the increments."
 ---
 
-# `*p++` three times = three offsets and one add
+# `*p++` three times becomes three offsets and one add
 
-The C idiom for "append and advance" is `*p++ = value;`. Written
-several times in a row, you might expect several pointer increments in
-the assembly. IDO has a better idea — it knows where each write lands
-relative to the *original* pointer, so it uses offsets and increments
-the pointer **once**, at the end, by the total:
+The C idiom for "append and advance" is `*p++ = value;`. If you write it
+several times in a row, you might expect several pointer increments in the
+assembly. IDO does better than that. It knows where each write lands
+relative to the *original* pointer, so it uses offsets, and it increments the
+pointer **once**, at the end, by the total:
 
 ```c
 s32 *emit2(s32 *p, s32 v) {
@@ -37,21 +37,21 @@ jr    ra
 nop
 ```
 
-Two increments in the C; zero `addiu`s between the stores. Each `++`
-became "+4 on the next offset", and the lone `addiu … 8` settles the
-account: the returned pointer is the original plus the total distance
-walked. Returning the advanced pointer is what keeps the increments
-alive at all — a caller needs to know where the writing stopped, so
-these little emit-and-return-cursor helpers are everywhere in code
-that builds buffers.
+The C has two increments, but there are no `addiu`s between the stores. Each
+`++` became "+4 on the next offset". The single `addiu … 8` at the end adds
+up the total: the returned pointer is the original plus the whole distance
+moved. Returning the advanced pointer is the only reason the increments are
+kept at all. A caller needs to know where the writing stopped, so small
+helpers that write values and return the moved cursor are common in code that
+builds buffers.
 
-Reading it back: stores stepping `0, 4, 8, …` off one base, ending in
-`addiu` of base + total — that's a run of `*p++ =` statements, one per
-store. What's stored at each offset tells you each statement's
-right-hand side.
+To read it back: stores at `0, 4, 8, …` from one base, followed by an `addiu`
+of the base plus the total, are a run of `*p++ =` statements, one per store.
+The value stored at each offset gives you the right-hand side of each
+statement.
 
-The target pushes its value arguments, in parameter order, and returns
-the moved cursor.
+The target writes its value arguments in parameter order, and returns the
+moved cursor.
 
 ## Your task
 

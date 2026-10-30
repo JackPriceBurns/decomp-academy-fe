@@ -9,20 +9,20 @@ concepts:
   - delay-slots
 symbol: func_8005d47c
 hints:
-  - "Two `jal`s, and the `or a0, v0, zero` between them pipes the first result into the second call. Read the calls inside-out."
-  - "After the second call returns, one more instruction adjusts `v0` before the epilogue — fold that into your expression."
+  - "There are two `jal`s, and the `or a0, v0, zero` between them passes the first result to the second call. Read the calls from the inside out."
+  - "After the second call returns, one more instruction changes `v0` before the epilogue. Include that in your expression."
 ---
 
-# v0 today, a0 tomorrow
+# From v0 into a0
 
 When one call's result is exactly the next call's argument, no stack slot is
-needed — the value goes straight from `v0` into `a0`. Here's `chainTwo(x)`,
+needed. The value goes straight from `v0` into `a0`. This is `chainTwo(x)`,
 which returns `second(first(x))`:
 
 ```asm
 addiu  sp, sp, -24
 sw     ra, 20(sp)
-jal    first           # first(x) — x already in a0
+jal    first           # first(x): x is already in a0
 nop
 jal    second
 or     a0, v0, zero    # first's result becomes second's argument
@@ -32,19 +32,19 @@ jr     ra
 nop
 ```
 
-The whole idiom is that one `or a0, v0, zero`, sitting in the second `jal`'s
-delay slot. Nested calls in C read inside-out — `first` runs, then `second` —
-and the assembly lays them out top to bottom in execution order. When you see
-back-to-back `jal`s glued by `or a0, v0, zero`, write nesting, not two
-statements.
+The whole pattern is one instruction, `or a0, v0, zero`, in the delay slot of
+the second `jal`. Nested calls in C read from the inside out: `first` runs,
+then `second`. The assembly lists them from top to bottom in the order they
+run. When you see two `jal`s in a row joined by `or a0, v0, zero`, write a
+nested call instead of two statements.
 
-And note what's *missing*: no home-slot traffic. Nothing here is needed *after*
-a call except the value already flowing forward in `v0`, so there's nothing to
-protect. Compare that with the last lesson — the presence or absence of those
-stores tells you whether a value crosses a call.
+Also notice what is *missing*: there are no stores to or loads from the home
+slots. Nothing is needed *after* a call except the value passed on in `v0`, so
+there is nothing to save. Compare this with the last lesson. Whether those
+stores appear tells you whether a value is kept across a call.
 
-The target is the same pipeline with a small coda after the second call. Don't
-forget it.
+The target is the same chain of calls with one small extra step after the
+second call. Don't forget it.
 
 ## Your task
 

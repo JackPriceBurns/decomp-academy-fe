@@ -9,31 +9,30 @@ concepts:
   - returns
 symbol: func_08123520
 hints:
-  - Both arms subtract, and they differ only in which operand goes first. The
+  - Both arms subtract. They differ only in which operand comes first. The
     three-operand `sub r0, r1, r0` writes its result over its own second source,
     which is why it needs the long form.
-  - Two `s32` arguments and an `s32` result. The function answers with the
-    distance between the two values, and the arm the branch jumps to is the one
+  - There are two `s32` arguments and an `s32` result. The function returns the
+    distance between the two values. The arm the branch jumps to is the one
     written first in the source.
 ---
 
-# The order of the arms is part of the object
+# The order of the arms changes the compiled code
 
-gcc 2.9 does no block reordering worth the name, so the two arms of an `if`/
-`else` come out in a fixed relationship to the branch — and swapping them in the
-source produces a genuinely different function, not a rearrangement of the same
-one.
+gcc 2.9 does almost no reordering of code blocks. So the two arms of an `if`/
+`else` always come out in a fixed position relative to the branch. If you swap
+the arms in the source, you get a different function in the output.
 
-Start from the reading that never fails: a conditional branch goes to its
-target when its condition holds, so the arm at the target is the arm that
-condition selects. Everything else is layout — which of the two arms the
-compiler decided to put there.
+Start from the rule that always works: a conditional branch goes to its target
+when its condition is true, so the arm at the target is the arm that the
+condition selects. The only other question is layout: which of the two arms the
+compiler chose to put there.
 
-For an `if`/`else` whose arms both end in `return` and both need instructions of
-their own, that decision is consistent. The `else` arm takes the fall-through
-slot directly under the branch and ends with an unconditional `b` over the other
-one; the `if` arm goes to the target; and so the branch carries the condition
-exactly as written:
+For an `if`/`else` where both arms end in `return` and both need their own
+instructions, the compiler always makes the same choice. The `else` arm goes in
+the fall-through position, directly under the branch, and ends with an
+unconditional `b` over the other arm. The `if` arm goes at the target. So the
+branch uses the condition exactly as written:
 
 ```asm
 0        cmp       r0, r1
@@ -44,8 +43,8 @@ exactly as written:
 10     ~>bx        lr
 ```
 
-`blt` is the source's `<`, unmodified. It jumps to address 8, which computes the
-`if` arm; the `else` arm sits at 4 and hops over it. Now the same decision
+`blt` is the source's `<`, unchanged. It jumps to address 8, which computes the
+`if` arm. The `else` arm is at 4 and jumps over it. Here is the same decision
 written the other way round:
 
 ```asm
@@ -57,15 +56,16 @@ written the other way round:
 10     ~>bx        lr
 ```
 
-Same two answers, same decision, same twelve bytes — and a different
-object. The two listings differ in the branch mnemonic and in which arm is
-which. No amount of editing the bodies will turn one into the other; the fix is
-always to flip the condition in the source.
+Both listings compute the same two answers from the same decision, and both
+are twelve bytes long. But they are different code: the branch mnemonic
+differs, and so does which arm sits where. Editing the bodies will never turn
+one into the other. The fix is always to reverse the condition in the source.
 
-The decision goes the other way when the arms are ordinary statements that fall
-into shared code afterwards. Then the `if` arm takes the fall-through slot, the
-`else` arm becomes the target, and the branch is the negation — the same
-polarity that guarded a single statement two lessons ago:
+The choice goes the other way when the arms are ordinary statements that
+continue into shared code afterwards. Then the `if` arm takes the fall-through
+position, and the `else` arm becomes the target. The branch is the opposite of
+the source condition, the same as for the single guarded statement two lessons
+ago:
 
 ```asm
 0        cmp       r0, r1
@@ -77,19 +77,19 @@ polarity that guarded a single statement two lessons ago:
 12       bx        lr
 ```
 
-Written `if (a < b)`, compiled `bge`. The `if` arm is at 4 this time, first,
-because there is real code after the join for it to fall into. So before you
-trust a branch's polarity, check whether its arms return or continue.
+The source says `if (a < b)` and the listing has `bge`. This time the `if` arm
+comes first, at 4, because there is real code after the join for it to continue
+into. So before you decide whether a branch matches the source condition or its
+opposite, check whether its arms return or continue.
 
-A third arrangement turns up later in the chapter, when one arm needs no
-instructions at all because its value already sits in `r0`. That arm becomes the
-target, the other is skipped over, and the branch carries whichever condition
-selects the free one. The reading rule still handles it; only the layout habit
-changes.
+A third layout appears later in this chapter. It happens when one arm needs no
+instructions because its value is already in `r0`. That arm becomes the target,
+the other arm is skipped over, and the branch uses whichever condition selects
+the empty arm. The reading rule still works. Only the layout changes.
 
-Your target returns from both arms and both of them need an instruction. The two
-arms do the same kind of arithmetic in opposite directions — read carefully
-which register each one keeps.
+Your target returns from both arms, and both arms need an instruction. The two
+arms do the same kind of arithmetic in opposite directions. Read carefully which
+register each one keeps.
 
 ## Your task
 

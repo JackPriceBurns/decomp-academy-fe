@@ -1,7 +1,7 @@
 ---
 id: 70e5ab86-65a4-4106-acaf-871aced0c3be
 slug: opt-mtc1-hazard
-title: "Crossing to the FPU: mtc1 and Its nop"
+title: "Moving to the FPU: mtc1 and Its nop"
 difficulty: 2
 concepts:
   - optimizer
@@ -10,43 +10,44 @@ concepts:
   - conversion
 symbol: func_800396ac
 hints:
-  - "One integer instruction runs before anything crosses to the FPU. Read its operands."
-  - "The cast in C is one expression — the `mtc1`, the `nop`, and the `cvt` all come from writing it naturally."
+  - "One integer instruction runs before anything moves to the FPU. Read its operands."
+  - "The cast in C is one expression. The `mtc1`, the `nop` and the `cvt` all come from writing it the natural way."
 ---
 
-# int to float is a two-step trip
+# int to float takes two steps
 
-C lets you write `(f32)x` and move on. The hardware can't: integer registers
-and FPU registers are separate banks, and a value crossing between them needs
-a ferry instruction *plus* a conversion. Here's `toF(x)`, which returns an
-`s32` as an `f32`:
+In C you write `(f32)x` and nothing more. The hardware needs more than that.
+Integer registers and FPU registers are separate sets, so moving a value from
+one to the other needs a move instruction *plus* a conversion. Here is
+`toF(x)`, which returns an `s32` as an `f32`:
 
 ```asm
-mtc1    a0, ft0     # raw BITS cross to the FPU — no math yet
+mtc1    a0, ft0     # raw BITS move to the FPU, no math yet
 nop                 # hazard: the FPU can't touch ft0 next cycle
 cvt.s.w fv0, ft0    # convert word → single precision
 jr      ra
 nop
 ```
 
-Decode the pieces:
+Here is what each part does:
 
-- **`mtc1` is a bit ferry.** "Move to coprocessor 1" copies the 32 raw bits of
-  `a0` into `ft0` unchanged. An integer 7 is not the float 7.0 — not until…
-- **`cvt.s.w`** — "convert to **s**ingle, from **w**ord" — does the actual
-  arithmetic transformation, FPU-side.
-- **The `nop` between them is a hazard pad.** A value ferried by `mtc1` isn't
-  readable by the very next FPU instruction, and IDO pads the gap rather than
-  reordering around it. File the trio — `mtc1`, `nop`, `cvt` — as one unit
-  meaning *"an integer became a float here."*
+- **`mtc1` copies bits.** "Move to coprocessor 1" copies the 32 raw bits of
+  `a0` into `ft0` unchanged. An integer 7 is not the float 7.0. It becomes one
+  only in the next step.
+- **`cvt.s.w`** means "convert to **s**ingle, from **w**ord". It does the
+  actual arithmetic conversion, on the FPU side.
+- **The `nop` between them is a hazard pad.** The very next FPU instruction
+  can't read a value that `mtc1` has just moved, and IDO pads the gap instead of
+  reordering around it. Treat the three instructions `mtc1`, `nop`, `cvt` as
+  one unit that means *"an integer became a float here."*
 
-The trip back exists too, and you'll meet it soon: `trunc.w.s` chops a float
-to a whole number FPU-side, then `mfc1` ferries the bits out to an integer
-register. Same border, opposite direction.
+The opposite direction exists too, and you will meet it soon: `trunc.w.s` cuts
+a float down to a whole number on the FPU side, and then `mfc1` moves the bits
+out to an integer register.
 
-In the target, the integer side does one piece of real work first, and its
-result — not a bare argument — makes the crossing. Read the integer
-instruction, then the trio.
+In the target, the integer side does one piece of real work first, and the
+result of that work is what moves to the FPU (instead of an argument as it
+arrived). Read the integer instruction, then the three-instruction unit.
 
 ## Your task
 

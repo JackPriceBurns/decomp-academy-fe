@@ -10,30 +10,31 @@ concepts:
 symbol: func_083f6a88
 hints:
   - "Everything after the `bl` is one expression. `sub r0, r4` is the call's
-    result minus the value parked in r4, the `mul` scales that difference, and
-    `asr #8` takes the fraction bits back out."
-  - The closing `mov r0, r4` says the sum was accumulated in r4, which fixes
-    which side of the outer `+` the shifted term sits on.
-  - "`s32 func_083f6a88(s32 y, s32 t, s32 idx)`: the answer is `y` moved a
-    fraction `t` of the way toward `heightAt(idx)`, with `t` in Q8."
+    result minus the value saved in r4. The `mul` scales that difference, and
+    `asr #8` removes the fraction bits again."
+  - The final `mov r0, r4` shows that the sum was built in r4. That tells you
+    which side of the outer `+` the shifted term is on.
+  - "`s32 func_083f6a88(s32 y, s32 t, s32 idx)` is the signature. The result is
+    `y` moved a fraction `t` of the way toward `heightAt(idx)`, with `t` in Q8."
 ---
 
 # Fixed point around a call
 
-Fixed point is how GBA games do fractions: keep the number scaled up by a power
-of two, multiply, then shift the scale back out. In Q8 the scale is 256, so a
-multiply by a Q8 factor is `mul` followed by `asr #8`, and a rounding version
-adds half a unit — 128 — before the shift.
+GBA games use fixed point to handle fractions. A number is stored multiplied by
+a power of two. To multiply two such numbers, you do a normal multiply and then
+shift right to remove the extra scale. In Q8 the scale is 256, so a multiply by
+a Q8 factor is `mul` followed by `asr #8`. A version that rounds adds half a
+unit (128) before the shift.
 
-Wrap a call around that and the ABI starts charging rent. `mul` needs both its
-operands in registers at the same instant, and a `bl` destroys r0-r3, so any
-operand computed before the call has to be parked somewhere the callee must
-preserve. Each parked value costs one register in the push list and one `mov`
-immediately after it, which makes the push list a census of how many values have
-to outlive the call.
+A call in the middle of this adds a cost from the ABI. `mul` needs both of its
+operands in registers at the same time, and a `bl` overwrites r0-r3. So any
+operand computed before the call has to be kept in a register that the callee
+must preserve. Each value kept this way costs one register in the push list and
+one `mov` right after the push. The push list therefore tells you how many
+values have to survive the call.
 
-Here is `applyDrag`, scaling a velocity by a Q8 friction factor it has to go and
-fetch:
+Here is `applyDrag`, which scales a velocity by a Q8 friction factor that it
+gets from a call:
 
 ```asm
 0        push      {r4, lr}
@@ -48,16 +49,17 @@ fetch:
 20       bx        r1
 ```
 
-Address 2 parks the velocity in r4 before it can be trampled; address 4 shuffles
-the other incoming value down into r0 to be the argument. After the call the
-product lands in r0, the bias and the shift keep it there, and the function
-returns with no extra move at all — r0 was the right register from the moment
-`frictionFor` returned.
+Address 2 saves the velocity in r4 before the call can overwrite it. Address 4
+moves the other incoming value down into r0, where it becomes the argument.
+After the call, the product is placed in r0. The rounding add and the shift keep
+it there, so the function returns without any extra move. The value was already
+in the right register, r0, as soon as `frictionFor` returned.
 
-That last part depends on how the C is written. The destination of a two-operand
-`add` is the register holding the **left** operand of the C addition. `spinUp`
-computes `base + (tickRate(id) >> 2)`, so the sum accumulates in the saved
-register that holds `base`, and r0 has to be filled in afterward:
+Whether that extra move appears depends on how the C is written. In a
+two-operand `add`, the destination is the register that holds the **left**
+operand of the C addition. `spinUp` computes `base + (tickRate(id) >> 2)`, so
+the sum is built in the saved register that holds `base`. Then r0 has to be set
+afterward:
 
 ```asm
 10       asr       r0, #2
@@ -65,21 +67,22 @@ register that holds `base`, and r0 has to be filled in afterward:
 14       mov       r0, r4
 ```
 
-`spinUp2` computes the same value with the operands written the other way round,
-so the sum accumulates where the call already left it:
+`spinUp2` computes the same value with the operands in the opposite order, so the
+sum is built in r0, where the call left its result:
 
 ```asm
 10       asr       r0, #2
 12       add       r0, r4
 ```
 
-Two instructions or one, decided entirely by which side of the `+` you put the
-call's contribution on. You cannot add that `mov` by hand or take it away; it
+So the choice between two instructions and one depends only on which side of the
+`+` the call's part is on. You cannot add or remove that `mov` directly. It
 appears exactly when the saved register is on the left.
 
-Your target keeps two values across the call and ends with an `add` into a saved
-register followed by a `mov` into r0. Read the operand order of the `sub` right
-after the `bl`, then let that closing `mov` tell you how to order the outer sum.
+Your target keeps two values across the call. It ends with an `add` into a saved
+register, followed by a `mov` into r0. Read the operand order of the `sub` right
+after the `bl`. Then use that final `mov` to work out the order of the operands
+in the outer sum.
 
 ## Your task
 

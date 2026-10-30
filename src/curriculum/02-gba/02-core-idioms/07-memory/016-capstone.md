@@ -11,21 +11,21 @@ concepts:
 symbol: func_08238338
 hints:
   - Two compares that both protect the same body are one condition with a
-    short-circuit in it. One branch enters the failure arm, the other jumps
-    over it.
+    short-circuit in it. One branch goes into the failure arm, and the other
+    jumps over it.
   - The `mov` of zero next to the load is not a variable. It is the offset
     operand that `ldrsh` has no way to encode as an immediate.
-  - An `s16 *` table, an `s32` index and an `s32` limit in, an `s32` out. The
-    guard rejects out-of-range indices and the accepted ones are read, then
-    doubled.
+  - It takes an `s16 *` table, an `s32` index and an `s32` limit, and returns
+    an `s32`. The guard rejects indices that are out of range. The accepted
+    ones are read, then doubled.
 ---
 
 # Bounds check, scale, load
 
-Everything in this chapter comes together in the shape that real GBA code uses
-constantly: check an index, use it to read a table, do something with the
-result. The pieces are all familiar. What is worth studying is how they
-arrange themselves around each other.
+This lesson brings the chapter together in a pattern that real GBA code uses
+all the time: check an index, use it to read a table, and do something with the
+result. You have seen all the parts before. What is worth studying is how they
+are arranged around each other.
 
 ```asm
 0        mov       r3, r0
@@ -40,33 +40,33 @@ arrange themselves around each other.
 18     ~>bx        lr
 ```
 
-The base is copied out of `r0` on line 0, because `r0` is where the result has
-to be built and the pointer is still needed after the compare. Here the reject
-case is the one the `if` body writes, so the branch is taken when the compare
-*succeeds*: `bge` jumps ahead to the arm that produces the failure value, and
-the fall-through is the table read. That arm scales the index by two, adds the
-base, loads a halfword, and then has to jump over the failure code to reach the
-return, which is the only job the `b` on line 12 does. The failure value itself
-is `mov r0, #1 / neg r0, r0`, because the immediate field has no room for a
-sign.
+The base is copied out of `r0` on line 0. `r0` is where the result has to be
+built, and the pointer is still needed after the compare. In this example the
+reject case is the body of the `if`, so the branch is taken when the compare
+*succeeds*. `bge` jumps ahead to the arm that produces the failure value, and
+the fall-through path is the table read. That arm scales the index by two, adds
+the base, and loads a halfword. Then it has to jump over the failure code to
+reach the return, and that is the only job of the `b` on line 12. The failure
+value is built with `mov r0, #1 / neg r0, r0`, because the immediate field has
+no room for a sign.
 
-Two things this example does not show, and you will need both.
+This example does not show two things that you will need.
 
-The first is what a signed 16-bit table costs. Thumb's `ldrsh` exists in
-exactly one form, `ldrsh rD, [rB, rM]`, with the offset in a register — there
-is no immediate encoding at all. So even a load at a known address needs a
-register holding zero, and gcc materialises one on the spot. A `mov rX, #0`
-sitting immediately in front of an `ldrsh` is part of the load, and trying to
-account for it in your C is the fastest way to lose an afternoon.
+The first is the cost of a signed 16-bit table. Thumb's `ldrsh` has only one
+form, `ldrsh rD, [rB, rM]`, with the offset in a register. It has no immediate
+form at all. So even a load from a known address needs a register that holds
+zero, and gcc creates one right before the load. A `mov rX, #0` directly
+before an `ldrsh` is part of the load. Do not try to reproduce it in your C.
+The load needs it, and gcc adds it for you.
 
-The second is what a condition with two halves does to the layout. A
-short-circuited `||` puts a branch after each test: the first sends you into
-the failure arm when it succeeds, the second jumps over the failure arm when it
-fails. Both compares end up guarding the same body, and the failure arm ends up
-sitting between the guard and the code it guards.
+The second is how a condition with two halves changes the layout. A
+short-circuited `||` puts a branch after each test. The first branch sends you
+into the failure arm when its test succeeds. The second branch jumps over the
+failure arm when its test fails. Both compares end up guarding the same body,
+and the failure arm ends up between the guard and the code it guards.
 
 Your target contains two `mov` instructions that put zero in a register. They
-have nothing to do with each other.
+are not related to each other.
 
 ## Your task
 

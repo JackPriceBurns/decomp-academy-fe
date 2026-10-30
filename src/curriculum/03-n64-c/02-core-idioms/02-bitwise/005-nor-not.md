@@ -10,16 +10,16 @@ concepts:
 symbol: func_80060484
 hints:
   - "`nor` computes ~(rs | rt). When neither operand is `zero`, the OR inside
-    is between two real values — and the ~ wraps the whole thing."
-  - "One instruction, two operators in the C. Don't reach for a second line."
+    is between two real values, and the ~ applies to the whole result."
+  - "The one instruction becomes two operators in the C. You do not need a second line."
 ---
 
 # There is no NOT instruction
 
-C's `~x` flips every bit. MIPS has no instruction for it — and by now you can
-guess the compiler's move: lean on `zero`. The instruction it leans with is
-**`nor`** — NOT-OR: OR the two operands, then invert all 32 bits of the
-result. Here's plain `~x`:
+C's `~x` flips every bit. MIPS has no instruction for it, so the compiler uses
+the `zero` register, as it has done before. It uses **`nor`** (NOT-OR), which
+ORs the two operands and then inverts all 32 bits of the result. Here is a
+plain `~x`:
 
 ```asm
 nor  v0, a0, zero   # ~(x | 0) = ~x
@@ -27,20 +27,20 @@ jr   ra
 nop
 ```
 
-OR-ing with `zero` changes nothing, so all that's left is the inversion:
-`nor rd, rs, zero` reads as `rd = ~rs`. File it next to `or rd, rs, zero` as
-"the copy" — this is "the NOT", one more zero-register idiom for your
-collection. Some disassemblers print it as a friendly `not`; ours shows you
-the real `nor`, so learn the raw spelling.
+OR-ing with `zero` changes nothing, so only the inversion is left. Read
+`nor rd, rs, zero` as `rd = ~rs`. Remember it alongside `or rd, rs, zero`.
+That one is "the copy", and this one is "the NOT". Both are idioms that use
+the zero register. Some disassemblers print it as `not` to make it clearer.
+Ours shows the real `nor`, so learn that spelling.
 
-But `nor` isn't only a crutch for NOT — it's a real three-operand instruction,
-and IDO exploits that. When the C inverts the *result of an OR*, the compiler
-doesn't need an `or` followed by a `nor`-with-zero. The `nor` does both jobs
-in one go: OR the two values, invert, done. One instruction, two C operators.
+`nor` is also a full three-operand instruction, and IDO makes use of that.
+When the C inverts the *result of an OR*, the compiler does not need an `or`
+followed by a `nor` with zero. A single `nor` does both jobs: it ORs the two
+values and inverts the result. One instruction covers two C operators.
 
-So when you meet a `nor` whose second operand *isn't* `zero`, don't read it as
-a copy-shaped NOT — read the OR that's built into it, then wrap the whole
-thing in `~`. The target below is exactly that shape.
+So when you meet a `nor` whose second operand *isn't* `zero`, it is more than
+the NOT idiom. Read the OR that is built into it, then put the whole thing
+inside `~`. The target below has exactly that shape.
 
 ## Your task
 

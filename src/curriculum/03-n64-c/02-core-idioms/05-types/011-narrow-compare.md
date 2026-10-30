@@ -9,16 +9,16 @@ concepts:
   - comparisons
 symbol: func_80206670
 hints:
-  - "Two loads, then a boolean-materialization idiom from the control chapter. No branch anywhere."
-  - "Equality of two loaded bytes, returned as 0 or 1 — recall which two-instruction pair builds `==` without branching."
+  - "There are two loads, then the idiom from the control chapter that materializes a boolean. There is no branch anywhere."
+  - "The function returns the equality of two loaded bytes as 0 or 1. Remember which pair of instructions builds `==` without a branch."
 ---
 
-# Old idioms, new widths
+# Comparisons on narrow values
 
-Nothing about comparison changes when the operands come from narrow loads
-— by the time `slt` or `xor` sees them, they're proper 32-bit values,
-courtesy of the load's extension. The skill is simply recognizing your
-control-chapter idioms with `lbu`s in front. Two quick specimens:
+Comparisons work the same way when the operands come from narrow loads. The
+load has already extended each value, so by the time `slt` or `xor` uses them,
+they are normal 32-bit values. You only need to recognize the idioms from the
+control chapter with `lbu`s in front of them. Here are two short examples:
 
 ```c
 s32 is_dark(u8 *p) {
@@ -48,19 +48,21 @@ jr    ra
 nop
 ```
 
-Worth a pause on each:
+Look at each one carefully:
 
-- `is_dark` uses **`slti`** — a signed compare — on a `u8`. Legal and
-  correct: a zero-extended byte is 0…255, comfortably positive, so signed
-  and unsigned comparison agree and IDO picks the signed one. Don't let a
-  `slti` talk you out of a `u8` declaration when the load says `lbu`.
-- `below_zero` only works because `lb` sign-extended: the byte's bit 7
-  became bit 31, and `slti …, 0` reads it. The same C on a `u8` would be
-  meaningless (never true) — the compiler would fold it to zero. Load
-  signedness and comparison meaning are welded together.
+- `is_dark` uses **`slti`**, a signed compare, on a `u8`. This is valid and
+  correct. A zero-extended byte is in the range 0…255, which is never
+  negative, so signed and unsigned comparison give the same result, and IDO
+  picks the signed one. If the load is `lbu`, keep the `u8` declaration even
+  though the compare is `slti`.
+- `below_zero` only works because `lb` sign-extended the byte. The byte's bit
+  7 became bit 31, and `slti …, 0` reads it. The same C on a `u8` would make
+  no sense, because it could never be true, and the compiler would fold it to
+  zero. So the signedness of the load decides what the comparison means.
 
-The target compares two loaded bytes for equality and returns the
-boolean — the branch-free materialization pattern, fed by two loads.
+The target compares two loaded bytes for equality and returns the boolean.
+This is the branch-free pattern that materializes a boolean, with two loads
+feeding it.
 
 ## Your task
 

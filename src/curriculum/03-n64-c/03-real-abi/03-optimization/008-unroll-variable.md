@@ -10,17 +10,17 @@ concepts:
   - fingerprints
 symbol: func_80241990
 hints:
-  - "Ignore the machinery and find the two loop bodies. Each stores the same thing — what, and through which register?"
-  - "The whole two-loop tower comes from a three-line `for` loop over `n` elements. Don't write two loops in C."
+  - "Ignore the loop machinery and find the two loop bodies. Each one stores the same thing. What does it store, and through which register?"
+  - "The whole listing, with both loops, comes from a three-line `for` loop over `n` elements. Don't write two loops in C."
 ---
 
-# The unroller meets a count it can't see
+# Unrolling when the count is only known at runtime
 
-Last lesson the trip count was a constant that divided neatly by four. But
-what if the loop runs `n` times and `n` is only known at runtime? IDO still
-wants its ×4 loop — so it emits a **cleanup loop first** to handle `n mod 4`
-elements one at a time, then the fat loop for the rest. Here's `total(p, n)`,
-which sums the first `n` words at `p`:
+In the last lesson the trip count was a constant that divided evenly by four.
+Now the loop runs `n` times, and `n` is only known at runtime. IDO still wants
+its ×4 loop, so it emits a **cleanup loop first**. That loop handles the
+`n mod 4` leftover elements one at a time, and then the large loop handles the
+rest. Here is `total(p, n)`, which sums the first `n` words at `p`:
 
 ```asm
  0:  or     v1, zero, zero    # sum = 0
@@ -56,19 +56,25 @@ which sums the first `n` words at `p`:
 78:  nop
 ```
 
-Thirty instructions, one C statement repeated. The anatomy, top to bottom:
-guard (`blez`), leftover count (`andi … 3`), a one-at-a-time loop for the
-leftovers, an early-out if that finished the job, then the ×4 loop running to
-a precomputed **end pointer** instead of a counter. Even the nonsense
-`sll t6, zero, 2` — an index computed from a provably-zero `i` — is part of
-the template, faithfully emitted.
+There are thirty instructions here, all for one repeated C statement. The
+parts, from top to bottom, are:
 
-Once you can name the sections, a tower like this stops being thirty puzzles
-and becomes one: *find the body*. Here the body appears twice — `lw`, then
-`addu` into `v1` — so the C is `sum += p[i]` in a loop over `n`. Everything
-else is unroller scaffolding that your three-line loop regenerates for free.
+- a guard (`blez`)
+- the leftover count (`andi … 3`)
+- a loop that handles the leftovers one at a time
+- an early exit if that finished the job
+- the ×4 loop, which runs to a precomputed **end pointer** instead of a
+  counter
 
-The target is the same template around a different, slightly smaller body.
+Even the pointless `sll t6, zero, 2` is part of the template. It computes an
+index from an `i` that is known to be zero, and the compiler emits it anyway.
+
+Once you can name the sections, you only need to solve one thing in a listing
+like this: *find the body*. Here the body appears twice (`lw`, then `addu` into
+`v1`), so the C is `sum += p[i]` in a loop over `n`. Everything else is
+scaffolding from the unroller, and your three-line loop produces all of it.
+
+The target uses the same template around a different, slightly smaller body.
 Find both copies of it.
 
 ## Your task

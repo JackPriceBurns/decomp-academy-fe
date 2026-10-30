@@ -8,16 +8,16 @@ concepts:
   - registers
 symbol: negate
 hints:
-  - There is a dedicated negate instruction; you do not build it out of a
+  - There is a dedicated negate instruction. You do not need to build it from a
     subtract from zero.
   - "`neg rD, rS` computes `rD = -rS`, and here both are the same register."
 ---
 
 # A dedicated instruction for a common job
 
-Plenty of processors negate a number by subtracting it from zero, which means
-first getting a zero into a register. Thumb skips that with `neg rD, rS`,
-computing `rD = -rS` in one instruction and never materialising the zero.
+Many processors negate a number by subtracting it from zero, so they first have
+to put a zero into a register. Thumb avoids that with `neg rD, rS`. It computes
+`rD = -rS` in one instruction and never needs a zero in a register.
 
 Here is a function that returns the negation of its **second** argument:
 
@@ -26,17 +26,17 @@ Here is a function that returns the negation of its **second** argument:
 2        bx        lr
 ```
 
-`rS` is `r1`, the second argument, and the flipped result lands in `r0` ready to
-return. Notice this one is a three-operand-style form even though it only has two
-operands — `neg` always names its source and destination separately, so it can
-read one register and write another.
+`rS` is `r1`, the second argument, and the negated result goes into `r0`, ready
+to return. Notice that `neg` behaves like a three-operand form, even though it
+has only two operands. It always names its source and destination separately,
+so it can read one register and write a different one.
 
-You will meet this habit throughout the course: where a dedicated instruction
-exists, the compiler reaches for it instead of assembling the operation out of
-smaller pieces. Learning to recognise those one-instruction idioms on sight is
-most of the work of reading Thumb.
+You will see this pattern throughout the course. When a dedicated instruction
+exists, the compiler uses it instead of building the operation from smaller
+steps. Most of the work of reading Thumb is learning to recognise these
+single instructions quickly.
 
-Run `rD = -rS` against your target and the C falls out.
+Apply `rD = -rS` to the registers in your target to find the C.
 
 ## Your task
 

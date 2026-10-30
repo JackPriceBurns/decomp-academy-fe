@@ -9,16 +9,16 @@ concepts:
   - bitwise
 symbol: func_80003b38
 hints:
-  - "An addition first, then the truncation of the sum — count the f's in the mask to size the cast."
-  - "The extra `or` into `v0` after the `andi` is IDO's usual copy-out; don't invent a C statement for it."
+  - "There is an addition first, then a truncation of the sum. Count the f's in the mask to find the width of the cast."
+  - "The extra `or` into `v0` after the `andi` is IDO's usual copy into the return register. Don't write a C statement for it."
 ---
 
-# The cast you can see
+# A cast you can see
 
-Loads and stores convert at memory's edge for free. Cast a value that's
-already *in a register*, though, and the compiler must emit a real
-instruction. For unsigned narrow types the instruction is an old friend
-from the bitwise chapter — `andi`, wearing a new hat:
+Loads and stores convert values for free as they move between memory and
+registers. If you cast a value that is already *in a register*, the compiler
+has to emit a real instruction. For unsigned narrow types, that instruction is
+`andi`, which you know from the bitwise chapter. Here it does a new job:
 
 ```c
 u32 low_byte(u32 x) {
@@ -27,7 +27,7 @@ u32 low_byte(u32 x) {
 ```
 
 ```asm
-andi  v0, a0, 0xff    # (u8)x — keep 8 bits, zero the rest
+andi  v0, a0, 0xff    # (u8)x: keep 8 bits, zero the rest
 jr    ra
 nop
 ```
@@ -39,24 +39,25 @@ u32 keep_half(u32 x) {
 ```
 
 ```asm
-andi  v0, a0, 0xffff  # (u16)x — keep 16 bits
+andi  v0, a0, 0xffff  # (u16)x: keep 16 bits
 jr    ra
 nop
 ```
 
-A cast to `u8` *is* `& 0xff`; a cast to `u16` *is* `& 0xffff`. Identical
-machine code — which cuts both ways when decompiling. See `andi` with one
-of these two masks and you have a choice of spellings: the original
-programmer may have written a cast, or masked by hand. Both match, and
-matching is the goal; pick whichever reads truer for the code (a cast when
-a narrow *type* is nearby, a mask when it's about bits).
+A cast to `u8` is the same as `& 0xff`, and a cast to `u16` is the same as
+`& 0xffff`. The machine code is identical. So when you decompile, an `andi`
+with one of these two masks can be written two ways. The original programmer
+may have written a cast, or may have masked by hand. Both match, and matching
+is the goal. Pick whichever fits the code better: a cast when a narrow *type*
+is nearby, and a mask when the code is about bits.
 
-Masks with *other* values — `0x3`, `0xf0`, `0x7ff` — are never casts;
-that's ordinary bit work. Only the two register-width masks moonlight as
-type conversions.
+Masks with *other* values, such as `0x3`, `0xf0` or `0x7ff`, are never casts.
+They are ordinary bit operations. Only these two masks also work as type
+conversions.
 
-The target computes a sum and hands back its low bits — a wrapping
-counter, the kind that ticks 254, 255, 0, 1 forever. One expression.
+The target computes a sum and returns its low bits. This is a wrapping
+counter, the kind that counts 254, 255, 0, 1 and repeats forever. It is one
+expression.
 
 ## Your task
 

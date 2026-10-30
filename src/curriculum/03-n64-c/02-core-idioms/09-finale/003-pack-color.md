@@ -1,7 +1,7 @@
 ---
 id: 9bfe03ff-4227-44c9-8fb4-899ea2b79e97
 slug: finale-pack-color
-title: "Four Bytes, One Word"
+title: "Packing Four Bytes into a Word"
 difficulty: 3
 concepts:
   - bitwise
@@ -10,15 +10,16 @@ concepts:
   - capstone
 symbol: func_802ff80c
 hints:
-  - "Four `lbu`s at offsets 0-3, three shift amounts. Map each byte to its lane by pairing every `sll` with the load feeding it."
-  - "Write it as one `return` OR-ing four shifted array reads, most significant first. The scheduler's shuffle regenerates on its own."
+  - "There are four `lbu`s at offsets 0-3, and three shift amounts. To find each byte's lane, pair every `sll` with the load that feeds it."
+  - "Write it as one `return` that ORs together four shifted array reads, most significant first. The scheduler will produce the same shuffled order by itself."
 ---
 
-# Packing lanes
+# Packing values into lanes
 
-Graphics code lives on this move: gather narrow values, shift each
-into its lane, OR the lanes together. Here's `packHalves`, which
-fuses two `u16`s from an array into one word:
+Graphics code uses this pattern all the time. It loads narrow values,
+shifts each one into its lane (its bit position in the word), and ORs
+the lanes together. Here is `packHalves`, which combines two `u16`s from
+an array into one word:
 
 ```c
 u32 packHalves(u16 *p) {
@@ -35,22 +36,25 @@ u32 packHalves(u16 *p) {
 14:  nop
 ```
 
-Small enough to read at a glance — and every piece annotates itself:
-`lhu` (not `lh`!) because packing wants raw bits, not sign; the
-shift amount *is* the lane position; the un-shifted operand lands in
-the low lane.
+This is short enough to read at a glance, and each piece tells you what
+it is for:
 
-At four lanes the idiom stays identical but the scheduler gets
-playful: loads bunch up front, and the OR-tree combines in whatever
-order the pipeline liked — you may see the *last* byte fused with
-the *first* before the middle ones join. Don't reverse-engineer the
-shuffle into weird C. Identify each load's offset, follow it through
-its `sll` to learn its lane, and write the expression in plain
-descending-lane order; the compiler re-derives the exact shuffle
-from that.
+- `lhu` is used instead of `lh` because packing needs the raw bits,
+  with no sign extension.
+- The shift amount *is* the lane position.
+- The operand that is not shifted ends up in the low lane.
 
-The target packs a four-byte color — `c[0]` ending up most
-significant. Four loads, three shifts, three ORs, one `return`.
+With four lanes the idiom is the same, but the scheduler reorders more.
+The loads are grouped at the start, and the ORs combine the values in
+whatever order suits the pipeline. You may see the *last* byte combined
+with the *first* before the middle bytes are added. Don't try to copy
+that order into unusual C. Find each load's offset, follow it through
+its `sll` to find its lane, and write the expression in plain order,
+from the highest lane down. The compiler produces the same shuffled
+order from that.
+
+The target packs a four-byte color, with `c[0]` as the most significant
+byte. Expect four loads, three shifts, three ORs and one `return`.
 
 ## Your task
 

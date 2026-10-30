@@ -10,18 +10,18 @@ concepts:
 symbol: func_081040f4
 hints:
   - Only one of the three `mov`s before the compare builds a mask. The other
-    two are shuffling the candidate results into position, and the branch
-    decides which one survives.
-  - Three arguments and an `s32` result. The first carries the flag bit; the
-    other two are the values chosen between.
+    two move the possible results into position, and the branch decides which
+    one is kept.
+  - The function takes three arguments and returns an `s32`. The first argument
+    holds the flag bit. The other two are the values to choose between.
 ---
 
 # and, cmp, branch
 
-Thumb has a `tst` instruction that ands two registers and keeps only the flags,
-and hand-written GBA assembly uses it constantly. agbcc never emits it. Every
-bit test you will meet in compiler output is a real, value-producing `and` into
-a scratch register followed by `cmp Rd, #0`:
+Thumb has a `tst` instruction. It ands two registers and keeps only the flags,
+and hand-written GBA assembly uses it all the time. agbcc never emits it. Every
+bit test you will see in compiler output is a real `and`, which writes a value
+into a scratch register, followed by `cmp Rd, #0`:
 
 ```asm
 0        mov       r1, #2
@@ -34,13 +34,13 @@ a scratch register followed by `cmp Rd, #0`:
 14     ~>bx        lr
 ```
 
-Three instructions before the branch can even be taken: build the mask, apply
-it, set the flags. The `and` burns a register, which is why bit tests show up in
-the register allocation of the surrounding code in a way a flag-only `tst` never
-would. Do not try to write C that produces `tst` — there is no spelling that
-reaches it.
+Three instructions run before the branch can be taken: build the mask, apply it,
+and set the flags. The `and` uses up a register. So bit tests affect the
+register allocation of the surrounding code, which a flags-only `tst` would not
+do. Do not try to write C that produces `tst`, because no way of writing it gets
+there.
 
-Bit 31 is the exception, and it is a large one:
+Bit 31 is an important exception:
 
 ```asm
 0        cmp       r0, #0
@@ -51,19 +51,19 @@ Bit 31 is the exception, and it is a large one:
 10     ~>bx        lr
 ```
 
-No mask, no `and`. A signed compare against zero already tells you the top bit,
-so gcc drops the mask entirely and switches the branch to a signed condition.
-Three different C spellings arrive here — testing against `0x80000000`, shifting
-right by 31, or comparing a signed value against zero — and all of them match,
-so pick whichever suits the surrounding code.
+There is no mask and no `and`. A signed compare against zero already tells you
+the top bit, so gcc drops the mask completely and uses a signed branch condition
+instead. Three different ways of writing the C compile to this: testing against
+`0x80000000`, shifting right by 31, or comparing a signed value against zero.
+All of them match, so choose whichever fits the surrounding code.
 
-Every other bit pays full price. There is no cheap shortcut for bit 30: it
-builds its mask and does the `and` like all the rest. And watch the branch
-polarity, because it inverts between the two forms — the masked test jumps on
-`beq`/`bne`, the sign test on `bge`/`blt`.
+Every other bit pays the full cost. Bit 30 has no cheap shortcut: it builds its
+mask and does the `and` like all the rest. Also check the branch condition,
+because it flips between the two forms. The masked test branches on
+`beq`/`bne`, and the sign test branches on `bge`/`blt`.
 
-The target below tests a bit that is not bit 31, so the mask is there in front
-of you. What it does with the result is the part to work out.
+The target below tests a bit other than bit 31, so the mask is there in the
+listing. The part to work out is what it does with the result.
 
 ## Your task
 

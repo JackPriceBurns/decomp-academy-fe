@@ -1,7 +1,7 @@
 ---
 id: efee6c86-78d4-46c6-a14e-7b73a78bee00
 slug: gba-optimizer-declaration-order
-title: The Order You Declare Them
+title: Declaration Order and Call Order
 difficulty: 4
 concepts:
   - optimizer
@@ -9,33 +9,33 @@ concepts:
   - calls
 symbol: func_083ce774
 hints:
-  - The `sub` writes `r4`, not `r0`, which is why the function needs a
-    `mov r0, r4` before the epilogue. That happens when the value being
-    subtracted *from* was produced by the earlier call.
+  - The `sub` writes `r4` instead of `r0`, so the function needs a `mov r0, r4`
+    before the epilogue. That happens when the value being subtracted *from*
+    came from the earlier call.
   - "`extern s32 lower(s32 x);` and `extern s32 upper(s32 x);` are declared for
-    you. One `s32` in, one `s32` out, and the same argument goes to both
-    calls."
+    you. The function takes one `s32` and returns an `s32`. The same argument
+    is passed to both calls."
 ---
 
 # The order the calls happen in
 
-On MWCC and GameCube, reordering local declarations is a standard matching
-lever — move a variable up in the declaration list and the stack layout moves
-with it. gcc 2.9 ignores declaration order completely. Swap two declarations
-without touching the statements under them and the object file does not change
-by a byte.
+With MWCC on the GameCube, reordering local declarations is a standard way to
+fix a match. If you move a variable up in the declaration list, the stack
+layout changes with it. gcc 2.9 ignores declaration order completely. If you
+swap two declarations and leave the statements below them alone, the object
+file does not change by a single byte.
 
-What does move the bytes is the order the calls happen in. A value produced
-before a `bl` and read after it has to survive the call, so it is copied into a
-callee-saved register on the way in and read back out afterwards. A value
-produced by the *last* call is already sitting in `r0` when the arithmetic
-starts, and nothing has to move it.
+What does change the bytes is the order of the calls. A value that is produced
+before a `bl` and read after it has to survive the call. So it is copied into a
+callee-saved register before the call and read back afterwards. A value
+produced by the *last* call is already in `r0` when the arithmetic starts, so
+nothing has to move it.
 
-That decides where the final result ends up. Arithmetic that accumulates into
-`r0` needs no epilogue fixup; arithmetic that accumulates into the callee-saved
-register needs a `mov r0, rN` before the pops to place the return value. Two
-functions with the same arithmetic can differ by a whole instruction purely
-because of which call was written first.
+This decides where the final result ends up. If the arithmetic builds its
+result in `r0`, the epilogue needs no fix. If it builds the result in the
+callee-saved register, it needs a `mov r0, rN` before the pops to put the
+return value in place. So two functions with the same arithmetic can differ by
+a whole instruction, only because of which call was written first.
 
 Here is `callAFirst`, which calls `sampleA` before `sampleB` and shifts the
 result of the first call:
@@ -55,12 +55,12 @@ result of the first call:
 26       bx        r1
 ```
 
-`sampleA`'s result has to live across the second `bl`, so it goes to `r5` at
-address 8. The shift and the add then land in `r5`, and address 20 has to move
-the answer into `r0`.
+The result of `sampleA` has to survive the second `bl`, so address 8 copies it
+to `r5`. The shift and the add then write to `r5`, and the instruction at
+address 20 has to move the answer into `r0`.
 
-Now `callBFirst`, the same expression with the two calls swapped, so the value
-that gets shifted comes from the second call:
+Now here is `callBFirst`. It is the same expression with the two calls swapped,
+so the value that gets shifted comes from the second call:
 
 ```asm
 0        push      {r4, r5, lr}
@@ -76,14 +76,14 @@ that gets shifted comes from the second call:
 24       bx        r1
 ```
 
-`sampleB` runs first and its result takes `r5`. The value that gets shifted is
-already sitting in `r0` when the arithmetic starts, so it accumulates there and
-the trailing `mov` is gone. The function is two bytes shorter for a change that
-alters nothing about what it computes.
+`sampleB` runs first, and its result goes to `r5`. The value that gets shifted
+is already in `r0` when the arithmetic starts, so the result is built there and
+the final `mov` is gone. The function is two bytes shorter, and it still
+computes exactly the same thing.
 
-Read your target the same way: the register the final `sub` writes into tells
-you which of the two call results is the left-hand operand, and therefore which
-call the C made first.
+Read your target the same way. The register that the final `sub` writes to
+tells you which of the two call results is the left-hand operand. That tells
+you which call the C made first.
 
 ## Your task
 

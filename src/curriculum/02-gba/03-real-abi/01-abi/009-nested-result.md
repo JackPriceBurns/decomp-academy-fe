@@ -9,17 +9,19 @@ concepts:
   - arguments
 symbol: func_0830129c
 hints:
-  - The `mov r1, r0` after the first `bl` is the inner call's result being moved
-    into an argument slot that is not the first one.
-  - Two `s32` parameters in, an `s32` out. The first parameter feeds `lookup`,
-    and the second is passed straight through to `wrapTo`.
+  - The `mov r1, r0` after the first `bl` moves the inner call's result into an
+    argument slot other than the first one.
+  - The function takes two `s32` parameters and returns an `s32`. The first
+    parameter is passed to `lookup`, and the second is passed straight through
+    to `wrapTo`.
 ---
 
 # When a result is already in the right place
 
-`r0` is where a function leaves its result and where the next function looks for
-its first argument. Those two facts line up, and gcc exploits it: a call whose
-result is the first argument of another call needs no plumbing whatsoever.
+A function leaves its result in `r0`, and the next function looks for its
+first argument in `r0`. gcc takes advantage of this. If one call's result is
+the first argument of another call, no extra instructions are needed to pass it
+on:
 
 ```asm
 0        push      {lr}
@@ -29,13 +31,14 @@ result is the first argument of another call needs no plumbing whatsoever.
 12       bx        r1
 ```
 
-Five instructions for two calls and a return. No callee-saved register is
-touched, because nothing needs to survive — the argument arrived in `r0`, the
-first call consumed it and left its answer in `r0`, and that answer is exactly
-what the second call wants. Two `bl`s back to back with no instruction between
-them is one of the most compressed things this compiler produces.
+That is five instructions for two calls and a return. No callee-saved register
+is used, because no value needs to survive a call. The argument arrived in
+`r0`, the first call used it and left its answer in `r0`, and that answer is
+exactly what the second call needs. Two `bl`s in a row, with no instruction
+between them, is one of the most compact things this compiler produces.
 
-Move the inner call to any other argument position and the arrangement collapses:
+If you move the inner call to any other argument position, this no longer
+works:
 
 ```asm
 0        push      {r4, r5, lr}
@@ -51,19 +54,19 @@ Move the inner call to any other argument position and the arrangement collapses
 24       bx        r1
 ```
 
-Now the inner result has to end up in `r2`, so it is moved out of `r0` the
-instant the call returns, and the other two arguments have to be rebuilt
-afterwards from copies parked in `r4` and `r5` before the call. Notice where
-each half of that happens. The two cheap arguments are *computed* at addresses 2
-and 4, before the call, because that is while the value they are made from is
-still in `r1`; they are *placed* into `r0` and `r1` at 12 and 14, after it,
-because that is when those registers are finally free. The call sits in the
-middle of its own argument list.
+Now the inner result has to end up in `r2`, so it is moved out of `r0` as soon
+as the call returns. The other two arguments are then rebuilt from copies that
+were saved in `r4` and `r5` before the call. Notice where each part of that
+happens. The two simple arguments are *computed* at addresses 2 and 4, before
+the call, while the value they are made from is still in `r1`. They are
+*placed* into `r0` and `r1` at 12 and 14, after the call, because only then are
+those registers free. So the inner call sits in the middle of the outer call's
+argument setup.
 
-That gives you a reading rule. A `mov rN, r0` immediately after a `bl`, where
-`rN` is another argument register, means the inner call's result is argument
-*N+1* of the outer call — and every `mov` that follows it is another argument
-being restored around it.
+This gives you a reading rule. Suppose a `mov rN, r0` comes right after a
+`bl`, and `rN` is another argument register. Then the inner call's result is
+argument *N+1* of the outer call, and each `mov` after it restores one of the
+other arguments.
 
 ## Your task
 

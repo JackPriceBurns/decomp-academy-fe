@@ -10,18 +10,18 @@ concepts:
   - arrays
 symbol: func_80191a0c
 hints:
-  - "Two pointers, four loads and four stores per trip. The counter's limit and its per-trip step tell you the total element count."
-  - "Both pointers advance by 16 mid-body, so later accesses use negative offsets — same elements, relocated arithmetic. Write the plain loop."
+  - "There are two pointers, and each trip has four loads and four stores. The counter's limit and its step per trip tell you the total element count."
+  - "Both pointers advance by 16 in the middle of the loop body, so the later accesses use negative offsets. They still reach the same elements. Only the offset arithmetic has moved. Write the plain loop."
 ---
 
-# Four trips for the price of one
+# Four iterations in each trip
 
 Branches cost cycles, so at `-O2` IDO **unrolls** counted loops: each trip
-through the machine loop does *four* iterations of your C loop. Here's
+through the machine loop does *four* iterations of your C loop. Here is
 `sum16(p)`, which sums the 16 words at `p`:
 
 ```asm
- 0:  or     a1, a0, zero     # the pointer steps aside…
+ 0:  or     a1, a0, zero     # the pointer is copied to a1…
  4:  or     v1, zero, zero   # sum = 0
  8:  addiu  a0, zero, 16     # …a0 is repurposed as the trip limit
  c:  or     v0, zero, zero   # i = 0
@@ -35,31 +35,31 @@ through the machine loop does *four* iterations of your C loop. Here's
 2c:  addu   v1, v1, t8
 30:  addiu  a1, a1, 16       # p advances four words
 34:  bne    v0, a0, 0x10
-38:  addu   v1, v1, t9       # the fourth add rides the slot
+38:  addu   v1, v1, t9       # the fourth add goes in the delay slot
 3c:  or     v0, v1, zero
 40:  jr     ra
 44:  nop
 ```
 
-How to read an unrolled loop without drowning:
+How to read an unrolled loop:
 
-- **Count the memory ops per trip** — four `lw`s at offsets 0/4/8/12 — and
-  check the counter: `i += 4`. Four accesses, step of four: one C iteration,
-  unrolled ×4.
-- **Recover the real trip count**: limit 16, step 4 — but each machine trip is
-  four C iterations, so the *C* loop runs 16 times. The unroller only works
-  cleanly here because 16 divides by 4 with nothing left over.
-- **The loads and adds interleave** — load `t8` before adding `t6` — pure
-  scheduling, hiding memory latency. Untangle by matching each `addu` to the
-  register a `lw` filled.
+- **Count the memory operations per trip.** Here there are four `lw`s, at
+  offsets 0/4/8/12. Then check the counter: `i += 4`. Four accesses and a step
+  of four mean one C iteration, unrolled ×4.
+- **Recover the real trip count.** The limit is 16 and the step is 4. Each
+  machine trip is four C iterations, so the *C* loop runs 16 times. The unroller
+  only works this cleanly here because 16 divides by 4 with nothing left over.
+- **The loads and adds are interleaved.** For example, `t8` is loaded before
+  `t6` is added. This is only scheduling, to hide memory latency. To untangle
+  it, match each `addu` to the register that a `lw` filled.
 
-Your C stays a four-line `for` loop. The unrolling is not something you write;
-it's something you *recognize*, so you can read past sixteen instructions and
+Your C is still a four-line `for` loop. You never write the unrolling yourself.
+You learn to *recognize* it, so that you can look at sixteen instructions and
 see one statement.
 
-The target moves data instead of accumulating it, with two pointers in play.
-Count its memory ops per trip and its counter step, and mind the hints — the
-pointer arithmetic has a twist.
+The target moves data instead of accumulating it. Count its memory operations
+per trip and its counter step, and read the hints, because the pointer
+arithmetic has one unusual detail.
 
 ## Your task
 

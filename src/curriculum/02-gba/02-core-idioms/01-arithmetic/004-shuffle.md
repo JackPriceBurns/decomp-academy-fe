@@ -9,21 +9,22 @@ concepts:
   - operand-order
 symbol: func_08041b2c
 hints:
-  - A register that is written before it is ever read is scratch space, not an
-    argument. Ask why the compiler needed the value it saved there.
-  - "Four `s32` parameters in, an `s32` out. One of them is never used, and the
-    value parked in the scratch register is the one the expression consumes
-    last."
+  - A register that is written before it is ever read is scratch space and
+    does not hold an argument. Ask yourself why the compiler needed the value it
+    saved there.
+  - The function takes four `s32` parameters and returns an `s32`. One of them
+    is never used. The value saved in the scratch register is the last one the
+    expression uses.
 ---
 
-# A move that is not a move
+# Copying an argument out of the way
 
 The two-operand forms overwrite their destination, and the return value has to
-end up in `r0`. Put those together and `r0` becomes the accumulator for most
-expressions — which is a problem when `r0` also holds an argument that the
-expression has not finished with.
+end up in `r0`. Together, these mean that `r0` holds the running total for most
+expressions. That causes a problem when `r0` also holds an argument that the
+expression still needs.
 
-Here is `x - y + z`, which has no such problem:
+Here is `x - y + z`, which does not have this problem:
 
 ```asm
 0        sub       r0, r1
@@ -31,8 +32,8 @@ Here is `x - y + z`, which has no such problem:
 4        bx        lr
 ```
 
-`x` is consumed by the very first instruction, so `r0` is free to become the
-running total immediately.
+The first instruction uses `x`, and nothing needs it after that. So `r0` can
+hold the running total straight away.
 
 Now the same three values in the other order, `z - y + x`:
 
@@ -43,24 +44,24 @@ Now the same three values in the other order, `z - y + x`:
 6        bx        lr
 ```
 
-The subtraction has to happen before `x` is needed, and its result belongs in
-`r0`. So gcc copies `x` out to a spare register first, builds the difference in
-`r0`, and folds the saved copy back in at the end.
+The subtraction has to happen before `x` is used, and its result belongs in
+`r0`. So gcc first copies `x` to a spare register. Then it builds the
+difference in `r0`, and at the end it adds the saved copy back in.
 
-That opening `mov` is one of the most common sights in GBA code, and it carries
-information. It says: **the value in `r0` is used late in the expression, so the
-destination had to be freed up early.** Reading it, you learn where the first
-argument appears in the source — near the end of it.
+This `mov` at the start is one of the most common patterns in GBA code, and it
+tells you something. It means **the value in `r0` is used late in the
+expression, so the destination had to be freed early.** From it, you learn that
+the first argument appears near the end of the source expression.
 
-Which register receives the copy is worth a second glance too. gcc takes the
-first one that is genuinely free, so a copy landing in `r3` means `r0`–`r2` were
-all busy, and a copy landing in `r1` means the second argument register was never
-in use at all. A register written before it is read is scratch, not a parameter,
-but you still count the highest argument register the body *reads* when you work
-out how many parameters there are.
+Also look at which register receives the copy. gcc takes the first register
+that is really free. So a copy into `r3` means `r0` to `r2` were all in use,
+and a copy into `r1` means the second argument register was never used at all.
+A register that is written before it is read is scratch space and does not hold
+a parameter. When you work out how many parameters there are, you still count
+up to the highest argument register the body *reads*.
 
-Your target opens with one of these copies, and the register it picks is telling
-you something.
+Your target starts with one of these copies. The register it copies into tells
+you something too.
 
 ## Your task
 

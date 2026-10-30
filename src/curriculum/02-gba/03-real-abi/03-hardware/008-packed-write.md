@@ -9,24 +9,24 @@ concepts:
   - shifts
 symbol: func_08375464
 hints:
-  - An unbalanced shift pair carries two facts at once - the left shift is 32
-    minus the width of the parameter's type, and the gap between the two shifts
-    is how far the value is then moved up.
-  - "Two `u8` parameters in, nothing out. The halfword at 0x04000044 takes the
-    first one in its high byte and the second in its low byte."
+  - An unbalanced shift pair tells you two things. The left shift is 32 minus
+    the width of the parameter's type. The difference between the two shifts is
+    how far the value is then moved up.
+  - "Two `u8` parameters go in and nothing comes out. The halfword at 0x04000044
+    gets the first one in its high byte and the second in its low byte."
 ---
 
 # One halfword, two fields
 
-The GBA's window registers describe a rectangle in two halfwords: `WIN0H` at
+The GBA's window registers describe a rectangle in two halfwords. `WIN0H` at
 `0x04000040` holds the left edge in its high byte and the right edge in its low
-byte, and `WIN0V` at `0x04000044` does the same for top and bottom. Code that
-sets one of them takes the two coordinates apart, shifts one into place, ors
-them together and stores a single halfword.
+byte. `WIN0V` at `0x04000044` does the same for the top and bottom edges. Code
+that sets one of these registers has two coordinates to combine. It shifts one
+into place, ors the two together and stores a single halfword.
 
-The shifting comes out looking strange, because agbcc fuses two separate jobs
-into one pair of instructions. Here is a write to `MOSAIC` at `0x0400004C`,
-which packs a horizontal size and a vertical size four bits apart:
+The shifts look strange, because agbcc combines two separate jobs into one pair
+of instructions. Here is a write to `MOSAIC` at `0x0400004C`, which packs a
+horizontal size and a vertical size four bits apart:
 
 ```asm
 0        lsl       r0, #16
@@ -40,27 +40,28 @@ which packs a horizontal size and a vertical size four bits apart:
 16       .word     67108940
 ```
 
-`r0` gets the balanced pair, `lsl #16` then `lsr #16`, which is how this
-compiler zero-extends a 16-bit parameter — it distrusts the caller and re-clears
-the top half on entry even though the `strh` would throw those bits away anyway.
+`r0` gets the balanced pair, `lsl #16` then `lsr #16`. This is how this
+compiler zero-extends a 16-bit parameter. It does not trust the caller, so it
+clears the top half again on entry, even though the `strh` would discard those
+bits anyway.
 
-`r1` gets `lsl #16` and then `lsr #12`, and that is the interesting one. The
-left shift is the same zero-extension; the right shift comes up four short,
-which leaves the value shifted **left** by four. One pair of instructions does
-"narrow to sixteen bits" and "move up by four" together.
+`r1` gets `lsl #16` and then `lsr #12`, and this is the pair to study. The left
+shift is the same zero-extension. The right shift is four less, so the value
+ends up shifted **left** by four. One pair of instructions does both jobs: it
+narrows the value to sixteen bits and moves it up by four.
 
-The rule generalises. For a parameter of width W shifted left by S, you get
-`lsl #(32 - W)` followed by `lsr #(32 - W - S)`. Run it backwards from a
-listing: the left shift tells you the declared width, and the difference between
-the two shifts tells you the shift the source wrote. A balanced pair is a plain
-narrow parameter with no shift at all.
+This rule works in general. For a parameter of width W shifted left by S, you
+get `lsl #(32 - W)` followed by `lsr #(32 - W - S)`. To use it on a listing,
+work backwards. The left shift tells you the declared width. The difference
+between the two shifts tells you the shift the source wrote. A balanced pair is
+a plain narrow parameter with no shift.
 
-Note also that the `ldr` of the address is scheduled into the middle of the
-shift sequence. Instructions are not in source order here, and the pool word
-still belongs to the store at the bottom.
+Also notice that the `ldr` of the address is scheduled in the middle of the
+shift sequence. The instructions are not in source order here, and the pool
+word still belongs to the store at the bottom.
 
-Your target writes one of the window registers. Run that rule backwards on both
-of its shift pairs before you write anything.
+Your target writes one of the window registers. Before you write anything, work
+the rule backwards on both of its shift pairs.
 
 ## Your task
 

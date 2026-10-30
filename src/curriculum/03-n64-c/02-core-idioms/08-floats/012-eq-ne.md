@@ -10,15 +10,15 @@ concepts:
   - fingerprints
 symbol: func_803dbc90
 hints:
-  - "Compare this listing against the worked example — exactly one letter changes. Which instruction owns that letter?"
+  - "Compare this listing with the worked example. Exactly one letter is different. Which instruction is that letter in?"
   - "The compare still tests equality. The branch decides what equality *means* for the result."
 ---
 
 # One flag, two branches
 
-Equality gets its own compare — **`c.eq.s`** — but *inequality does
-not*. There's no `c.ne.s` anywhere in the instruction set. Here's
-`same(a, b)`, which returns whether two floats are equal:
+Equality has its own compare, **`c.eq.s`**, but *inequality does not*. There
+is no `c.ne.s` anywhere in the instruction set. This is `same(a, b)`, which
+returns whether two floats are equal:
 
 ```asm
  0:  c.eq.s fa0, fa1        # flag = (a == b)
@@ -30,23 +30,22 @@ not*. There's no `c.ne.s` anywhere in the instruction set. Here's
 18:  nop
 ```
 
-So how does `!=` compile? Watch the branch, not the compare. The
-FPU's flag can be read *either way*: `bc1f` acts when it's false,
-`bc1t` when it's true. To return "not equal", IDO keeps the very
-same `c.eq.s` and simply **flips which branch guards the 1** — skip
-the 1 when the flag is *true*, i.e. when they're equal.
+To see how `!=` compiles, look at the branch instead of the compare. The
+FPU's flag can be tested *either way*: `bc1f` branches when it is false, and
+`bc1t` branches when it is true. To return "not equal", IDO keeps the same
+`c.eq.s` and **changes which branch guards the 1**. It skips the 1 when the
+flag is *true*, which means when the values are equal.
 
-That means `==` and `!=` differ by a single letter in the whole
-listing — `bc1f` versus `bc1t` — and everything else is
-byte-identical. It's one of the easiest mismatches to stare straight
-through: the compare is "right", the structure is "right", and the
-diff highlights one branch. Now you know exactly what that highlight
-means: the polarity of your condition is backwards.
+So `==` and `!=` differ by a single letter in the whole listing, `bc1f`
+versus `bc1t`, and everything else is byte-identical. This mismatch is hard
+to spot. The compare is "right", the structure is "right", and the diff
+highlights one branch. When you see that highlight, you know what it means:
+your condition is the wrong way round.
 
-The general rule, worth filing for every FPU branch you'll ever
-read: **the compare picks the question, the branch picks which
-answer skips**. All six C comparisons come from three compares, two
-branch senses, and the operand mirror.
+Here is the general rule for every FPU branch you read: **the compare chooses
+the question, and the branch chooses which answer skips the 1**. All six C
+comparisons come from three compares, two branch directions and the mirror
+rule.
 
 The target returns whether its arguments differ.
 

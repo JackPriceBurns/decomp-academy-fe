@@ -1,7 +1,7 @@
 ---
 id: 3e5eafaa-3d30-4348-ba35-3d46b5a01615
 slug: gba-optimizer-dead-code
-title: Code That Left No Trace
+title: Unused Code Is Removed
 difficulty: 3
 concepts:
   - optimizer
@@ -9,36 +9,37 @@ concepts:
   - calls
 symbol: func_083c588c
 hints:
-  - Nothing in the listing reads what the callee returned, so the call is made
-    purely for its side effect. The frame is there because two values have to
-    outlive it.
-  - "`extern s32 refresh(s32 n);` is declared for you. Two parameters in, an
-    `s32` out: a pointer whose first element is read after the call, and a
-    count that is both passed in and added afterwards."
+  - Nothing in the listing reads the value the callee returned, so the call is
+    made only for its side effect. The function has a frame because two values
+    must survive the call.
+  - "`extern s32 refresh(s32 n);` is declared for you. The function takes two
+    parameters and returns an `s32`. The first is a pointer whose first element
+    is read after the call. The second is a count that is passed to the call
+    and also added afterwards."
 ---
 
 # What is not there
 
-Dead-code elimination is the one optimizer pass that actively destroys
-evidence. A local that is assigned and never read does not become a shorter
-instruction sequence — it becomes nothing at all, and the target you are
-matching contains no hint that the original C ever mentioned it.
+Dead-code elimination is the one optimizer pass that destroys evidence. If a
+local is assigned and never read, the compiler removes it completely, with no
+instructions left behind. The target you are matching has no sign that the
+original C ever mentioned that local.
 
-gcc 2.9 knows which operations are side-effect free, and that list includes the
-libgcc helpers. So an unused divide leaves nothing at all: the `bl __divsi3`
-goes, and the whole frame it would have needed goes with it.
+gcc 2.9 knows which operations have no side effects, and that list includes the
+libgcc helpers. So an unused divide leaves nothing behind. The `bl __divsi3` is
+removed, and so is the whole frame that the call would have needed.
 
-Here are two functions that differ in one character — whether the final sum
-reads `v` or `t`:
+Here are two functions that differ in one character. The only difference is
+whether the final sum reads `v` or `t`:
 
 ```asm
 0        add       r0, r1
 2        bx        lr
 ```
 
-That is `s32 t = v / w; return v + w;`. The division is gone. No helper call,
-no `push`, no interworking epilogue: two instructions, because nothing ever
-looks at `t`.
+That is `s32 t = v / w; return v + w;`. The division is gone. There is no
+helper call, no `push` and no interworking epilogue. The function is two
+instructions, because nothing ever reads `t`.
 
 ```asm
 0        push      {r4, lr}
@@ -50,21 +51,21 @@ looks at `t`.
 14       bx        r1
 ```
 
-Same divide, now read once, and the function costs seven instructions and a
-callee-saved register. The lesson for matching is blunt: never add an operation
-to your C because you feel it ought to be there. If the target does not show
-it, the target does not contain it.
+This is the same divide, but now its result is read once. The function needs
+seven instructions and a callee-saved register. The rule for matching follows
+from this. Never add an operation to your C only because you feel it should be
+there. If the target does not show it, the target does not contain it.
 
-A call is the exception, and it goes the other way. gcc cannot prove an
-external function is side-effect free, so a `bl` survives even when its result
-is discarded — and discarding the result changes nothing about the frame. What
-the frame pays for is the values that must still be alive when the callee
-returns: each one gets copied into a callee-saved register on the way in and
-read back on the way out.
+A call to another function is the exception. gcc cannot prove that an external
+function has no side effects, so a `bl` stays even when its result is thrown
+away. Throwing the result away does not change the frame either. The frame
+exists for the values that must still be alive when the callee returns. Each of
+those values is copied into a callee-saved register before the call and read
+back after it.
 
-Your target makes that call and ignores what comes back. Work out from the
-`push` list how many values had to survive it, and notice that one of them is
-handed to the callee as well.
+Your target makes such a call and ignores the value it returns. Use the `push`
+list to work out how many values had to survive the call. Notice that one of
+them is also passed to the callee.
 
 ## Your task
 

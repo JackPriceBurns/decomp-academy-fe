@@ -9,19 +9,21 @@ concepts:
   - loads
 symbol: func_081dee28
 hints:
-  - Match each load to the field it reads by its byte offset, then compare the
-    load instruction with how that field is declared. They disagree both times.
-  - "One `Pair *` in, an `s32` out - each field is read with the signedness of
-    the other one, and the first field is the left operand of the subtraction."
+  - Use the byte offset to match each load to the field it reads. Then compare
+    the load instruction with how that field is declared. They disagree both
+    times.
+  - The function takes one `Pair *` and returns an `s32`. Each field is read with
+    the signedness of the other field, and the first field is the left operand
+    of the subtraction.
 ---
 
 # Changing the sign without changing the bits
 
-`s16` and `u16` occupy the same two bytes and hold the same bit patterns. The
-only thing that separates them is what happens to bit 15 when the value is
-widened to 32 bits, and that decision is made by a single instruction.
+`s16` and `u16` use the same two bytes and hold the same bit patterns. The only
+difference is what happens to bit 15 when the value is widened to 32 bits. A
+single instruction decides that.
 
-In a register the two are one mnemonic apart:
+In a register, the two differ by one mnemonic:
 
 ```asm
 0        lsl       r0, #16
@@ -37,24 +39,24 @@ In a register the two are one mnemonic apart:
 6        bx        lr
 ```
 
-The first is an `s16` argument read as unsigned, the second a `u16` argument
-read as signed. Same shift counts, same addition, and the reinterpretation lives
-entirely in the choice between `lsr` and `asr`.
+The first is an `s16` argument read as unsigned, and the second is a `u16`
+argument read as signed. The shift counts and the addition are the same. The
+only change is the choice between `lsr` and `asr`.
 
-At a load there are no shifts to look at, because the load instruction carries
-the signedness itself. Reading a `u16` is `ldrh`. Reading an `s16` is a
-materialised offset and `ldrsh`. Cast at the point of the load and agbcc picks
-the other instruction - an `s16` element read as unsigned becomes a plain
-`ldrh`, and a `u16` element read as signed becomes `mov` plus `ldrsh`. Nothing
-extra is emitted to mark the cast.
+At a load there are no shifts to look at, because the load instruction itself
+sets the signedness. Reading a `u16` is `ldrh`. Reading an `s16` is a `mov`
+that puts the offset in a register, then `ldrsh`. If you cast at the point of
+the load, agbcc picks the other instruction. An `s16` element read as unsigned
+becomes a plain `ldrh`, and a `u16` element read as signed becomes `mov` plus
+`ldrsh`. No extra instruction marks the cast.
 
-That is the trap. The load instruction tells you the signedness of the
-*expression*, and the declared type of the thing being loaded is a separate
-question. When those two disagree, the difference has to be spelled out in the
+Be careful here. The load instruction tells you the signedness of the
+*expression*. The declared type of the value being loaded is a separate
+question. When the two disagree, the difference has to be written out in the
 source, and the assembly gives you no other clue that it was.
 
-The struct in your target fixes both field types. Line each load up against the
-field it reads.
+The struct in your target gives the types of both fields. Match each load to
+the field it reads.
 
 ## Your task
 

@@ -8,13 +8,13 @@ concepts:
   - fixed-point
   - bios
 hints:
-  - Work the target in four pieces - the two pooled reads at the top, the
-    arithmetic chain feeding the `mul`, the `bl`, and the guarded write at the
-    bottom. Match them one at a time.
-  - "`REG_WIN1H` packs the two edges as `(left << 8) | right`, and the guard
-    stores a bare 0 when the half-width runs off the screen. 120 is half of the
-    GBA's 240-pixel width."
-  - "Nothing goes in and nothing comes out; every input is a global or a
+  - "Work through the target in four pieces: the two reads at the top that load
+    their addresses from the pool, the arithmetic that feeds the `mul`, the
+    `bl`, and the guarded write at the bottom. Match them one at a time."
+  - "`REG_WIN1H` packs the two edges as `(left << 8) | right`. The guard stores
+    a plain 0 when the half-width goes past the edge of the screen. 120 is half
+    of the GBA's 240-pixel width."
+  - "Nothing goes in and nothing comes out. Every input is a global or a
     register. The `lsl #24` / `lsr #25` after the call is a cast to `u8`
     followed by a shift right by one, in that order."
 symbol: UpdateWindowCircleEffect
@@ -23,19 +23,20 @@ symbol: UpdateWindowCircleEffect
 # A hardware window, one scanline at a time
 
 This is `UpdateWindowCircleEffect` from **Klonoa: Empire of Dreams**. The GBA
-can clip rendering to a rectangle in hardware: `REG_WIN1H` sets the left and
-right edges of window 1, packed into one halfword as `(left << 8) | right`.
-Rewrite that register every scanline and the rectangle becomes any shape you
-like - here, a circle closing over the screen.
+can clip rendering to a rectangle in hardware. `REG_WIN1H` sets the left and
+right edges of window 1, packed into one halfword as `(left << 8) | right`. If
+you rewrite that register on every scanline, the rectangle can become any
+shape. Here it is a circle that closes over the screen.
 
-The routine reads `REG_VCOUNT` to find out which scanline is being drawn and a
-radius out of the game's script state, runs a short chain of integer arithmetic
-to get the square of the chord's half-width, hands it to the BIOS square-root
-call, halves the result, and writes the two edges. If the half-width comes out
-larger than half the screen, it writes 0 instead and the window collapses.
+The routine reads `REG_VCOUNT` to find out which scanline is being drawn, and it
+reads a radius from the game's script state. It does a short series of integer
+calculations to get the square of the chord's half-width, and passes that to
+the BIOS square-root call. Then it halves the result and writes the two edges.
+If the half-width is larger than half the screen, it writes 0 instead, and the
+window becomes empty.
 
-You have seen every piece of this before. Packing two bytes into one hardware
-halfword looks like this, on the vertical window register:
+You have seen every piece of this before. Here is how two bytes are packed into
+one hardware halfword, on the vertical window register:
 
 ```asm
 0        lsl       r0, #24
@@ -49,15 +50,15 @@ halfword looks like this, on the vertical window register:
 16       .word     67108934
 ```
 
-The unbalanced pair `lsl #24` / `lsr #16` on `r0` is one byte zero-extended and
-then shifted up eight; the balanced `lsl #24` / `lsr #24` on `r1` leaves its
-own byte where it sits. `orr` merges them and one `strh` commits the halfword.
-The register's address arrives as a pool word - 67108934 is 0x04000046 -
-because only region *bases* like 0x04000000 are cheap enough to synthesise
+On `r0`, the unbalanced pair `lsl #24` / `lsr #16` zero-extends one byte and
+then shifts it up by eight. On `r1`, the balanced pair `lsl #24` / `lsr #24`
+keeps its byte where it is. `orr` combines them, and one `strh` writes the
+halfword. The register's address comes from a pool word (67108934 is
+0x04000046). Only region *bases* such as 0x04000000 are cheap enough to build
 inline.
 
-The part worth staring at is what happens when both arms of an `if` write the
-same register:
+The important part is what happens when both branches of an `if` write the same
+register:
 
 ```asm
 0        mov       r1, r0
@@ -78,19 +79,21 @@ same register:
 ```
 
 The address 67108940 is in the pool **twice**, at 16 and at 32, and it is the
-same register both times. gcc 2.9 emits a pool where it needs one and never
-looks for a word it already has further down the function - each arm loads its
-own copy. The pool at 16 also sits in the middle of the code, with the `b 28` at
-offset 14 stepping over it. And the store at 26 writes `r1`, which still holds
-the incoming argument, because on that path the argument is known to be zero.
+same register both times. gcc 2.9 places a pool wherever it needs one. It never
+checks for a matching word that it already placed further down the function,
+so each branch loads its own copy. The pool at 16 is also in the middle of the
+code, and the `b 28` at offset 14 jumps over it. The store at 26 writes `r1`,
+which still holds the incoming argument. On that path, the argument is known to
+be zero.
 
 Your target does the same thing with its own register, so expect the pool word
-you are matching to appear twice. The call renders as `bl BiosSquareRoot-4`;
-the `-4` is the unrelocated Thumb branch displacement, not part of the name.
+you are matching to appear twice. The call is shown as `bl BiosSquareRoot-4`.
+The `-4` is the unrelocated Thumb branch displacement and is not part of the
+name.
 
-Build it in pieces. Get the two reads at the top matching, then the arithmetic
-into the `mul`, then the guard - and read every constant off the listing rather
-than guessing at the geometry.
+Build it in pieces. First get the two reads at the top to match. Then do the
+arithmetic that feeds the `mul`, and then the guard. Read every constant from
+the listing instead of guessing the geometry.
 
 ## Your task
 

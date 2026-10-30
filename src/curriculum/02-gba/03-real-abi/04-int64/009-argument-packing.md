@@ -9,24 +9,22 @@ concepts:
   - arguments
 symbol: func_083af348
 hints:
-  - "`r1:r2` is one 64-bit argument. Walk the argument registers from `r0`
-    upward, giving each parameter one register unless it is 64 bits wide, in
-    which case it takes two."
-  - Three parameters - an `s32`, an `s64` and an `s32` - and an `s64` result.
-    Both 32-bit parameters are added into the 64-bit one.
+  - "`r1:r2` is one 64-bit argument. Go through the argument registers from `r0`
+    upward. Give each parameter one register, or two if it is 64 bits wide."
+  - It takes three parameters (an `s32`, an `s64` and an `s32`) and returns an
+    `s64`. Both 32-bit parameters are added to the 64-bit one.
 ---
 
 # The pair starts wherever the last argument stopped
 
-agbcc uses the original APCS, which fills argument registers strictly in order
-and has no alignment rule whatsoever. A 64-bit argument takes the **next two**
-registers, whichever two those happen to be. A 32-bit parameter followed by a
-64-bit one therefore puts the pair in `r1:r2` - an odd/even pair that no modern
-ARM ABI would ever produce, because AAPCS would skip `r1` and start the pair at
-`r2`.
+agbcc uses the original APCS. It fills the argument registers strictly in order
+and has no alignment rule at all. A 64-bit argument takes the **next two**
+registers, whichever two those are. So a 32-bit parameter followed by a 64-bit
+one puts the pair in `r1:r2`. That is an odd/even pair, which no modern ARM ABI
+would produce: AAPCS would skip `r1` and start the pair at `r2`.
 
-Every instinct you have from modern ARM says `r2:r3`, and a listing built on
-that guess never matches.
+If you know modern ARM, you will expect `r2:r3`. A listing built on that guess
+never matches.
 
 Here is a function whose first parameter is a single byte:
 
@@ -36,15 +34,14 @@ Here is a function whose first parameter is a single byte:
 4        bx        lr
 ```
 
-Three instructions, and they settle the whole layout. Nothing reads `r0` at all,
-and the 64-bit parameter still starts at `r1` - a byte-wide parameter consumes a
-whole register and the next parameter takes the one after it, with no packing
-and no padding anywhere. That 64-bit parameter is `r1:r2`, stored low half
-first, and the pointer that follows it lands in `r3`. The offsets +8 and +12 say
-the store went to the second 8-byte slot, not the first.
+These three instructions show the whole layout. Nothing reads `r0`, and the
+64-bit parameter still starts at `r1`. A byte-wide parameter uses a whole
+register, and the next parameter takes the register after it. There is no
+packing and no padding anywhere. The 64-bit parameter is `r1:r2`, stored low
+half first, and the pointer after it is in `r3`. The offsets +8 and +12 show
+that the store went to the second 8-byte slot.
 
-If you want the layout confirmed from the arithmetic side rather than from a
-store:
+Here is the same layout confirmed by arithmetic instead of a store:
 
 ```asm
 0        mov       r1, r2
@@ -53,10 +50,10 @@ store:
 6        bx        lr
 ```
 
-`mov r1, r2` picks up the high half of the 64-bit parameter - `r2`, not `r3` -
-and subtracts the 32-bit parameter in `r0` from it.
+`mov r1, r2` copies the high half of the 64-bit parameter, which is in `r2`
+(not `r3`). The next instruction subtracts the 32-bit parameter in `r0` from it.
 
-Read your target from `r0` upward and let the arithmetic tell you where one
+Read your target from `r0` upward, and use the arithmetic to find where one
 parameter ends and the next begins.
 
 ## Your task

@@ -8,16 +8,17 @@ concepts:
   - registers
 symbol: func_802951a8
 hints:
-  - "Decode like an arithmetic chain — track what `t6` holds, then apply the second operator. The mnemonics name the C operators directly."
-  - "Parenthesize the first pair; evaluation runs top to bottom."
+  - "Decode it like an arithmetic chain. Track what `t6` holds, then apply the second operator. The mnemonics name the C operators directly."
+  - "Put parentheses around the first pair. The operations happen in order, from top to bottom."
 ---
 
-# and, or, xor — no i
+# and, or, xor: the forms without i
 
-Every immediate form has a register form, for when both operands are runtime
-values: `and`, `or`, `xor`. Same verbs, no constant. And these chain exactly
-like the arithmetic you decoded last chapter — intermediate into `t6`, result
-into `v0`. Here's `(p | q) & r`:
+Each immediate form has a register form for when both operands are runtime
+values: `and`, `or` and `xor`. They do the same operations, without a
+constant. They chain together like the arithmetic you decoded in the last
+chapter. The intermediate value goes into `t6`, and the result goes into
+`v0`. Here is `(p | q) & r`:
 
 ```asm
 or   t6, a0, a1    # t6 = p | q
@@ -26,21 +27,23 @@ jr   ra
 nop
 ```
 
-Margin math works verbatim; only the operators changed. Line one merges the
-first two arguments' bits, line two filters through the third. Grouping
-follows the data flow: whatever lands in the temporary first is the
-parenthesized pair.
+Margin math works exactly as before. Only the operators have changed. Line
+one combines the bits of the first two arguments. Line two filters that result
+through the third argument. The grouping follows the data flow: whatever goes
+into the temporary register first is the pair inside the parentheses.
 
-One register-form footnote you already half know: `or` with `zero` is the
-canonical register copy — OR-ing with nothing changes nothing. That's not a
-special instruction, just this one with a clever operand. It means not every
-`or` you meet is C-level bit logic — when one operand is `zero`, read it as
-`=`, not `|`. The tooltip agrees if you're ever unsure.
+You have already seen one use of a register form. `or` with `zero` is the
+standard way to copy a register, because OR-ing with zero changes nothing.
+There is no separate copy instruction. It is this same `or`, with `zero` as
+one operand. So not every `or` you meet is bit logic in the C. When one
+operand is `zero`, read it as `=` instead of `|`. If you are unsure, the
+tooltip will confirm it.
 
-A note on good output: unlike `+` and `-`, bitwise operators in C come with
-sharp precedence pitfalls, so parenthesize compounds like the one below even
-where the compiler wouldn't strictly need it. Match first, but write C a
-reviewer would wave through.
+A note on writing good C: bitwise operators in C have precedence rules that
+often lead to mistakes, and `+` and `-` do not have this problem. So add
+parentheses to compound expressions like the one below, even where the
+compiler does not need them. Matching comes first, but also write C that a
+reviewer would accept.
 
 ## Your task
 

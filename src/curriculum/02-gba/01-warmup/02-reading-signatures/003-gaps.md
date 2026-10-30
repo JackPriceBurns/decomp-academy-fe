@@ -1,37 +1,38 @@
 ---
 id: 259d0902-8f2c-46db-ad07-916d128a08c6
 slug: gba-signatures-gaps
-title: Mind the Gap
+title: A Gap in the Argument Registers
 difficulty: 2
 concepts:
   - calling-convention
   - arguments
 symbol: func_08014e60
 hints:
-  - The two registers being added are not adjacent, so there is a parameter
-    between them that the body never touches.
-  - "Three `s32` parameters in, an `s32` out — the middle one is declared and ignored."
+  - The two registers that the body reads are not next to each other, so there
+    is a parameter between them that the body never uses.
+  - "Three `s32` parameters in and an `s32` out. The middle parameter is declared but never used."
 ---
 
-# The argument that leaves no trace
+# An unused argument in the middle
 
-Last lesson's function skipped two of its four arguments and you could still
-count them, because `r3` was in the arithmetic. Now look at what happens when the
-gap is in the middle:
+The example in the last lesson ignored two of its four arguments, but you could
+still count them because `r3` was used in the arithmetic. Now look at what
+happens when the gap is in the middle:
 
 ```asm
 0        add       r0, r2
 2        bx        lr
 ```
 
-`r0` and `r2` — the first and third argument registers, with nothing at all
-touching `r1`. On some machines an ignored argument still leaves a footprint,
-because the compiler parks it in a stack slot on the way in. Not here. This ABI
-leaves an unused argument sitting in its register, untouched and unmentioned, so
-a skipped parameter is **completely invisible**.
+This function reads `r0` and `r2`, the first and third argument registers.
+Nothing reads `r1`. On some machines an unused argument still shows up in the
+assembly, because the compiler saves it to a stack slot when the function
+starts. This ABI does not do that. An unused argument stays in its register and
+no instruction mentions it, so a skipped parameter is **completely invisible**.
 
-You recover it anyway, from the gap. `r2` is in use, so there are at least three
-parameters; `r1` is not, so the second one exists and is ignored:
+You can still find it from the gap. `r2` is used, so there are at least three
+parameters. `r1` is not used, so the second parameter exists but the function
+ignores it:
 
 ```c
 s32 midGap(s32 a, s32 b, s32 c) {
@@ -39,13 +40,14 @@ s32 midGap(s32 a, s32 b, s32 c) {
 }
 ```
 
-Declaring `b` is not optional. Delete it and `c` becomes the second parameter,
-arriving in `r1`, and the `add` would read the wrong register.
+You must declare `b`. If you delete it, `c` becomes the second parameter and
+arrives in `r1`, so the `add` reads the wrong register.
 
-## The ones you genuinely cannot see
+## Unused arguments you cannot see
 
-There is an honest limit here, and it is worth knowing early. A **trailing**
-unused argument leaves nothing behind and creates no gap:
+This method has a limit, and it is useful to know it early. A **trailing**
+unused argument (one at the end of the list) leaves no trace and creates no
+gap:
 
 ```c
 s32 trailingUnused(s32 a, s32 b) {
@@ -53,13 +55,13 @@ s32 trailingUnused(s32 a, s32 b) {
 }
 ```
 
-compiles to a bare `bx lr` — exactly what a one-parameter version compiles to.
-The original may well have had five ignored arguments after `a` and the assembly
-would look identical.
+compiles to a bare `bx lr`, which is exactly what a version with one parameter
+compiles to. The original function could have had five unused arguments after
+`a`, and the assembly would look the same.
 
-That is fine. Matching is a claim about instructions, and if two signatures
-produce the same instructions then either one matches. Declare what the assembly
-forces you to declare and no more.
+That is not a problem. A match means the instructions are the same, so if two
+signatures produce the same instructions, either one matches. Declare the
+parameters that the assembly requires, and no more.
 
 ## Your task
 

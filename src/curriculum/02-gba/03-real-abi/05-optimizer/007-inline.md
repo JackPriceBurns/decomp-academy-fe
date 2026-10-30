@@ -1,7 +1,7 @@
 ---
 id: b91b5ec4-4360-49d5-9d0e-64530e057d58
 slug: gba-optimizer-inline
-title: Helpers That Leave No Trace
+title: Helpers Expanded in Place
 difficulty: 4
 concepts:
   - optimizer
@@ -9,35 +9,36 @@ concepts:
   - loops
 symbol: func_083d2ee8
 hints:
-  - "The `cmp #255` / `ble` / `mov #255` trio inside the loop body is a
-    helper expanded in place. Writing it as a `static inline` function and
-    calling it from the loop produces exactly these instructions."
-  - Two parameters in, an `s32` out - a pointer walked forwards one word at a
-    time, and the number of elements to visit.
+  - "The three instructions `cmp #255`, `ble` and `mov #255` inside the loop
+    body are a helper expanded in place. If you write it as a `static inline`
+    function and call it from the loop, you get exactly these instructions."
+  - The function takes two parameters and returns an `s32`. The first is a
+    pointer that moves forward one word at a time, and the second is the number
+    of elements to visit.
 ---
 
-# One listing, several functions
+# One listing can contain several functions
 
-A `static inline` function that gcc 2.9 chooses to expand disappears from the
-object file entirely. There is no out-of-line copy, no symbol, no `bl` — the
-body is spliced into every caller and the helper stops existing as far as the
-linker is concerned.
+When gcc 2.9 chooses to expand a `static inline` function, that function
+disappears from the object file. There is no separate copy, no symbol and no
+`bl`. The body is copied into every caller, and the linker never sees the
+helper.
 
-That matters for decomp because a target listing does not have to correspond
-to one function of C. Real GBA projects keep small helpers in headers exactly
-so that several translation units can share them and still match byte for byte,
-and when you meet the same three or four instructions repeated at two places in
-one function, a shared helper is usually what wrote them.
+This matters for decomp because one target listing can come from more than one
+C function. Real GBA projects keep small helpers in headers so that several
+translation units can share them and still match byte for byte. When you see
+the same three or four instructions repeated in two places in one function,
+they usually come from a shared helper.
 
-The keyword is the whole lever. A plain `inline` helper is expanded into its
-callers *and* still emitted as its own symbol, so the object gains a function
-you did not want. A `static` helper without `inline` is never expanded at all
-at `-O2` — however small it is, you get a `bl`. And both
+The keyword is the only thing that controls this. A plain `inline` helper is
+expanded into its callers *and* still emitted as its own symbol, so the object
+file gets a function you did not want. A `static` helper without `inline` is
+never expanded at `-O2`. However small it is, you get a `bl`. Both
 `__attribute__((noinline))` and `__attribute__((always_inline))` are parsed and
-then discarded with a warning, so neither can rescue a mismatch.
+then ignored with a warning, so neither one can fix a mismatch.
 
-Here is `midpoint3`, which calls a two-line averaging helper on a pair and then
-on the result:
+Here is `midpoint3`. It calls a two-line averaging helper on a pair of values,
+and then calls it again on the result:
 
 ```asm
 0        add       r0, r1
@@ -47,15 +48,15 @@ on the result:
 8        bx        lr
 ```
 
-Four instructions, and they are the helper's body written out twice: `add` then
-`asr #1`, `add` then `asr #1`. Nothing marks the boundary between the two
-expansions, and the object contains no symbol for the helper — the listing you
-are looking at is the only thing that got compiled.
+The four instructions are the helper's body written out twice: `add` then
+`asr #1`, and again `add` then `asr #1`. Nothing marks the boundary between the
+two copies. The object file has no symbol for the helper, so this listing is
+the only code that was compiled.
 
 Your target expands a helper inside a loop, so its body appears once but runs
-every trip. Find the run of instructions that reads the loaded element and
-produces the value that gets accumulated: that run is a function of its own in
-the source.
+every trip. Find the instructions that read the loaded element and produce the
+value that is added to the total. In the source, those instructions are a
+function of their own.
 
 ## Your task
 

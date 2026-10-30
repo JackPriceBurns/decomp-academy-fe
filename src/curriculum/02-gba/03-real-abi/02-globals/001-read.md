@@ -9,22 +9,22 @@ concepts:
   - memory
 symbol: func_0831bf54
 hints:
-  - The `.word` row is the only place the variable's name appears; the two
-    `ldr`s are the machinery that turns that name into a value.
-  - "One `s32` in, one `s32` out. Read `sub r1, r0` in the order it is written: the global is on the left."
+  - The `.word` row is the only place the variable's name appears. The two
+    `ldr`s turn that name into a value.
+  - "It takes one `s32` and returns one `s32`. Read `sub r1, r0` in the order it is written: the global is on the left."
 ---
 
 # Two loads for one variable
 
 Thumb immediates are eight bits wide. A RAM address on this machine looks like
-0x03000420, and nothing in the instruction set can name it: there is no
-`mov r0, #0x03000420`, and no load that takes an absolute address.
+0x03000420, and no instruction can hold a value that large: there is no
+`mov r0, #0x03000420`, and no load instruction takes an absolute address.
 
-So every global is reached in two steps. The compiler parks the variable's
-*address* as a `.word` in the literal pool, loads that word PC-relative, and
-then loads through the register it landed in.
+So the compiler reaches every global in two steps. It stores the variable's
+*address* as a `.word` in the literal pool. It loads that word with a
+PC-relative load, and then it loads from the address now in the register.
 
-Here is `doubleEnemies`, which returns twice a global counter:
+Here is `doubleEnemies`, which returns twice the value of a global counter:
 
 ```asm
 0        ldr       r0, [pc, #4] (->8)
@@ -34,13 +34,13 @@ Here is `doubleEnemies`, which returns twice a global counter:
 8        .word     gEnemyCount
 ```
 
-Read it from the bottom. The `.word gEnemyCount` at address 8 is a relocation —
+Read it from the bottom. The `.word gEnemyCount` at address 8 is a relocation:
 the linker writes the final address of `gEnemyCount` into those four bytes. The
-`ldr r0, [pc, #4]` fetches it, so after address 0 `r0` holds *where the variable
-lives*. The `ldr r0, [r0, #0]` at address 2 dereferences that, so `r0` now holds
-*what the variable is*. The shift doubles it.
+`ldr r0, [pc, #4]` loads that word, so after address 0 `r0` holds *where the
+variable is stored*. The `ldr r0, [r0, #0]` at address 2 loads from that
+address, so `r0` now holds *the value of the variable*. The shift doubles it.
 
-Strip the arithmetic away and the pair stands on its own:
+Without the arithmetic, the two loads look like this:
 
 ```asm
 0        ldr       r0, [pc, #4] (->8)
@@ -50,18 +50,19 @@ Strip the arithmetic away and the pair stands on its own:
 8        .word     gEnemyCount
 ```
 
-Two loads to read one variable, and the `.hword 0` is the familiar two bytes of
-padding that push the pool word onto a four-byte boundary.
+It takes two loads to read one variable. The `.hword 0` is the same two bytes
+of padding you have seen before. They move the pool word onto a four-byte
+boundary.
 
-Both loads land in `r0` here because nothing else wants it — the address arrives
-and is immediately overwritten by the value. When `r0` is already carrying
-something as the function starts, the address goes to another low register
-instead, and whatever the function computes gets moved back into `r0` before the
-return. That extra `mov` is a symptom of register pressure, not of anything in
-the source.
+Both loads use `r0` here because no other value needs it. The address arrives
+in `r0`, and the value replaces it straight away. If `r0` already holds
+something when the function starts, the address goes into another low register
+instead. Whatever the function computes is then moved back into `r0` before the
+return. That extra `mov` comes from register pressure. Nothing in the source
+causes it.
 
-The name in the pool row is the only place the variable appears. Everything
-above it is plumbing.
+The name in the pool row is the only place the variable appears. The
+instructions above it only turn that name into a value.
 
 ## Your task
 

@@ -9,17 +9,17 @@ concepts:
   - strength-reduction
 symbol: func_8013252c
 hints:
-  - "Decode the shift-add chain as a constant multiply first — that constant is `sizeof(Mob)`. The chain here computes ×(4+1)×4."
-  - "The final load's offset picks the field. Offset 8 into a `Mob` — which member is that?"
+  - "First decode the shift-and-add chain as a constant multiply. That constant is `sizeof(Mob)`. The chain here computes ×(4+1)×4."
+  - "The offset of the final load picks the field. Which member of a `Mob` is at offset 8?"
 ---
 
 # Indexing when the stride isn't a power of two
 
-An array of structs strides by `sizeof(struct)` — and struct sizes are
-rarely tidy powers of two. So the indexing trio's `sll` gets replaced
-by an old friend from the arithmetic chapter: a **shift-and-add
-multiply chain**, building index × sizeof without a multiply
-instruction. Here's a 12-byte struct:
+In an array of structs, the stride is `sizeof(struct)`, and struct sizes are
+rarely powers of two. So the `sll` of the indexing trio is replaced by a
+pattern from the arithmetic chapter: a **shift-and-add multiply chain**. It
+computes index × sizeof without a multiply instruction. Here is a 12-byte
+struct:
 
 ```c
 typedef struct {
@@ -36,29 +36,30 @@ s32 get_y(Vec3 *arr, s32 i) {
 ```asm
 sll   t6, a1, 2     # i * 4
 subu  t6, t6, a1    # i*4 - i  = i * 3
-sll   t6, t6, 2     # i*3 * 4  = i * 12 — sizeof(Vec3)
+sll   t6, t6, 2     # i*3 * 4  = i * 12, which is sizeof(Vec3) * i
 addu  t7, a0, t6    # arr + i*12 = &arr[i]
 lw    v0, 4(t7)     # …and field y, via the offset
 jr    ra
 nop
 ```
 
-Two decoding layers, cleanly separated:
+There are two separate parts to decode:
 
-- **The chain before the `addu` is a constant multiply** — run the
-  algebra like any ×K chain, and the K it produces is the struct's
-  size. Chains feeding an address computation are the main way struct
-  sizes reveal themselves in real listings.
-- **The load's offset is the field**, exactly as with a lone struct
-  pointer: address of element `i`, plus 4, is `arr[i].y`.
+- **The chain before the `addu` is a constant multiply.** Work through the
+  algebra as for any ×K chain. The K you get is the size of the struct. In
+  real listings, a chain that feeds an address calculation is the main way to
+  find a struct's size.
+- **The load's offset is the field**, just as with a pointer to a single
+  struct. The address of element `i`, plus 4, is `arr[i].y`.
 
-So the full read is "arr, i times 12, plus 4": element and field in one
-breath. Nothing else in this chapter changes — narrow fields, RMW,
-nesting all work the same once `&arr[i]` is in a register.
+So the whole access reads as "arr, plus i times 12, plus 4". That gives the
+element and the field together. Everything else in this chapter still applies.
+Narrow fields, RMW and nesting all work the same way once `&arr[i]` is in a
+register.
 
-The target indexes the 20-byte `Mob` below. Its chain builds ×20 a
-slightly different way — decode it, confirm it against `sizeof`, then
-let the final offset choose the field.
+The target indexes the 20-byte `Mob` below. Its chain builds ×20 in a
+slightly different way. Decode it and check it against `sizeof`. Then use the
+final offset to choose the field.
 
 ## Your task
 

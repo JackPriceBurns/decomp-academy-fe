@@ -9,20 +9,21 @@ concepts:
   - sign-extension
 symbol: func_0833b380
 hints:
-  - Two pool words, two different load shapes - one of the globals is signed
-    and 16 bits wide, the other is signed and 8 bits wide.
-  - "Nothing in, an `s32` out. The `ldrsh` value is on the left of the `sub` and the sign-extended byte is on the right."
+  - There are two pool words and two different load patterns. One of the
+    globals is signed and 16 bits wide. The other is signed and 8 bits wide.
+  - "It takes no arguments and returns an `s32`. The `ldrsh` value is on the left of the `sub`, and the sign-extended byte is on the right."
 ---
 
-# Four narrow globals, four different shapes
+# Four narrow types and how each one loads
 
 A global narrower than a word is loaded with an instruction that matches its
-size, and then, if it is signed, extended to 32 bits. Thumb-1 makes that second
-half awkward in a way worth memorising, because the four cases look nothing like
-each other.
+size. If it is signed, it is then extended to 32 bits. Thumb-1 makes that
+extension awkward, and each of the four cases looks different, so they are
+worth memorising.
 
-Unsigned is the easy half. A `u8` global is a bare `ldrb` and a `u16` global is
-a bare `ldrh` — the load zero-extends for free, so nothing follows it:
+The unsigned types are the simpler half. A `u8` global is read with a single
+`ldrb`, and a `u16` global with a single `ldrh`. The load already fills the
+upper bits with zeros, so no extra instruction follows it:
 
 ```asm
 0        ldr       r0, [pc, #4] (->8)
@@ -32,11 +33,13 @@ a bare `ldrh` — the load zero-extends for free, so nothing follows it:
 8        .word     gCombo
 ```
 
-The `lsl #2` there is the multiply in the source, not an extension.
+The `lsl #2` there is the multiply from the source. It has nothing to do with
+extending the value.
 
-Signed halfwords are where the instruction set runs out. Thumb-1 has `ldrsh`,
-but only in the register-offset form — there is no `ldrsh rN, [rM, #imm]`. So a
-signed 16-bit read has to burn a register on a zero index:
+Signed halfwords are harder, because the instruction set has a gap. Thumb-1 has
+`ldrsh`, but only in the register-offset form. There is no
+`ldrsh rN, [rM, #imm]`. So a signed 16-bit read has to use up a register to
+hold an index of zero:
 
 ```asm
 0        ldr       r0, [pc, #8] (->12)
@@ -48,14 +51,15 @@ signed 16-bit read has to burn a register on a zero index:
 12       .word     gAim
 ```
 
-That `mov r1, #0` is easy to mistake for part of the surrounding logic. It is
-purely the zero offset for the load.
+That `mov r1, #0` can look like part of the function's logic. It only provides
+the zero offset for the load.
 
-Signed bytes are the odd one out. `ldrsb` exists in the same register-offset
-form, and the compiler declines to use it: an `s8` global is read with an
-unsigned `ldrb` and then sign-extended by hand with `lsl rN, #24` followed by
-`asr rN, #24`. Three instructions where the halfword case took two, and a shift
-pair you will learn to read as "this was a signed byte" on sight.
+Signed bytes are different again. `ldrsb` exists in the same register-offset
+form, but the compiler does not use it. It reads an `s8` global with an
+unsigned `ldrb`, then sign-extends it by hand with `lsl rN, #24` followed by
+`asr rN, #24`. That is three instructions, where the halfword case needed two.
+With practice you will recognise that shift pair as a signed byte straight
+away.
 
 Your target reads two narrow globals of different widths and combines them.
 Every extension in the listing belongs to one of the two loads.

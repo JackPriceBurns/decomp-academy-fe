@@ -1,7 +1,7 @@
 ---
 id: a8b7c6b7-2435-42a1-b2b4-3d3b5bcbf5ca
 slug: int64-equality
-title: Are They Equal? xor, or, sltiu
+title: Equality Tests with xor, or and sltiu
 difficulty: 3
 concepts:
   - int64
@@ -9,15 +9,16 @@ concepts:
   - branchless
 symbol: func_8022df18
 hints:
-  - "The tail — xor, xor, or, sltiu — is the equality chain from the worked example, unchanged."
-  - "Look at what the two addiu-from-zero lines build. That pair is the value `x` is being compared against."
+  - "The last four instructions (xor, xor, or, sltiu) are the equality chain from the worked example, unchanged."
+  - "Look at what the two addiu instructions that start from zero build. That pair is the value `x` is being compared against."
 ---
 
 # Equality without a single branch
 
-Comparing two `s64`s for equality sounds like branching work — check the
-highs, then maybe the lows. IDO does it with no branches at all. Here's
-`same(a, b)`, which returns 1 if two `s64`s are equal, else 0:
+Comparing two `s64`s for equality sounds like it needs branches: check the
+high words, then maybe the low words. IDO does it with no branches at all.
+Here is `same(a, b)`, which returns 1 if two `s64`s are equal and 0
+otherwise:
 
 ```asm
 sw     a0, 0(sp)
@@ -36,22 +37,23 @@ jr     ra
 nop
 ```
 
-The trick is beautiful: `xor` lights up exactly the bits where two words
-*disagree*, so xor-ing both pairs and `or`-ing the results gives a word
-that's zero **only when all 64 bits match**. The closing `sltiu reg, reg, 1`
-is the "is it zero?" idiom — only zero is unsigned-less-than 1. Four
-instructions, no branches, and the whole thing reads as one unit:
-*xor, xor, or, sltiu* means `==` on 64 bits.
+Here is how it works. `xor` sets exactly the bits where two words *differ*.
+So if you xor both pairs and `or` the results together, you get a word that is
+zero **only when all 64 bits match**. The final `sltiu reg, reg, 1` is the "is
+it zero?" idiom, because only zero is unsigned-less-than 1. These four
+instructions have no branches, and you can read them as one unit: *xor, xor,
+or, sltiu* means `==` on 64 bits.
 
-One quirk to expect in the wild: when one side of the comparison is a
-**constant**, the compiler still plays the same game — it materializes the
-constant as a register pair first, with the low-effort loads you know, and
-then xors against it. At this debug level it does so even when the constant
-is something a human would special-case. The chain survives verbatim; only
-where the second pair *comes from* changes.
+Expect one quirk in real code. When one side of the comparison is a
+**constant**, the compiler still uses the same chain. It first builds the
+constant in a register pair, using the cheap loads you already know, and then
+xors against it. At this debug level it does this even for a constant that a
+human would handle as a special case. The chain stays exactly the same. Only
+the place the second pair *comes from* is different.
 
-That's the target: same tail, but one side of the comparison isn't an
-argument. Read what the pair-building instructions produce, and say it in C.
+The target has the same final chain, and one side of its comparison is not an
+argument. Work out what the pair-building instructions produce, and write
+that in C.
 
 ## Your task
 

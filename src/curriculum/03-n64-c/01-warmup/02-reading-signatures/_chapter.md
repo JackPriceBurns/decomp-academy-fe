@@ -1,4 +1,4 @@
 ---
 title: Reading Signatures
-blurb: No more starter functions — derive the arguments and return type yourself.
+blurb: No more starter functions. Derive the arguments and return type yourself.
 ---

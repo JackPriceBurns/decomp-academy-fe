@@ -10,20 +10,21 @@ concepts:
 symbol: func_0808a630
 hints:
   - The `.word` at the bottom of the listing is the multiplier, printed in
-    decimal. The `ldr` fetches it, and the `.hword 0` above it is alignment
-    padding rather than an instruction.
-  - "Two `s32` parameters in, an `s32` out. The second is multiplied by 12345 and
-    the first is subtracted from that product."
+    decimal. The `ldr` loads it. The `.hword 0` above it is alignment padding
+    and is not an instruction.
+  - The function takes two `s32` parameters and returns an `s32`. The second is
+    multiplied by 12345, and the first is subtracted from that product.
 ---
 
-# A multiplier too big to move
+# A multiplier too large for an immediate
 
-`mov rD, #imm8` reaches 255, and `mul` needs its operand in a register. So a
-multiply by a large constant has two ways out: take the constant apart into
-shifts and adds, or fetch the whole word from the literal pool and use the
-multiplier. gcc weighs them the same way it weighed `mul` against a chain for
-small constants — a multiply by 1000 still comes out as a copy and five shifts,
-adds and subtracts, while less tractable values give up and go to the pool.
+`mov rD, #imm8` can only hold values up to 255, and `mul` needs its operand in
+a register. So gcc has two options for a multiply by a large constant. It can
+split the constant into shifts and adds, or it can load the whole word from the
+literal pool and use the multiplier. gcc compares them in the same way it
+compared `mul` with a chain for small constants. A multiply by 1000 still
+becomes a copy plus five shifts, adds and subtracts. Values that do not split
+well go to the pool.
 
 Here is `x * 54321 - y`:
 
@@ -35,27 +36,27 @@ Here is `x * 54321 - y`:
 8        .word     54321
 ```
 
-The multiplier is written out at address 8 in decimal, the `ldr` fetches it into
-a scratch register, and the rest is the multiply-then-subtract shape from earlier
-in the chapter. Read the `(->8)` the workspace prints rather than the `#4` in the
-instruction — the arrow already resolves the PC-relative arithmetic for you and
-points at the row holding the value.
+The multiplier is written in decimal at address 8. The `ldr` loads it into a
+scratch register, and the rest is the shape from earlier in the chapter: a
+multiply followed by a subtract. Read the `(->8)` that the workspace prints,
+and ignore the `#4` in the instruction. The arrow has already done the
+PC-relative arithmetic for you, and it points at the row that holds the value.
 
-Two things about that pool are worth carrying into your target.
+Keep two things about that pool in mind for your target.
 
-The word has to start at an address that is a multiple of four. This function's
-code happens to end at 8, so the constant sits directly after `bx lr` with
-nothing between them. Code ending on an odd multiple of two gets a `.hword 0`
-inserted first, and that padding row is part of the function you must reproduce
-even though it never executes.
+First, the word has to start at an address that is a multiple of four. This
+function's code ends at 8, so the constant comes straight after `bx lr`, with
+nothing between them. If the code ends on an odd multiple of two, a `.hword 0`
+is inserted first. That padding row never runs, but it is still part of the
+function you must reproduce.
 
-And the pool is emitted per function, after the code, so its rows always appear
-at the bottom of the listing no matter where in the expression the constant was
-used. A `.word` at the end of a listing is a constant the body needed, not
-something that happens at the end.
+Second, each function gets its own pool, placed after the code. So the pool rows
+always appear at the bottom of the listing, wherever the constant was used in
+the expression. A `.word` at the end of a listing is a constant that the body
+needed. It does not mean that something happens at the end.
 
-Your target uses a pooled multiplier too, and where its product ends up is the
-last thing left to work out.
+Your target also uses a multiplier from the pool. The last thing to work out is
+where its product ends up.
 
 ## Your task
 

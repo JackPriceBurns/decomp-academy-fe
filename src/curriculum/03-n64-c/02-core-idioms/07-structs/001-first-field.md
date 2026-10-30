@@ -8,17 +8,17 @@ concepts:
   - offsets
 symbol: func_800765fc
 hints:
-  - "Walk the `Rect` declaration and assign each field its offset — consecutive words at 0, 4, 8, 12. Then match the two load offsets to two field names."
-  - "Two loads, one `addu` — the sum of two of the rectangle's fields, in one return line."
+  - "Go through the `Rect` declaration and give each field its offset. The fields are consecutive words, at 0, 4, 8, 12. Then match the two load offsets to two field names."
+  - "There are two loads and one `addu`. The function returns the sum of two of the rectangle's fields, in one return line."
 ---
 
 # The struct disappears at compile time
 
-A struct is a naming scheme, and the compiler compiles the names away.
-Each field becomes nothing but an **offset** from the struct's start,
-assigned in declaration order — so accessing a field through a pointer
-is the `offset(base)` form you've used all tier, with the offset chosen
-by the field:
+A struct gives names to parts of memory, and the compiler removes those names.
+Each field becomes an **offset** from the start of the struct. The offsets are
+assigned in declaration order. So a field access through a pointer uses the
+same `offset(base)` form you have used throughout this tier. The field decides
+the offset:
 
 ```c
 typedef struct {
@@ -33,26 +33,25 @@ s32 get_gold(Player *p) {
 ```
 
 ```asm
-lw    v0, 8(a0)     # p->gold — the third word in
+lw    v0, 8(a0)     # p->gold, the third word
 jr    ra
 nop
 ```
 
-One `lw`, indistinguishable from an array access — because at the
-machine level it *is* one. `p->gold` and `v[2]` compile to the same
-instruction. What separates them is the declaration you write around
-the function: with the struct in scope, offset 8 has a *name*, and the
-decompiled C says `->gold` where raw memory code would say `[2]`.
+This is a single `lw`, the same instruction an array access would use. At the
+machine level the two are the same: `p->gold` and `v[2]` compile to the same
+instruction. The difference is the declaration you write around the function.
+With the struct in scope, offset 8 has a *name*, so the decompiled C says
+`->gold` where code that uses raw memory would say `[2]`.
 
-That's the workflow for this whole chapter: put the struct next to the
-listing, number its fields with their offsets, then read each
-`offset(base)` as a field name. In these lessons the struct rides along
-with the exercise; out in a real project, reconstructing that struct
-*is* half the work, and every offset you see in a listing is a clue to
-it.
+You will use this method for the whole chapter. Put the struct next to the
+listing and write each field's offset beside it. Then read each `offset(base)`
+as a field name. In these lessons, the struct comes with the exercise. In a
+real project, you have to rebuild the struct yourself, and that is half the
+work. Every offset you see in a listing tells you something about it.
 
-The target reads two fields of the `Rect` below and combines them —
-number the fields, then name the loads.
+The target reads two fields of the `Rect` below and combines them. Number the
+fields, then name the loads.
 
 ## Your task
 

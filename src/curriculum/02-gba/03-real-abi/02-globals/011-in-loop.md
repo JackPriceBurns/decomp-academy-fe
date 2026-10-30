@@ -9,22 +9,23 @@ concepts:
   - registers
 symbol: func_083489dc
 hints:
-  - Two globals are in play - one is walked element by element, the other is
-    read once before the loop starts because nothing in the loop can change it.
-  - "Nothing in, an `s32` out. The countdown starts at 11, the accumulator lives in r2, and `mul r0, r3` happens once per element."
+  - The function uses two globals. One is read element by element. The other is
+    read once before the loop starts, because nothing in the loop can change it.
+  - "It takes no arguments and returns an `s32`. The countdown starts at 11, the accumulator is in `r2`, and `mul r0, r3` runs once per element."
 ---
 
 # What gets hoisted, and what it costs
 
-A pool load is loop-invariant by construction: the address of a global never
-changes. So it is lifted out of the loop, and inside the loop the base register
-is walked forward instead of being recomputed.
+A pool load is always loop-invariant, because the address of a global never
+changes. So the compiler moves it out of the loop, which is called hoisting.
+Inside the loop, the compiler moves the base register forward each time instead
+of computing the address again.
 
-Walking is done with the load/store-multiple instructions. `ldmia rN!, {r0}`
-loads one word through `rN` and post-increments `rN` by four in the same
-instruction — the compiler's `*p++`. The loop counter is reversed into a
-countdown at the same time, because comparing against zero is cheaper than
-comparing against a limit.
+To move the pointer forward, the compiler uses the load/store-multiple
+instructions. `ldmia rN!, {r0}` loads one word through `rN` and then adds four
+to `rN`, all in one instruction. This is how the compiler does `*p++`. The
+compiler also turns the loop counter into a countdown, because comparing
+against zero is cheaper than comparing against a limit.
 
 `bumpLane` adds three to every element of a global array:
 
@@ -42,23 +43,23 @@ comparing against a limit.
 20       .word     gLane
 ```
 
-One pool word, fetched once at address 0. `r2` is both the pool base and the
-walking pointer: the body loads through it at offset zero, and the `stmia r2!`
-stores the updated value and steps the pointer on. `r1` counts 5, 4, 3, ... down
-to 0, and the loop runs six times even though the source counted upwards from
-zero.
+There is one pool word, loaded once at address 0. `r2` holds both the base from
+the pool and the moving pointer. The body loads through it at offset zero, and
+the `stmia r2!` stores the updated value and moves the pointer on. `r1` counts
+5, 4, 3, ... down to 0, so the loop runs six times, even though the source
+counted up from zero.
 
-Add a *second* global to the body of a loop like this and the register bill goes
-up sharply. The value of a global the loop never writes is loop-invariant too,
-so it gets loaded once before the loop and pinned in a register for the
-duration — and between the accumulator, the counter, the walking pointer, the
-hoisted value and a scratch register for each element, the function runs out of
-low registers. The compiler reaches for `r4`, which is callee-saved, so a leaf
-function with no calls in it grows a `push {r4, lr}` prologue and the
-three-instruction interworking epilogue.
+If you add a *second* global to the body of a loop like this, the loop needs
+many more registers. The value of a global that the loop never writes is
+loop-invariant too. So the compiler loads it once before the loop and keeps it
+in a register the whole time. The function now needs registers for the
+accumulator, the counter, the moving pointer, the hoisted value and a scratch
+value for each element, and it runs out of low registers. The compiler then
+uses `r4`, which is callee-saved. So a leaf function with no calls in it gets a
+`push {r4, lr}` prologue and the three-instruction interworking epilogue.
 
-Seeing a frame in a function that calls nothing is the signal: something in the
-loop was hoisted and had nowhere to live.
+If a function that calls nothing has a stack frame, that is a sign that
+something in the loop was hoisted and there was no free register to keep it in.
 
 ## Your task
 

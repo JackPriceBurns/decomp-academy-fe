@@ -9,19 +9,20 @@ concepts:
   - registers
 symbol: func_08085d9c
 hints:
-  - Two kinds of `lsl` appear here. One reads an argument register and scales it;
-    the other follows a `mov` of a `#` immediate and is building a constant out
-    of nothing.
-  - "Two `s32` parameters in, an `s32` out. The first is scaled by 40, the second
-    is subtracted from the product, and 512 is added on."
+  - Two kinds of `lsl` appear here. One reads an argument register and scales
+    it. The other comes after a `mov` of a `#` immediate, and builds a constant
+    without reading any register.
+  - The function takes two `s32` parameters and returns an `s32`. The first is
+    multiplied by 40, the second is subtracted from the product, and then 512 is
+    added.
 ---
 
-# Everything at once
+# Putting it all together
 
-A long arithmetic listing decomposes cleanly if you sort the instructions into
-jobs before you try to read them as one expression.
+A long arithmetic listing is much clearer if you first sort the instructions
+into jobs, before you try to read them as one expression.
 
-Here is `z * 7 + y * 2 + 500`, eight instructions of it:
+Here is `z * 7 + y * 2 + 500`, which takes eight instructions:
 
 ```asm
 0        lsl       r0, r2, #3
@@ -34,29 +35,29 @@ Here is `z * 7 + y * 2 + 500`, eight instructions of it:
 14       bx        lr
 ```
 
-Sorted into jobs, it is three phases and nothing else:
+Sorted into jobs, it has exactly three phases:
 
-- **0–2** scale `z`. Shift by 3 for eight copies, subtract the original for
-  seven.
-- **4–6** scale `y` by two, in place, and fold it into the accumulator.
-- **8–12** build 500 as 250 << 1 and add it.
+- **0 to 2** scale `z`. Shift by 3 for eight times `z`, then subtract the
+  original for seven times.
+- **4 to 6** scale `y` by two in place, and add it to the running total.
+- **8 to 12** build 500 as 250 << 1 and add it.
 
-Note what happens to `r1`. It arrives holding `y`, gets doubled in place, and is
-folded into `r0` — and the moment it is dead, gcc reuses it as the scratch
-register for the constant. The same register does two unrelated jobs eight bytes
-apart, so reading a register's *name* is never enough; you have to read it in
-sequence.
+Look at what happens to `r1`. It arrives holding `y`, is doubled in place, and
+is added into `r0`. As soon as it is no longer needed, gcc reuses it as the
+scratch register for the constant. The same register does two unrelated jobs
+eight bytes apart. So a register's *name* alone never tells you what it holds.
+You have to read its uses in order.
 
-Two shapes distinguish the phases:
+Two patterns tell the phases apart:
 
-- `lsl rD, rM, #n` reading an argument register starts a **scale**;
-- `mov rD, #k` followed by `lsl rD, #n` builds a **constant** — nothing was read,
-  the value came from the immediate.
+- An `lsl rD, rM, #n` that reads an argument register starts a **scale**.
+- A `mov rD, #k` followed by `lsl rD, #n` builds a **constant**. No register
+  was read, and the value came from the immediate.
 
-Your target does all three jobs and adds a wrinkle: its accumulator is not `r0`,
-so `r0` is free, and gcc uses it for something else entirely before moving the
-answer in at the end. Work out which register holds the running total before you
-read anything else, and check every instruction against it.
+Your target does all three jobs, with one extra detail. Its running total is
+not in `r0`, so `r0` is free. gcc uses `r0` for something else and moves the
+answer into it at the end. Before you read anything else, work out which
+register holds the running total. Then check every instruction against it.
 
 ## Your task
 

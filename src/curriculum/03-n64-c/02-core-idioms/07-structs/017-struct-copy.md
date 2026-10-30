@@ -9,16 +9,16 @@ concepts:
   - fingerprints
 symbol: func_80378698
 hints:
-  - "Count the lw/sw pairs and multiply by 4 — that's how many bytes move, and `sizeof(Pack)` agrees."
-  - "One assignment statement. The narrow fields inside don't change the C you write; the whole struct copies at once."
+  - "Count the lw/sw pairs and multiply by 4. That is how many bytes are copied, and it matches `sizeof(Pack)`."
+  - "Write one assignment statement. The narrow fields inside do not change the C you write, because the whole struct is copied at once."
 ---
 
 # *d = *s
 
-C lets you assign one struct to another in a single `=`, and IDO
-compiles it as a run of word-sized loads and stores — no loop, no
-helper, just the bytes moving four at a time. Here's `copyVec`, which
-copies a 12-byte vector:
+In C you can assign one struct to another with a single `=`. IDO compiles
+this as a run of word-sized loads and stores. There is no loop and no helper
+call, and the bytes move four at a time. Here is `copyVec`, which copies a
+12-byte vector:
 
 ```c
 typedef struct { s32 x, y, z; } Vec3i;
@@ -39,26 +39,26 @@ void copyVec(Vec3i *d, Vec3i *s) {
 1c:  nop
 ```
 
-Three `lw`/`sw` pairs, offsets marching 0, 4, 8 — twelve bytes, which
-is exactly `sizeof(Vec3i)`. That arithmetic is the fingerprint:
-**pairs × 4 = the size of the struct being assigned**. The compiler
-ping-pongs between `at` and `t8` as scratch so each load can overlap
-the previous store, but the offsets are what you read.
+There are three `lw`/`sw` pairs, at offsets 0, 4, 8. That is twelve bytes,
+which is exactly `sizeof(Vec3i)`. This arithmetic is how you recognize the
+pattern: **pairs × 4 = the size of the struct being assigned**. The compiler
+switches between `at` and `t8` as scratch registers, so that each load can
+overlap the previous store. The offsets are the part to read.
 
-Two things this shape is *not*:
+There are two things this shape is *not*:
 
-- It's not field-by-field code. The copy doesn't know or care what the
-  fields are — a struct of three `s32`s and a struct of six `u16`s
-  both copy as word pairs. If the C had copied fields one at a time
-  you'd see width-matched loads (`lhu`, `lbu`) instead.
-- It's not a call. Much larger structs eventually get handed to a
-  copy routine, but small ones inline like this every time.
+- It is not field-by-field code. The copy ignores what the fields are. A
+  struct of three `s32`s and a struct of six `u16`s both copy as word pairs.
+  If the C copied the fields one at a time, you would see loads that match
+  each field's width (`lhu`, `lbu`) instead.
+- It is not a call. Much larger structs are eventually passed to a copy
+  routine, but small ones are always copied inline like this.
 
-So when you meet an unexplained run of `lw`/`sw` pairs walking two
-pointers in lockstep, write one assignment, not N.
+So when a run of `lw`/`sw` pairs copies between two pointers at matching
+offsets, and the field types do not explain it, write one assignment, not N.
 
-The target copies a smaller struct whose fields are *not* all
-word-sized — and the listing doesn't care, which is rather the point.
+The target copies a smaller struct whose fields are *not* all word-sized. The
+listing does not change because of that, which is the point of this lesson.
 
 ## Your task
 

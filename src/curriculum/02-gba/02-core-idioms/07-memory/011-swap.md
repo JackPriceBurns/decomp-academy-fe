@@ -10,23 +10,23 @@ concepts:
 symbol: func_08221df4
 hints:
   - Both loads happen before either store. Work out which value each stored
-    register is carrying and the C writes itself.
-  - Two `s32 *` in, nothing out. One temporary has to survive across a store,
-    which is why the loads come out in a pair.
+    register holds, and the C follows from that.
+  - It takes two `s32 *` arguments and returns nothing. One temporary must stay
+    live across a store, which is why the loads come as a pair.
 ---
 
 # Everything loads before anything stores
 
-A swap is two loads and two stores, and the order they come out in is forced
-by the data. Writing either slot destroys the value the other write still
-needs, so both reads have to be finished before the first write happens. The
-listing reads load, load, store, store.
+A swap is two loads and two stores, and the data decides their order. Writing
+either slot destroys the value that the other write still needs. So both reads
+must finish before the first write happens. The listing reads load, load,
+store, store.
 
-The registers matter as much as the order. A register holding an address that
-is still needed cannot double as a home for a loaded value, so the values in
-transit go to whichever scratch registers the arguments left free.
+The registers matter as much as the order. A register that holds an address
+the code still needs cannot also hold a loaded value. So the values being moved
+go into whichever scratch registers the arguments left free.
 
-Add a third slot and the pressure becomes visible:
+With a third slot, you can see this register pressure:
 
 ```asm
 0        push      {r4, lr}
@@ -41,20 +41,20 @@ Add a third slot and the pressure becomes visible:
 18       bx        r0
 ```
 
-This is a three-way rotation: the first slot's value moves to the last, and
-everything else shifts down. The value loaded into `r4` on line 2 is not stored
-until line 12, five instructions later, so it has to live somewhere that no
-other work will disturb. `r2` and `r3` are already spoken for, so gcc takes
-`r4` — which is callee-saved, so the function that would otherwise have been a
-leaf grows a `push {r4, lr}` and the interworking epilogue.
+This is a three-way rotation: the first slot's value moves to the last slot,
+and each other value moves down one slot. The value loaded into `r4` on line 2
+is not stored until line 12, five instructions later. So it has to stay in a
+register that no other work will change. `r2` and `r3` are already in use, so
+gcc takes `r4`. `r4` is callee-saved, so the function, which would otherwise be
+a leaf, gains a `push {r4, lr}` and the interworking epilogue.
 
-Notice also that once the third address in `r2` is loaded from, `r0` is free
-again, and the compiler reuses the argument register for the value in transit.
-Registers are recycled the moment their last use is behind them.
+Note also that by the time the code loads from the third address in `r2`, `r0`
+is free again. The compiler reuses that argument register for the value being
+moved. A register is reused as soon as its last use has passed.
 
-Your target runs the same idea on a shorter cycle. It never reaches for a
-callee-saved register, so the whole thing fits between `r0` and `r3` with no
-`push` at all.
+Your target uses the same idea on a shorter cycle. It never needs a
+callee-saved register, so everything fits in `r0` to `r3` with no `push` at
+all.
 
 ## Your task
 

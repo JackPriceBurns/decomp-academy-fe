@@ -9,26 +9,26 @@ concepts:
   - calls
 symbol: func_082f83b4
 hints:
-  - The value copied into `r4` is the same one that feeds the call's argument, so
-    it is used twice — once inside the call's argument expression and once on the
-    result.
-  - Two `s32` parameters in, an `s32` out. The `sub` writes `r0`, so the call's
-    result is the left operand of the subtraction.
+  - The value copied into `r4` is the same one that feeds the call's argument.
+    So it is used twice, once inside the call's argument expression and once on
+    the result.
+  - The function takes two `s32` parameters and returns an `s32`. The `sub`
+    writes `r0`, so the call's result is the left operand of the subtraction.
 ---
 
 # The copy that happens before the call
 
-A `bl` is a licence for the callee to destroy `r0`-`r3`. Anything your function
-still needs afterwards has to be moved somewhere protected first, and the
-protected registers are `r4`-`r7`. That is why so many non-leaf functions open
-with a push followed immediately by a `mov r4, rN`: the copy *is* the value
-being carried across the call.
+When you call a function with `bl`, the callee is free to destroy `r0` to
+`r3`. Anything your function still needs after the call must first be moved to
+a callee-saved register, one of `r4` to `r7`. That is why so many non-leaf
+functions start with a push followed right away by a `mov r4, rN`. The copy in
+`r4` *is* the value being kept across the call.
 
-What happens *after* the call is where matching gets fussy, because the two
-operands of the final arithmetic are in different places: the call's result is
-in `r0`, and the survivor is in `r4`. gcc always accumulates into the **left**
-operand of the C expression. These two functions differ only in the order of a
-subtraction:
+Matching gets harder *after* the call, because the two operands of the final
+arithmetic are in different places. The call's result is in `r0`, and the
+saved value is in `r4`. gcc always computes the result in the register that
+holds the **left** operand of the C expression. These two functions differ only
+in the order of a subtraction:
 
 ```asm
 0        push      {r4, lr}
@@ -53,21 +53,22 @@ subtraction:
 16       bx        r1
 ```
 
-Identical prologues, identical call, and one instruction of difference. In the
-first, the survivor is on the left, so the subtraction runs `r4 = r4 - r0` and
-gcc has to spend a `mov r0, r4` moving the answer into the return register. In
-the second the call is on the left, its result is already in `r0`, and
-`sub r0, r4` finishes the job in place.
+The prologues are the same, the call is the same, and the listings differ by
+one instruction. In the first, the saved value is on the left. So the
+subtraction is `r4 = r4 - r0`, and gcc needs an extra `mov r0, r4` to move the
+answer into the return register. In the second, the call is on the left. Its
+result is already in `r0`, so `sub r0, r4` computes the answer where it needs
+to be.
 
-Two bytes, entirely decided by which side of the operator you wrote the call on.
-When you are one instruction away from a match on a function like this, the
-operand order in your C is the first thing to try. A temporary changes nothing
-here: assigning the call's result to a local and subtracting on the next line
-compiles to exactly these instructions, so the side of the operator is the only
-lever you have.
+Those two bytes depend only on which side of the operator you wrote the call.
+When a function like this is one instruction away from matching, try swapping
+the operand order in your C first. A temporary variable does not help here. If
+you assign the call's result to a local and subtract on the next line, it
+compiles to exactly the same instructions. The side of the operator is the only
+thing you can change.
 
-Your target carries a value across its call as well, but that value is doing two
-jobs — look at what feeds the call's argument.
+Your target also keeps a value across its call, and that value has two uses.
+Look at what feeds the call's argument.
 
 ## Your task
 

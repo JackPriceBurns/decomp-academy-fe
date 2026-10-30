@@ -1,4 +1,4 @@
 ---
 title: Pointers & Memory
-blurb: offset(base) addressing, the sll/addu indexing trio, strides by width, NULL guards, and the pointer arithmetic that hides a divide.
+blurb: offset(base) addressing, the sll/addu indexing sequence, strides that depend on element width, NULL checks, and pointer subtraction, which compiles to a divide.
 ---

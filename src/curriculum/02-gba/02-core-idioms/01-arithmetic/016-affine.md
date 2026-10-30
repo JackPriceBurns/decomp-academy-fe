@@ -9,18 +9,21 @@ concepts:
   - immediates
 symbol: func_080782e0
 hints:
-  - Track what multiple of the original value the accumulator holds after each
-    line. A shift multiplies that count, an add of the original adds one to it.
-  - "Two `s32` parameters in, an `s32` out, with the first unused. The second is
-    scaled by 24 and 100 is added to the result."
+  - After each line, track what multiple of the original value the running
+    result holds. A shift multiplies that count, and adding the original adds
+    one to it.
+  - The function takes two `s32` parameters and returns an `s32`. The first
+    parameter is unused. The second is multiplied by 24, and then 100 is added
+    to the result.
 ---
 
-# Reading a chain, then the constant on the end
+# Reading a chain, then the constant at the end
 
-Scale a value and offset it and you have most of the arithmetic in a game: a tile
-index into an address, a frame counter into a table position, a percentage into a
-bar width. On this compiler that is a shift chain followed by one immediate
-instruction, and the two halves have to be read separately.
+Scaling a value and then adding an offset covers most of the arithmetic in a
+game. Examples are turning a tile index into an address, a frame counter into a
+table position, or a percentage into a bar width. On this compiler, that is a
+shift chain followed by one immediate instruction, and you have to read the two
+parts separately.
 
 Here is `x * 17 - 50`:
 
@@ -32,28 +35,28 @@ Here is `x * 17 - 50`:
 8        bx        lr
 ```
 
-The first three instructions are the multiply you already know — copy the
-multiplicand aside, shift by 4 for sixteen copies, add the original for
-seventeen. The fourth is the offset, and it is recognisable because it carries an
-**immediate** rather than a register: the chain only ever refers back to the
-preserved multiplicand.
+The first three instructions are the multiply you already know. They copy the
+multiplicand to another register, shift by 4 for sixteen times the value, and
+add the original for seventeen times. The fourth instruction is the offset. You
+can recognise it because it uses an **immediate** instead of a register. The
+chain itself only ever refers back to the saved multiplicand.
 
-Longer chains work the same way if you track the running factor line by line:
+Longer chains work the same way. Track the running factor line by line:
 
-- `lsl rD, #n` multiplies the factor you have so far by 2^n;
-- `add rD, rM` where `rM` is the preserved original adds one to the factor;
-- `sub rD, rM` against the original subtracts one from it.
+- `lsl rD, #n` multiplies the factor you have so far by 2^n.
+- `add rD, rM`, where `rM` is the saved original, adds one to the factor.
+- `sub rD, rM`, where `rM` is the saved original, subtracts one from it.
 
-Start the count at 1 and apply each line in order. A chain ending in a shift is
-an even constant — gcc factors it as an odd number times a power of two, builds
-the odd part first, and shifts at the end.
+Start the count at 1 and apply each line in order. A chain that ends in a shift
+gives an even constant. gcc splits it into an odd number times a power of two.
+It builds the odd part first, and shifts at the end.
 
-The trap is deciding where the multiply stops and the offset starts. A trailing
-`lsl` belongs to the scale; the immediate `add` or `sub` after it is the offset.
-Get that boundary wrong and you will be looking for a constant that does not
-exist.
+Be careful to decide where the multiply stops and the offset starts. An `lsl`
+at the end of the chain belongs to the scale. The immediate `add` or `sub` after
+it is the offset. If you put that boundary in the wrong place, you will look for
+a constant that does not exist.
 
-Count your target's chain out to its factor before you go anywhere near the last
+Work out the factor of the chain in your target before you look at the last
 line.
 
 ## Your task

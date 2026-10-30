@@ -10,18 +10,17 @@ concepts:
   - hi-lo
 symbol: func_802cb064
 hints:
-  - "The shape tells you a constant is loaded; the prose tells you its value. All that's left is the operation consuming it."
-  - "Same skeleton as the worked example — only the constant in the pool differs."
+  - "The shape tells you a constant is loaded, and the prose tells you its value. All that's left is the operation that uses it."
+  - "The instructions are the same as in the worked example. Only the constant in the pool is different."
 ---
 
 # When the bits aren't clean
 
-`0.9f`'s bit pattern is `0x3F666666` — junk in every hex digit. No
-single `lui` can build that, and a `lui`/`ori` pair plus the ferry
-would cost three instructions. So IDO takes the second path: it parks
-the constant in **`.rodata`** — the read-only data section — and
-*loads* it like any other word. Here's `tithe(x)`, which returns
-`x * 0.9f`:
+The bit pattern of `0.9f` is `0x3F666666`, with nonzero bits in every hex
+digit. One `lui` cannot build that, and a `lui`/`ori` pair plus the `mtc1`
+move would cost three instructions. So IDO uses the second path. It stores the
+constant in **`.rodata`**, the read-only data section, and *loads* it like any
+other word. This is `tithe(x)`, which returns `x * 0.9f`:
 
 ```asm
  0:  lui   at, %hi([.rodata])         # upper half of the constant's address
@@ -32,26 +31,27 @@ the constant in **`.rodata`** — the read-only data section — and
 14:  nop
 ```
 
-The `%hi(…)`/`%lo(…)` pair is new: the constant lives at some 32-bit
-address the linker hasn't picked yet, so the assembler splits the
-address into halves — `lui` installs the top, and the bottom rides
-along inside the load's offset. It's the address cousin of the
-`lui`/`ori` constant trick, and you'll get the full story when
-globals arrive next tier. For now: **`lui at, %hi` + `lwc1 %lo(…)(at)`
-means "load a float constant from the pool."**
+The `%hi(…)`/`%lo(…)` pair is new. The constant lives at a 32-bit address
+that the linker has not chosen yet, so the assembler splits the address into
+two halves. `lui` sets the top half, and the bottom half goes in the load's
+offset field. This is the same idea as building a constant with
+`lui`/`ori`, applied to an address. You will get the full details when
+globals come up in the next tier. For now, remember this: **`lui at, %hi` +
+`lwc1 %lo(…)(at)` means "load a float constant from the pool."** The pool is
+the area of `.rodata` where these constants are stored.
 
-Notice what the listing *doesn't* tell you: the value. The pool slot
-is anonymous — `[.rodata]` — and its contents live outside the code.
-In a real project you'd flip to the data section and read the word;
-in these lessons, the prose will hand you the value whenever the
-target uses this path.
+Note what the listing *doesn't* show you: the value. The pool slot has no
+name, only `[.rodata]`, and its contents are stored outside the code. In a
+real project you would look in the data section and read the word there. In
+these lessons, the prose gives you the value whenever the target uses this
+path.
 
-So the two paths, side by side: clean bits → `lui` + `mtc1` ferry;
-messy bits → `%hi`/`%lo` + `lwc1` load. Which one appears tells you
-what *kind* of constant to reach for before you know its value.
+So there are two paths. Clean bits use `lui` + `mtc1`. Other bits use a
+`%hi`/`%lo` + `lwc1` load. The path you see tells you what *kind* of constant
+to expect, even before you know its value.
 
-The target has the same skeleton, and the word in its pool slot is
-`1.1f`. The rest is reading the operation.
+The target has the same structure, and the word in its pool slot is `1.1f`.
+What remains is reading the operation.
 
 ## Your task
 

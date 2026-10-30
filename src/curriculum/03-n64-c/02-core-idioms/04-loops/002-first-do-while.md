@@ -9,15 +9,15 @@ concepts:
   - delay-slots
 symbol: func_8018bff0
 hints:
-  - "The back-edge tests the second argument after a decrement — that's the `while` condition, written exactly as the C states it."
+  - "The back-edge tests the second argument after a decrement. That is the `while` condition, written exactly as the C states it."
   - "The delay slot holds what happens to the first argument each trip. Read its immediate for the step."
 ---
 
 # Two instructions, one loop
 
-Time to write one yourself. The anatomy lesson gave you the map; here's the
-territory — a complete `do`/`while` in two instructions plus a slot. This is
-`drain`, which subtracts 2 from `hp`, `n` times:
+Now you write one yourself. The anatomy lesson showed you the general shape.
+Here is a complete `do`/`while` that uses two instructions plus a delay slot.
+This is `drain`, which subtracts 2 from `hp`, `n` times:
 
 ```c
 s32 drain(s32 hp, s32 n) {
@@ -38,22 +38,23 @@ s32 drain(s32 hp, s32 n) {
 14:  nop
 ```
 
-Match the C to the assembly line by line and notice what rotation did to the
-*order*: the C says `hp -= 2` first, `n--` second — the assembly runs `n--`
-first and parks `hp -= 2` in the slot. The compiler reordered freely because
-the two updates don't touch each other; what it preserved is the *count*.
-Each runs exactly once per trip. Decompiling a loop body means collecting
-the instructions between top and slot inclusive, then writing them in
-whatever order reads naturally — the compiler will re-shuffle to match.
+Match the C to the assembly line by line, and notice what rotation did to the
+*order*. The C does `hp -= 2` first and `n--` second. The assembly runs `n--`
+first and puts `hp -= 2` in the delay slot. The compiler can reorder them
+because the two updates don't depend on each other. What it keeps is the
+*count*: each update runs exactly once per trip. To decompile a loop body,
+collect the instructions from the loop top down to the delay slot, including
+the slot. Then write them in whatever order reads naturally. The compiler will
+reorder them to match.
 
-Also see what's *missing*: no guard branch before the loop. The body runs at
-least once, unconditionally — that absence is your proof it's `do`/`while`
-and not `while`. Write the wrong one and the diff will show a whole extra
-branch (or a missing one) at the top.
+Also notice what is *missing*: there is no guard branch before the loop. The
+body always runs at least once. That missing guard tells you the loop is a
+`do`/`while` and not a `while`. If you write the wrong one, the diff will show
+an extra branch (or a missing one) at the top.
 
-The target has the same skeleton with different arithmetic in it. Find the
-back-edge, un-flip nothing (back-edge tests read straight), collect the two
-updates, and mind which register is returned.
+The target has the same structure with different arithmetic. Find the
+back-edge and read its test as written (back-edge tests are never flipped).
+Collect the two updates, and check which register is returned.
 
 ## Your task
 

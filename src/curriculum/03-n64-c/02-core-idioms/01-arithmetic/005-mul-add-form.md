@@ -9,20 +9,20 @@ concepts:
   - shifts
 symbol: func_802a1f98
 hints:
-  - "`sll` by k makes 2^k times the input; the `addu` folds one more copy of the
-    original input on top."
-  - "Work out what multiple the register holds after each line — the final constant is the single multiplier your C needs."
+  - "`sll` by k gives 2^k times the input. The `addu` then adds one more copy of the original input."
+  - "Work out what multiple of the input the register holds after each line. The final value is the one multiplier your C needs."
 ---
 
 # 2^k plus one
 
-Warmup showed you IDO's favorite trick: constant multiplies become shift chains,
-because a real multiply is slow. Now let's get systematic about the shapes those
-chains take, because you'll be decoding them for the rest of your matching
-career.
+The warmup showed you that IDO turns a multiply by a constant into a chain of
+shifts, because a real multiply is slow. The next few lessons go through the
+shapes these chains take, one at a time. You will decode them again and again
+in your matching work.
 
-The simplest family: constants one *above* a power of two. Shift to get the
-power of two, then add the original input back on. Here's ×5:
+The simplest group is constants one *above* a power of two. The compiler
+shifts to get the power of two, then adds the original input once more. Here's
+×5:
 
 ```asm
 sll  v0, a0, 2     # v0 = x * 4
@@ -31,17 +31,17 @@ jr   ra
 nop
 ```
 
-The fingerprint is `sll` by `k` followed by `addu` with the *original argument
-register* as the second operand. That combination always means
-"2^k + 1 times the input": shift by 2 then add is ×5, shift by 4 then add is
-×17, and so on.
+The fingerprint is `sll` by `k`, followed by `addu` with the *original
+argument register* as the second operand. That pair always means "2^k + 1
+times the input". Shift by 2 then add is ×5, shift by 4 then add is ×17, and
+so on.
 
-The one thing to keep straight is *which* register the `addu` folds in. If it's
-the untouched argument, you're adding 1× the input. Later chains re-add shifted
-copies instead, and the arithmetic changes — so always check.
+Pay attention to *which* register the `addu` adds. If it is the unchanged
+argument, you are adding 1× the input. Later chains add shifted copies
+instead, and then the arithmetic changes, so always check.
 
-The target below is the same two-instruction shape with a different shift. Run
-the algebra.
+The target below has the same two instructions with a different shift. Work
+out the multiplier.
 
 ## Your task
 

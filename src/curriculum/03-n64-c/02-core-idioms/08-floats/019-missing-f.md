@@ -1,7 +1,7 @@
 ---
 id: df9dde57-7967-4a0b-a5d0-2d9ea942357b
 slug: floats-missing-f
-title: "The Missing f: A Double Detour"
+title: "The Missing f: Hidden Double Math"
 difficulty: 3
 concepts:
   - floats
@@ -10,15 +10,14 @@ concepts:
   - fingerprints
 symbol: func_803e7778
 hints:
-  - "`0x4004` sits between `2.0`'s `0x4000` and `3.0`'s `0x4008` on the
-    double ladder — exactly halfway."
-  - "Write the constant *without* the `f` suffix, or the sandwich won't appear."
+  - "`0x4004` is exactly halfway between `2.0`'s `0x4000` and `3.0`'s `0x4008` on the double ladder."
+  - "Write the constant *without* the `f` suffix, or the conversions won't appear."
 ---
 
 # Why is this f32 function full of .d?
 
-Here's a trap that catches everyone. `upBy(x)` takes an `f32`,
-returns an `f32` — and compiles to *double* arithmetic:
+This mistake catches almost everyone. `upBy(x)` takes an `f32` and returns an
+`f32`, but it compiles to *double* arithmetic:
 
 ```asm
  0:  lui     at, 0x3ff8    # 1.5's high word, on the DOUBLE ladder
@@ -31,28 +30,28 @@ returns an `f32` — and compiles to *double* arithmetic:
 1c:  nop
 ```
 
-The C is `return x + 1.5;` — and the culprit is one missing
-character. In C, the constant `1.5` *is a double*; only `1.5f` is a
-float. Mix an `f32` with a double constant and the standard requires
-the math to happen in double: promote, operate, demote. IDO does
-exactly, faithfully that.
+The C is `return x + 1.5;`, and the cause is one missing character. In C,
+the constant `1.5` *is a double*. Only `1.5f` is a float. When you mix an
+`f32` with a double constant, the C standard requires the math to happen in
+double: promote, operate, demote. IDO does exactly that.
 
-The two new conversions complete your `cvt` family: **`cvt.d.s`**
-(to double, from single) and **`cvt.s.d`** back down. No ferries —
-both worlds are FPU-side, so it's pure conversion, no `mtc1`.
+The two new conversions complete your `cvt` family: **`cvt.d.s`** (to
+double, from single) and **`cvt.s.d`** (back to single). There is no `mtc1`
+here, because both values are already on the FPU. These are pure
+conversions.
 
-The fingerprint reads instantly once you know it: **an `f32`-in,
-`f32`-out function whose middle is `.d` operations bracketed by
-`cvt.d.s` … `cvt.s.d` means an unsuffixed constant** in the source.
-And it matters for matching in both directions: write `1.5f` where
-the original had `1.5` and this whole sandwich collapses into one
-`add.s` — instructions vanish, the diff lights up. The original
-programmer's sloppiness is now load-bearing, and you must reproduce
-it.
+Once you know this pattern, you will spot it quickly: **a function that takes
+and returns `f32`, with `.d` operations in the middle between `cvt.d.s` and
+`cvt.s.d`, means the source has an unsuffixed constant**. This matters for
+matching in both directions. If you write `1.5f` where the original had
+`1.5`, the conversions and the `.d` work collapse into one `add.s`.
+Instructions disappear and the diff shows the difference. The original
+programmer's missing `f` is now part of what you must match, so you have to
+reproduce it.
 
-The target is the same sandwich around a different operation, with
-the constant one hint away on the double ladder. Spell your C the
-way the original must have.
+The target has the same conversions around a different operation. Its
+constant is on the double ladder, and the first hint decodes it. Write the C
+the way the original programmer must have written it.
 
 ## Your task
 

@@ -1,4 +1,4 @@
 ---
 title: 64-bit Integers
-blurb: One s64, two registers — pairing, carry chains, and the millicode helpers.
+blurb: How one s64 is held in two registers, how carries pass between the halves, and the millicode helpers.
 ---

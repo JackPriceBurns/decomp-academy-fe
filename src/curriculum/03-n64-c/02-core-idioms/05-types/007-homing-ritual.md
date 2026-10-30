@@ -10,15 +10,15 @@ concepts:
   - sign-extension
 symbol: func_803d2d38
 hints:
-  - "Two homing stores, two re-extensions — but the two args re-extend *differently*. One gets the shift pair, one gets a mask. Read each pair's width and signedness from its idiom."
-  - "The function body proper is a single `addu`. Everything above it is the ritual, and all of it comes from the two parameter declarations."
+  - "There are two homing stores and two re-extensions, but the two arguments re-extend *differently*. One gets the shift pair and the other gets a mask. Read the width and signedness of each one from its idiom."
+  - "The real work of the function is a single `addu`. Everything above it is the ritual, and all of it comes from the two parameter declarations."
 ---
 
-# The stores that go nowhere
+# Stores that are never read
 
-Give a function a narrow parameter and IDO opens it with a ceremony that
-baffles everyone the first time. Here's `add_bytes` — the *entire* C is
-`return a + b` on two `s8`s:
+When a function has a narrow parameter, IDO starts it with a sequence of
+instructions that confuses most people the first time they see it. Here is
+`add_bytes`. Its *entire* C body is `return a + b` on two `s8`s:
 
 ```c
 s32 add_bytes(s8 a, s8 b) {
@@ -38,33 +38,37 @@ jr    ra
 nop
 ```
 
-Eight instructions for a one-line function, and here's the strange part:
-**nothing ever reads `0(sp)` or `4(sp)`**. The `sra` results come from
-registers. The two `sw`s are dead stores — written, never loaded, entirely
-removable — and IDO emits them at `-O2`, every time, for every narrow
-argument. This is **argument homing**: the four argument registers each
-own a reserved stack slot (`a0`→`0(sp)`, `a1`→`4(sp)`, and so on — the
-next tier tours that arrangement properly), and narrow arguments get
-parked in theirs, ritually, whether or not anyone comes to visit.
+That is eight instructions for a one-line function, and something about them
+is odd: **nothing ever reads `0(sp)` or `4(sp)`**. The `sra` instructions take
+their inputs from registers. The two `sw`s are dead stores. They are written
+and never loaded, so they could be removed completely. Even so, IDO emits them
+at `-O2`, every time, for every narrow argument.
 
-The second half of the ceremony is one you can now read: the caller wasn't
-required to deliver a clean 8-bit value in a 32-bit register, so the
-function **re-extends each narrow argument** before using it — the signed
-shift-pair or the unsigned mask, exactly the truncation idioms of the last
-two lessons, keyed to each parameter's declared type.
+This is **argument homing**. Each of the four argument registers has its own
+reserved stack slot (`a0`→`0(sp)`, `a1`→`4(sp)`, and so on; the next tier
+covers this layout properly). IDO stores each narrow argument in its slot,
+whether or not anything reads it later. It always does this, so this course
+calls it the homing ritual.
 
-Why you care, practically:
+You can already read the second part of the sequence. The caller did not have
+to pass a clean 8-bit value in the 32-bit register, so the function
+**re-extends each narrow argument** before it uses it. It uses the signed shift
+pair or the unsigned mask, the same truncation idioms as in the last two
+lessons, chosen by each parameter's declared type.
 
-- `sw`s into small positive `sp` offsets at the top of a leaf function =
-  **narrow parameters**. It's among the strongest type oracles there is —
-  the count of homing stores even tells you *how many* args are narrow.
-- Match the re-extension to the type: shift-pair ⇒ signed (`s8`/`s16` by
-  amount), `andi` ⇒ unsigned (`u8`/`u16` by mask).
-- You cannot suppress the ritual and you don't want to — declare the
-  types the assembly asks for, and all eight lines fall out of one `+`.
+Here is why this matters in practice:
 
-The target adds its arguments too, but they're narrow in *different
-ways* — let each argument's re-extension tell you its declaration.
+- `sw`s into small positive `sp` offsets at the top of a leaf function mean
+  **narrow parameters**. This is one of the strongest type oracles there is.
+  The number of homing stores even tells you *how many* arguments are narrow.
+- Match the re-extension to the type. A shift pair means signed (`s8` or
+  `s16`, chosen by the amount). An `andi` means unsigned (`u8` or `u16`,
+  chosen by the mask).
+- You cannot turn the ritual off, and you do not need to. Declare the types
+  that the assembly asks for, and all eight lines come from one `+`.
+
+The target also adds its arguments, but each one is narrow in a *different
+way*. Use each argument's re-extension to find its declaration.
 
 ## Your task
 

@@ -8,31 +8,31 @@ concepts:
   - fixed-point
   - narrow-types
 hints:
-  - "`mov r1, #10` is not a number, it is a struct offset. Thumb's `ldrsh` has
-    no immediate-offset form, so the field offset has to be loaded into a
-    register first - look at which field of `Actor` lives there."
-  - "`mov r0, #128` / `lsl r0, #3` builds 1024, and the `ble` that jumps over
-    the `mov` after it is an `if` with its condition inverted. `ldr`/`str`
-    touch the 32-bit fields, `ldrsh`/`strh` the 16-bit ones."
-  - "One `Actor *` goes in, nothing comes out. Three fields are written; the
-    clamped velocity is used for the store and the integration both, and the
-    horizontal axis is handled last with no clamp at all."
+  - "The value in `mov r1, #10` is a struct offset. Thumb's `ldrsh` has no
+    immediate-offset form, so the field offset has to be loaded into a register
+    first. Check which field of `Actor` is at that offset."
+  - "`mov r0, #128` / `lsl r0, #3` builds 1024. The `ble` that jumps over the
+    `mov` after it is an `if` with its condition inverted. `ldr`/`str` access
+    the 32-bit fields, and `ldrsh`/`strh` access the 16-bit ones."
+  - "One `Actor *` goes in, and nothing comes out. Three fields are written. The
+    clamped velocity is used twice, for the store and for the integration. The
+    horizontal axis is handled last, with no clamp."
 symbol: func_0841e19c
 ---
 
-# Gravity, in fixed point
+# Gravity in fixed point
 
-There is no FPU, so a GBA actor's position is an integer holding a fixed-point
-number - typically eight fractional bits, so 256 means one pixel. Velocity gets
-the same treatment in a narrower field, because a speed needs far less range
-than a position does. Every frame the game adds gravity to the vertical speed,
-stops it running away by clamping it to a terminal value, and adds the result to
-the position.
+The GBA has no FPU, so an actor's position is an integer that holds a
+fixed-point number. It usually has eight fractional bits, so 256 means one
+pixel. Velocity is stored the same way in a narrower field, because a speed
+needs much less range than a position. Every frame, the game adds gravity to
+the vertical speed. It clamps that speed to a terminal value so it cannot keep
+growing. Then it adds the result to the position.
 
-Reading that narrow field is where the machine gets in the way. Thumb has an
-`ldrsh` but only in the register-offset form - there is no
-`ldrsh r0, [r1, #10]` - so the compiler has to put the offset in a register
-before it can load:
+Loading the narrow field takes an extra step on this machine. Thumb has
+`ldrsh`, but only in the register-offset form, where the offset comes from a
+register. There is no `ldrsh r0, [r1, #10]`, so the compiler has to put the
+offset in a register before it can load:
 
 ```asm
 0        mov       r1, #0
@@ -40,14 +40,14 @@ before it can load:
 4        bx        lr
 ```
 
-That `mov r1, #0` is not data. It is a zero index the instruction insists on,
-for a field that sits at offset 0. A field further into the struct puts its own
-offset in that register, so a `mov rN, #6` next to an `ldrsh` means offset six
-in the structure, not the number six.
+Here `mov r1, #0` loads the offset that the instruction requires. This field is
+at offset 0, so the offset is zero. For a field further into the struct, that
+register holds the field's offset instead. So when you see a `mov rN, #6` next
+to an `ldrsh`, read the six as an offset into the structure.
 
-The clamp is the other half. An `if` that assigns a bound compiles to a compare
-and a branch that jumps *over* the assignment, so the condition you read is the
-opposite of the one that was written:
+The second thing to know is how a clamp compiles. An `if` that assigns a bound
+becomes a compare and a branch that jumps *over* the assignment. So the
+condition you read in the assembly is the opposite of the one in the source:
 
 ```asm
 0        ldr       r1, [pc, #16] (->20)
@@ -64,14 +64,15 @@ opposite of the one that was written:
 24       .word     2047
 ```
 
-Two clamps, two pool words, and the first of them is worth a second look:
-4294965248 is how the workspace renders -2048, because pool words print as
-unsigned decimals. A pool word within a few thousand of 4294967296 is a small
-negative number in the source; subtract it from 2^32 to read it back.
+This code has two clamps, and each one loads its bound from a pool word. Look
+closely at the first one. 4294965248 is how the workspace shows -2048, because
+pool words are printed as unsigned decimal numbers. If a pool word is within a
+few thousand of 4294967296, it is a small negative number in the source.
+Subtract it from 2^32 to read it back.
 
-Your target's bound is small enough that agbcc builds it with a `mov` and a
-shift instead of spending a pool word, and its narrow field is not at offset
-zero. Map every offset back to a field name before you write anything.
+In your target, the bound is small enough that agbcc builds it with a `mov` and
+a shift, so it needs no pool word. Its narrow field is also not at offset zero.
+Before you write anything, match every offset to a field name.
 
 ## Your task
 

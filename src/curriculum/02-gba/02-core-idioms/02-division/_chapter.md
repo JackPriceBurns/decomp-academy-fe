@@ -1,4 +1,4 @@
 ---
-title: The Missing Divider
-blurb: "The ARM7TDMI cannot divide, so every division is a function call — or a shift."
+title: Division
+blurb: The ARM7TDMI has no divide instruction, so each division becomes a function call or a shift.
 ---

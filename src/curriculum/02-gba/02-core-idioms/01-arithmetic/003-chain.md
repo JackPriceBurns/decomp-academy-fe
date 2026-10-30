@@ -10,18 +10,18 @@ concepts:
 symbol: func_0803c6d8
 hints:
   - The first instruction does not produce the return value. Work out which two
-    values it combines, then treat that result as a single quantity when you
-    read the second line.
-  - "Three `s32` parameters in, an `s32` out. The last instruction subtracts the
-    value `r0` is holding from the third parameter, so `r0` was a bracketed
-    subexpression."
+    values it combines, then treat that result as a single value when you read
+    the second line.
+  - The function takes three `s32` parameters and returns an `s32`. The last
+    instruction subtracts the value in `r0` from the third parameter, so `r0`
+    held a subexpression in brackets.
 ---
 
-# Where the brackets went
+# Finding the brackets
 
-Three values and two instructions leaves gcc a choice: which pair does it
-combine first? It never guesses, and it never rearranges your arithmetic to suit
-itself. The order in the listing is the order in the source.
+With three values and two instructions, gcc has to decide which pair to combine
+first. It always follows the source and never rearranges your arithmetic to
+suit itself. The order in the listing is the order in the source.
 
 Here is a left-to-right sum, `(x + y) + z`:
 
@@ -31,10 +31,10 @@ Here is a left-to-right sum, `(x + y) + z`:
 4        bx        lr
 ```
 
-The accumulator is `r0` from the first instruction onwards. Each `add` folds one
-more value into the running total.
+From the first instruction onwards, `r0` holds the running total. Each `add`
+adds one more value to it.
 
-Now the same three values bracketed the other way, `x + (y + z)`:
+Now the same three values with the brackets the other way, `x + (y + z)`:
 
 ```asm
 0        add       r1, r2
@@ -42,22 +42,22 @@ Now the same three values bracketed the other way, `x + (y + z)`:
 4        bx        lr
 ```
 
-`r1` is written first, holding `y + z`, and only then does `x` join in. Same
-answer, different instructions, because agbcc will not reassociate an expression
-even when the arithmetic would allow it. **The register written first holds the
-innermost subexpression** — which means you can recover the brackets from the
-listing every time.
+`r1` is written first and holds `y + z`. Only after that is `x` added. The
+answer is the same but the instructions are different, because agbcc does not
+regroup (reassociate) an expression, even when the arithmetic would allow it.
+**The register written first holds the innermost subexpression.** This means
+you can recover the brackets from the listing every time.
 
-That is worth noticing, because it is unusual. A modern compiler would
-canonicalise both of these into one shape and the association would be gone by
-the time you saw the object file. Here it survives.
+This is unusual. A modern compiler would rewrite both of these into one
+standard form, so by the time you saw the object file, the grouping would be
+lost. With agbcc, the grouping is still in the listing.
 
-Combine that with the direction rule from the last lesson and a two-instruction
-listing can pin down a three-value expression exactly: the first line tells you
-which pair was bracketed, and the operand positions in the second tell you which
-way round the remaining subtraction runs.
+Add the direction rule from the last lesson, and a listing of two instructions
+gives you a three-value expression exactly. The first line tells you which pair
+was in brackets. The operand positions in the second line tell you which way
+round the remaining subtraction goes.
 
-Your target is two instructions, and the second one names `r0` twice.
+Your target has two instructions, and the second one names `r0` twice.
 
 ## Your task
 

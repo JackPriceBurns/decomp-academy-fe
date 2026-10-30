@@ -9,15 +9,15 @@ concepts:
   - jalr
 symbol: func_800dacfc
 hints:
-  - "The `lw` into `t9` reads the function pointer — its offset tells you which field of `Sprite` is being called."
-  - "The call takes no arguments and the whole function is just that one call. The frame lines come free when you write it."
+  - "The `lw` into `t9` reads the function pointer. Its offset tells you which field of `Sprite` is being called."
+  - "The call takes no arguments, and the whole function is that one call. When you write it, the compiler adds the frame lines for you."
 ---
 
 # obj->handler()
 
-Game objects carry *behavior* as data: a struct field that holds a
-function's address. Calling it is one load plus one new instruction.
-Here's `runThink`, which invokes an actor's `think` callback:
+Game objects often store *behavior* as data: a struct field that holds the
+address of a function. Calling it takes one load plus one new instruction.
+Here is `runThink`, which calls an actor's `think` callback:
 
 ```c
 typedef struct {
@@ -31,34 +31,34 @@ void runThink(Actor *a) {
 ```
 
 ```asm
- 0:  addiu sp, sp, -24   # ── frame setup
+ 0:  addiu sp, sp, -24   # frame setup
  4:  sw    ra, 20(sp)    #    save the return address
  8:  lw    t9, 4(a0)     # load the function POINTER field
  c:  jalr  t9            # call whatever address t9 holds
 10:  nop                 # (delay slot)
-14:  lw    ra, 20(sp)    # ── frame teardown
+14:  lw    ra, 20(sp)    # frame teardown
 18:  addiu sp, sp, 24    #
 1c:  jr    ra
 20:  nop
 ```
 
-The heart is two lines. `lw t9, 4(a0)` reads the field at offset 4 —
-not a value to compute with, but an *address to jump to*. Then
-**`jalr t9`** — jump-and-link register — calls it: jump to the address
-in `t9`, leaving the return address in `ra`, exactly what `jal name`
-does when the destination is known at compile time. IDO always stages
-an indirect call through `t9`; treat `lw t9` + `jalr t9` as one unit
-meaning *"call the function stored here."*
+The important part is two lines. `lw t9, 4(a0)` reads the field at offset 4.
+The value it loads is an *address to jump to*. Then **`jalr t9`**
+(jump-and-link register) calls it. It jumps to the address in `t9` and leaves
+the return address in `ra`. This is what `jal name` does when the destination
+is known at compile time. IDO always makes an indirect call through `t9`.
+Treat `lw t9` + `jalr t9` as one unit that means *"call the function stored
+here."*
 
-And notice what the call *cost*: four lines of scaffolding. The moment
-a function calls anything, its own `ra` gets overwritten by the call —
-so it must park `ra` on the stack first (`addiu sp`/`sw ra`) and
-restore it after (`lw ra`/`addiu sp`). That's a **stack frame**, and
-the next tier is all about them. For now, read the four lines as one
-fixed sandwich around any call and don't let them distract you.
+Also notice what the call *costs*: four extra lines. As soon as a function
+calls anything, the call overwrites the function's own `ra`. So the function
+must save `ra` on the stack first (`addiu sp`/`sw ra`) and restore it
+afterwards (`lw ra`/`addiu sp`). That is a **stack frame**, and the next tier
+covers stack frames in detail. For now, read the four lines as one fixed
+wrapper around any call, and don't let them distract you.
 
-In the target, a `Sprite`'s callback gets invoked — check the `lw t9`
-offset against the layout below to see which field that is.
+In the target, a `Sprite`'s callback is called. Check the `lw t9` offset
+against the layout below to see which field that is.
 
 ## Your task
 

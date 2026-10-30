@@ -10,25 +10,25 @@ concepts:
 symbol: answer
 hints:
   - The number the target moves into r0 is the number the function returns.
-  - A one-line `return` of that value is the whole function — the `mov` and the
-    `bx lr` are the compiler's job, not yours.
+  - A one-line `return` of that value is the whole function. The compiler
+    produces the `mov` and the `bx lr` for you.
 ---
 
 # Your first match
 
-One more fact ties the last lesson together: **`r0` is where a function's return
-value lives**. Whatever sits in `r0` when `bx lr` runs is what the caller
+One more fact connects the ideas from the last lesson: **`r0` holds a function's
+return value**. Whatever is in `r0` when `bx lr` runs is what the caller
 receives.
 
-So a function that returns a constant has almost nothing to do. Drop the number
-into `r0`, return. Here is one that hands back seven:
+So a function that returns a constant has very little to do. It puts the number
+into `r0` and returns. Here is one that returns seven:
 
 ```asm
 0        mov       r0, #7
 2        bx        lr
 ```
 
-Written in C, that is simply:
+Written in C, that is:
 
 ```c
 s32 answer7(void) {
@@ -37,13 +37,14 @@ s32 answer7(void) {
 ```
 
 (`s32` is this course's name for a signed 32-bit integer. Real GBA projects use
-`s8`/`u8`/`s16`/`u16`/`s32`/`u32` names everywhere rather than `int` and `short`,
-so this course does too. They are already defined for you in every exercise.)
+the names `s8`/`u8`/`s16`/`u16`/`s32`/`u32` everywhere instead of `int` and
+`short`, so this course does too. They are already defined for you in every
+exercise.)
 
 ## Your task
 
-Your target uses a different number, so read the **Target asm** panel and write
-the C. Hit **Compile & Check** (or ⌘/Ctrl + Enter) to see how you did.
+Your target uses a different number. Read the **Target asm** panel and write the
+C. Press **Compile & Check** (or ⌘/Ctrl + Enter) to see how you did.
 
 <!-- starter -->
 ```c

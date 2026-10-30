@@ -1,7 +1,7 @@
 ---
 id: 3baf8882-cbfa-44b7-9130-e50b940d9bc8
 slug: int64-bitwise-halves
-title: Two Halves, No Crosstalk
+title: Bitwise Operations on Each Half
 difficulty: 2
 concepts:
   - int64
@@ -9,20 +9,20 @@ concepts:
   - register-pairing
 symbol: func_802ebe20
 hints:
-  - "Same skeleton as the worked example — only the pairwise operation differs. Read its mnemonic."
-  - "Label the four loaded registers as a-high, a-low, b-high, b-low first; the two combining instructions then read themselves."
+  - "This has the same structure as the worked example. Only the operation applied to each pair is different, so read its mnemonic."
+  - "First label the four loaded registers as a-high, a-low, b-high and b-low. Then the two combining instructions show you what happens to each half."
 ---
 
-# The easy 64-bit operations
+# The simplest 64-bit operations
 
-Start with the 64-bit operations that barely notice they're 64-bit. A bitwise
-operation treats every bit independently — no carries, no crossings — so on a
-split value it's simply *the same instruction twice*: once for the high
-words, once for the low. Here's `mask64(a, b)`, which returns `a & b` for two
-`s64`s:
+Start with the 64-bit operations that are least affected by the split. A
+bitwise operation treats every bit independently. Nothing carries from one bit
+to the next, so on a split value it is *the same instruction twice*: once for
+the high words and once for the low words. Here is `mask64(a, b)`, which
+returns `a & b` for two `s64`s:
 
 ```asm
-sw     a0, 0(sp)      # ── the homing ritual: two s64s, four words ──
+sw     a0, 0(sp)      # homing stores: two s64s, four words
 sw     a1, 4(sp)
 sw     a2, 8(sp)
 sw     a3, 12(sp)
@@ -30,24 +30,25 @@ lw     t6, 0(sp)      # a-high
 lw     t7, 4(sp)      # a-low
 lw     t8, 8(sp)      # b-high
 lw     t9, 12(sp)     # b-low
-and    v0, t6, t8     # high halves meet…
-and    v1, t7, t9     # …low halves meet
+and    v0, t6, t8     # high halves combined…
+and    v1, t7, t9     # …low halves combined
 jr     ra
 nop
 ```
 
-Ten instructions of ceremony, two of substance. Practice the labeling drill
-from last lesson: offsets 0/4 are the first argument's high and low, 8/12
-the second's. Once the four `lw`s wear names, the payload is transparent —
-high-with-high into `v0`, low-with-low into `v1`, and the pairs never
-exchange a bit.
+Ten of these instructions are overhead, and only two do the real work.
+Practice the labeling from the last lesson: offsets 0/4 hold the first
+argument's high and low words, and 8/12 hold the second argument's. Once you
+have named the four `lw`s, the result is clear. High is combined with high
+into `v0`, low is combined with low into `v1`, and no bits move between the
+two pairs.
 
-This "same op, twice" shape covers `&`, `|`, and `^` on 64-bit values. When
-you see it — four homing stores, four loads, two identical mnemonics writing
-`v0` and `v1` — the C is one operator between two `s64` arguments. The only
-question left is *which* operator, and the mnemonic answers it.
+This "same operation twice" shape covers `&`, `|` and `^` on 64-bit values.
+When you see it (four homing stores, four loads, and two instructions with the
+same mnemonic writing `v0` and `v1`), the C is one operator between two `s64`
+arguments. The mnemonic tells you which operator it is.
 
-The target swaps in a different bitwise instruction. Same drill.
+The target uses a different bitwise instruction. Read it the same way.
 
 ## Your task
 

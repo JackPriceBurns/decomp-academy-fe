@@ -9,21 +9,22 @@ concepts:
   - stack
 symbol: func_082ef4cc
 hints:
-  - One register is pushed alongside `lr`, so subtract those eight bytes from
-    the load's offset before working out which argument slot it reads.
-  - Five `s32` parameters in, an `s32` out. The stack argument joins the first
-    one, the second and third make a difference, and the fourth is added last.
+  - One register is pushed along with `lr`. Subtract those eight bytes from the
+    load's offset before you work out which argument slot it reads.
+  - The function takes five `s32` parameters and returns an `s32`. The stack
+    argument is paired with the first one, the second and third form a
+    difference, and the fourth is added last.
 ---
 
 # Where argument five lives
 
-`r0`-`r3` hold four arguments and there is no fifth argument register, so
-everything past four travels in memory. The caller writes those words into a
-block at the bottom of its own frame and branches; on entry to the callee they
-sit immediately above `sp`, in order, four bytes apart.
+`r0` to `r3` hold four arguments, and there is no register for a fifth. So
+every argument after the fourth is passed in memory. The caller writes those
+words into a block at the bottom of its own frame, and then branches. When the
+callee starts, they sit just above `sp`, in order, four bytes apart.
 
-In a function that has not moved `sp` at all, that makes argument five
-`[sp, #0]`, argument six `[sp, #4]`, and so on. This leaf reads its fifth
+In a function that has not moved `sp` at all, this puts argument five at
+`[sp, #0]`, argument six at `[sp, #4]`, and so on. This leaf reads its fifth
 argument and its first:
 
 ```asm
@@ -34,9 +35,9 @@ argument and its first:
 8        bx        lr
 ```
 
-But `sp` rarely stays put. Every register the prologue pushes moves `sp` down
-four bytes, and every one of those bytes is added to the offset of every
-incoming stack argument. The same fifth argument, in a function that saved `lr`:
+But `sp` rarely stays where it started. Each register the prologue pushes moves
+`sp` down four bytes, and those bytes are added to the offset of every incoming
+stack argument. Here is the same fifth argument in a function that saved `lr`:
 
 ```asm
 0        push      {lr}
@@ -46,20 +47,20 @@ incoming stack argument. The same fifth argument, in a function that saved `lr`:
 10       bx        r1
 ```
 
-So the constant in `ldr rN, [sp, #C]` is not the argument index and not four
-times the argument index. It is
+So the constant in `ldr rN, [sp, #C]` does not equal the argument index, or
+four times the argument index. It is:
 
-    C = 4 * (registers pushed) + (frame size) + 4 * (index - 5)
+    C = 4 * (registers pushed) + (frame size) + 4 * (index-5)
 
-and recovering the index means undoing the prologue first. Behind
-`push {r4, r5, lr}` the fifth argument reads as `[sp, #12]`; behind
-`push {r4, lr}` plus a `sub sp, #16` it reads as `[sp, #24]`. Miscount the
-prologue and you will invent an argument that does not exist.
+To find the index, you must first undo the effect of the prologue. After
+`push {r4, r5, lr}`, the fifth argument is at `[sp, #12]`. After
+`push {r4, lr}` and a `sub sp, #16`, it is at `[sp, #24]`. If you miscount the
+prologue, you will invent an argument that does not exist.
 
-Notice also *when* the load happens: right at the top, before any call. An
-incoming stack argument is read once, early, and kept in a register for the rest
-of the function — which is why a function that only needs one at the very end
-still pays for a callee-saved register to hold it from the start.
+Also notice *when* the load happens: right at the top, before any call. gcc
+reads an incoming stack argument once, early, and keeps it in a register for
+the rest of the function. So a function that needs a stack argument only at the
+very end still pays for a callee-saved register to hold it from the start.
 
 ## Your task
 

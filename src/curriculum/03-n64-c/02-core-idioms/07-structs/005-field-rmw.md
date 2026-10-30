@@ -9,16 +9,16 @@ concepts:
   - shifts
 symbol: func_80276af8
 hints:
-  - "Load and store share one offset — a single field updated in place. The two instructions between them compute the new value."
-  - "The `sll` doubles the argument before it joins the field — a compound assignment whose right side is a small multiply idiom."
+  - "The load and the store use the same offset, so a single field is updated in place. The two instructions between them compute the new value."
+  - "The `sll` doubles the argument before it is combined with the field. This is a compound assignment, and its right side is a small multiply idiom."
 ---
 
-# The sandwich gets a field name
+# The RMW sandwich on a struct field
 
-The read-modify-write sandwich from the pointers chapter —
-load, operate, store, all on one `offset(base)` — is really a *struct*
-idiom in the wild, because the memory games update in place is nearly
-always somebody's field. Ammo, timers, scores:
+In the pointers chapter you saw the read-modify-write (RMW) sandwich: a load,
+an operation and a store, all on the same `offset(base)`. In real game code
+this is mostly a *struct* idiom. The memory that games update in place is
+nearly always a field of some struct, such as ammo, a timer or a score:
 
 ```c
 typedef struct {
@@ -39,19 +39,19 @@ jr    ra
 nop
 ```
 
-Same offset on the `lw` and the `sw`, so it's one field round-tripping.
-With the struct in scope the decompiled line names it: `g->ammo -= 1;`
-(or `g->ammo--;` — identical output, pick what reads best).
+The `lw` and the `sw` use the same offset, so one field is read and then
+written back. With the struct in scope, the decompiled line names the field:
+`g->ammo -= 1;`. You could also write `g->ammo--;`. Both give identical
+output, so use whichever reads best.
 
-The middle of the sandwich can be any idiom you've learned. A constant
-`addiu`, a register `addu`, an `ori` — or a whole shift-built multiply
-from the arithmetic chapter, because the amount being applied is itself
-computed. Read the middle as its own tiny expression, with the loaded
-field flowing in and the stored value flowing out.
+The middle of the sandwich can be any idiom you have learned. It can be a
+constant `addiu`, a register `addu` or an `ori`. When the amount being applied
+is itself computed, it can also be a whole multiply built from shifts, as in
+the arithmetic chapter. Read the middle as its own small expression. The
+loaded field goes in, and the value to store comes out.
 
-That's the target: one field of the `Run` below updated in place, and
-the second argument passes through one shift on its way into the
-update.
+The target does this. It updates one field of the `Run` below in place, and
+the second argument goes through one shift before it is used in the update.
 
 ## Your task
 

@@ -11,61 +11,60 @@ concepts:
 concept: true
 ---
 
-# What you download was never the source
+# What you download is not the source
 
-When a studio ships a game — or anyone ships a piece of software — the thing you
-download is **not** the code the developers wrote. Computers can't run that code
-directly. Before anything ships it has to be **compiled**: translated from the
-human-friendly **source code** the developers typed into the low-level
-**assembly** that the CPU actually understands and runs.
+When a studio ships a game, or when anyone ships a piece of software, the thing
+you download is **not** the code the developers wrote. Computers can't run that
+code directly. Before anything ships, it has to be **compiled**: translated from
+the readable **source code** the developers typed into the low-level
+**assembly** that the CPU understands and runs.
 
-Only that compiled version goes out the door. The source stays behind with the
-developers. Assembly executes perfectly well, but it's miserable to read — all
-registers and raw instructions, none of the names and structure that made the
-original make sense. If you could turn it back into source code, you'd give
-everyone who wants to understand or modify that game a way in.
+Only the compiled version is shipped. The source stays with the developers.
+Assembly runs well, but it is very hard to read. You see registers and raw
+instructions, without the names and structure that made the original code make
+sense. If you could turn it back into source code, anyone who wants to
+understand or change the game would have a way in.
 
-That's **decompilation**: taking the shipped, compiled program and working it
+That is **decompilation**: taking the shipped, compiled program and working it
 back toward the source it came from.
 
 # What "matching" adds
 
-Matching decompilation adds one harder constraint. Source code that is
-*functionally identical* can compile to *different* assembly — two C functions
-that behave the same may come out as different instructions.
+Matching decompilation adds one harder rule. Source code that is *functionally
+identical* can compile to *different* assembly. Two C functions that behave the
+same may produce different instructions.
 
-For ordinary decompilation, that doesn't matter. If you've written C that does
-what the assembly does, you've won; that's usually the end of the battle.
-**Matching decompilation** takes it further. You compile your C back into
-assembly a *second* time and ask a stricter question: does it produce *exactly*
-the same assembly as the original? If it doesn't — even when the behaviour is
-identical — the job isn't done.
+For ordinary decompilation, that doesn't matter. If you have written C that does
+what the assembly does, you are usually done. **Matching decompilation** goes
+further. You compile your C into assembly a *second* time and ask a stricter
+question: does it produce *exactly* the same assembly as the original? If it
+doesn't, the job isn't done, even when the behaviour is identical.
 
-Why hold yourself to that harder bar? Two reasons make it worth it:
+This harder standard is worth it for two reasons:
 
-- **You get a number.** Compile your C and diff the result against the target
-  instruction by instruction, and out falls an exact percentage of how close you
-  are. Without a metric like that, "how much is left?" is hand-wavey, and
-  collaborating with other people is awkward — nobody can really tell how far
-  along a project is until it's suddenly done. With it, everyone can see exactly
-  what's finished and what isn't.
+- **You get a number.** Compile your C and compare the result with the target,
+  instruction by instruction, and you get an exact percentage of how close you
+  are. Without a measure like that, nobody can say how much work is left, and
+  working with other people is awkward. Nobody can tell how far along a project
+  is until it is suddenly finished. With it, everyone can see exactly what is
+  finished and what isn't.
 - **You get certainty.** If your source compiles to the target assembly 100%, bit
-  for bit, you have *categorically proven* it behaves like the original. There's
-  no room left for a subtle difference to hide.
+  for bit, you have *proven* that it behaves like the original. No small
+  difference can be hidden.
 
-Matching is harder than plain decompilation, but that measurable, provable
-result is the payoff. It's also the loop you'll run here: every exercise shows
-you the target assembly, you write the C you think produced it, and
-**Compile & Check** feeds it to the genuine **IDO 5.3** compiler — the SGI IRIX
-compiler that Nintendo's N64 toolchain was built around — then diffs the output
-line by line. Match all of it and you score **100%**.
+Matching is harder than plain decompilation, but you get a result you can
+measure and prove. It is also how every exercise here works. Each exercise shows
+you the target assembly, and you write the C you think produced it.
+**Compile & Check** passes your C to the real **IDO 5.3** compiler (the SGI IRIX
+compiler that Nintendo's N64 toolchain was built around), then compares the
+output line by line. Match all of it and you score **100%**.
 
 # The real goal
 
-Under all of it sits one aim: to recover the C the original developers actually
-wrote, years ago, when the game was made.
+Behind all of this is one aim: to recover the C that the original developers
+wrote years ago, when the game was made.
 
-Whether you're here for the nostalgia, the grind, the mods you'll build on top,
-or the bugs you'll hunt — this site is built to get you up to speed and
-contributing to a project. Next, let's look at what MIPS assembly actually is,
-and how to read it.
+You might be here for nostalgia, for the work itself, for the mods you will
+build, or for the bugs you will hunt. In every case, this site is built to get
+you up to speed and contributing to a project. The next lesson explains what
+MIPS assembly is and how to read it.

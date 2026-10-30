@@ -1,7 +1,7 @@
 ---
 id: 216920ec-f848-4f55-9fc3-f4dfe14106fa
 slug: abi-four-args
-title: Four Arguments, Four Registers
+title: The Four Argument Registers
 difficulty: 1
 concepts:
   - abi
@@ -9,18 +9,19 @@ concepts:
   - arithmetic
 symbol: func_8005a480
 hints:
-  - "Walk the chain top to bottom and track what each temporary holds — every line folds one more argument in."
+  - "Read the chain from top to bottom and track what each temporary holds. Each line adds or subtracts one more argument."
   - "The mnemonic on each line tells you whether that argument is added or subtracted."
 ---
 
 # a0 through a3, in order
 
-You've been living on one or two arguments so far. The o32 calling convention —
-the contract every function in this game obeys — hands a function its first
-**four** word-sized arguments in registers, in declaration order: `a0`, `a1`,
-`a2`, `a3`. No loads, no setup; they're just *there* when the function starts.
+So far your functions have taken one or two arguments. The o32 calling
+convention is the set of rules that every function in this game follows. It
+passes the first **four** word-sized arguments in registers, in the order they
+are declared: `a0`, `a1`, `a2`, `a3`. The function does not load them or set
+them up. They are already in those registers when the function starts.
 
-Here's `blend4(a, b, c, d)`, which computes `(a + b) - (c + d)`:
+This is `blend4(a, b, c, d)`, which computes `(a + b) - (c + d)`:
 
 ```asm
 addu  t6, a0, a1    # a + b
@@ -30,16 +31,16 @@ jr    ra
 nop
 ```
 
-All four registers show up exactly once, in order. But look closer: the C said
-"subtract the sum `c + d`", and the assembly never computes that sum. IDO
-**re-associated** the expression into one left-to-right chain — subtracting a
-sum is the same as subtracting each piece, so it folds one argument in per
-instruction and never needs a second temporary chain.
+All four registers appear exactly once, in order. Now look at the C again. It
+subtracts the sum `c + d`, but the assembly never computes that sum. IDO
+**re-associated** the expression into one chain that runs left to right.
+Subtracting a sum is the same as subtracting each part, so the compiler handles
+one argument per instruction and never needs a second chain of temporaries.
 
-That's the general reading technique for these: don't try to match parentheses.
-Walk the chain line by line, note whether each argument is added or subtracted,
-and write the flattened expression. Any C spelling with the same meaning
-compiles to the same chain.
+This gives you a general way to read code like this. Don't try to match
+parentheses. Read the chain line by line, note whether each argument is added
+or subtracted, and write the flattened expression. Any C expression with the
+same meaning compiles to the same chain.
 
 ## Your task
 

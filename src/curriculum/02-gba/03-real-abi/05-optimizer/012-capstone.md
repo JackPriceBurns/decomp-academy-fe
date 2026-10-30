@@ -9,23 +9,24 @@ concepts:
   - globals
 symbol: func_083e942c
 hints:
-  - The `mul` result stays in `r2` from address 22 all the way to the
-    `add r0, r2, r0` at 34, which adds it to something derived from itself.
-    Give it a name once and use that name twice in one expression.
-  - "`extern s32 gGain;` is declared for you. Two parameters, an `s32` out: a
-    pointer to signed halfwords walked forwards, and a count. The divisor is 8
-    and it is a signed `/`, not a shift."
+  - The `mul` result stays in `r2` from address 22 until the `add r0, r2, r0`
+    at 34, which adds it to a value computed from itself. Give it a name once,
+    and use that name twice in one expression.
+  - "`extern s32 gGain;` is declared for you. The function takes two parameters
+    and returns an `s32`. The first is a pointer to signed halfwords that moves
+    forward, and the second is a count. The divisor is 8, and it is a signed
+    `/` rather than a shift."
 ---
 
-# Everything at once
+# Several passes in one loop
 
-Each pass in this chapter is predictable on its own. Constants fold, invariants
-lift, multiplies become adds, tails merge. What you cannot predict is what
-happens when two of them meet in the same loop. There you write a candidate,
-compile it, read the listing and adjust.
+Each pass in this chapter is predictable on its own. Constants fold, loop
+invariants are hoisted, multiplies become adds and shared endings merge. What
+you cannot predict is what happens when two passes act on the same loop. In
+that case you write a candidate, compile it, read the listing and adjust.
 
-Here is a loop that halves every element of an array twice over and adds a
-global. Written with a shift:
+Here is a loop that halves every element of an array twice and adds a global.
+First, written with a shift:
 
 ```asm
 0        mov       r2, r0
@@ -47,10 +48,11 @@ global. Written with a shift:
 32       .word     gShift
 ```
 
-Seventeen rows, no stack frame. The pool word is loaded at 6, the global is
-dereferenced at 8, and both sit above the loop. The signed halfword is read
-with a plain `ldrh` and sign-extended by a shift pair that also absorbs the
-`>> 2`, which is why the second shift is `asr #18` rather than `asr #16`.
+This is seventeen rows with no stack frame. The pool word is loaded at 6 and the
+global is dereferenced at 8, and both are above the loop. The signed halfword is
+read with a plain `ldrh`. A pair of shifts then sign-extends it, and the same
+pair also does the `>> 2`. That is why the second shift is `asr #18` instead of
+`asr #16`.
 
 Now the same loop with `>> 2` written as `/ 4`:
 
@@ -80,27 +82,29 @@ Now the same loop with `>> 2` written as `/ 4`:
 44       .word     gShift
 ```
 
-Twenty-three rows and a callee-saved register, for a change that alters the
-result only for negative inputs. The rounding correction brings a conditional
-branch, the branch costs a register, the extra pressure pushes the load into the
-`ldrsh` form that needs its own zero index register — and that `mov r0, #0` is
-rebuilt at the top of every trip even though it never changes.
+This is twenty-three rows and a callee-saved register, for a change that only
+affects the result for negative inputs. The rounding correction adds a
+conditional branch, and the branch costs a register. The extra register
+pressure pushes the load into the `ldrsh` form, which needs its own index
+register holding zero. That `mov r0, #0` is rebuilt at the top of every trip,
+even though it never changes.
 
-The part worth remembering is at address 24. The global's **dereference** did
-not get hoisted. Its address did: `ldr r4, [pc, #36]` is up in the preheader at
-6, exactly where the shift version put it. Only the `ldr r0, [r4, #0]` stayed
-behind, and it now runs once per element.
+The important part is at address 24. The global's **dereference** was not
+hoisted. Its address was: `ldr r4, [pc, #36]` is in the preheader at 6, in the
+same place as in the shift version. Only the `ldr r0, [r4, #0]` stayed in the
+loop, and it now runs once per element.
 
-Neither ingredient causes that alone. The shift version stores to memory every
-trip and hoists anyway, and a loop carrying the same rounding branch without a
-store hoists too. It takes a store *and* a branch in the same body before gcc
-2.9's invariant motion leaves the value load behind, and no amount of reasoning
-about the source gets you there — you find it by compiling and comparing.
+Neither the store nor the branch causes this on its own. The shift version
+stores to memory every trip and still hoists the load. A loop with the same
+rounding branch but no store hoists it too. gcc 2.9's invariant motion leaves
+the value load in the loop only when the body has a store *and* a branch. You
+cannot work this out by reasoning about the source. You find it by compiling
+and comparing.
 
-Your target has the branch and no store, so its dereference sits where the
-shift version put it. What is left to work out is the arithmetic: count the
-readers of the multiply's result, and find the loop-invariant register that is
-rebuilt every trip regardless.
+Your target has the branch but no store, so its dereference is where the shift
+version put it. What is left to work out is the arithmetic. Count the
+instructions that read the multiply's result. Also find the loop-invariant
+register that is rebuilt every trip anyway.
 
 ## Your task
 

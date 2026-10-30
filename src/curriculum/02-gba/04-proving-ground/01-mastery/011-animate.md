@@ -8,30 +8,31 @@ concepts:
   - structs
   - globals
 hints:
-  - "`lsl #24` / `lsr #24` sitting between an `add` and a `cmp` is a `u8` field
-    being truncated before it is compared. There are two of them, so there are
-    two counters, each incremented and then tested against a limit."
-  - "`mov r1, #0` near the top is the value that both `strb` resets store,
-    hoisted above the branch that needs it. And the frame index is loaded back
-    out of the struct after being stored, rather than reused from a register."
-  - "One `Anim *` goes in and nothing comes out. `timer` advances on every call;
-    the frame advance, the wrap and the table read all live inside the `if` that
-    the timer trips."
+  - "`lsl #24` / `lsr #24` between an `add` and a `cmp` truncates a `u8` field
+    before it is compared. There are two of them, so there are two counters.
+    Each one is incremented and then tested against a limit."
+  - "`mov r1, #0` near the top is the value that both `strb` resets store. The
+    compiler moved it above the branch that needs it. Also, the frame index is
+    loaded back out of the struct after it is stored, instead of being reused
+    from a register."
+  - "One `Anim *` goes in and nothing comes out. `timer` advances on every
+    call. The frame advance, the wrap and the table read are all inside the
+    `if` that the timer triggers."
 symbol: func_08427084
 ---
 
 # One frame at a time
 
-A sprite's animation state is four counters and a tile number, and it is kept
-small on purpose - a game with two hundred entities cannot afford a word per
-field. So the timer, the rate, the frame index and the frame count are all `u8`,
-packed into the front of the struct, and the tile number that gets pushed into
-OAM follows them.
+A sprite's animation state is four counters and a tile number. It is kept small
+on purpose, because a game with two hundred entities cannot use a whole word for
+each field. So the timer, the rate, the frame index and the frame count are all
+`u8`, packed at the front of the struct. The tile number that is sent to OAM
+comes after them.
 
 Byte fields are cheap in memory and expensive in registers. A `u8` loaded with
-`ldrb` arrives clean, but the moment you add to it the result can be 256, and
-the value that must be compared is the *truncated* one. agbcc therefore
-re-narrows before every comparison, and it has two ways of doing it:
+`ldrb` arrives clean. As soon as you add to it, the result can be 256, and the
+value that must be compared is the *truncated* one. So agbcc narrows the value
+again before every comparison. It has two ways to do this:
 
 ```asm
 0        lsl       r1, #24
@@ -47,13 +48,14 @@ re-narrows before every comparison, and it has two ways of doing it:
 ```
 
 Here it shifts *both* sides up by 24 and compares them at the top of the
-register. Unsigned ordering survives a common left shift, so that is one
-instruction cheaper than bringing each value back down - and it means a bare
-`lsl #24` with no matching `lsr` is a narrowing, not a multiply. When only one
-side needs it, you get the familiar `lsl #24` / `lsr #24` pair instead.
+register. Shifting both values left by the same amount keeps their unsigned
+order, and this costs one instruction less than shifting each value back down.
+So when you see a `lsl #24` with no matching `lsr`, read it as a narrowing
+instead of a multiply. When only one side needs narrowing, you get the familiar
+`lsl #24` / `lsr #24` pair instead.
 
-The other half of your target is a table read. Frame tiles live in an array in
-ROM, and reaching one looks like this:
+The other part of your target is a table read. Frame tiles are stored in an
+array in ROM, and reading one looks like this:
 
 ```asm
 0        ldr       r2, [pc, #12] (->16)
@@ -67,19 +69,19 @@ ROM, and reaching one looks like this:
 16       .word     gSineTable
 ```
 
-The pool word carries the array's address by name, the index is scaled by the
-element size with a shift, and the two are added to make the final address. The
-`mov r2, #0` before the `ldrsh` is the usual zero index Thumb demands, not a
-value.
+The pool word holds the array's address, shown by name. A shift scales the
+index by the element size, and the two are added to make the final address. The
+`mov r2, #0` before the `ldrsh` is the usual zero index that Thumb requires for
+that load.
 
-Your target nests one of those counters inside the other and finishes with a
-table read. Both of its comparisons take the second form - one side narrowed
-with `lsl #24` / `lsr #24`, the other arriving clean out of an `ldrb` - because
-only one side of each has been through an `add`. Its table read scales and adds
-the same way, but its elements need no sign, so the load is a plain `ldrh` at
-an immediate offset and the zero-index register never appears. Expect the
-compiler to reload a field it has just written rather than keep it live - that
-extra `ldrb` is part of the match.
+Your target puts one of those counters inside the other, and ends with a table
+read. Both of its comparisons use the second form. One side is narrowed with
+`lsl #24` / `lsr #24`, and the other comes clean from an `ldrb`, because only
+one side of each comparison has been through an `add`. Its table read scales and
+adds in the same way. Its elements do not need sign extension, so the load is a
+plain `ldrh` at an immediate offset, and the zero-index register never appears.
+Expect the compiler to reload a field it has just written, instead of keeping it
+in a register. That extra `ldrb` is part of the match.
 
 ## Your task
 

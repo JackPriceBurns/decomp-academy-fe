@@ -1,4 +1,4 @@
 ---
 title: Warm-up
-blurb: Learn to read the MIPS machine
+blurb: Learn to read MIPS assembly
 ---

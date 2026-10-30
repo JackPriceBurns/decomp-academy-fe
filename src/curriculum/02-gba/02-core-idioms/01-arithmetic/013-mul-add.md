@@ -9,18 +9,20 @@ concepts:
   - registers
 symbol: func_0806a380
 hints:
-  - The opening `mov` is setting up a destination for a multiply that has nowhere
-    else to write. Neither factor was in the return register to begin with.
-  - "Four `s32` parameters in, an `s32` out, with the first unused. The second
-    and third are multiplied and the fourth is added on."
+  - The `mov` at the start sets up the destination for the multiply, because
+    `mul` cannot write anywhere else. Neither factor was in the return register
+    at the start.
+  - The function takes four `s32` parameters and returns an `s32`. The first
+    parameter is unused. The second and third are multiplied, and then the
+    fourth is added.
 ---
 
-# Where the product lands
+# Where the product goes
 
 A multiply followed by an addition is the most common arithmetic shape in game
-code — an index times a size, a velocity times a delta, plus an offset. On this
-instruction set the reading is mechanical once you know where `mul` is forced to
-put its answer.
+code. Typical examples are an index times a size, or a velocity times a delta,
+with an offset added. On this instruction set you can read it step by step,
+once you know where `mul` has to put its result.
 
 Here is `x * y + z`:
 
@@ -30,12 +32,12 @@ Here is `x * y + z`:
 4        bx        lr
 ```
 
-The product overwrites `r0`, and the third value folds in on top. Because
-addition is commutative and a single `mul` cannot record operand order, several
-different spellings of that expression produce this exact listing — writing the
-sum the other way round changes nothing.
+The product overwrites `r0`, and then the third value is added to it. Addition
+is commutative, and a single `mul` cannot record operand order. So several
+different ways of writing that expression produce this exact listing. Writing
+the sum the other way round changes nothing.
 
-Subtraction is where it gets informative. `x * y - z`:
+Subtraction tells you more. Here is `x * y - z`:
 
 ```asm
 0        mul       r0, r1
@@ -43,7 +45,7 @@ Subtraction is where it gets informative. `x * y - z`:
 4        bx        lr
 ```
 
-and `z - x * y`:
+And here is `z - x * y`:
 
 ```asm
 0        mul       r0, r1
@@ -51,19 +53,20 @@ and `z - x * y`:
 4        bx        lr
 ```
 
-Same product, same two instructions, and the only difference is the register
-field: the three-operand form takes the product **away from** `z`, the
-two-operand form takes `z` away from the product. The direction rule from the
-start of the chapter applies unchanged when one of the operands is a product.
+The product and the instructions are the same. The only difference is the
+register fields. The three-operand form takes the product **away from** `z`,
+and the two-operand form takes `z` away from the product. The direction rule
+from the start of the chapter still applies when one of the operands is a
+product.
 
-All three of those had a factor already sitting in `r0`. When neither factor
-does, the multiply cannot begin until the destination is loaded, so the function
-opens with a plain `mov r0, rN` — the same forced copy you met when the leftmost
-factor of a chain was in the wrong place, for the same reason: `mul` writes only
-to the register holding its left operand.
+In all three examples, one factor was already in `r0`. When neither factor is
+there, the multiply cannot start until a factor is copied into the destination.
+So the function starts with a plain `mov r0, rN`. This is the same copy you saw
+when the leftmost factor of a chain was in the wrong register, and it has the
+same cause: `mul` writes only to the register that holds its left operand.
 
-Read your target's `mov` as setup, work out which two registers the product
-consumes, and see what happens to it afterwards.
+Read the `mov` in your target as setup. Work out which two registers the
+product uses, and then see what happens to the product afterwards.
 
 ## Your task
 

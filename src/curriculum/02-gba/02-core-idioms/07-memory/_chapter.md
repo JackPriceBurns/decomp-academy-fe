@@ -1,4 +1,4 @@
 ---
 title: Pointers and Addressing
-blurb: Tiny offsets, register offsets, and walking memory.
+blurb: Small offsets, register offsets, and stepping a pointer through memory.
 ---

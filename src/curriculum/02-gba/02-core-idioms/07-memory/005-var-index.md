@@ -10,17 +10,17 @@ concepts:
 symbol: func_0820713c
 hints:
   - Each `lsl` that feeds an `add` onto the base is one index being scaled.
-    Two of them means two indices, not one index used twice.
-  - One `s32 *` and two `s32` indices in, an `s32` out. The order of the
-    registers in the final `sub` tells you which index the C wrote first.
+    Two of them means two separate indices, each scaled once.
+  - It takes one `s32 *` and two `s32` indices, and returns an `s32`. The order
+    of the registers in the final `sub` tells you which index the C wrote first.
 ---
 
 # When the index is not known until runtime
 
-A constant index folds into the load's offset field. A variable one cannot,
-because the field holds a literal. So the address has to be computed, and it
-is always computed the same way: scale the index by the element size with a
-shift, add it to the base, then load at offset zero.
+A constant index fits into the load's offset field. A variable index cannot,
+because the field holds a fixed number. So the address has to be computed, and
+the compiler always does it the same way. It scales the index by the element
+size with a shift, adds it to the base, then loads at offset zero.
 
 ```asm
 0        lsl       r1, #2
@@ -31,24 +31,23 @@ shift, add it to the base, then load at offset zero.
 10       bx        lr
 ```
 
-Two shifts in six instructions, doing completely different jobs. The `lsl r1,
-#2` at the top is addressing: four bytes per element, so the index is
+The six instructions contain two shifts that do different jobs. The `lsl r1,
+#2` at the top is addressing. Each element is four bytes, so the index is
 multiplied by four before it is added to the base. The `lsl r0, r1, #1`
-further down is arithmetic — the strength-reduced multiply from the arithmetic
-chapter, shifting the loaded value rather than an index.
+further down is arithmetic. It is the strength-reduced multiply from the
+arithmetic chapter, and it shifts the loaded value instead of an index.
 
-Telling them apart is a matter of following the register. A shift whose result
-is added to a pointer and then dereferenced is a scale; a shift on a value that
-came out of a load is a multiply. The shift amount in the first case is the
-base-two logarithm of the element size, which makes it the single best clue to
-the pointer's type: `lsl #2` before an `add` and an `ldr` means 4-byte
-elements.
+To tell them apart, follow the register. A shift whose result is added to a
+pointer and then dereferenced is a scale. A shift on a value that came from a
+load is a multiply. In the first case, the shift amount is the base-two
+logarithm of the element size. That makes it the best clue to the pointer's
+type: `lsl #2` before an `add` and an `ldr` means 4-byte elements.
 
-One thing worth knowing, because it will save you guessing: Thumb does have a
-register-offset load, `ldr rD, [rB, rM]`, and agbcc never emits it for `ldr`,
-`ldrh` or `ldrb`. The scaled index is always folded into the base with a real
-`add` first. If you find yourself trying to coax a register-offset word load
-out of this compiler, stop — it does not produce one.
+This next fact will save you some guessing. Thumb does have a register-offset
+load, `ldr rD, [rB, rM]`, but agbcc never emits it for `ldr`, `ldrh` or `ldrb`.
+The compiler always adds the scaled index to the base with a real `add` first.
+Do not try to make this compiler produce a register-offset word load. It does
+not produce one.
 
 Your target scales twice before it loads anything.
 

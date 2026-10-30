@@ -9,21 +9,21 @@ concepts:
   - shifts
 symbol: mulConst
 hints:
-  - "Each `sll k` multiplies by 2^k, and a `subu` right after a shift makes shapes like 4x - x = 3x. Work the chain top to bottom."
-  - "Multiply the factor of every line together — the chain computes one constant multiplier; write that single multiply in C."
+  - "Each `sll k` multiplies by 2^k, and a `subu` right after a shift gives patterns such as 4x − x = 3x. Work through the chain from top to bottom."
+  - "Multiply together the factors from every line. The chain computes one constant multiplier, so write that single multiply in C."
 ---
 
 # The compiler would rather shift
 
-Here's the first big personality trait of this compiler: for a multiplication by
-a small constant, it essentially never uses the multiply unit. On the N64's CPU
-a real multiply is slow, so IDO *builds* the product out of shifts and
-adds/subtracts instead. `sll rd, rt, k` — **s**hift **l**eft **l**ogical — moves
-the bits left by `k` places, and every place doubles the value: `sll` by 2 is
-×4, by 3 is ×8.
+This is the first big habit of this compiler: when it multiplies by a small
+constant, it almost never uses the multiply unit. On the N64's CPU a real
+multiply is slow, so IDO *builds* the product out of shifts, additions and
+subtractions instead. `sll rd, rt, k` (**s**hift **l**eft **l**ogical) moves the
+bits left by `k` places, and each place doubles the value: `sll` by 2 is ×4,
+and `sll` by 3 is ×8.
 
-A single `sll` therefore means a power of two. For anything else, IDO chains
-shifts with subtractions and additions. Watch it build ×6:
+So a single `sll` means a multiply by a power of two. For any other constant,
+IDO chains shifts with subtractions and additions. Here it builds ×6:
 
 ```asm
 sll  v0, a0, 2     # v0 = n * 4
@@ -33,13 +33,13 @@ jr   ra
 nop
 ```
 
-No multiply instruction anywhere — just (4n − n) × 2. To decode a chain like
-this, walk it line by line and track what multiple of the input each register
-holds, exactly like the comments above. By the last line the register holds one
-clean constant times the input, and *that* constant is what the C multiplies by.
+There is no multiply instruction anywhere, only (4n − n) × 2. To decode a chain
+like this, go through it line by line and track which multiple of the input each
+register holds, as the comments above do. By the last line, the register holds
+one constant times the input, and *that* constant is what the C multiplies by.
 
-The target below is the same trick with a different ending. Run the algebra all
-the way down.
+The target below uses the same method with a different ending. Work the algebra
+through to the last line.
 
 ## Your task
 

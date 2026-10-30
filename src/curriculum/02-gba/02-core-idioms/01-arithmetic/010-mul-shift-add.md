@@ -1,7 +1,7 @@
 ---
 id: 07b448cf-c9ad-4bfe-8f20-798527644822
 slug: gba-arithmetic-mul-shift-add
-title: Multiply by Nine, Pay for Two Instructions
+title: Multiplying by Nine in Two Instructions
 difficulty: 3
 concepts:
   - multiply
@@ -9,16 +9,18 @@ concepts:
   - shifts
 symbol: func_0805c910
 hints:
-  - Shift a value left by k and add the untouched original back and you have 2^k
-    plus one copies of it. The shift amount is the only thing you need to read.
-  - "Two `s32` parameters in, an `s32` out. The first is scaled by 33 and the
-    second is then subtracted from the result."
+  - If you shift a value left by k and then add the original value back, you
+    get 2^k plus one times the value. The shift amount is the only thing you
+    need to read.
+  - The function takes two `s32` parameters and returns an `s32`. The first is
+    multiplied by 33, and then the second is subtracted from the result.
 ---
 
-# A shift and an add is a multiply
+# A shift and an add make a multiply
 
-A constant multiply does not have to use `mul`. gcc 2.9 knows a shift is cheaper,
-and any constant of the form 2^k + 1 falls apart into two instructions.
+A multiply by a constant does not have to use `mul`. gcc 2.9 knows that a shift
+is cheaper, and it can turn any constant of the form 2^k + 1 into two
+instructions.
 
 Here is `y * 9`:
 
@@ -28,12 +30,12 @@ Here is `y * 9`:
 4        bx        lr
 ```
 
-The shift makes eight copies of `y`; the add folds in one more, for nine. Notice
-that the `add` reads `r1` — the original, untouched value. **The register every
-step of a chain refers back to is the multiplicand**, and the shift amount plus
-one is the factor.
+The shift gives eight times `y`, and the add adds one more `y`, for nine times
+`y`. Notice that the `add` reads `r1`, which still holds the original value.
+**Every step of the chain refers back to one register, and that register holds
+the multiplicand.** The factor is 2 to the power of the shift amount, plus one.
 
-The same shape with a different shift, `z * 5`:
+Here is the same pattern with a different shift, `z * 5`:
 
 ```asm
 0        lsl       r0, r2, #2
@@ -41,27 +43,27 @@ The same shape with a different shift, `z * 5`:
 4        bx        lr
 ```
 
-Four copies plus one. The whole family works this way: shift by 1 and add for 3,
-by 3 and add for 9, by 6 and add for 65 — any 2^k + 1 at all.
+That is four times `z`, plus one more. Every constant of this kind works the
+same way. Shift by 1 and add for 3, by 3 and add for 9, by 6 and add for 65,
+and so on for any 2^k + 1.
 
-Both of those examples were free of copies because the multiplicand arrived in a
-register the chain did not have to write. When the value being scaled is in `r0`,
-the register the result has to end up in, gcc has a problem: the first `lsl`
-would destroy the multiplicand that the `add` still needs to read. Something has
-to be copied, and which register is free decides where. With a spare register
-beside `r0`,
-gcc parks the multiplicand there and runs the chain in `r0`. With that register
-already holding another argument, it leaves the multiplicand where it is, builds
-the chain further up, and carries the result home with a `mov r0, rN` at the very
-end.
+Neither example needed a copy, because the multiplicand arrived in a register
+that the chain did not have to write. When the value being scaled is in `r0`,
+the register where the result has to end up, gcc has a problem. The first `lsl`
+would overwrite the multiplicand, and the `add` still needs to read it. So
+something has to be copied, and which register is free decides where it goes.
+If the register next to `r0` is free, gcc copies the multiplicand there and
+builds the chain in `r0`. If that register already holds another argument, gcc
+leaves the multiplicand where it is. It builds the chain in a higher register,
+and at the very end it moves the result into `r0` with a `mov r0, rN`.
 
-The two copies read differently. One at the top saved a value before its register
-was reused. One at the bottom means the accumulator was never `r0` — the whole
-chain ran in a scratch register, and the last instruction is only putting the
-result where the ABI wants it.
+The two copies mean different things. A copy at the top saves a value before
+its register is reused. A copy at the bottom means the running result was never
+in `r0`. The whole chain ran in a scratch register, and the last instruction
+only puts the result where the ABI expects it.
 
-Your target ends with one of those moves. Read the chain in the scratch register
-first, then see what happens to it.
+Your target ends with one of those moves. First read the chain in the scratch
+register, then see what happens to its result.
 
 ## Your task
 

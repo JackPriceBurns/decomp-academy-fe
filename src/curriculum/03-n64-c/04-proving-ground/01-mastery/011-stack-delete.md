@@ -10,21 +10,22 @@ concepts:
   - saved-registers
 symbol: func_800c0620
 hints:
-  - "Three pointers before the loop — end from `count`, source from `idx + 1` (the `addiu` adding 1 to `a1` before the second `multu`), destination one element below source. Both products use the same `elementSize`."
-  - "Inside the loop, `elementSize` is *reloaded* from the struct after the call before both pointers advance by it — the compiler can't trust memory across `bcopy`. Write the advances after the copy and IDO does the rest."
+  - "Three pointers are set up before the loop: the end from `count`, the source from `idx + 1` (the `addiu` adding 1 to `a1` before the second `multu`), and the destination one element below the source. Both products use the same `elementSize`."
+  - "Inside the loop, `elementSize` is *reloaded* from the struct after the call, and then both pointers advance by it. The compiler cannot assume memory is unchanged across `bcopy`. Write the advances after the copy and IDO handles the rest."
 ---
 
-# Shuffling a hole shut
+# Closing a gap in the stack
 
-The generic stack (a sibling of the queue — its struct is in the context)
-sometimes needs to remove an element from the *middle*: cancel one queued
-effect, keep the rest in order. The shipped answer is honest brute force —
-`bcopy` every element above the hole down one slot.
+The generic stack is related to the queue, and its struct is in the context.
+Sometimes it needs to remove an element from the *middle*, for example to
+cancel one queued effect and keep the rest in order. The shipped code does
+this in the simple, slow way: it uses `bcopy` to move every element above the
+gap down one slot.
 
-This is your first target with the full non-leaf loop apparatus: five saved
-registers, a call per iteration, and pointer arithmetic done once up front.
-Here's the skeleton on its own, in `flushRange` — walk a byte range, calling
-out once per chunk:
+This is your first target with the full setup of a loop in a non-leaf
+function: five saved registers, a call in every iteration, and pointer
+arithmetic done once before the loop. Here is the basic structure on its own,
+in `flushRange`, which walks a byte range and makes one call per chunk:
 
 ```asm
  0:  addiu sp, sp, -40
@@ -39,7 +40,7 @@ out once per chunk:
 24:  beqz  at, 0x44          # empty range → skip the loop entirely
 28:  or    a0, s0, zero      #   (slot) first call's argument
 2c:  jal   flush
-30:  or    a1, s1, zero      #   (slot) second argument rides the jal
+30:  or    a1, s1, zero      #   (slot) second argument, set in the jal's slot
 34:  addu  s0, s0, s1        # cursor += chunk
 38:  sltu  at, s0, s2
 3c:  bnezl at, 0x2c          # more → go again
@@ -52,22 +53,23 @@ out once per chunk:
 58:  addiu sp, sp, 40
 ```
 
-Every piece is a tier-3 lesson doing its job: loop values in `s`-registers
-because `t`-registers die at each `jal`, the guard test cloned above the loop,
-call arguments staged in delay slots, `sltu` because pointer comparisons are
-unsigned.
+Every piece comes from a tier-3 lesson. Loop values live in `s`-registers
+because `t`-registers are lost at each `jal`. The guard test is copied above
+the loop. Call arguments are set up in delay slots. `sltu` is used because
+pointer comparisons are unsigned.
 
-The target stacks three wrinkles on top. The loop bounds are *computed*: an
-end pointer from `count`, a source pointer from `idx + 1` — watch for an
-`addiu` of 1 before one of the two `multu`s — and a destination trailing the
-source by one element (`subu` right at the branch). The element size rides in
-an `s`-register but is **re-read from the struct inside the loop** — after a
-call, the compiler re-proves what memory holds, and your C must leave it the
-freedom to do so by using the field, not a stashed local, for the advances.
-And when the loop settles, `count` drops by one.
+The target adds three complications. First, the loop bounds are *computed*.
+There is an end pointer from `count`, a source pointer from `idx + 1` (look for
+an `addiu` of 1 before one of the two `multu`s), and a destination one element
+behind the source (the `subu` right at the branch). Second, the element size is
+kept in an `s`-register, but it is **read again from the struct inside the
+loop**. After a call, the compiler must load values from memory again. For the
+advances, your C must use the field itself instead of a copy saved in a local,
+so that the compiler is free to do this. Third, when the loop ends, `count`
+goes down by one.
 
-Label the three pointers on paper first. The C is shorter than the listing
-wants you to believe.
+Label the three pointers on paper first. The C is shorter than the long
+listing suggests.
 
 ## Your task
 

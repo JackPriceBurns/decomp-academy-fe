@@ -9,21 +9,21 @@ concepts:
   - register-allocation
 symbol: func_080c1234
 hints:
-  - Two registers besides `lr` are pushed. One holds a value waiting for the
-    second call, the other holds the first call's result while that second call
+  - Two registers besides `lr` are pushed. One holds a value that the second
+    call needs. The other holds the first call's result while the second call
     runs.
   - Two `s32` parameters in, an `s32` out. Each is divided by its own small
     constant and the two quotients are added.
 ---
 
-# Two calls, and the traffic between them
+# Two calls and the values between them
 
-A second division doubles the call frame's job. Everything the first call would
-destroy has to be parked before it, and then the first call's *result* becomes
-another value that has to survive the second one.
+A second division gives the frame more work. Every value the first call would
+destroy must be saved before it. Then the first call's *result* is one more
+value that must survive the second call.
 
-How much that costs depends entirely on how the two divisions relate. When the
-second consumes the first, nothing needs saving at all:
+How much that costs depends on how the two divisions are related. When the
+second division uses the result of the first, nothing needs to be saved:
 
 ```asm
 0        push      {lr}
@@ -35,13 +35,13 @@ second consumes the first, nothing needs saving at all:
 16       bx        r1
 ```
 
-That is a frame count turned into the seconds part of a clock — divide by 60,
-then take the result modulo 60. The quotient comes back in `r0`, which is
-exactly where the next helper wants its dividend, so the only setup between the
-calls is reloading the divisor that the first call clobbered. Two library calls
-and still no callee-saved register in sight.
+This turns a frame count into the seconds part of a clock: it divides by 60,
+then takes the result modulo 60. The quotient comes back in `r0`, which is
+exactly where the next helper wants its dividend. So the only setup between the
+calls is loading the divisor again, because the first call overwrote it. There
+are two library calls and still no callee-saved register.
 
-Add a value that has to cross a call and the frame appears:
+Add a value that has to survive a call, and the frame appears:
 
 ```asm
 0        push      {r4, lr}
@@ -54,20 +54,21 @@ Add a value that has to cross a call and the frame appears:
 18       bx        r1
 ```
 
-Two divisions chained the same way, except the second divisor is a parameter
-rather than a constant, so it has to be carried across the first call in `r4`
-and moved into `r1` afterwards. One live value, one saved register.
+These two divisions are chained in the same way. This time the second divisor
+is a parameter, so it has to be kept in `r4` during the first call and moved
+into `r1` afterwards. One value kept across a call needs one saved register.
 
-The pattern generalises cleanly, and the push list is where you read it off. A
-function pushing `{lr}` alone kept nothing across its calls. `{r4, lr}` kept one
-thing, `{r4, r5, lr}` kept two, and so on up. Counting the saved registers
-before you read anything else tells you how much of the expression is waiting on
-the calls, and the order they are loaded and used tells you what.
+This rule holds in general, and you can read it from the push list. A function
+that pushes only `{lr}` keeps nothing across its calls. `{r4, lr}` keeps one
+value, `{r4, r5, lr}` keeps two, and so on. Count the saved registers before
+you read anything else. The count tells you how many values must wait across
+the calls. The order in which they are loaded and used tells you what they are.
 
-Watch for the accumulator, too. When two independent quotients have to be
-combined, the first one is homeless while the second call runs — it goes to a
-callee-saved register, the answer is built there, and the trailing `mov r0, rN`
-from the last lesson brings it home.
+Also watch for an accumulator, a register where the answer is built up. When
+two independent quotients are combined, the first one cannot stay in `r0` while
+the second call runs. So it goes into a callee-saved register, and the answer is
+built there. Then the final `mov r0, rN` from the last lesson moves it back into
+`r0`.
 
 Your target saves two registers besides `lr`. Work out what each one holds and
 when each one is read back.

@@ -9,17 +9,18 @@ concepts:
   - constants
 symbol: func_081d17cc
 hints:
-  - Work out what the `mov` and `lsl` build together, then divide that number by
-    65536 to see the constant the C actually wrote.
-  - "One `s16` in, one `s16` out, and a single addition between them."
+  - Work out the number that the `mov` and `lsl` build together. Then divide it
+    by 65536 to get the constant written in the C.
+  - "The function takes one `s16` and returns an `s16`. It does a single
+    addition."
 ---
 
-# Truncating before you leave
+# Truncating before the return
 
-A function whose return type is narrower than a word still hands back a whole
-register, and it is the callee's job to make the low bits correct. So a narrow
-return type shows up as a shift pair at the very end, immediately before the
-branch home:
+A function whose return type is narrower than a word still returns a whole
+register, and the callee is responsible for making the low bits correct. So a
+narrow return type shows up as a shift pair at the very end, just before the
+return branch:
 
 ```asm
 0        sub       r0, r1
@@ -28,14 +29,15 @@ branch home:
 6        bx        lr
 ```
 
-Subtract at full width, then `lsl #16` / `asr #16` to keep 16 bits and spread
-the sign. The same reading as always: the count gives the width, and the second
-mnemonic gives the signedness of the return type.
+The subtraction happens at full width. Then `lsl #16` / `asr #16` keeps 16 bits
+and copies the sign bit into the top half. You read it the same way as before:
+the count gives the width, and the second mnemonic gives the signedness of the
+return type.
 
-Something more interesting happens when the value being returned is *already*
-narrow. The result is going to be re-truncated anyway, so the entry extension
-you saw in the last lesson is pointless - gcc drops it and does the arithmetic
-up in the top of the register instead:
+Something different happens when the value being returned is *already* narrow.
+The result will be truncated again at the end, so the extension at the start
+that you saw in the last lesson has no effect. gcc leaves it out, and does the
+arithmetic in the top of the register instead:
 
 ```asm
 0        lsl       r0, #24
@@ -46,20 +48,20 @@ up in the top of the register instead:
 10       bx        lr
 ```
 
-That is a `u8` argument, plus one, returned as a `u8`. The value is shifted to
-the top on the way in, and the constant has to travel with it: adding 1 to a
-byte sitting at bits 24-31 means adding 1 << 24, which is 16777216, built here
-as 128 << 17. The closing `lsr #24` does the truncation and the move back down
-in a single instruction.
+This function takes a `u8` argument, adds one, and returns a `u8`. The value is
+shifted to the top of the register at the start, so the constant has to be
+shifted too. Adding 1 to a byte held in bits 24-31 means adding 1 << 24, which
+is 16777216. Here it is built as 128 << 17. The final `lsr #24` truncates the
+value and moves it back down in a single instruction.
 
-So the shape tells you where the work happened. A lone `lsl` at the top and a
-single matching shift at the very end mean the compiler stayed up in the top of
-the register the whole way, and any constant in the middle has been scaled up to
-match. To read it back, shift the constant down by the same amount the value was
-shifted up.
+So the pattern tells you where the work happened. A single `lsl` at the start
+and one matching shift at the end mean the compiler kept the value in the top of
+the register the whole time. Any constant in the middle has been shifted up by
+the same amount. To get the original constant back, shift it down by the amount
+the value was shifted up.
 
-Your target does its work up in the top of the register too, sixteen bits wide.
-Reconstruct the constant sitting in the middle of it before you write anything.
+Your target also does its work in the top of the register, sixteen bits wide.
+Work out the constant in the middle before you write anything.
 
 ## Your task
 

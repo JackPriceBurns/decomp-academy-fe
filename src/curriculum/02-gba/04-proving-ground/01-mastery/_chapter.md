@@ -1,4 +1,4 @@
 ---
 title: Real-World Mastery
-blurb: "Authentic GBA game code — fixed-point math, hardware effects and the routines every cartridge has."
+blurb: Code from real GBA games, including fixed-point math, hardware effects, and routines found in almost every game.
 ---

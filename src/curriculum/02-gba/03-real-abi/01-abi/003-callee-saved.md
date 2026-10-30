@@ -9,21 +9,23 @@ concepts:
   - calls
 symbol: func_082e65e4
 hints:
-  - Two registers are parked before the call and consumed after it, in the order
-    the two arithmetic instructions read them.
-  - Three `s32` parameters in, an `s32` out. Only the first one is passed to
-    `probe`; the other two are applied to the result, multiply first.
+  - Two values are copied into saved registers before the call and used after
+    it, in the order the two arithmetic instructions read them.
+  - The function takes three `s32` parameters and returns an `s32`. Only the
+    first parameter is passed to `probe`. The other two are applied to the
+    result, with the multiply first.
 ---
 
-# Somebody else's registers
+# Registers that belong to the caller
 
-The other half of the ABI contract is the half you owe. `r0`-`r3` are yours to
-destroy, but `r4`-`r7` belong to your caller: whatever was in them when you were
-entered has to be there when you leave. gcc treats them as a reserve it can draw
-on at a price, and the price is a save and a restore.
+The other half of the ABI is about what your function owes its caller.
+`r0` to `r3` are yours to destroy, but `r4` to `r7` belong to the caller:
+whatever was in them when your function started must still be there when it
+returns. gcc treats them as extra registers it can use at a cost, and the cost
+is a save and a restore.
 
-The price is charged even when there is no call in sight. This function never
-executes a `bl`, and still opens with a push:
+gcc pays this cost even when the function makes no call. This function never
+executes a `bl`, but it still starts with a push:
 
 ```asm
 0        push      {r4, lr}
@@ -40,20 +42,21 @@ executes a `bl`, and still opens with a push:
 22       bx        r1
 ```
 
-Four arguments arrive, three of them are still needed after `r0` has been
-overwritten by the first product, and `r0`-`r3` cannot hold five live values. So
-gcc borrows `r4` — and the moment `r4` goes into a push list, `lr` is dragged in
-with it, which turns a function that could have ended in a bare `bx lr` into one
-with the full two-step return. `push {r4, lr}` at the top of a listing is not by
-itself evidence of a call.
+Four arguments arrive. Three of them are still needed after the first product
+overwrites `r0`, and `r0` to `r3` cannot hold five live values at once. So gcc
+borrows `r4`. As soon as `r4` goes into a push list, `lr` goes in with it. A
+function that could have ended with a plain `bx lr` now needs the full two-step
+return. So `push {r4, lr}` at the top of a listing does not prove, on its own,
+that the function makes a call.
 
-The two pops are forced by the layout. A Thumb pop list restores in ascending
-register order from ascending addresses, and `lr` was pushed last, so it sits at
-the top of the block. It cannot share a list with a lower-numbered register like
-`r1`, and it cannot be popped into `pc`. Hence `pop {r4}`, then `pop {r1}`, then
-`bx r1`.
+The stack layout forces two separate pops. A Thumb pop list restores registers
+in ascending order from ascending addresses. `lr` was pushed last, so its saved
+value sits at the top of the block. That value cannot be popped in the same
+list as a lower-numbered register such as `r1`, and it cannot be popped into
+`pc`. So the function does `pop {r4}`, then `pop {r1}`, then `bx r1`.
 
-Around a real call the same reserve does the obvious job:
+When the function does make a call, the saved register keeps a value safe
+across it:
 
 ```asm
 0        push      {r4, lr}
@@ -66,16 +69,16 @@ Around a real call the same reserve does the obvious job:
 16       bx        r1
 ```
 
-`b` arrived in `r1`, which `guard` is free to destroy, so it is copied into `r4`
-before the call and folded into the result afterwards. Look at what went into
-`r4`: `b` itself, with the shift deferred to address 8. That shift could have
-run before the call just as easily. gcc parks the value that has to survive and
-leaves the arithmetic on it until the call is back.
+`b` arrived in `r1`, and `guard` is free to destroy `r1`. So `b` is copied into
+`r4` before the call and added into the result afterwards. Look at what went
+into `r4`: `b` itself. The shift waits until address 8, although it could just
+as well have run before the call. gcc saves the value that must survive the
+call, and does the arithmetic on it only after the call returns.
 
-That gives you a counting rule: **the number of `r4`-and-up registers in the
-push list is the number of values gcc could not keep in `r0`-`r3` for as long as
-it needed them**, and any one of them that arrived as an argument is set up by a
-`mov` in the instructions immediately after the push.
+This gives you a counting rule. **The number of registers from `r4` upward in
+the push list is the number of values gcc could not keep in `r0` to `r3` for
+as long as it needed them.** If one of those values arrived as an argument, a
+`mov` right after the push copies it into its saved register.
 
 ## Your task
 

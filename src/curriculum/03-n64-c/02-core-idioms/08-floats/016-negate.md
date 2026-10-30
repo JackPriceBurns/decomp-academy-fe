@@ -8,15 +8,15 @@ concepts:
   - negation
 symbol: func_8035bdc8
 hints:
-  - "Two instructions of real work — an operation, then a sign flip of its result. The `neg.s` reads and writes the same register."
+  - "Two instructions do the real work: an operation, then a sign flip of its result. The `neg.s` reads and writes the same register."
   - "In C that's a minus sign outside a parenthesized product."
 ---
 
 # Negation is its own instruction
 
-On the integer side, `-x` computes as a subtraction from zero. The
-FPU does it more directly: **`neg.s`** flips the sign bit, one
-register to another. The bare version:
+On the integer side, `-x` is computed as a subtraction from zero. The FPU
+does it more directly: **`neg.s`** flips the sign bit while copying from one
+register to another. The simplest case looks like this:
 
 ```asm
 neg.s  fv0, fa0     # return -x
@@ -24,11 +24,11 @@ jr     ra
 nop
 ```
 
-More interesting is negation *inside* logic. Here's `mag(x)`, the
-classic absolute value — `if (x < 0.0f) return -x; return x;`:
+Negation *inside* logic is more interesting. This is `mag(x)`, the standard
+absolute value, `if (x < 0.0f) return -x; return x;`:
 
 ```asm
- 0:  mtc1   zero, ft0     # 0.0f, free as always
+ 0:  mtc1   zero, ft0     # 0.0f, no lui needed, as always
  4:  nop
  8:  c.lt.s fa0, ft0      # x < 0.0f ?
  c:  nop
@@ -41,19 +41,19 @@ classic absolute value — `if (x < 0.0f) return -x; return x;`:
 28:  nop
 ```
 
-The min/max skeleton again — but look at the first `jr`'s delay
-slot: instead of a `mov.s`, the *negation itself* rides the return.
-Real work in return slots is everywhere in float code; a `jr ra`
-whose slot computes is two lines of C, not one.
+This is the min/max structure again, but look at the delay slot of the first
+`jr`. It holds the *negation itself* instead of a `mov.s`, so the negation
+runs as the function returns. Float code often does real work in return
+delay slots. A `jr ra` whose slot computes something stands for two lines of
+C.
 
-(There's no dedicated absolute-value shortcut in IDO's repertoire
-here — a sign test and a `neg.s` is how `fabs`-style logic actually
-lands. When you meet this exact stanza, "absolute value" is the name
-of what you're reading.)
+(IDO does not use a dedicated absolute value shortcut here. A sign test and a
+`neg.s` is how `fabs`-style logic compiles. When you see this exact block,
+you are reading an absolute value.)
 
-The target's negation wraps a *product*: one arithmetic op first,
-then the flip, no branching anywhere. Watch which register `neg.s`
-takes as its source.
+The target's negation wraps a *product*. There is one arithmetic operation
+first, then the sign flip, and no branches. Check which register `neg.s` uses
+as its source.
 
 ## Your task
 

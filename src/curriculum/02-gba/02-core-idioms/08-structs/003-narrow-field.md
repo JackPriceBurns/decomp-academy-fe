@@ -10,29 +10,31 @@ concepts:
 hints:
   - The mnemonic gives you the width and the offset gives you the position.
     Match each load against the context struct until only one field fits both.
-  - A `struct Sprite *` in, an `s32` out, and three fields added together. The
-    order the loads appear in is the order the C names them.
+  - The function takes a `struct Sprite *`, returns an `s32`, and adds three
+    fields together. The loads appear in the same order that the C names the
+    fields.
 symbol: func_08245994
 ---
 
-# The load width names the type
+# The load width gives you the type
 
-Real console structs are packed with narrow fields, because a GBA has 256K of
-work RAM and an entity table has hundreds of entries. So most struct loads you
-will read are not `ldr`.
+Real console structs are full of narrow fields. A GBA has 256K of work RAM, and
+an entity table has hundreds of entries. So most of the struct loads you read
+will not be `ldr`.
 
-The mnemonic tells you the field's width directly: `ldr` for a four-byte field,
-`ldrh` for a two-byte one, `ldrb` for a single byte. All three are zero-extending
-here — the value arrives in the register with the top bits clear and no extra
-work — which means an unsigned narrow field costs exactly one instruction, the
-same as a word.
+The mnemonic tells you the width of the field: `ldr` for a four-byte field,
+`ldrh` for a two-byte field and `ldrb` for a single byte. All three are
+zero-extending here. The value arrives in the register with the top bits clear,
+and no extra work is needed. This means an unsigned narrow field costs one
+instruction, the same as a word.
 
-Signedness is the other half of the type, and it is never free. An `s8` field
-comes back as `ldrb` followed by `lsl #24` / `asr #24`, and an `s16` field forces
-the register-offset `ldrsh` with a `mov` just to hold the offset. If you see a
-bare `ldrb` or `ldrh` with nothing after it, the field was unsigned.
+Signedness is the other half of the type, and it always costs extra
+instructions. An `s8` field is read as `ldrb` followed by `lsl #24` /
+`asr #24`. An `s16` field forces the compiler to use the register-offset form
+`ldrsh`, with a `mov` whose only job is to hold the offset. If you see a bare
+`ldrb` or `ldrh` with nothing after it, the field was unsigned.
 
-Here is a function reading two fields of a four-byte cell:
+Here is a function that reads two fields of a four-byte cell:
 
 ```asm
 0        mov       r1, r0
@@ -42,13 +44,13 @@ Here is a function reading two fields of a four-byte cell:
 8        bx        lr
 ```
 
-With `struct Cell { u16 count; u8 kind; u8 team; }` the halfword at 0 is
-`count`, and the byte at 3 is `team` — the *fourth* byte of the struct, because
-`kind` took byte 2 and `team` byte 3. Width plus offset identifies a field
-uniquely; neither one alone does.
+With `struct Cell { u16 count; u8 kind; u8 team; }`, the halfword at 0 is
+`count` and the byte at 3 is `team`. That is the *fourth* byte of the struct,
+because `kind` takes byte 2 and `team` takes byte 3. Width and offset together
+identify a field. Neither one is enough on its own.
 
-Your target reads three fields of a sprite record. Two of the loads are the same
-mnemonic at different offsets, so read the offsets carefully.
+Your target reads three fields of a sprite record. Two of the loads use the
+same mnemonic at different offsets, so read the offsets carefully.
 
 ## Your task
 

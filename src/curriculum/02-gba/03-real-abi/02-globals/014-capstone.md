@@ -9,18 +9,17 @@ concepts:
   - branches
 symbol: func_08356038
 hints:
-  - Three pool words in the order they were first needed - the guard's global,
-    the array, and the one added at the end. Address 40 is the other way out.
-  - "An `s32` in, an `s32` out. The `cmp` at address 6 weighs the argument against the global and the `bge` at 8 jumps to the early exit, so the exit is the greater-or-equal case."
+  - "There are three pool words, in the order they were first needed: the guard's global, the array, and the one added at the end. Address 40 is the other exit."
+  - "It takes an `s32` and returns an `s32`. The `cmp` at address 6 compares the argument with the global, and the `bge` at 8 jumps to the early exit. So the exit is the case where the argument is greater than or equal to the global."
 ---
 
 # Where the pool goes when the code branches
 
-Everything in this chapter has assumed the pool sits after the return, which
-holds for a function that runs straight through. The actual rule is looser: the
-compiler drops pool words wherever the instruction stream stops falling forward,
-which means at any unconditional branch. In a function with an `if`, that place
-can be the middle.
+So far, every pool in this chapter has come after the return. That is true for
+a function that runs straight through without branching. The full rule is
+wider. The compiler can place pool words anywhere execution cannot fall through
+into them, which means after any unconditional branch. In a function with an
+`if`, that place can be in the middle of the function.
 
 `pickMode` returns one of two globals:
 
@@ -37,20 +36,21 @@ can be the middle.
 20       .word     gMode
 ```
 
-Address 8 is data and address 12 is code, with nothing but the `b` at address 6
-to tell them apart. The false arm loads `&gAlt`, jumps over its own pool word,
-and lands at 14. The true arm loads `&gMode` and falls into the same row. Both
-arms share the dereference at 14 — one `ldr r0, [r0, #0]` serves two different
-globals, because by then the difference is entirely in the register.
+Address 8 is data and address 12 is code. Only the `b` at address 6 tells you
+which is which. The false arm loads `&gAlt`, jumps over its own pool word, and
+lands at 14. The true arm loads `&gMode` and then continues into the same row.
+Both arms share the dereference at 14. A single `ldr r0, [r0, #0]` reads two
+different globals, because by that point the only difference is which address
+is in the register.
 
-Note also the fillers. Each pool site gets its own alignment padding if it needs
-it, so `.hword 0` can appear more than once in a function, and a
-one-instruction error anywhere before a pool site moves everything after it.
+Notice the filler halfwords too. Each pool site gets its own alignment padding
+if it needs it, so `.hword 0` can appear more than once in a function. An error
+of one instruction anywhere before a pool site moves everything after it.
 
-Your target has three pool words, all of them stranded in the middle of the
-function, and its early exit pushed past them to the very end. Work out the
-guard first, from the comparison and the branch condition; the rest is shapes
-you already know, stacked.
+Your target has three pool words, all in the middle of the function, and its
+early exit comes after them at the very end. Work out the guard first, from the
+comparison and the branch condition. The rest uses patterns you already know,
+one after another.
 
 ## Your task
 

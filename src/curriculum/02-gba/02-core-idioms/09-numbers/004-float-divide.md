@@ -10,20 +10,20 @@ concepts:
 symbol: func_0828d0d4
 hints:
   - "`__divsf3` divides `r0` by `r1`. Trace which value reaches `r0` just
-    before the call — the two `mov`s at 12 and 14 exist to put it there."
-  - "Three `f32` in, an `f32` out. The dividend is the first argument; the
+    before the call. The two `mov`s at 12 and 14 are there to put it in place."
+  - "Three `f32` in, an `f32` out. The dividend is the first argument. The
     other two are combined first."
 ---
 
-# A call on top of a call's worth of work
+# Division costs the most
 
-Integer division on this chip already costs a call, because there is no divide
-instruction. Float division costs the same call plus everything soft float
-already costs: unpack two IEEE numbers, compute a quotient mantissa bit by bit,
-renormalise, round, repack. `__divsf3` is the most expensive helper in the
-set.
+On this chip, even integer division costs a call, because there is no divide
+instruction. Float division costs that call plus all the usual soft float
+work. The helper unpacks two IEEE numbers, computes the quotient's mantissa one
+bit at a time, normalises it, rounds it and packs the result again.
+`__divsf3` is the most expensive helper in the set.
 
-The shape, though, is the plainest one in the chapter:
+Its shape, however, is the simplest in the chapter:
 
 ```asm
 0        push      {lr}
@@ -32,14 +32,13 @@ The shape, though, is the plainest one in the chapter:
 8        bx        r1
 ```
 
-Order is the thing to be careful about. `__divsf3` divides `r0` by `r1`, and
-unlike an add there is no symmetry to fall back on, so whichever value the
-compiler routes into `r0` is the numerator. When the source's operands are
-already in the wrong registers you will see explicit `mov`s to swap them, and
-those moves are how you recover which way round the original division was
-written.
+Be careful with the order. `__divsf3` divides `r0` by `r1`. Division is not
+symmetric like addition, so whatever value the compiler puts in `r0` is the
+numerator. If the source's operands start in the wrong registers, you will see
+explicit `mov`s that swap them. Those moves tell you which way round the
+original division was written.
 
-Now a division that is not one:
+Now look at a division that compiles to a multiply:
 
 ```asm
 0        push      {lr}
@@ -50,19 +49,19 @@ Now a division that is not one:
 12       .word     1048576000
 ```
 
-That is `x / 4.0f`. The pool word 1048576000 is 0x3E800000, which is 0.25f, and
-the helper is `__mulsf3`. Because 4.0 is an exact power of two, its reciprocal
-is exact too, so multiplying gives bit-identical results to dividing — and a
-multiply is several times cheaper. gcc takes the trade every time the divisor
-is a power of two. Divide by 3.0f and the reciprocal is not exact, so
-`__divsf3` stays.
+This is `x / 4.0f`. The pool word 1048576000 is 0x3E800000, which is 0.25f,
+and the helper is `__mulsf3`. Because 4.0 is an exact power of two, its
+reciprocal is exact too. So multiplying by the reciprocal gives exactly the
+same bits as dividing, and a multiply is several times cheaper. gcc makes this
+swap whenever the divisor is a power of two. If you divide by 3.0f, the
+reciprocal is not exact, so `__divsf3` stays.
 
-The consequence for matching is worth stating plainly: a `__mulsf3` against a
-pool word can mean either a multiply or a division, and you cannot always tell
-which the author wrote. `x * 0.5f` and `x / 2.0f` compile to the same bytes.
+This matters for matching. A `__mulsf3` with a pool word can come from either
+a multiply or a division, and you cannot always tell which one the author
+wrote. `x * 0.5f` and `x / 2.0f` compile to the same bytes.
 
-Your target makes two calls with a register shuffle in between. The shuffle is
-the interesting part — it tells you where the brackets were.
+Your target makes two calls, with some register moves between them. Pay most
+attention to those moves, because they tell you where the brackets were.
 
 ## Your task
 

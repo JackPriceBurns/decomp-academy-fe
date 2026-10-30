@@ -9,17 +9,16 @@ concepts:
   - fingerprints
 symbol: func_8034b4bc
 hints:
-  - "`c.le.s` with the *second* argument first — apply the mirror rule
-    from last lesson to a `<=` compare."
+  - "`c.le.s` with the *second* argument first. Apply the mirror rule from last lesson to a `<=` compare."
   - "Which C comparison puts `b` on the left of a less-or-equal?"
 ---
 
-# The other strict-ness
+# The non-strict compare
 
-`<` has a softer sibling. **`c.le.s`** — compare, less-or-equal —
-tests `<=`, and it's a *different instruction* from `c.lt.s`, not a
-flag trick: whether the boundary value itself passes is baked into
-the mnemonic. Here's `fits(x)`, which tests `x <= 4.0f`:
+`<` has a non-strict partner. **`c.le.s`** (compare, less or equal) tests
+`<=`. It is a *separate instruction* from `c.lt.s`. Whether the boundary value
+itself passes is part of the mnemonic, so no extra flag handling is needed.
+This is `fits(x)`, which tests `x <= 4.0f`:
 
 ```asm
  0:  lui    at, 0x4080     # 4.0f
@@ -34,26 +33,25 @@ the mnemonic. Here's `fits(x)`, which tests `x <= 4.0f`:
 24:  nop
 ```
 
-Argument first, constant second, `.le` instead of `.lt` — otherwise
-the boolean skeleton you already own. So the reading rule for the
-pair is one table:
+The argument is first, the constant is second, and the mnemonic uses `.le`
+instead of `.lt`. Apart from that, this is the boolean structure you already
+know. So the reading rule for the two compares fits in one table:
 
 - `c.lt.s` → strict `<` (or a mirrored `>`)
 - `c.le.s` → `<=` (or a mirrored `>=`)
 
-And yes — the mirror applies here too. There's no
-greater-or-equal compare either, so `a >= b` compiles as
-"`b <= a`": a `c.le.s` with the operands facing the other way.
-Strictness comes from the mnemonic, direction from the operand
-order. Two glances and you've recovered the exact C comparison,
-boundary behavior included.
+The mirror rule applies here too. There is no greater-or-equal compare
+either, so `a >= b` compiles as "`b <= a`": a `c.le.s` with the operands the
+other way round. The mnemonic tells you whether the compare is strict, and the
+operand order tells you the direction. Check those two things and you can
+recover the exact C comparison, including what happens at the boundary.
 
-That precision matters more with floats than you might expect —
-`hp >= maxHp` and `hp > maxHp` are different game logic on the
-boundary frame, and the assembly never lets the two blur.
+This precision matters more with floats than you might expect. `hp >= maxHp`
+and `hp > maxHp` are different game logic on the frame where the two values
+are equal, and the assembly always shows which one was written.
 
-The target is a `>=` between the two arguments. Mirror, soften,
-done.
+The target uses `>=` and has no constant. Apply the mirror rule and pick the
+non-strict compare.
 
 ## Your task
 

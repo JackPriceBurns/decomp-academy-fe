@@ -10,22 +10,22 @@ concepts:
   - fingerprints
 symbol: func_801c2b18
 hints:
-  - "Read the case values off the `at` constants — and note the FIRST branch is a `beqz`, which means one of the cases is zero."
+  - "Read the case values from the `at` constants. Note that the FIRST branch is a `beqz`, which means one of the cases is zero."
   - "The value loaded before the `b` is the default. Each case's return value sits in a `jr ra` delay slot."
 ---
 
 # The equality ladder
 
-A `switch` with a few cases doesn't get anything fancy — IDO lays it out as
-a chain of constant-equality tests, and every trick in it is one you
-already own: constants staged through `at`, `beq` per case, values in
-delay slots. Here's a three-case switch over 1, 2, 3 returning 10, 20, 30
-with default 0:
+A `switch` with only a few cases compiles to nothing special. IDO lays it out
+as a chain of equality tests against constants, and you already know every
+part of it: constants loaded into `at`, one `beq` per case, and values in
+delay slots. Here is a switch with three cases, over 1, 2, 3, returning 10,
+20, 30, with default 0:
 
 ```asm
  0:  addiu at, zero, 1    # case 1?
  4:  beq   a0, at, 0x24
- 8:  addiu at, zero, 2    # (delay slot) — the NEXT case's constant!
+ 8:  addiu at, zero, 2    # (delay slot) the NEXT case's constant
  c:  beq   a0, at, 0x2c
 10:  addiu at, zero, 3    # (slot again) case 3's constant
 14:  beq   a0, at, 0x34
@@ -42,21 +42,21 @@ with default 0:
 40:  nop
 ```
 
-The elegant part is the slot usage: **each `beq`'s delay slot loads the
-*next* case's constant**. Taken or not, the load is harmless — if the branch
-fires, the freshly loaded `at` simply goes unused. The ladder pipelines
-itself, one comparison flowing into the next, and the last slot preloads the
-default. Then a run of paired `jr ra` + value exits, one per case, in case
-order.
+The part to notice is how the slots are used: **each `beq`'s delay slot loads
+the *next* case's constant**. The load is harmless whether or not the branch
+is taken. If the branch is taken, the newly loaded `at` is never used. Each
+comparison sets up the next one, and the last slot preloads the default. After
+that comes a run of exits, each a `jr ra` paired with a value, one per case,
+in case order.
 
-Decoding one of these is bookkeeping: list the `at` constants (the case
-labels), pair each `beq` target with its exit value, catch the default on
-the fall-through. Write it as a real `switch` — that's what the original
-programmer had.
+Decoding one of these is bookkeeping. List the `at` constants (the case
+labels), pair each `beq` target with its exit value, and find the default on
+the fall-through path. Write it as a real `switch`, because that is what the
+original programmer wrote.
 
-The target has three cases and a default too, but different labels and
-values — and one case's label is a value that needs no `at` at all. You know
-which branch handles that one.
+The target also has three cases and a default, but with different labels and
+values. One case's label is a value that needs no `at` at all. You know which
+branch handles that one.
 
 ## Your task
 

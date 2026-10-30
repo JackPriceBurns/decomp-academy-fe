@@ -9,42 +9,43 @@ concepts:
   - fingerprints
 symbol: func_803a7cd8
 hints:
-  - "The `addiu`-from-`zero` constant is negative. Write it in hex (sign-extend it to 32 bits in your head) and you're looking at an inverted mask."
-  - "`~m` is `-m - 1`. Add 1 to the magnitude of the negative constant and
-    you have the mask being cleared — put that inside the `~`."
+  - "The constant that `addiu` builds from `zero` is negative. Write it in hex, sign-extended to 32 bits, and you will see an inverted mask."
+  - "`~m` is `-m - 1`. Add 1 to the negative constant and drop the minus sign.
+    That gives you the mask being cleared. Put that mask inside the `~`."
 ---
 
 # Erasing bits instead of keeping them
 
-Last lesson's masks said which bits to *keep*. Just as often, C wants to
-*clear* a few bits and keep everything else: `x & ~mask`. The inverted mask is
-almost all ones — including the upper 16 bits, which `andi`'s zero-extended
-immediate can never reach. So `andi` is out.
+The `andi` masks earlier in this chapter said which bits to *keep*. Just as
+often, C code needs to *clear* a few bits and keep all the others:
+`x & ~mask`. The inverted mask is almost all ones, including the upper 16
+bits. The zero-extended immediate of `andi` can never set those bits, so
+`andi` can't be used.
 
-Watch what the compiler does instead, clearing bits 4 and 5:
+Here is what the compiler does instead, clearing bits 4 and 5:
 
 ```asm
-addiu at, zero, -49   # at = 0xffffffcf — all ones except bits 4-5
+addiu at, zero, -49   # at = 0xffffffcf: all ones except bits 4-5
 and   v0, a0, at      # clear those two bits, keep the rest
 jr    ra
 nop
 ```
 
-The trick is that `addiu`'s immediate is **sign-extended**: a negative
-constant fills the upper 16 bits with ones for free. One instruction builds a
-mask that's mostly ones, and a register `and` applies it. That
-`addiu`-negative-then-`and` pair is the standard smell of a bit-clear.
+This works because the immediate of `addiu` is **sign-extended**. A negative
+constant fills the upper 16 bits with ones at no extra cost. One instruction
+builds a mask that is mostly ones, and a register `and` applies it. A negative
+`addiu` followed by an `and` is the standard sign of a bit-clear.
 
-Decoding it is two small steps:
+Decoding it takes two small steps:
 
 - **Recover the 32-bit constant.** -49 sign-extends to `0xffffffcf`.
-- **Un-invert it.** `~m` is `-m - 1`, so a constant of -49 means the mask was
-  48 — `0x30`, bits 4 and 5. The C is `x & ~0x30`.
+- **Undo the inversion.** `~m` is `-m - 1`, so a constant of -49 means the
+  mask was 48, which is `0x30` (bits 4 and 5). The C is `x & ~0x30`.
 
-Write the C with the `~` and the *positive* mask, the way a programmer
-thinks — "clear these flags" — and let the compiler rediscover the negative
-constant. The target below clears a different pair of bits; run the
-arithmetic backwards to find which.
+Write the C with the `~` and the *positive* mask. That is how a programmer
+thinks about it ("clear these flags"), and the compiler will produce the
+negative constant itself. The target below clears a different pair of bits.
+Work the arithmetic backwards to find which ones.
 
 ## Your task
 

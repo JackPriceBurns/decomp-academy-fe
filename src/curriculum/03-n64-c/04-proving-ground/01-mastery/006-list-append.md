@@ -10,28 +10,26 @@ concepts:
   - operand-order
 symbol: func_801cdf70
 hints:
-  - "Three `addu`-then-memory-op sites. Check each `addu`'s operand order against the two macros — exactly one site inside the walk loop uses the reversed form."
-  - "Shape: empty list → head = node; otherwise walk to the last node with the
-    `bnezl` loop and hook the new node on. Either way the node's own next
-    becomes null and the count bumps."
+  - "There are three places where an `addu` is followed by a memory operation. Check the operand order of each `addu` against the two macros. Exactly one of them, inside the walk loop, uses the reversed form."
+  - "Shape: if the list is empty, head = node. Otherwise, walk to the last node with the `bnezl` loop and attach the new node to it. In both cases the new node's own next becomes null and the count is incremented."
 ---
 
-# The devs typed it both ways
+# The developers wrote it both ways
 
 `func_801cdf70` walks to the end of the intrusive list from lesson 002 and
-hooks a new node on. The walk is a pointer chase you've done before — `lw`,
-test, `bnezl` back around. What's new is subtler, and it's a pure matching
-lesson.
+attaches a new node there. You have written this kind of pointer walk before:
+`lw`, a test, then `bnezl` back to the top. The new part is harder to spot, and
+it matters only for matching.
 
-The node-plus-offset address you learned comes out as an `addu`. Addition
-commutes, so the original programmer could write `node + offset` or
-`offset + node` — and in this function's source, **they did both**, in
-different spots. IDO keeps the source order of `+` operands. Two functions,
-identical except for the flip:
+The node plus offset address you learned compiles to an `addu`. Addition is
+commutative, so the original programmer could write `node + offset` or
+`offset + node`. In this function's source **they did both**, in different
+places. IDO keeps the source order of `+` operands. Here are two functions that
+differ only in that order:
 
 ```asm
 lh   t6, 2(a0)        # c->linkOffset
-addu t7, a1, t6       # node + offset — node on the left
+addu t7, a1, t6       # node + offset: node on the left
 lw   v0, 0(t7)
 jr   ra
 nop
@@ -39,25 +37,25 @@ nop
 
 ```asm
 lh   t6, 2(a0)        # c->linkOffset
-addu t7, t6, a1       # offset + node — the SAME address, flipped encoding
+addu t7, t6, a1       # offset + node: the SAME address, flipped encoding
 lw   v0, 0(t7)
 jr   ra
 nop
 ```
 
-Same math, different bytes. The diff compares bytes.
+Both compute the same address, but the instruction bytes differ. The diff
+compares bytes.
 
-This is why the context gives you *two* macros: `LINKED_LIST_NEXT_FIELD` adds
-node-first, `LINKED_LIST_NEXT_FIELD2` adds offset-first. The second exists for
-no reason except that the original source typed the expression that way in some
-places — the real header says exactly that in a comment. Your job at each of
-the target's `addu` sites: read the operand order, pick the macro that produces
-it.
+This is why the context gives you *two* macros. `LINKED_LIST_NEXT_FIELD` puts
+the node first in the add, and `LINKED_LIST_NEXT_FIELD2` puts the offset first.
+The second one exists only because the original source wrote the expression
+that way in some places. The real header says this in a comment. At each `addu`
+in the target, read the operand order and pick the macro that produces it.
 
-Beyond that, the function is tier-2 material: a null-head special case, a walk
-loop whose `bnezl` re-runs its slot only when continuing, a trailing-node
-hookup, a null store into the new node, and the count bump. Take the branches
-one at a time.
+The rest of the function uses material from tier 2: a special case for a null
+head, a walk loop whose `bnezl` runs its delay slot only when the loop
+continues, attaching the new node to the last one, a null store into the new
+node, and the count increment. Work through the branches one at a time.
 
 ## Your task
 

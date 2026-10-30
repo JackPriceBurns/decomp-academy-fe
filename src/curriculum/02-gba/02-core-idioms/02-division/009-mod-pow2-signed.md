@@ -1,7 +1,7 @@
 ---
 id: 23c7b338-76ec-4430-8613-4d826671209b
 slug: gba-division-mod-pow2-signed
-title: The Signed Remainder's Long Way Round
+title: A Signed Remainder Takes Four Steps
 difficulty: 4
 concepts:
   - division
@@ -10,25 +10,26 @@ concepts:
 symbol: func_080b3988
 hints:
   - The first three instructions are a divide you met earlier in the chapter.
-    Everything after them is the recipe for turning that quotient back into a
-    remainder.
-  - One `s32` parameter in, an `s32` out — the remainder after dividing by 2.
+    Everything after them turns that quotient back into a remainder.
+  - One `s32` parameter in, an `s32` out. It returns the remainder after
+    dividing by 2.
 ---
 
-# Four steps and no shortcut
+# A remainder in four steps
 
-There is no cheap trick for a signed remainder by a power of two. The bottom
-bits of a negative number are not its remainder — C wants -9 % 4 to be -1, and
-the bottom two bits of -9 are 3 — so gcc computes the thing the definition asks
-for, in full:
+For a signed remainder by a power of two, there is no cheap method. The bottom
+bits of a negative number are not its remainder. C wants -9 % 4 to be -1, but
+the bottom two bits of -9 are 3. So gcc computes exactly what the definition
+asks for, in full:
 
-1. keep a copy of the original value;
-2. divide it by the power of two, bias and all;
-3. shift the quotient back up by the same amount, which multiplies it back;
-4. subtract that product from the copy.
+1. Keep a copy of the original value.
+2. Divide it by the power of two, including the bias.
+3. Shift the quotient back up by the same amount, which multiplies it by the
+   power of two again.
+4. Subtract that product from the copy.
 
-Step one is why so many of these functions open with a `mov` that appears to
-achieve nothing. Here is a signed value modulo 4:
+Step one is why so many of these functions start with a `mov` that seems to do
+nothing. Here is a signed value modulo 4:
 
 ```asm
 0        mov       r1, r0
@@ -41,13 +42,14 @@ achieve nothing. Here is a signed value modulo 4:
 14       bx        lr
 ```
 
-Eight instructions. `r1` holds the untouched input for the whole function;
-addresses 2 to 8 are the divide; `lsl #2` at address 10 multiplies the quotient
-back by 4; the `sub` at 12 finishes the job with the original on the left. The
-matching `asr`/`lsl` pair with the same amount is the tell — nothing else in
-gcc's output shifts a value down and immediately back up.
+That is eight instructions. `r1` holds the unchanged input for the whole
+function. Addresses 2 to 8 are the divide. The `lsl #2` at address 10 multiplies
+the quotient back by 4. The `sub` at 12 finishes the job, with the original
+value on the left. You can recognise this pattern by the `asr`/`lsl` pair with
+the same amount. Nothing else in gcc's output shifts a value down and then
+straight back up.
 
-The unsigned form of the identical expression, for comparison:
+For comparison, here is the unsigned form of the same expression:
 
 ```asm
 0        mov       r1, r0
@@ -56,15 +58,15 @@ The unsigned form of the identical expression, for comparison:
 6        bx        lr
 ```
 
-Four instructions against eight, from C that differs by one letter in a
-declaration. This is the reason so much GBA code declares its counters `u32`,
-and the reason a signed `%` in a per-frame loop is worth flagging when you meet
-one.
+That is four instructions against eight, from C that differs by one letter in a
+declaration. This is why so much GBA code declares its counters as `u32`. It is
+also why a signed `%` in a loop that runs every frame is worth noting when you
+find one.
 
-The four-step recipe is built on top of whichever divide shape the divisor
-calls for, so the front of the sequence changes with the constant while the
-`lsl`-then-`sub` tail stays put. Read your target's divide first, take the
-divisor from it, and the rest of the listing should account for itself.
+The four steps are built on whichever divide shape the divisor needs. So the
+start of the sequence changes with the constant, but the `lsl` followed by `sub`
+at the end stays the same. Read your target's divide first and take the divisor
+from it. The rest of the listing should then make sense.
 
 ## Your task
 

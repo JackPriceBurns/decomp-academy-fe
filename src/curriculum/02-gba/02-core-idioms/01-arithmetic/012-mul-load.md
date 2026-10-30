@@ -9,17 +9,18 @@ concepts:
   - constants
 symbol: func_08065bf4
 hints:
-  - The constant is sitting in plain sight in the `mov`. It lands in the
-    destination register because `mul` has no immediate form to put it in.
-  - "Three `s32` parameters in, an `s32` out, with the first unused. The third is
-    multiplied by the constant and the second is subtracted from the product."
+  - The constant is right there in the `mov`. It goes into the destination
+    register because `mul` has no immediate form to hold it.
+  - The function takes three `s32` parameters and returns an `s32`. The first
+    parameter is unused. The third is multiplied by the constant, and the second
+    is subtracted from the product.
 ---
 
-# The constant that was not worth taking apart
+# Constants gcc does not split up
 
-gcc tries to build every constant multiply out of shifts, adds and subtracts.
-When the shortest chain it can find still looks expensive, it gives up, puts the
-constant in a register and uses the multiplier instead.
+gcc tries to build every multiply by a constant from shifts, adds and
+subtracts. If the shortest chain it can find still costs too much, it stops
+trying. It puts the constant in a register and uses the multiplier instead.
 
 Here is `y * 13`:
 
@@ -29,19 +30,19 @@ Here is `y * 13`:
 4        bx        lr
 ```
 
-Two instructions, and the constant is written out in the listing where you can
+That is two instructions, and the constant appears in the listing, so you can
 read it directly.
 
-Notice where the constant went. `mul` has no immediate form, so the constant has
-to be materialised in a register first, and `mul` is two-operand, so one of those
-two registers is also the destination. Here the variable was in `r1` and the
-answer belongs in `r0`, so `r0` is what the constant lands in and the product
-overwrites it. Had the variable arrived in `r0` already, the constant would have
-gone to a scratch register and the `mul` would read it from there. Either way the
-pair means the same thing: a `mov rD, #k` feeding a `mul` is a multiply by k, and
-which register holds which operand follows from where the variable started.
+Notice where the constant went. `mul` has no immediate form, so the constant
+has to be put in a register first. `mul` is also two-operand, so one of its two
+registers is the destination too. Here the variable was in `r1` and the answer
+belongs in `r0`. So the constant goes into `r0`, and the product overwrites it.
+If the variable had already been in `r0`, the constant would have gone to a
+scratch register, and the `mul` would read it from there. In both cases the
+pair means the same thing. A `mov rD, #k` that feeds a `mul` is a multiply by
+k. Which register holds which operand depends on where the variable started.
 
-Now here is `x * 19`, one of the constants that went the other way:
+Now here is `x * 19`, a constant where gcc chose the chain:
 
 ```asm
 0        mov       r1, r0
@@ -52,23 +53,25 @@ Now here is `x * 19`, one of the constants that went the other way:
 10       bx        lr
 ```
 
-Five instructions, one of them the copy that keeps the multiplicand alive: four
-copies plus one is five, times four is twenty, minus one is nineteen. The
-**larger** constant got the chain and the smaller one got the multiply.
+That is five instructions, and one of them is the copy that keeps the
+multiplicand. The chain works like this: four times `x` plus `x` is five times,
+multiplied by four is twenty times, and minus `x` is nineteen times. The
+**larger** constant got the chain, and the smaller one got the multiply.
 
-That is not a mistake, and it is not something you can work out from the size of
-the number. What decides it is how neatly the constant factors. 45 is 3 × 16 − 3,
-which agbcc builds as a triple, a shift and one subtraction; 43 is prime and has
-no such shape, so it keeps the multiplier. The outcome jumps around — 11 and 13 use
-`mul`, 15 and 19 use chains, 22 uses `mul`, 43 uses `mul` while its neighbour 45
-uses a chain. There is no rule of thumb to learn, only the listing in front of
-you.
+This is not a mistake, and you cannot predict it from the size of the number.
+What decides it is how well the constant breaks down into shifts, adds and
+subtracts. 45 is 3 × 16 − 3, which agbcc builds as a triple, a shift and one
+subtraction. 43 is prime and cannot be broken down like that, so it keeps the
+multiplier. The results do not follow a simple pattern: 11 and 13 use `mul`, 15
+and 19 use chains, 22 uses `mul`, and 43 uses `mul` while 45, next to it, uses
+a chain. There is no simple rule to learn. You have to read the listing in
+front of you.
 
-The practical consequence is a matching one. If your target says
-`mov rD, #k / mul`, write the multiply by k and leave it alone — replacing it
-with arithmetic you think is equivalent produces a chain and a diff. If the
-target is a chain, the constant is whatever the chain works out to, and asking
-for it directly may well give you a `mul` instead.
+This matters when you match. If your target has `mov rD, #k / mul`, write the
+multiply by k and keep it that way. If you replace it with arithmetic you think
+is equivalent, you will get a chain and a diff. If the target is a chain, the
+constant is whatever the chain works out to, and writing that constant directly
+may give you a `mul` instead.
 
 ## Your task
 

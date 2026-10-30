@@ -10,16 +10,16 @@ concepts:
   - cse
 symbol: func_8006d378
 hints:
-  - "One address computation serves two loads — the offsets 0 and 4 distinguish the two elements being read."
-  - "The C mentions the array twice, at the index and one past it, joined by the operation the final `addu` performs."
+  - "One address computation serves two loads. The offsets 0 and 4 tell you which two elements are read."
+  - "The C uses the array twice, at the index and at one past it. The two values are combined by the operation that the final `addu` performs."
 ---
 
-# arr[i + 1] doesn't add one
+# arr[i + 1] does not add one
 
-Mix a variable index with a constant nudge — `a[i + 1]` — and the
-compiler doesn't compute `i + 1`. It computes the address of `a[i]` with
-the usual trio, then lets the *constant* part ride in the load's offset
-field, exactly where constant indexes always go:
+When an index is a variable plus a constant, as in `a[i + 1]`, the compiler
+does not compute `i + 1`. It computes the address of `a[i]` with the usual
+trio. Then it puts the *constant* part in the offset field of the load, which
+is where constant indexes always go:
 
 ```c
 s32 next_of(s32 *a, s32 i) {
@@ -30,25 +30,25 @@ s32 next_of(s32 *a, s32 i) {
 ```asm
 sll   t6, a1, 2     # i * 4
 addu  t7, a0, t6    # &a[i]
-lw    v0, 4(t7)     # a[i + 1] — the +1 became offset 4
+lw    v0, 4(t7)     # a[i + 1]: the +1 became offset 4
 jr    ra
 nop
 ```
 
-The two halves of the index went to their two homes: variable part into
-the `sll`/`addu`, constant part (scaled by the stride) into the offset.
-So a trio whose load has a *non-zero* offset means `a[i + k]`, with
-`k = offset ÷ stride`.
+The two parts of the index went to different places. The variable part went
+into the `sll`/`addu`, and the constant part (scaled by the stride) went into
+the offset. So a trio whose load has a *non-zero* offset means `a[i + k]`,
+with `k = offset ÷ stride`.
 
-This pays off the moment code touches neighboring elements. The address
-of `a[i]` gets computed **once**, and each neighbor is just a different
-offset hanging off the same register — one `sll`, one `addu`, then as
-many loads as there are elements involved. When you see several loads
-sharing one computed base register, count offsets, not address
-computations.
+This is useful when code reads neighboring elements. The address of `a[i]` is
+computed **once**, and each neighbor is a different offset from the same
+register. You get one `sll`, one `addu`, and then one load for each element.
+When you see several loads that share one computed base register, count the
+offsets. Each offset is a separate element, even though there is only one
+address computation.
 
-That's precisely the target: one address computation, two loads off it,
-one operation joining them. Note which offsets appear before you write
+The target does exactly this: one address computation, two loads from it, and
+one operation that combines them. Note which offsets appear before you write
 the C.
 
 ## Your task

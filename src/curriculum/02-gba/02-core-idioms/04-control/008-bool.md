@@ -9,20 +9,21 @@ concepts:
   - control-flow
 symbol: func_08139a64
 hints:
-  - The seed is 0 and the branch skips the `mov` that would make it 1, so the
-    answer is 1 exactly when the branch is not taken. Invert `blt` to recover
-    the relation.
-  - Two `s32` arguments and an `s32` result that is only ever 0 or 1 — the
-    comparison itself is the return value, with no `if` around it.
+  - The seed is 0, and the branch skips the `mov` that would make it 1. So the
+    answer is 1 exactly when the branch is not taken. Take the opposite of `blt`
+    to get the comparison.
+  - There are two `s32` arguments and an `s32` result that is only ever 0 or 1.
+    The comparison itself is the return value, with no `if` around it.
 ---
 
-# Seed zero, then overwrite it with one
+# Set zero first, then overwrite it with one
 
-A relation used as a *value* rather than as a branch condition still has to be
-built out of branches, because Thumb has no conditional execution and no
-set-flag-to-register instruction. gcc 2.9 has one general recipe: put 0 in a
-register, compare, jump over a `mov #1` when the relation is false, and deliver
-whatever survived.
+Sometimes a comparison is used as a *value*, instead of as a branch condition.
+It still has to be built from branches, because Thumb has no conditional
+execution and no instruction that copies a flag into a register. gcc 2.9 has
+one general method. It puts 0 in a register (the seed), compares, jumps over a
+`mov #1` when the comparison is false, and returns whatever is left in the
+register.
 
 ```asm
 0        mov       r1, #0
@@ -33,16 +34,16 @@ whatever survived.
 10       bx        lr
 ```
 
-Six instructions for something that reads as one operator in C. The seed at
-address 0 runs before the compare — it is not part of either outcome, it is the
-false answer written down in advance. `ble` is the inversion of the relation
-that was written, exactly as for a guarded statement, because the `mov #1` is a
-body being skipped.
+That is six instructions for one operator in C. The seed at address 0 runs
+before the compare. It sets up the false answer in advance, before either
+outcome is chosen. `ble` is the opposite of the comparison that was written,
+exactly as for a guarded statement, because the `mov #1` is a body that the
+branch skips.
 
-The last `mov r0, r1` looks like waste, and sometimes it is; here it is the
-consequence of the compare needing `r0` to hold the value under test while the
-result accumulates somewhere else. Make the value under test unsigned and move
-the bound, and everything but the branch stays where it was:
+The last `mov r0, r1` looks wasteful, and sometimes it is. Here it is needed
+because the compare uses `r0` for the value being tested, so the result is
+built in another register. If you make the tested value unsigned and change the
+bound, everything except the branch stays in place:
 
 ```asm
 0        mov       r1, #0
@@ -53,18 +54,19 @@ the bound, and everything but the branch stays where it was:
 10       bx        lr
 ```
 
-Same six instructions and the same two registers, with an unsigned branch and a
-compare constant nudged down by one the way any `<` against a constant is — the
-bound in the source is 40. Both of those readings come from earlier lessons, and
-the seed-and-overwrite shape wrapped around them changes neither.
+It has the same six instructions and the same two registers. The branch is now
+unsigned, and the compare constant is one lower, as for any `<` against a
+constant. The bound in the source is 40. You learned both of these readings in
+earlier lessons, and the seed and overwrite pattern around them does not change
+either one.
 
-Some relations escape the recipe. `a != b` as a value comes out branchless: an
-`eor`, a `neg`, an `orr` and a shift. `x < 0` collapses to a single `lsr #31`,
-and `x >= 0` to an `mvn` in front of that same shift. Seeing the full
-seed-compare-branch-set shape in a target rules all of those out before you
-start.
+Some comparisons do not use this method. `a != b` as a value compiles with no
+branch: an `eor`, a `neg`, an `orr` and a shift. `x < 0` becomes a single
+`lsr #31`, and `x >= 0` becomes an `mvn` before that same shift. If a target
+shows the full pattern (seed, compare, branch, set), you can rule out all of
+those before you start.
 
-Your target uses the shape above with two registers and a signed branch.
+Your target uses the same pattern, with two registers and a signed branch.
 
 ## Your task
 

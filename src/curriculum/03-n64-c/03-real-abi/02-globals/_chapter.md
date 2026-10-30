@@ -1,4 +1,4 @@
 ---
 title: Globals & %hi/%lo
-blurb: Reading and writing global state through lui address pairs, relocations, arrays, and statics.
+blurb: Reading and writing globals through lui address pairs, along with relocations, arrays, and statics.
 ---

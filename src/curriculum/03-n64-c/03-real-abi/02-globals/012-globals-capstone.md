@@ -10,18 +10,19 @@ concepts:
   - capstone
 symbol: func_8016d158
 hints:
-  - "Two completed addresses (`lui` + `addiu` each), two read-modify-writes woven together. Untangle them by tracking which pointer register each `lw`/`sw` goes through."
-  - "One update subtracts the argument and its new value is returned; the other adds a constant and is discarded. Write the returned one as the first statement."
+  - "There are two completed addresses (`lui` + `addiu` each) and two read-modify-writes mixed together. Separate them by tracking which pointer register each `lw`/`sw` goes through."
+  - "One update subtracts the argument, and its new value is returned. The other adds a constant, and its result is not returned. Write the returned one as the first statement."
 ---
 
-# Two updates, one pass
+# Two updates in one function
 
-Real game functions rarely touch one global at a time. A hit lands: health
-drops, a counter ticks, something gets returned to the caller — three ideas,
-one short function. The compiler weaves their instructions together, and your
-job is to unweave them. Here's `logEvent(code)`, which appends to a global
-event list: it stores `code` at index `gEventCount` of the array `gEvents`,
-increments `gEventCount`, and returns the new count:
+Real game functions rarely change just one global. When a hit lands, for
+example, health goes down, a counter goes up, and a value is returned to the
+caller, all in one short function. The compiler mixes their instructions
+together, and your job is to separate them again. Here is `logEvent(code)`,
+which adds an entry to a global event list. It stores `code` at index
+`gEventCount` of the array `gEvents`, increments `gEventCount`, and returns the
+new count:
 
 ```asm
 lui    a1, %hi(gEventCount)
@@ -37,17 +38,18 @@ jr     ra
 nop
 ```
 
-Every idiom in this chapter is on screen: a completed address reused for a
-read-modify-write, an indexed array store with the index joining the `%hi`
-half, and the bump-and-return double duty in `v0`. Notice how the *array*
-access threads through the middle of the *counter* update — instruction order
-tracks the pipeline, not your statements. The `sw`s tell you *what* got
-updated; they don't promise to appear in statement order, so expect to reason
-about (or simply try) which C ordering the compiler was fed.
+Every idiom from this chapter appears here: a completed address reused for a
+read-modify-write, an indexed array store where the index is added to the `%hi`
+half, and the bump-and-return pattern, where `v0` is both the stored value and
+the return value. Notice that the *array* access sits in the middle of the
+*counter* update. Instruction order is chosen for the pipeline, so it does not
+follow the order of your statements. The `sw`s tell you *what* was updated, but
+they may not appear in statement order. Expect to reason about which order of C
+statements the compiler was given, or to try both orders.
 
-The target fuses two global updates the same way. Sort every memory op by
-which address it goes through, decide what each update does, and mind which
-one's new value survives into `v0`.
+The target combines two global updates in the same way. Group every memory
+operation by the address it goes through, and work out what each update does.
+Then check which update's new value ends up in `v0`.
 
 ## Your task
 

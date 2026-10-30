@@ -8,22 +8,24 @@ concepts:
   - arrays
   - strength-reduction
 hints:
-  - Run the ladder as arithmetic on the index. Whatever multiple of `i` sits in
-    the register after the last shift is the element size — check it against
-    `sizeof` the struct in the context block.
-  - A `struct Rec20 *` and an `s32` in, a `u32` out. Two fields of the same
-    element, and you never write the multiply yourself.
+  - Work through the ladder as arithmetic on the index. The multiple of `i` that
+    is in the register after the last shift is the element size. Check it
+    against `sizeof` the struct in the context block.
+  - The function takes a `struct Rec20 *` and an `s32`, and returns a `u32`. It
+    reads two fields of the same element, and you never write the multiply
+    yourself.
 symbol: func_0825bed8
 ---
 
 # Reading a size out of a shift ladder
 
-When the element size is not a power of two, the compiler still refuses to reach
-for a multiply if it can avoid one. It splits the size into an odd factor and a
-power of two, builds the odd factor from the index with one shift plus one add
-or subtract, and then applies the power of two as a final shift.
+When the element size is not a power of two, the compiler still avoids a
+multiply if it can. It splits the size into an odd factor and a power of two.
+It builds the odd factor from the index with one shift plus one add or
+subtract, and then applies the power of two as a final shift. This lesson calls
+that sequence a shift ladder.
 
-Here is an array of 28-byte records being indexed:
+Here is the code that indexes an array of 28-byte records:
 
 ```asm
 0        lsl       r2, r1, #3
@@ -36,14 +38,15 @@ Here is an array of 28-byte records being indexed:
 14       bx        lr
 ```
 
-Follow the register. After `lsl r2, r1, #3` it holds 8i. The `sub r2, r1` makes
-it 7i — note the subtract, which is how the compiler reaches 7 as 8 minus 1
-rather than 4 plus 2 plus 1. Then `lsl r2, #2` gives 28i, and the `add` makes it
-an address. The two loads at 24 and 0 are the last and first words of the
+Follow the value in the register. After `lsl r2, r1, #3` it holds 8i. The
+`sub r2, r1` makes it 7i. Note the subtract: the compiler builds 7 as 8 minus 1,
+instead of 4 plus 2 plus 1. Then `lsl r2, #2` gives 28i, and the `add` turns it
+into an address. The two loads at 24 and 0 read the last and first words of the
 element.
 
-The ladder gives out when the odd factor needs more than one add or subtract.
-At 44 bytes the compiler gives up and materialises the size:
+The ladder stops working when the odd factor needs more than one add or
+subtract. At 44 bytes, the compiler stops trying and puts the size in a
+register as a constant:
 
 ```asm
 0        mov       r2, #44
@@ -54,12 +57,12 @@ At 44 bytes the compiler gives up and materialises the size:
 ```
 
 `mul r1, r2` is Thumb's two-operand multiply, with the *constant* in the second
-register. So one word added to a struct definition can flip its indexing code
-between a three-instruction ladder and a two-instruction multiply. Neither
-version is something you write by hand — both come from a plain `p[i].field`,
-and hand-writing `i * 44` in the C will get you a different function.
+register. So adding one word to a struct definition can switch its indexing
+code between a three-instruction ladder and a two-instruction multiply. You do
+not write either version by hand. Both come from a plain `p[i].field`, and
+writing `i * 44` yourself in the C will give you a different function.
 
-Your target has a ladder too, with a different pair of shifts. Multiply it out
+Your target also has a ladder, with a different pair of shifts. Multiply it out
 and check the answer against the struct you were given.
 
 ## Your task

@@ -9,23 +9,25 @@ concepts:
   - calls
 symbol: func_082fcb28
 hints:
-  - Three values are protected — both parameters, because each call's argument is
-    built from both of them, and then the first call's result while the second
-    call runs.
-  - Two `s32` parameters in, an `s32` out. Each call takes one arithmetic
-    combination of the two parameters, and the two results are added.
+  - Three values are kept in saved registers. Both parameters are kept, because
+    each call's argument is built from both of them. Then the first call's
+    result is kept while the second call runs.
+  - The function takes two `s32` parameters and returns an `s32`. Each call
+    takes one arithmetic combination of the two parameters, and the two results
+    are added.
 ---
 
-# Bookkeeping between two calls
+# Saving values between two calls
 
-One call needs the values that outlive it in `r4`-`r7`. Two calls need that
-*and* somewhere to keep the first result while the second call runs, because the
-second `bl` will happily overwrite `r0`.
+With one call, gcc keeps the values that must outlive it in `r4` to `r7`. With
+two calls, it needs that *and* a place to keep the first result while the
+second call runs, because the second `bl` will overwrite `r0`.
 
-The shape falls out of those two pressures. Everything that must survive is set
-up before the first call, the first result is immediately moved out of `r0` into
-a saved register, the second call's argument is moved *into* `r0`, and the
-combining arithmetic happens at the end when both operands are finally in hand:
+These two needs decide the shape of the code. Everything that must survive is
+set up before the first call. The first result is moved out of `r0` into a
+saved register straight away. The second call's argument is moved *into* `r0`.
+The arithmetic that combines the results happens at the end, once both
+operands are available:
 
 ```asm
 0        push      {r4, r5, lr}
@@ -41,21 +43,23 @@ combining arithmetic happens at the end when both operands are finally in hand:
 24       bx        r1
 ```
 
-Two saved registers doing two different jobs. `r5` is loaded before the first
-call and not used until after it — that is the second call's argument being kept
-out of harm's way. `r4` is loaded after the first call from `r0` — that is the
-first call's result. Reading the push list alone tells you two things live
-across a `bl` somewhere; reading where each one is written tells you which.
+The two saved registers do two different jobs. `r5` is set before the first
+call and not used until after it. It holds the second call's argument, kept
+safe across the first call. `r4` is set from `r0` after the first call, so it
+holds the first call's result. The push list alone tells you that two values
+stay live across a `bl` somewhere. Where each register is written tells you
+which values they are.
 
-The tail is the accumulator rule from the last lesson, still in force: the
-subtraction's left operand is the first call, so it accumulates into `r4` and
-pays a `mov r0, r4` to get home. And when both operands of a binary operator
-are calls, the `bl` that appears first is the one written on the left, so the
-listing preserves the source order.
+The end of the function follows the rule from the last lesson: gcc computes the
+result in the register of the left operand. The subtraction's left operand is
+the first call, so the result is built in `r4`, and an extra `mov r0, r4` moves
+it into the return register. When both operands of a binary operator are calls,
+the `bl` that comes first is the call written on the left. So the listing keeps
+the order of the source.
 
-Your target does the same dance with one extra value in flight, and the
-arithmetic that builds each call's argument happens in two different places —
-one before the first call, one between the two.
+Your target follows the same pattern, with one more value to keep. The
+arithmetic that builds each call's argument happens in two different places:
+one before the first call, and one between the two calls.
 
 ## Your task
 

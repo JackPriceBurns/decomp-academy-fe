@@ -8,15 +8,16 @@ concepts:
   - registers
 symbol: func_8018a110
 hints:
-  - "Decode each line into \"so far = …\" like the worked example — the first instruction combines two arguments, the second folds in the third."
-  - "One line is an `addu` and one is a `subu`; the mnemonics tell you which C operator sits between each pair of variables."
+  - "Decode each line into \"so far = …\", as in the worked example. The first instruction combines two arguments, and the second combines that result with the third."
+  - "One line is an `addu` and one is a `subu`. The mnemonics tell you which C operator goes between each pair of variables."
 ---
 
 # Reading a two-step expression
 
-An expression with three variables compiles to two instructions, evaluated left
-to right, with the running total flowing through that first temporary you just
-met. Here's `spread(p, q, r)` returning `p - q - r`:
+An expression with three variables compiles to two instructions. They are
+evaluated from left to right, and the running total passes through `t6`, the
+first temporary from the last lesson. Here's `spread(p, q, r)` returning
+`p - q - r`:
 
 ```asm
 subu t6, a0, a1    # t6 = p - q
@@ -25,19 +26,19 @@ jr   ra
 nop
 ```
 
-The decode routine is the one you'll use for the rest of this course, so let's
-name it: **track what each register holds, line by line**. After line one, `t6`
-is "p minus q". Line two subtracts `a2` from *that*, and because the result is
-the last thing the function computes, it lands directly in `v0`. Reassemble the
-story and the C falls out.
+You will use this decoding method for the rest of the course, so it helps to
+give it a name: **track what each register holds, line by line**. After line
+one, `t6` holds "p minus q". Line two subtracts `a2` from *that*. This is the
+last value the function computes, so the result goes straight into `v0`. Put
+the steps back together and you have the C.
 
-Two things to check on every line as you go:
+Check two things on every line as you go:
 
-- **The mnemonic** — `addu` or `subu` — is the operator between the terms.
-- **The operand order** — for `subu`, what's on the left of the minus is the
-  middle operand, always.
+- **The mnemonic** (`addu` or `subu`) is the operator between the terms.
+- **The operand order** matters for `subu`: the value on the left of the minus
+  is always the middle operand.
 
-The target below mixes the two instructions. Same decode, different story.
+The target below mixes the two instructions. Decode it the same way.
 
 ## Your task
 

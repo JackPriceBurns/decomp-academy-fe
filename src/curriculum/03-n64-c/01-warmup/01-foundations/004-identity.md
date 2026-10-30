@@ -8,34 +8,36 @@ concepts:
   - calling-convention
 symbol: identity
 hints:
-  - "The argument `x` arrives in a0; the return value has to end up in v0."
-  - "Returning the argument unchanged is a single register copy — write the one-line C and let the compiler emit it."
+  - "The argument `x` arrives in a0, and the return value has to end up in v0."
+  - "Returning the argument unchanged is a single register copy. Write the one-line C, and the compiler will produce the copy."
 ---
 
-# Where do arguments come from?
+# Where arguments arrive
 
-On the N64's calling convention, the first integer argument arrives in `a0` —
-that's what the **a** stands for. The next three ride in `a1`, `a2`, and `a3`.
-The return value, as you know, leaves in `v0`.
+Under the N64's calling convention, the first integer argument arrives in `a0`.
+That is what the **a** stands for. The next three arrive in `a1`, `a2`, and
+`a3`. The return value, as you already know, leaves in `v0`.
 
-Notice those are *different registers*. Argument in `a0`, answer out in `v0` —
-so even a function that returns its input completely unchanged has one real job
-to do: get the value across.
+These are *different registers*. The argument comes in through `a0`, and the
+answer goes out through `v0`. So even a function that returns its input
+unchanged has one real job: to move the value from one register to the other.
 
 ```asm
-or   v0, a0, zero   # v0 = a0 | 0 — a register-to-register copy
+or   v0, a0, zero   # v0 = a0 | 0, a register-to-register copy
 jr   ra             # return
 nop
 ```
 
-An `or`? MIPS has no dedicated copy instruction, so the compiler leans on the
-zero register again: OR a value with 0 and you get the value back, landed
-wherever you pointed the destination. Last lesson `zero` loaded your constants;
-this lesson it copies registers. Learn to spot `or rd, rs, zero` and read it
-simply as "`rd` = `rs`" — it's one of the most common lines in all of MIPS.
+MIPS has no separate copy instruction, so the compiler uses `or` with the zero
+register again. If you OR a value with 0, you get the same value back, written
+to whichever destination register you chose. In the last lesson, `zero` helped
+load a constant. In this lesson, it helps copy a register. Learn to recognize
+`or rd, rs, zero` and read it as "`rd` = `rs`". It is one of the most common
+lines in MIPS.
 
 So when the body of a function is a single copy from an argument register to
-`v0`, ask: what C function would need *only* to hand its input back?
+`v0`, ask yourself what C function would need to do *nothing* except hand its
+input back.
 
 ## Your task
 

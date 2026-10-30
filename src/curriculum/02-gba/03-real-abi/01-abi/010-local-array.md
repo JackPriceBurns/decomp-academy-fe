@@ -9,23 +9,22 @@ concepts:
   - stack
 symbol: func_08305a10
 hints:
-  - Sixteen bytes of frame, four word stores, and `mov r0, sp` says the block's
-    own address is what gets passed — along with a second argument the listing
-    builds with a `mov`.
-  - Three `s32` parameters in, an `s32` out. The array holds the three
-    parameters and then their sum.
+  - The frame is sixteen bytes and there are four word stores. The
+    `mov r0, sp` shows that the block's own address is passed, along with a
+    second argument that the listing builds with a `mov`.
+  - The function takes three `s32` parameters and returns an `s32`. The array
+    holds the three parameters and then their sum.
 ---
 
 # When a local needs an address
 
-Registers have no addresses, so gcc keeps locals in them for as long as it can
-get away with. A frame appears only when something forces the issue: an array
-handed to another function, a variable whose address is taken, or an outgoing
-argument block. Everything else stays in registers no matter how it was
-declared.
+A register has no address, so gcc keeps local variables in registers whenever
+it can. It creates a stack frame only when something requires one: an array
+passed to another function, a variable whose address is taken, or an outgoing
+argument block. Everything else stays in registers, however it was declared.
 
-This function has an array in it and no frame at all, because nothing ever asks
-where the array lives:
+This function contains an array but has no frame at all, because nothing ever
+needs the array's address:
 
 ```asm
 0        mov       r1, r0
@@ -35,14 +34,15 @@ where the array lives:
 8        bx        lr
 ```
 
-The two elements were compiled into two registers and multiplied. `s32 t[2]` and
-two scalars are the same thing to gcc until an address escapes.
+gcc put the two elements in two registers and multiplied them. To gcc,
+`s32 t[2]` and two separate variables are the same thing, until something uses
+the array's address.
 
-When one does escape, the frame opens with `sub sp, #N` right after the push and
-closes with a matching `add sp, #N` right before the pops. `N` is the total size
-of every local that needed a slot, rounded up to a multiple of **four**. The
-8-byte stack alignment modern ARM insists on came later; this ABI predates it.
-Here is a six-byte buffer:
+When an address is needed, gcc opens the frame with `sub sp, #N` right after
+the push, and closes it with a matching `add sp, #N` right before the pops. `N`
+is the total size of every local that needed a slot, rounded up to a multiple
+of **four**. Modern ARM code requires 8-byte stack alignment, but that rule
+came later than this ABI. Here is a buffer of six bytes:
 
 ```asm
 0        push      {lr}
@@ -57,15 +57,16 @@ Here is a six-byte buffer:
 20       bx        r1
 ```
 
-Six rounds up to eight. The first local sits at the bottom of the frame, so its
-address is a bare `mov r0, sp` with no arithmetic at all. And the stores go
-through `r1` rather than `sp` because Thumb has an `sp`-relative `str` but no
-`sp`-relative `strb` or `strh` — a `mov r1, sp` followed by byte or halfword
-stores is a reliable sign of a `u8` or `s16` local.
+Six rounds up to eight. The first local sits at the bottom of the frame, so
+getting its address takes only a `mov r0, sp`, with no arithmetic. The stores
+go through `r1` instead of `sp`. Thumb has a `str` that addresses relative to
+`sp`, but it has no `sp`-relative `strb` or `strh`. So a `mov r1, sp` followed
+by byte or halfword stores is a reliable sign of a `u8` or `s16` local.
 
-Word stores do not need that dance; they can address `[sp, #imm]` directly for
-offsets up to 124. Read the offsets your target stores to and the frame size it
-opened, and the shape of the local it is filling follows.
+Word stores do not need this extra step. They can address `[sp, #imm]`
+directly, for offsets up to 124. Read the offsets your target stores to and the
+size of the frame it opens. Together they tell you the shape of the local it
+fills.
 
 ## Your task
 

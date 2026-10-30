@@ -9,23 +9,23 @@ concepts:
   - structs
 symbol: func_800edad0
 hints:
-  - "Work one `swc1` at a time. The two `mul.s` above it are that component's two products; each `mul.s`'s left operand comes from the load listed first."
-  - "Every component is \"something minus something\" with the same shape — `sub.s`'s left operand is the product whose loads came from `y`/`z`-style crossed offsets. Write all three statements, keep their store order."
+  - "Work through one `swc1` at a time. The two `mul.s` above it are that component's two products. The left operand of each `mul.s` comes from the load listed first."
+  - "Every component has the same shape: \"something minus something\". The left operand of `sub.s` is the product whose loads came from `y`/`z`-style crossed offsets. Write all three statements, and keep them in store order."
 ---
 
-# Three subtractions, one rhythm
+# Three subtractions with the same shape
 
-Surface normals, camera banking, "which side of this edge am I on" — the
-cross product builds them all. The version in this game writes three
-components, each one a difference of two products of *crossed* fields.
+The cross product is used for surface normals, for camera banking, and to test
+"which side of this edge am I on". The version in this game writes three
+components. Each one is a difference of two products of *crossed* fields.
 
-The assembly is longer than anything float-flavored you've matched so far, but
-it's the same eight bars repeated three times. Here's the 2D version of one
-bar — `vec2Cross`, a single crossed difference:
+The assembly is longer than any float code you have matched so far, but it is
+the same block of eight instructions repeated three times. Here is the 2D
+version of one block, `vec2Cross`, which computes a single crossed difference:
 
 ```asm
 lwc1  ft0, 0(a0)      # a->x
-lwc1  ft1, 4(a1)      # b->y   — note: crossed offsets, x with y
+lwc1  ft1, 4(a1)      # b->y   (note: crossed offsets, x with y)
 lwc1  ft3, 4(a0)      # a->y
 lwc1  ft4, 0(a1)      # b->x
 mul.s ft2, ft0, ft1   # a->x * b->y
@@ -36,20 +36,21 @@ jr    ra
 nop
 ```
 
-Reading technique for the big one:
+How to read the full function:
 
-- **Segment by store.** Each `swc1` to `0(a2)`, `4(a2)`, `8(a2)` closes one
-  component. Everything between two stores (plus a load or two the scheduler
-  pulled up early) belongs to the next component.
-- **Decode loads by offset, not register.** `4(a0)` is `v1->y` no matter which
-  `ft` register it lands in. Registers get reused aggressively here; offsets
-  never lie.
-- **`sub.s` order is meaning.** Cross products are antisymmetric — get the
-  minuend and subtrahend backwards and you've written a different function
-  that happens to be the negation. The diff will notice even if you don't.
+- **Split it at the stores.** Each `swc1` to `0(a2)`, `4(a2)`, `8(a2)` ends one
+  component. Everything between two stores belongs to the next component, plus
+  a load or two that the scheduler moved up early.
+- **Identify each load by its offset.** `4(a0)` is `v1->y` whichever `ft`
+  register it lands in. Registers are reused a lot here, but the offsets are
+  always reliable.
+- **`sub.s` order matters.** Cross products are antisymmetric. If you swap the
+  minuend and the subtrahend, you get a different function: the negation of the
+  correct one. The diff will show the mismatch even if you miss it.
 
-Twelve loads, six multiplies, three subtracts, three stores. Label every load
-with its field, and the three C statements fall out.
+The function has twelve loads, six multiplies, three subtracts and three
+stores. Label every load with its field, and you can then write the three C
+statements.
 
 ## Your task
 

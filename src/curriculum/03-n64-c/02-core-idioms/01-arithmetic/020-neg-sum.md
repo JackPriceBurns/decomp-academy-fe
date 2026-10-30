@@ -9,36 +9,36 @@ concepts:
   - registers
 symbol: func_800f5fb0
 hints:
-  - "Constant-minus-register with a negative constant — recover K by negating the immediate, then wrap the sum in a minus."
-  - "No `negu` will appear in your output; the algebra already absorbed it."
+  - "This is a constant minus a register, with a negative constant. Negate the immediate to get K, then put a minus in front of the sum."
+  - "No `negu` will appear in your output. The compiler's algebra has already removed it."
 ---
 
-# Algebra before emission
+# The compiler does the algebra first
 
-Negate a sum with a constant in it — `-(x + K)` — and you might expect an add
-followed by a `negu`. IDO is smarter: it rewrites the algebra *first*.
-`-(x + K)` is `(-K) - x`, which is just a subtraction from a constant — no
-negation instruction needed. Here's `-(x + 6)`:
+If you negate a sum that contains a constant, such as `-(x + K)`, you might
+expect an add followed by a `negu`. IDO rewrites the algebra *first*.
+`-(x + K)` is the same as `(-K) - x`, which is a subtraction from a constant,
+so no negation instruction is needed. Here's `-(x + 6)`:
 
 ```asm
-addiu t6, zero, -6   # -K, materialized directly
+addiu t6, zero, -6   # -K, loaded directly
 subu  v0, t6, a0     # (-6) - x  ==  -(x + 6)
 jr    ra
 nop
 ```
 
-Read the shape: a small *negative* constant loaded into a register, then a
-`subu` with the **constant on the left** and the variable on the right. That
-operand order is the tell. Variable-minus-constant would've been a single
-`addiu` with a negative immediate (warmup taught you that one); this is the
-other way around, and it means the source was a negated sum.
+Look at the shape: a small *negative* constant is loaded into a register, then
+a `subu` has the **constant on the left** and the variable on the right. That
+operand order is the sign to look for. A variable minus a constant would be a
+single `addiu` with a negative immediate (the warmup taught you that one).
+This is the other way around, and it means the source was a negated sum.
 
-To decode: negate the immediate to recover K, then write the sum, negated.
-The pleasant surprise is what's *absent* — no `negu` anywhere, even though
-the C plainly says "negative". When an expected instruction is missing,
-suspect re-association: the compiler did the algebra at compile time and
-emitted the simplified form. You'll meet this move again with more complex
-expressions; this two-liner is its cleanest specimen.
+To decode it, negate the immediate to get K, then write the sum, negated.
+Notice what is *missing*: there is no `negu` anywhere, even though the C
+clearly says "negative". When an instruction you expected is missing, suspect
+re-association. The compiler did the algebra at compile time and emitted the
+simpler form. You will see this again with more complex expressions. This
+two-instruction version is the simplest example.
 
 ## Your task
 

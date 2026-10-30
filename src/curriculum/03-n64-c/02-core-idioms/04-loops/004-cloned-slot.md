@@ -10,18 +10,19 @@ concepts:
   - fingerprints
 symbol: func_80262bb8
 hints:
-  - "The duplicated instruction is the accumulation — it uses the counter as an operand, which is exactly why it had to be cloned rather than parked."
-  - "Counter steps by 1 this time; check the `addiu` between the clones."
+  - "The duplicated instruction is the accumulation. It uses the counter as an operand, and that is why it had to be cloned instead of placed in a plain delay slot."
+  - "The counter steps by 1 this time. Check the `addiu` between the two copies."
 ---
 
 # The same line, twice
 
-Last lesson the slot held `t += 2` — safe on a plain back-edge because it
-was correct on the final, falling-through trip too. But park an instruction
-that *reads the counter* in an always-runs slot and the fall-through trip
-would execute it one time too many, with a counter that's already walked
-past the limit. IDO's fix is the branch-likely trick from the control
-chapter, turned into a loop engine. Here's `ramp` — `t += i` with `i`
+In the last lesson the delay slot held `t += 2`. That is safe on a plain
+back-edge, because the instruction is also correct on the final trip, when
+the branch falls through. Now suppose the instruction in the slot *reads the
+counter*. A plain delay slot always runs, so on the final trip it would run
+one time too many, with a counter that has already gone past the limit. IDO
+fixes this with the branch-likely instructions from the control chapter,
+used here to build a loop. Here is `ramp`, which does `t += i` with `i`
 stepping by 2:
 
 ```c
@@ -39,34 +40,34 @@ s32 ramp(s32 n) {
 ```asm
  0:  or    v1, zero, zero  # t = 0
  4:  or    v0, zero, zero  # i = 0
- 8:  addu  v1, v1, v0      # t += i — iteration 1, peeled out
+ 8:  addu  v1, v1, v0      # t += i for iteration 1, peeled out
  c:  addiu v0, v0, 2       # ── loop top: i += 2
 10:  slt   at, v0, a0      # at = (i < n)
-14:  bnezl at, 0xc         # go again — and only then run the slot
-18:  addu  v1, v1, v0      # (likely slot) t += i — iterations 2..N
+14:  bnezl at, 0xc         # go again, and only then run the slot
+18:  addu  v1, v1, v0      # (likely slot) t += i for iterations 2..N
 1c:  or    v0, v1, zero
 20:  jr    ra
 24:  nop
 ```
 
-`addu v1, v1, v0` appears **twice**. That's not a bug and not two C
-statements — it's one statement, *cloned*:
+`addu v1, v1, v0` appears **twice**. Both copies come from one C statement,
+which the compiler has *cloned*:
 
-- Line `8` runs it for the **first** iteration, before the loop proper.
-- The copy in the `bnezl` slot runs it for every **later** iteration — and
-  because a likely slot is cancelled when the branch falls through, it
-  never runs that one extra, wrong time.
+- Line `8` runs it for the **first** iteration, before the loop starts.
+- The copy in the `bnezl` slot runs it for every **later** iteration. A
+  likely slot is cancelled when the branch falls through, so this copy never
+  runs that one extra, wrong time.
 
-So the rotated loop is really: *peel the first accumulate, then loop
-[step, test, accumulate-if-continuing]*. When you meet this in the wild,
-read the two identical lines as a single C statement and move on. A likely
-back-edge (`bnezl`, `bgtzl`, …) whose slot mirrors an instruction just
-above the loop top is one of IDO's strongest fingerprints — nothing else
-produces it.
+So the rotated loop does this: *peel off the first accumulate (run it once
+before the loop), then loop over [step, test, accumulate if continuing]*.
+When you see this in real code, read the two identical lines as a single C
+statement. A likely back-edge (`bnezl`, `bgtzl`, …) whose slot repeats an
+instruction just above the loop top is one of IDO's strongest fingerprints.
+Nothing else produces this pattern.
 
-The target is the same accumulate-the-counter loop with a different step.
-Your C needs nothing exotic: write the two-statement body and the compiler
-does the peeling and cloning on its own.
+The target is the same loop that adds the counter to a total, with a
+different step. Your C needs nothing unusual. Write the two-statement body,
+and the compiler does the peeling and cloning by itself.
 
 ## Your task
 

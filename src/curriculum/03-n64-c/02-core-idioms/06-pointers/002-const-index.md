@@ -9,17 +9,17 @@ concepts:
   - offsets
 symbol: func_803b2f5c
 hints:
-  - "One load, one store, no arithmetic. Divide each offset by 4 to recover the two array indexes."
-  - "The load's offset is the source element, the store's offset is the destination — a single assignment between two slots of the same array."
+  - "There is one load, one store and no arithmetic. Divide each offset by 4 to get back the two array indexes."
+  - "The offset of the load gives the source element, and the offset of the store gives the destination. The body is a single assignment between two slots of the same array."
 ---
 
 # Divide the offset by the stride
 
-When the index is a compile-time constant, indexing an array costs
-*nothing*: the compiler multiplies index by element size at compile time
-and bakes the result into the load or store's offset field. `v[4]` on an
-`s32` array is just `16(a0)` — no shift, no add, no extra instruction.
-Here's `sum_pair`:
+When the index is a constant known at compile time, indexing an array costs
+*nothing* extra. The compiler multiplies the index by the element size while
+it compiles, and puts the result in the offset field of the load or store. On
+an `s32` array, `v[4]` becomes `16(a0)`, with no shift, no add and no extra
+instruction. Here is `sum_pair`:
 
 ```c
 s32 sum_pair(s32 *v) {
@@ -35,20 +35,24 @@ jr    ra
 nop
 ```
 
-The decoding move — one you'll make thousands of times — is **offset ÷
-element size = index**. Stride 4 here because `s32`; a `u8` array would
-put the index in the offset raw, a `s16` array halved. Notice also that
-IDO loaded `v[4]` *before* `v[1]`: load order follows the compiler's
-scheduling mood, not your source order, and the `addu`'s operands
-follow the loads. Don't fight it; the same C produces the same shuffle.
+To decode an access, use **offset ÷ element size = index**. You will do this
+thousands of times. The stride is 4 here because the elements are `s32`. In a
+`u8` array the offset is the index itself, and in an `s16` array you halve
+the offset to get the index.
 
-One more habit to build now: a lone pointer parameter with several
-different offsets hanging off it usually means *array* — but file away
-that a struct will look exactly the same. Telling those apart comes two
-chapters from now; on this page, everything is an array.
+Notice also that IDO loaded `v[4]` *before* `v[1]`. The order of the loads
+comes from the compiler's scheduling, and it can differ from the order in
+your source. The operands of the `addu` follow the order of the loads. You
+don't need to change your C for this: the same C always produces the same
+order.
 
-The target moves a value from one slot of a word array to another —
-a load and a store, each with an offset for you to decode.
+One more habit to build now. A single pointer parameter used with several
+different offsets usually means an *array*. Keep in mind that a struct looks
+exactly the same. You will learn to tell them apart two chapters from now. On
+this page, everything is an array.
+
+The target moves a value from one slot of a word array to another. It uses a
+load and a store, and each one has an offset for you to decode.
 
 ## Your task
 

@@ -9,28 +9,30 @@ concepts:
   - arithmetic
 symbol: func_080455e0
 hints:
-  - The opening `mov` is the immediate encoding's doing, not the arithmetic's -
-    the eight-bit form can only work on the register it writes.
-  - "Four `s32` parameters in, an `s32` out, and only the fourth is read. The
-    constant is applied before the doubling, not after."
+  - The `mov` at the start comes from the immediate encoding, and the
+    arithmetic does not need it. The eight-bit form can only work on the
+    register it writes.
+  - The function takes four `s32` parameters and returns an `s32`, and only
+    the fourth is read. The constant is applied first, and the doubling comes
+    after it.
 ---
 
-# Two immediate fields, one cliff between them
+# The two immediate sizes
 
-Thumb has two encodings for adding or subtracting a constant. The constant
-and destination register determine which one gcc can use.
+Thumb has two encodings for adding or subtracting a constant. The constant and
+the destination register decide which one gcc can use.
 
-The three-operand form carries a **three-bit** immediate, so it covers 0 to 7,
-and it can write its answer anywhere. Here is `y + 7`:
+The three-operand form has a **three-bit** immediate, so it holds values from 0
+to 7. It can write its result to any register. Here is `y + 7`:
 
 ```asm
 0        add       r0, r1, #7
 2        bx        lr
 ```
 
-One instruction: read `r1`, add 7, write `r0`.
+That is one instruction. It reads `r1`, adds 7, and writes the result to `r0`.
 
-Change the constant to 8 and the same function costs two:
+Change the constant to 8, and the same function needs two instructions:
 
 ```asm
 0        mov       r0, r1
@@ -38,25 +40,24 @@ Change the constant to 8 and the same function costs two:
 4        bx        lr
 ```
 
-Eight does not fit in three bits, so gcc has to use the other encoding — the
-**two-operand, eight-bit** one, `add rD, #imm8`. That form reaches all the way
-to 255, but it can only add to the register it writes, so the value has to be
+Eight does not fit in three bits, so gcc has to use the other encoding: the
+**two-operand, eight-bit** form, `add rD, #imm8`. That form holds values up to
+255, but it can only add to the register it writes. So the value has to be
 copied into the destination first.
 
-The cost jumps in one step and then stays flat. Every constant from 8 to 255
-costs exactly those two instructions, and 7 costs one. When you see a bare
-`mov rD, rS` immediately before an `add rD, #imm` or `sub rD, #imm`, that copy
-is the encoding's fault and nothing else — it is not a spill and not a value
-being preserved.
+The cost goes up once, at 8, and then stays the same. Every constant from 8 to
+255 costs exactly those two instructions, and 7 costs one. When you see a plain
+`mov rD, rS` just before an `add rD, #imm` or `sub rD, #imm`, the copy exists
+only because of the encoding. It does not spill a value, and it does not save a
+value for later.
 
-The eight-bit field turns up in the rest of the immediate instructions too:
-`mov rD, #imm8` and `cmp rD, #imm8` share the same range, which is why 255 is
-such a recurring number in this course. Shifts escape all of this:
-`lsl rD, rM, #imm5` has a five-bit immediate **and** a three-operand form, so a
-shift never needs a preparatory copy.
+The other immediate instructions use the same eight-bit field. `mov rD, #imm8`
+and `cmp rD, #imm8` have the same range, which is why 255 comes up so often in
+this course. Shifts do not have this limit. `lsl rD, rM, #imm5` has a five-bit
+immediate **and** a three-operand form, so a shift never needs a copy first.
 
-Read the copy in your target as a statement about the constant, then check what
-the last instruction does to the result.
+In your target, read the copy as information about the constant. Then check
+what the last instruction does to the result.
 
 ## Your task
 

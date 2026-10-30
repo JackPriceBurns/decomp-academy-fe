@@ -9,16 +9,18 @@ concepts:
   - comparisons
 symbol: func_0815471c
 hints:
-  - The first branch jumps forward into the body; the second jumps over it. That
-    asymmetry is the entire difference between the two short-circuit operators.
-  - Two `s32` arguments and an `s32` result. Either argument being zero produces
-    the same constant answer; otherwise the two are added together.
+  - The first branch jumps forward into the body, and the second jumps over it.
+    That difference is the only thing that separates the two short-circuit
+    operators.
+  - There are two `s32` arguments and an `s32` result. If either argument is
+    zero, the function returns the same constant. Otherwise it adds the two
+    together.
 ---
 
 # The first branch points at the body
 
-`||` and `&&` compile to the same two compares over the same two values. What
-separates them is where the first branch points.
+`||` and `&&` compile to the same two compares on the same two values. The
+difference is where the first branch points.
 
 ```asm
 0        cmp       r0, #0
@@ -32,13 +34,13 @@ separates them is where the first branch points.
 16     ~>bx        lr
 ```
 
-The branch at 2 jumps *into* the body at 8, and it does so with the condition
-exactly as the source wrote it — one test passing is enough, so there is nothing
-left to check. The branch at 6 is the last one, and it is the inverted one: with
-no further tests to fall back on, failing it means the whole condition failed,
-so it jumps past the body to 14.
+The branch at 2 jumps *into* the body at 8, and it uses the condition exactly as
+the source wrote it. One test passing is enough, so there is nothing left to
+check. The branch at 6 is the last one, and it is the inverted one. There are no
+more tests after it, so failing it means the whole condition failed, and it
+jumps past the body to 14.
 
-Now the same function with the operator changed and nothing else touched:
+Here is the same function with only the operator changed:
 
 ```asm
 0        cmp       r0, #0
@@ -52,18 +54,17 @@ Now the same function with the operator changed and nothing else touched:
 16     ~>bx        lr
 ```
 
-Both branches inverted, both pointing at 14. Two compares, two branches, the
-same body, the same eighteen bytes — and the operator is legible purely from
-whether the branch targets agree.
+Both branches are inverted, and both point at 14. The two versions have the same
+compares, branches and body, and both are eighteen bytes. You can tell the
+operator only from whether the two branch targets are the same.
 
-The body in both is worth a glance on its way past: `mov r0, #1` followed by
-`neg r0, r0`. Minus one has no single-instruction Thumb encoding, so the
-compiler builds it in two whenever it has to materialise it fresh on a return
-path.
+Look briefly at the body in both: `mov r0, #1` followed by `neg r0, r0`. Thumb
+cannot load minus one in a single instruction. So when the compiler has to
+create it from nothing on a return path, it uses two instructions.
 
-Your target uses the or-shape with a different relation in both tests. Read the
-first branch's destination to confirm which operator you are looking at, then
-invert the last one to recover the second test.
+Your target uses the `||` pattern, with a different comparison in both tests.
+Read the first branch's destination to confirm which operator you are looking
+at. Then take the opposite of the last branch to get the second test.
 
 ## Your task
 

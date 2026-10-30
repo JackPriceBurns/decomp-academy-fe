@@ -8,19 +8,18 @@ concepts:
   - registers
 symbol: func_80056580
 hints:
-  - "`subu rd, rs, rt` computes rs - rt — the middle operand is the one being
-    subtracted *from*."
-  - "Check which argument register appears second and which third in the target's `subu`, then write the C in that order."
+  - "`subu rd, rs, rt` computes `rs - rt`. The middle operand is the one being subtracted *from*."
+  - "Check which argument register is second and which is third in the target's `subu`. Then write the C in that order."
 ---
 
-# subu, and why order suddenly matters
+# subu, and why order matters
 
-Register subtraction is `subu rd, rs, rt` — and unlike addition, you can't be
-sloppy about which operand is which. `subu` computes `rs - rt`: the *second*
-operand minus the *third*.
+Register subtraction is `subu rd, rs, rt`. Unlike addition, the order of the
+operands matters here. `subu` computes `rs - rt`: the *second* operand minus
+the *third*.
 
-Here's a function that returns its **second** argument minus its first —
-`revDiff(x, y)` returning `y - x`:
+Here is a function that returns its **second** argument minus its first. It is
+`revDiff(x, y)`, returning `y - x`:
 
 ```asm
 subu v0, a1, a0    # v0 = a1 - a0, i.e. y - x
@@ -28,18 +27,18 @@ jr   ra
 nop
 ```
 
-Note the operands: `a1` before `a0`. Swap them and you'd have a different
-function — same instruction, same registers, opposite sign. A one-line `subu`
-is one of the easiest places in MIPS to write plausible-looking C that's
-backwards, and the diff will happily show you two identical mnemonics with the
-operands crossed.
+Look at the operands: `a1` comes before `a0`. If you swapped them, you would
+have a different function. It would use the same instruction and the same
+registers, but give the opposite sign. A one-line `subu` is one of the most
+common places in MIPS to write C that looks right but is backwards. The diff
+then shows two identical mnemonics with the operands swapped.
 
-So make it a reflex: every time you meet a `subu`, say the subtraction out loud
-— "*this* minus *that*" — mapping each register back to the argument it
-carries. `a0` is the first argument, `a1` the second.
+So make this a habit. Every time you see a `subu`, say the subtraction out loud
+("*this* minus *that*"), and match each register to the argument it holds.
+`a0` is the first argument, and `a1` is the second.
 
-The target below is the same single instruction with its own operand order. Read
-it carefully before you write anything.
+The target below is the same single instruction, with its own operand order.
+Read it carefully before you write anything.
 
 ## Your task
 

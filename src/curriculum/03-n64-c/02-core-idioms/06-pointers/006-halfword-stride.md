@@ -10,14 +10,14 @@ concepts:
   - shifts
 symbol: func_800aa190
 hints:
-  - "Two `sll`s by 1 doing two different jobs — the first scales the index, the second is arithmetic on the loaded value."
-  - "The load is `lh`, not `lhu` — let that pick the pointer's element type. The trailing `or` into `v0` is IDO's usual copy-out, not a C statement."
+  - "There are two `sll`s by 1, and they do different jobs. The first scales the index. The second is arithmetic on the loaded value."
+  - "The load is `lh`, not `lhu`, so use it to choose the element type of the pointer. The final `or` into `v0` is IDO's usual copy-out and does not come from a C statement."
 ---
 
 # The sll amount is the element size
 
-Change the element type and exactly one number changes in the indexing
-trio: the shift amount. A `u16` array strides by 2, so the index is
+If you change the element type, exactly one number changes in the indexing
+trio: the shift amount. A `u16` array has a stride of 2, so the index is
 scaled with `sll … 1`:
 
 ```c
@@ -34,21 +34,21 @@ jr    ra
 nop
 ```
 
-The trio now carries **two** pieces of type information at once, and
-they have to agree:
+The trio now gives you **two** pieces of type information, and they have to
+agree:
 
 - `sll … 1` says the elements are 2 bytes wide;
 - `lhu` says each element is an unsigned halfword.
 
-That agreement is your cross-check. A `sll … 2` feeding an `lhu` would
-be nonsense (4-byte stride, 2-byte load) — if you ever think you're
-seeing that, re-read the registers, because one of the two belongs to a
-different computation. And as always, the load mnemonic is the type
-oracle from last chapter: `lhu` here forced the `u16` in the C.
+Use this agreement to check your reading. A `sll … 2` feeding an `lhu` would
+make no sense (a 4-byte stride with a 2-byte load). If you think you see that,
+read the registers again, because one of the two instructions belongs to a
+different computation. As in the last chapter, the load mnemonic is your type
+oracle: here `lhu` forced the `u16` in the C.
 
-The target indexes a halfword array too, but its load is the *signed*
-flavor, and the loaded value gets one piece of arithmetic done to it
-before heading out — an idiom from the very start of this tier.
+The target also indexes a halfword array, but its load is the *signed* form.
+The loaded value then goes through one arithmetic step before it leaves the
+function. That step is an idiom from the very start of this tier.
 
 ## Your task
 

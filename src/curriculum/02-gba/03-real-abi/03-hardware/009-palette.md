@@ -9,25 +9,25 @@ concepts:
   - addressing
 symbol: func_083799d8
 hints:
-  - The frame is a red herring - nothing is called here. Count the argument
-    registers the body reads, and read the two `lsl`/`orr` pairs as one
-    expression building one halfword.
-  - "Four `u32` parameters — an entry index and three colour components, five
-    bits each with red at the bottom — and nothing returned. The base address
-    83886592 is 0x05000200, the sprite palette."
+  - The stack frame is misleading, because nothing is called here. Count the
+    argument registers the body reads. Read the two `lsl`/`orr` pairs as one
+    expression that builds one halfword.
+  - "There are four `u32` parameters (an entry index and three colour
+    components, five bits each with red at the bottom), and nothing is
+    returned. The base address 83886592 is 0x05000200, the sprite palette."
 ---
 
 # Colours are halfwords in a small array
 
-Palette RAM starts at `0x05000000` and holds 512 entries of two bytes each: 256
-for backgrounds, then 256 for sprites starting at `0x05000200`. A colour is
-`BGR555` — five bits of red at the bottom, five of green above it, five of
-blue above that, and one bit left over. Building one means moving each
-component into its own five-bit slot and joining the pieces; storing it is a
-single `strh`, because palette RAM ignores byte writes the same way VRAM
-does.
+Palette RAM starts at `0x05000000` and holds 512 entries of two bytes each. The
+first 256 are for backgrounds, and the next 256 are for sprites, starting at
+`0x05000200`. A colour is `BGR555`: five bits of red at the bottom, five bits
+of green above it, five bits of blue above that, and one bit left over. To
+build a colour, you move each component into its own five-bit slot and join the
+pieces. To store it, you use a single `strh`, because palette RAM ignores byte
+writes, in the same way as VRAM.
 
-Indexing it looks like any other halfword array. Here is a store to background
+Indexing it works like any other halfword array. Here is a store to background
 entry `index`:
 
 ```asm
@@ -41,12 +41,12 @@ entry `index`:
 14       bx        lr
 ```
 
-`lsl r0, #1` scales the index by the element size, the `mov`/`lsl` pair builds
-`0x05000000` inline as a shifted byte, and `add` puts them together. Palette RAM
-is only a kilobyte, so the whole region is reachable this way and no pool word
-is needed at all.
+`lsl r0, #1` scales the index by the element size. The `mov`/`lsl` pair builds
+`0x05000000` inline as a shifted byte, and `add` combines the two. Palette RAM
+is only a kilobyte, so the whole region can be reached this way and no pool word
+is needed.
 
-A constant index does not even cost the multiply:
+A constant index does not even need the multiply:
 
 ```asm
 0        lsl       r0, #16
@@ -59,19 +59,19 @@ A constant index does not even cost the multiply:
 ```
 
 83886114 is `0x05000022`, which is `0x05000000` plus 17 entries of two bytes.
-The compiler folded the index into the address, and by doing so it turned a
-cheap shifted-byte base into a number that needs the pool. The same thing
-happens to the sprite half of palette RAM: its base is not a byte times a power
-of two, so any function reaching into it carries the address as a `.word`.
+The compiler folded the index into the address. In doing so, it turned a cheap
+shifted-byte base into a number that needs the pool. The same happens with the
+sprite half of palette RAM. Its base is not a byte times a power of two, so any
+function that writes there carries the address as a `.word`.
 
-Now the part of your target that will look wrong. It opens with `push {r4, lr}`
-and ends with `pop {r4}` / `pop {r0}` / `bx r0`, and it calls nothing. That
-frame comes from register pressure. Once the low registers are all spoken for
-and there is still an address to keep somewhere, gcc reaches for `r4`, which the
-ABI says it must save and restore. `lr` rides along in the same `push` because
-pushing it is free, and the interworking epilogue then unstacks the return
-address into a scratch register and jumps to it. A push/pop frame tells you
-about register pressure at least as often as it tells you about calls.
+The next part of your target will look wrong. It starts with `push {r4, lr}`
+and ends with `pop {r4}` / `pop {r0}` / `bx r0`, but it calls nothing. This
+frame comes from register pressure. Once all the low registers are in use and
+there is still an address to keep somewhere, gcc uses `r4`. The ABI says `r4`
+must be saved and restored. `lr` is saved in the same `push` because adding it
+costs nothing. The interworking epilogue then pops the return address into a
+scratch register and jumps to it. A push/pop frame is a sign of register
+pressure at least as often as it is a sign of calls.
 
 ## Your task
 

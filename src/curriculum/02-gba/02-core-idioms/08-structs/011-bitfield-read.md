@@ -9,29 +9,30 @@ concepts:
   - shifts
 hints:
   - Turn each shift pair into a bit range before you look at the context struct.
-    The right shift gives you the width; the left shift plus that width tells
+    The right shift gives you the width. The left shift plus that width tells
     you where the field starts.
-  - A `struct Obj *` in, a `u32` out. Two fields are read and added, and one of
-    them starts at bit zero.
+  - The function takes a `struct Obj *` and returns a `u32`. Two fields are read
+    and added, and one of them starts at bit zero.
 symbol: func_08269534
 ---
 
 # Two shifts describe a field exactly
 
-A bitfield read is a shift pair. The compiler loads the word the field lives in,
-shifts left to throw away every bit above the field, then shifts right to bring
-the field down to bit 0 and clear everything above it. For an unsigned field the
-right shift is `lsr`.
+A bitfield read is a pair of shifts. The compiler loads the word that contains
+the field. It shifts left to remove every bit above the field, and then shifts
+right to move the field down to bit 0 and clear everything above it. For an
+unsigned field, the right shift is `lsr`.
 
-The two counts encode the field's position and size:
+The two shift counts give the field's position and size. Here `lsb` is the bit
+where the field starts:
 
 * the right shift is `32 - width`,
 * the left shift is `32 - lsb - width`.
 
-So `lsl #16` / `lsr #26` is a 6-bit field starting at bit 10. Work it in that
-order — width from the right shift first, then the start — and you can name any
-field from its shift pair without counting anything in the struct. Here is that
-one as a whole function:
+So `lsl #16` / `lsr #26` is a 6-bit field starting at bit 10. Work in that
+order: first the width from the right shift, then the start. That way you can
+name any field from its shift pair without counting anything in the struct.
+Here is that field read as a whole function:
 
 ```asm
 0        ldr       r0, [r0, #0]
@@ -40,9 +41,9 @@ one as a whole function:
 6        bx        lr
 ```
 
-Two cases fall out of the formula and look like something else entirely. A field
-that reaches bit 31 needs no left shift, because there is nothing above it to
-discard:
+Two cases follow from the formula but look quite different. A field that
+reaches bit 31 needs no left shift, because there are no bits above it to
+remove:
 
 ```asm
 0        ldr       r0, [r0, #0]
@@ -50,23 +51,23 @@ discard:
 4        bx        lr
 ```
 
-That is a 12-bit field at bit 20 — `lsr #20` alone, and the width comes from the
-struct rather than from a second shift. And a field that exactly fills the
-bottom byte does not shift at all:
+That is a 12-bit field at bit 20. There is only `lsr #20`, and the width comes
+from the struct instead of from a second shift. A field that exactly fills the
+bottom byte is not shifted at all:
 
 ```asm
 0        ldrb      r0, [r0, #0]
 2        bx        lr
 ```
 
-All three come from the same struct — `y : 8`, `mode : 2`, `gfx : 6`,
-`size : 4`, `x : 12`, in that order — and the three functions read `gfx`, then
-`x`, then `y`. A bitfield read that happens to be byte-aligned and byte-sized is
-compiled as an ordinary narrow load, which is why an unremarkable `ldrb` is no
-proof that the field was declared `u8`.
+All three functions use the same struct, with the fields `y : 8`, `mode : 2`,
+`gfx : 6`, `size : 4` and `x : 12` in that order. The three functions read
+`gfx`, then `x`, then `y`. A bitfield read that is byte-aligned and byte-sized
+compiles to an ordinary narrow load. So a plain `ldrb` does not prove that the
+field was declared `u8`.
 
 Your target reads two bitfields and combines them. Decode both shift pairs
-before you go looking at the struct.
+before you look at the struct.
 
 ## Your task
 

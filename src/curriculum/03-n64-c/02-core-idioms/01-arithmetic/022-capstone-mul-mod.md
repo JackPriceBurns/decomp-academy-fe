@@ -11,43 +11,46 @@ concepts:
   - capstone
 symbol: func_803c9c78
 hints:
-  - "Two HI/LO rituals back to back — the first fetches LO, the second fetches HI. Name each one's C operator, then compose them."
-  - "An instruction sitting between `multu` and its `mflo` isn't part of the multiply — the scheduler slid it up to hide latency. Read around it."
+  - "There are two HI/LO sequences, one after the other. The first fetches LO, and the second fetches HI. Name the C operator for each one, then combine them."
+  - "An instruction between `multu` and its `mflo` is not part of the multiply. The scheduler moved it up to fill the wait for the result. Read around it."
 ---
 
-# Two trips through HI/LO
+# Two passes through HI/LO
 
-A product feeding a remainder means the multiply unit and the divide unit run
-back to back — two rituals, one expression. Here's the unsigned warm-up,
-`(p * q) % 16` on `u32`s, where the remainder is cheap:
+When a product feeds into a remainder, the multiply unit and the divide unit
+run one after the other: two sequences in one expression. Here is a simpler
+unsigned example first, `(p * q) % 16` on `u32`s, where the remainder is cheap:
 
 ```asm
 multu a0, a1        # HI:LO = p * q
 mflo  v0            # the product
-andi  t6, v0, 0xf   # % 16 — power of two, so just a mask
+andi  t6, v0, 0xf   # % 16: power of two, so just a mask
 or    v0, t6, zero  # copy into the return register
 jr    ra
 nop
 ```
 
-Product, mask, done — the pow-2 remainder never touches the divider. (That
-final `or` from `zero` is the register copy you met in warmup, shuffling the
-result home.)
+A product, then a mask, and that is all. A remainder by a power of 2 never
+uses the divider. (The final `or` with `zero` is the register copy you met in
+the warmup. It moves the result into the return register.)
 
-The target below is the signed cousin with a divisor that is *not* a power of
-two, so the second ritual is a real `div` — divisor in `at`, fetch from HI.
-Two reading notes for the road:
+The divisor in the target below is *not* a power of two, so the second
+sequence is a real hardware divide: the divisor goes in `at`, and the result
+is fetched from HI. Two notes for reading it:
 
-- **The scheduler interleaves.** IDO slides independent instructions into the
-  multiply's latency shadow, so expect to find something useful parked between
-  `multu` and `mflo` — in the target, the divisor's `addiu`. It belongs to the
-  *next* operation; don't let its position confuse the decode.
-- **Only one guard-free path.** The target fetches just one result from its
-  division, so it's the tidy `at` form — no `break` safety net to transcribe.
+- **The scheduler mixes instructions together.** While the multiply is still
+  working, IDO fills the wait with instructions that don't depend on it. So
+  expect to find a useful instruction between `multu` and `mflo`. In the
+  target, it is the `addiu` that loads the divisor. It belongs to the *next*
+  operation, so don't let its position confuse your decoding.
+- **One result, no checks.** The target fetches only one result from its
+  division, so it uses the short form with the divisor in `at`. There are no
+  `break` safety checks in the listing.
 
-Decode each ritual, join them with the right operator, and mind your types:
-every `multu` you've seen is normal for signed products, but check what the
-divide mnemonic says.
+Decode each sequence, join them with the right operator, and check your types.
+A `multu` is normal even for signed products, so it does not tell you the
+types. The divide mnemonic does, so check whether it is `div` or the unsigned
+form.
 
 ## Your task
 

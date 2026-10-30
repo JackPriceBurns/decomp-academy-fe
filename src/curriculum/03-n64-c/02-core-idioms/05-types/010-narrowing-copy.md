@@ -9,15 +9,15 @@ concepts:
   - stores
 symbol: func_802adb14
 hints:
-  - "Full-width load, halfword store. Two pointers, one assignment."
-  - "No mask, no shift pair — the store's width is the conversion."
+  - "There is a full-width load and a halfword store. There are two pointers and one assignment."
+  - "There is no mask and no shift pair. The store's width does the conversion."
 ---
 
-# Memory to memory, shrinking on the way
+# Memory to memory, getting narrower
 
-Flip the direction — wide source, narrow destination — and the roles swap:
-now the **store** does the converting, by the simple act of writing fewer
-bytes. Here's `shrink_copy`, a word squeezed into a byte slot:
+Now reverse the direction, with a wide source and a narrow destination. This
+time the **store** does the conversion, because it writes fewer bytes. Here is
+`shrink_copy`, which copies a word into a byte slot:
 
 ```c
 void shrink_copy(u8 *dst, s32 *src) {
@@ -32,24 +32,26 @@ jr    ra
 nop
 ```
 
-Again two instructions, and again no truncation idiom in sight — no
-`andi`, no shift pair, even though a 32-bit value just became 8 bits.
-That's the narrow-store rule from earlier in this chapter doing its quiet
-work: `sb` *is* the truncation. The compiler only spends mask/shift
-instructions when a narrowed value has to keep living **in a register**;
-when the narrow value's next home is memory, the store handles it free.
+Again there are two instructions, and again there is no truncation idiom: no
+`andi` and no shift pair, even though a 32-bit value has just become 8 bits.
+This is the narrow-store rule from earlier in this chapter: `sb` itself does
+the truncation. The compiler only spends mask or shift instructions when a
+narrowed value has to stay **in a register**. When the narrow value goes
+straight to memory, the store does the conversion for free.
 
-That gives you a tidy diagnostic for any conversion you meet:
+This gives you a simple way to classify any conversion you find:
 
 - Conversion at a **load**: extension, chosen by the load's mnemonic.
-- Conversion at a **store**: truncation, silent, width per the mnemonic.
-- Conversion **between registers**: the explicit idioms — `andi` masks,
-  `sll`/`sra` pairs.
+- Conversion at a **store**: truncation, with no extra instructions. The
+  mnemonic gives the width.
+- Conversion **between registers**: the explicit idioms, which are `andi`
+  masks and `sll`/`sra` pairs.
 
-Find which of the three you're looking at and the C writes itself.
+Work out which of the three cases you are looking at, and the C follows
+directly from it.
 
-The target squeezes a word into a halfword slot. Same shape, one width
-over.
+The target has the same shape as the example, at a different width. Read each
+mnemonic to find the widths.
 
 ## Your task
 

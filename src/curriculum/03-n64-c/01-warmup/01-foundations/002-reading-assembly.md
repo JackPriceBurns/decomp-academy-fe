@@ -13,8 +13,8 @@ concept: true
 
 # Reading a line of assembly
 
-Assembly is the code the machine runs, tidied up just enough that it isn't
-completely unreadable to a human. On this site it'll look like this:
+Assembly is the code the machine runs, written out in a form that a person can
+read. On this site it looks like this:
 
 ```asm
 0:   addiu  v0, zero, 7
@@ -22,100 +22,100 @@ completely unreadable to a human. On this site it'll look like this:
 8:   nop
 ```
 
-Three lines, three instructions — assembly is **one instruction per line**, and
-it runs top to bottom.
+There are three lines and three instructions. Assembly has **one instruction per
+line**, and it runs from top to bottom.
 
 ## The numbers down the left are addresses
 
-The first thing to notice: the numbers on the left don't count up 1, 2, 3. They
-jump by 4, and they're written in hex. That's because they aren't line numbers at
-all — each one is the **address** of its instruction, where that instruction sits
-in memory. Every MIPS instruction is exactly 4 bytes, hence the even spacing.
-It'll matter in later lessons; for now you can ignore the exact values and just
-know that's what they are.
+Notice first that the numbers on the left don't count up 1, 2, 3. They go up by
+4, and they are written in hex. Each number is the **address** of its
+instruction, which is the place in memory where that instruction is stored.
+They are not line numbers. Every MIPS instruction is exactly 4 bytes, so the
+addresses are evenly spaced. Addresses will matter in later lessons. For now you
+can ignore the exact values and only need to know what they are.
 
 ## Mnemonic and operands
 
 Every instruction is a **mnemonic** followed by zero or more **operands**.
 
-- The **mnemonic** is *what the instruction does* — load a value, add, subtract,
+- The **mnemonic** is *what the instruction does*: load a value, add, subtract,
   branch, return, and so on.
-- The **operands** are the *arguments* it acts on.
+- The **operands** are the *arguments* it works on.
 
-Take the first line, `addiu v0, zero, 7`. The mnemonic is `addiu` — **add
-immediate** (an "immediate" is a constant written straight into the
-instruction). The operands are `v0`, `zero`, and `7`, and by MIPS convention the
-**destination comes first**: this line computes `zero + 7` and puts the result
-in `v0`.
+Take the first line, `addiu v0, zero, 7`. The mnemonic is `addiu`, which means
+**add immediate**. (An "immediate" is a constant written directly into the
+instruction.) The operands are `v0`, `zero`, and `7`. By MIPS convention the
+**destination comes first**, so this line computes `zero + 7` and puts the
+result in `v0`.
 
-Adding seven to… `zero`? That's not a value — it's a register, and a very
-special one: it *always reads as 0*. So `zero + 7` is just `7`, and this
-instruction drops the constant `7` into `v0`. That's genuinely how MIPS loads a
-constant — there's no dedicated "load a number" instruction, you add the number
-to the register that's always nothing. (Some tools print this pattern with the
-shorthand `li`, "load immediate"; on this site you'll always see the real
-instruction.)
+`zero` is a register, and a special one: it *always reads as 0*. So `zero + 7`
+is `7`, and this instruction puts the constant `7` into `v0`. This is how MIPS
+loads a constant. There is no separate "load a number" instruction, so the
+compiler adds the number to the register that always holds nothing. (Some tools
+print this pattern with the shorthand `li`, "load immediate". On this site you
+will always see the real instruction.)
 
-## The registers have names, not just numbers
+## The registers have names
 
-`v0` and `zero` are **registers** — the small, fast slots inside the processor
-where it keeps the values it's actively working with. MIPS has 32 of them, and
-unlike some CPUs they go by *names* that tell you each register's job:
+`v0` and `zero` are **registers**. Registers are the small, fast storage slots
+inside the processor, where it keeps the values it is working with right now.
+MIPS has 32 of them. Unlike some CPUs, MIPS gives them *names*, and each name
+tells you the register's job:
 
-- **`zero`** — always reads as 0. Writes to it vanish. The hardware's free
-  constant — you just watched it do real work.
-- **`v0`, `v1`** — function return **v**alues.
-- **`a0`–`a3`** — the first four function **a**rguments.
-- **`t0`–`t9`** — **t**emporaries, scratch space the compiler burns freely.
-- **`s0`–`s7`** — **s**aved registers; a function must put these back the way it
-  found them.
-- **`at`** — the **a**ssembler **t**emporary, scratch the compiler leans on when
-  an operation needs a helper value.
-- **`sp`** — the **s**tack **p**ointer; **`ra`** — the **r**eturn **a**ddress,
-  where a function goes back to; plus a few you'll rarely meet (`k0`/`k1` belong
-  to the kernel, `gp` and `fp` sit idle in this game's code).
+- **`zero`**: always reads as 0. Anything written to it is thrown away. It gives
+  the hardware a free constant, and you just saw it do real work.
+- **`v0`, `v1`**: function return **v**alues.
+- **`a0` to `a3`**: the first four function **a**rguments.
+- **`t0` to `t9`**: **t**emporaries, scratch registers the compiler uses freely.
+- **`s0` to `s7`**: **s**aved registers. A function must put these back the way
+  it found them.
+- **`at`**: the **a**ssembler **t**emporary, a scratch register the compiler
+  uses when an operation needs a helper value.
+- **`sp`**: the **s**tack **p**ointer.
+- **`ra`**: the **r**eturn **a**ddress, where a function goes back to.
+- A few you will rarely see: `k0`/`k1` belong to the kernel, and `gp` and `fp`
+  are not used in this game's code.
 
-Floating-point values live apart from all of these, in their own bank of
-registers `$f0`–`$f31` on the FPU — later chapters visit them.
+Floating-point values are kept apart from all of these, in their own bank of
+registers `$f0` to `$f31` on the FPU. Later chapters cover them.
 
 ## The return, and the line after it
 
-`jr ra` is the **return**: "**j**ump to the address in **r**egister `ra`" — and
-`ra` is where the caller's address is waiting. Nearly every function you
-decompile ends with one.
+`jr ra` is the **return**. It means "**j**ump to the address in **r**egister
+`ra`", and `ra` holds the address in the caller to go back to. Nearly every
+function you decompile ends with one.
 
-But look at the listing again: `jr ra` *isn't* the last line. There's a `nop`
-after it. That's the single most MIPS thing you'll learn today:
+Look at the listing again, though. `jr ra` is not the last line. There is a
+`nop` after it. This is the most important MIPS rule you will learn today:
 
 **The instruction after every jump or branch always executes.** The CPU has
-already fetched it by the time the jump takes effect, so it runs, jump or no
-jump. That slot in the shadow of a branch is called the **delay slot**. When the
-compiler has something useful to do there, it parks real work in it; when it
-doesn't, it fills the slot with `nop` — "no operation", an instruction that does
-nothing.
+already fetched it by the time the jump takes effect, so it runs whether the
+jump is taken or not. That position right after a branch is called the
+**delay slot**. When the compiler has useful work for it, it puts a real
+instruction there. When it doesn't, it fills the slot with `nop` ("no
+operation"), an instruction that does nothing.
 
 So read `jr ra` and the line after it **as a pair**: "return, and on the way
-out, do this." In the listing above the answer to "do what?" is: nothing. Later
-you'll see delay slots carrying real instructions, and knowing to look there is
-half of reading MIPS.
+out, do this." In the listing above, the instruction in that slot does nothing.
+Later you will see delay slots that hold real instructions, and knowing to look
+there is a large part of reading MIPS.
 
-## One more shape to file away
+## One more form to recognize
 
-When an instruction touches memory you'll see an operand like `0(a0)` — that's
-**offset(base)** form, meaning "the address in `a0`, plus 0". `lw v0, 4(a0)`
-reads the word at `a0 + 4` into `v0`. Nothing to do with it yet; just recognize
-the shape when it appears.
+When an instruction accesses memory, you will see an operand like `0(a0)`. This
+is **offset(base)** form, and it means "the address in `a0`, plus 0".
+`lw v0, 4(a0)` reads the word at `a0 + 4` into `v0`. You don't need to do
+anything with it yet. Only learn to recognize the form when it appears.
 
 ## You don't have to memorize any of this
 
-There are a lot of mnemonics, and you'll meet them a few at a time — but you
-don't need to keep them all in your head. **Hover any instruction in the diff**
-and a tooltip explains what it does, with that line's own registers and values
-filled in. Lean on it as much as you like; the common ones will stick on their
-own soon enough.
+There are a lot of mnemonics, and you will meet them a few at a time. You don't
+need to keep them all in your head. **Hover any instruction in the diff** and a
+tooltip explains what it does, with that line's own registers and values filled
+in. Use it as much as you like. You will learn the common ones soon enough.
 
 ---
 
-This is a simplification — there's more to MIPS than three instructions, and
-you'll pick the rest up exactly when a lesson needs it. But it's enough to read
-your first target. Let's go match your very first C function.
+This is a simplified picture. MIPS has many more than three instructions, and
+you will learn the rest when a lesson needs them. It is enough to read your
+first target, though. Next, you will match your first C function.

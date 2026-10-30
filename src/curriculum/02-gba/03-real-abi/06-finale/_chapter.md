@@ -1,4 +1,4 @@
 ---
 title: Tier Finale
-blurb: Frames, globals, hardware and 64-bit values, fused.
+blurb: Functions that combine frames, globals, hardware and 64-bit values.
 ---

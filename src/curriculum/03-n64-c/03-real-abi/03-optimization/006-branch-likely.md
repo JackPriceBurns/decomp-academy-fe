@@ -10,23 +10,23 @@ concepts:
   - conditionals
 symbol: func_80090ffc
 hints:
-  - "Compare the `slt` operand order against the worked example — the arguments trade places. What question is this one asking?"
-  - "The shape is a one-`if` clamp. Decide which argument survives when the branch is taken and which when it falls through."
+  - "Compare the `slt` operand order with the worked example. The arguments have swapped places. What question is this one asking?"
+  - "The shape is a clamp with one `if`. Work out which argument is kept when the branch is taken, and which one is kept when it falls through."
 ---
 
-# A delay slot with an escape clause
+# A delay slot that can be skipped
 
-Every branch you've read so far executes its delay slot no matter what. The
-`l`-suffixed **likely** branches change the deal: the slot instruction runs
-**only when the branch is taken** — on the fall-through path it's annulled, as
-if it never existed. That lets the compiler park an instruction belonging to
-the *taken* path right in the slot.
+Every branch you have read so far runs its delay slot in every case. The
+**likely** branches, the ones ending in `l`, work differently: the slot
+instruction runs **only when the branch is taken**. On the fall-through path it
+is annulled, as if it were not there. This allows the compiler to put an
+instruction that belongs to the *taken* path straight into the slot.
 
-Here's `maxOf(a, b)`, which returns the larger argument:
+Here is `maxOf(a, b)`, which returns the larger argument:
 
 ```asm
  0:  slt    at, a0, a1     # at = (a < b)
- 4:  beqzl  at, 0x14       # not less? branch to the return — LIKELY
+ 4:  beqzl  at, 0x14       # not less? branch to the return (LIKELY)
  8:  or     v0, a0, zero   #   slot: v0 = a … only if the branch is taken
  c:  or     a0, a1, zero   # fall-through: a = b
 10:  or     v0, a0, zero   # v0 = a (the updated a)
@@ -34,20 +34,20 @@ Here's `maxOf(a, b)`, which returns the larger argument:
 18:  nop
 ```
 
-Walk both paths. If `a >= b`: `beqzl` fires, the slot sets `v0 = a`, done. If
-`a < b`: the slot is *annulled*, execution falls to `0xc`, `b` overwrites `a`,
-and the copy into `v0` happens at `0x10` instead. Two copies of `v0 = a` is
-exactly how the C reads: one `if` that may replace `a`, then a single
-`return a`.
+Follow both paths. If `a >= b`, `beqzl` is taken, the slot sets `v0 = a`, and
+the function is done. If `a < b`, the slot is *annulled*, execution falls
+through to `0xc`, `b` overwrites `a`, and the copy into `v0` happens at `0x10`
+instead. The two copies of `v0 = a` match how the C reads: one `if` that may
+replace `a`, followed by a single `return a`.
 
-When does IDO pick a likely branch over a plain one? When it has something
-useful to annul — a slot instruction that belongs to only one path. You saw
-`bc1fl` do this with floats last lesson; `beqzl`, `bnezl`, and `beql` are the
-integer family. Don't try to force or avoid them in C: write the natural
-conditional and the compiler chooses.
+IDO picks a likely branch over a plain one when it has something useful to
+annul: a slot instruction that belongs to only one path. You saw `bc1fl` do
+this with floats in the last lesson. `beqzl`, `bnezl` and `beql` are the
+integer versions. Don't try to force or avoid them in C. Write the natural
+conditional, and the compiler chooses.
 
-The target is the same clamp shape, but read the `slt` carefully: its operands
-are reversed, so it asks a different question — and a different argument gets
+The target has the same clamp shape, but read the `slt` carefully. Its operands
+are reversed, so it asks a different question, and a different argument gets
 replaced.
 
 ## Your task

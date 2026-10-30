@@ -12,20 +12,21 @@ concepts:
   - capstone
 symbol: func_800ce968
 hints:
-  - "Collapse the unroll first — read only the remainder loop (through its `bne`/`addiu` back-edge) and you have the whole per-element body. The stanzas are that body ×4."
-  - "Per element it's a flag *test* (this time proceeding when the bit IS set), an `lh` compared against zero with `bgtzl` skipping, then an `andi` mask-clear stored back and a counter bump."
+  - "Collapse the unroll first. Read only the remainder loop (up to its `bne`/`addiu` back-edge), and you have the whole body for one element. The stanzas are that body ×4."
+  - "For each element there is a flag *test* (this time the code continues when the bit IS set), then an `lh` compared against zero, with a `bgtzl` that skips. After that, an `andi` clears the bit with a mask, the result is stored back, and a counter is incremented."
 ---
 
-# Forty lines per element? No — twelve, four times
+# A twelve-line body, repeated four times
 
-The classic per-frame sweep: walk every entity, test a condition,
-flip some state, count what you did. It's the biggest listing in the
-tier — and by now, none of it is new. Here's `wakeIdle`, which scans
-an array of `Bot`s and wakes any sleeping bot with enough charge:
+This is the classic sweep that game code runs every frame. It walks
+every entity, tests a condition, changes some state, and counts how many
+entities it changed. It is the longest listing in the tier, but by now
+none of it is new to you. Here is `wakeIdle`, which scans an array of
+`Bot`s and wakes any sleeping bot with enough charge:
 
 ```c
 typedef struct {
-    u8  flags;    // offset 0 — bit 1 = "awake"
+    u8  flags;    // offset 0, bit 1 = "awake"
     u8  pad;
     s16 charge;   // offset 2
 } Bot;
@@ -47,10 +48,10 @@ s32 wakeIdle(Bot *b, s32 n) {
   0:  or    v1, zero, zero    # woke = 0
   4:  blez  a1, 0x128         # n <= 0? straight out
   8:  or    v0, zero, zero    #   (slot) i = 0
-  c:  andi  a3, a1, 0x3       # n & 3 — the unroll's opening move
+  c:  andi  a3, a1, 0x3       # n & 3, the first step of the unroll
  10:  beqz  a3, 0x5c          # no remainder? main loop
  14:  or    t0, a3, zero      #   (slot) remainder trip count
- 18:  sll   t6, zero, 2       # the useless sll, right on schedule
+ 18:  sll   t6, zero, 2       # the useless sll, as expected
  1c:  addu  a2, a0, t6        # cursor = b
  20:  lbu   a3, 0(a2)         # ── remainder loop: flags
  24:  addiu v0, v0, 1         # i++
@@ -82,7 +83,7 @@ s32 wakeIdle(Bot *b, s32 n) {
  8c:  lbu   v0, 4(a2)
  90:  sb    t5, 0(a2)
  94:  addiu v1, v1, 1
- 98:  lbu   v0, 4(a2)         # (dup) — element 1 begins
+ 98:  lbu   v0, 4(a2)         # (dup) element 1 begins
  9c:  andi  t6, v0, 0x2       # …same 12-line body, offsets +4
  a0:  bnezl t6, 0xc8
  a4:  lbu   v0, 8(a2)
@@ -123,32 +124,33 @@ s32 wakeIdle(Bot *b, s32 n) {
 130:  nop
 ```
 
-Reading strategy, not line-by-line heroics:
+Use this strategy to read it, instead of going line by line:
 
-1. **Recognize the frame.** Guard, `andi n, 0x3`, useless `sll`,
-   remainder loop, scaled setup, ×4 stanzas, `bnel` back-edge — the
-   unroll skeleton from the loops chapter, structs riding inside.
-2. **Read ONE body.** The remainder loop (lines `0x20`-`0x54`) is
-   the per-element logic at its clearest: flag test, short-circuit
-   `&&` as two skips to the same label, RMW wake, count. Twelve
-   lines — that's the function.
-3. **Verify the stanzas are copies.** Offsets march 0/4/8/12; each
-   stanza's skip-target preloads the next element's flags in a
-   likely slot; the last stanza smuggles the cursor bump into its
-   skips. Nothing else changes.
+1. **Recognize the frame.** The guard, `andi n, 0x3`, the useless
+   `sll`, the remainder loop, the scaled setup, the ×4 stanzas and the
+   `bnel` back-edge are the unroll skeleton from the loops chapter. This
+   time the body works on structs.
+2. **Read ONE body.** The remainder loop (lines `0x20`-`0x54`) shows the
+   logic for one element most clearly. It has the flag test, the
+   short-circuit `&&` as two skips to the same label, the RMW that wakes
+   the bot, and the count. Those twelve lines are the whole function.
+3. **Check that the stanzas are copies.** The offsets step through
+   0/4/8/12. When a stanza skips, the likely slot of its skip branch
+   preloads the next element's flags. In the last stanza, the cursor
+   bump moves into the slots of its skips. Nothing else changes.
 
 The target, `func_800ce968`, is the same sweep with the condition
-inverted in *both* clauses: it acts on entities whose flag bit **is**
-set and whose stat has run out — retiring them and counting. Expect
-the flag test's branch polarity to flip, the stat test to become a
-`bgtzl` skip, and the RMW to *clear* with a mask instead of set.
-Collapse it to its twelve-line body, write the naive loop, and let
-IDO rebuild the cathedral.
+inverted in *both* clauses. It acts on entities whose flag bit **is**
+set and whose stat has run out. It retires those entities and counts
+them. Expect the flag test's branch to be flipped, the stat test to
+become a `bgtzl` skip, and the RMW to *clear* the bit with a mask
+instead of setting it. Reduce the listing to its twelve-line body and
+write the plain loop. IDO will build the full unrolled listing from
+that.
 
 ## Your task
 
-Write `func_800ce968`, returning the number pruned, to reproduce the
-target assembly.
+Write `func_800ce968` to reproduce the target assembly.
 
 <!-- solution -->
 ```c

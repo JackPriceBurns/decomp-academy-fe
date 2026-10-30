@@ -8,16 +8,16 @@ concepts:
   - stores
 symbol: func_800ef3b4
 hints:
-  - "Three stores, three fields, offsets 0, 4, 8. One of them stores the `zero` register — a field set to 0."
-  - "The other two stores push the *same* argument register — one parameter initializing two different fields."
+  - "There are three stores for three fields, at offsets 0, 4, 8. One of them stores the `zero` register, which sets a field to 0."
+  - "The other two stores write the *same* argument register. One parameter sets two different fields."
 ---
 
 # Initializers are store runs
 
-Writing fields is the mirror image of reading them: one store per
-field, each with that field's offset. Functions that set up a struct —
-constructors in spirit — compile to a tidy run of stores against one
-base register:
+Writing fields works like reading them, with stores in place of loads. There
+is one store per field, and each store uses that field's offset. A function
+that sets up a struct (much like a constructor) compiles to a run of stores
+that all use one base register:
 
 ```c
 typedef struct {
@@ -38,20 +38,20 @@ jr    ra
 nop
 ```
 
-Nothing new mechanically — this is the out-parameter pattern from the
-pointers chapter with named offsets. The reading skill is the
-*inventory*: list every store's offset, map each to a field, and note
-what register it stores. Arguments map to parameters; `zero` maps to
-`= 0`; a scratch register means a computed value, so trace it upward.
+The instructions are not new. This is the out-parameter pattern from the
+pointers chapter, with named offsets. What you need here is an *inventory* of
+the stores. List each store's offset, match it to a field, and note which
+register it stores. An argument register means a parameter. `zero` means
+`= 0`. A scratch register means a computed value, so look further up to see
+where it came from.
 
-One habit that pays off: when several consecutive fields get stored in
-one function, that function is probably an init or reset helper, and
-the field order in the stores usually tracks the declaration order.
-Seeing the *shape* ("this initializes a Gauge") gets you to the C
-faster than decoding line by line.
+A useful habit: when one function stores several consecutive fields, it is
+probably an init or reset helper. The stores usually follow the declaration
+order of the fields. If you recognize the *shape* ("this initializes a
+Gauge"), you reach the C faster than by decoding line by line.
 
-The target initializes all three fields of the `Gauge` below — read
-carefully which register lands where.
+The target initializes all three fields of the `Gauge` below. Check carefully
+which register goes into which field.
 
 ## Your task
 

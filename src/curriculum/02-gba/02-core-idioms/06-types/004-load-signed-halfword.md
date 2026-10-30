@@ -11,19 +11,18 @@ symbol: func_081bf9fc
 hints:
   - The constant in each `mov` is the byte offset of that load, so halve it to
     get the subscript. Two `mov`s means two signed halfword reads.
-  - "One `s16 *` in, an `s32` out, built from the elements at byte offsets 2 and
-    8."
+  - "The function takes one `s16 *` and returns an `s32`. The result is built
+    from the elements at byte offsets 2 and 8."
 ---
 
-# A whole register spent on an offset
+# Using a register for the offset
 
-Signed halfwords get a load instruction of their own. `ldrsh` fetches 16 bits
-and sign-extends them into the register in one go, which sounds like the end of
-the story until you look at what forms of it exist. ARMv4T encodes `ldrsh` and
-`ldrsb` only in the register-offset form `ldrs* rD, [rB, rI]`. There is no
-`ldrsh rD, [rB, #imm]` at all.
+Signed halfwords have their own load instruction. `ldrsh` reads 16 bits and
+sign-extends them into the register in a single step. However, it only exists
+in some forms. ARMv4T encodes `ldrsh` and `ldrsb` only in the register-offset
+form `ldrs* rD, [rB, rI]`. There is no `ldrsh rD, [rB, #imm]`.
 
-So agbcc materialises the offset in a register. Reading `p[5]` from an `s16 *`
+So agbcc first puts the offset into a register. Reading `p[5]` from an `s16 *`
 looks like this:
 
 ```asm
@@ -33,12 +32,12 @@ looks like this:
 6        bx        lr
 ```
 
-`mov r1, #10` does no arithmetic. It puts the byte offset of element 5 somewhere
-the load can reach, because the constant folds into the index register instead
-of into the instruction. Every `mov rX, #N` sitting immediately above an `ldrsh`
-is an addressing mode, and `N / 2` is the subscript.
+`mov r1, #10` does no arithmetic. It places the byte offset of element 5 in a
+register that the load can use. The offset has to go in the index register,
+because the instruction has no room for it. When you see `mov rX, #N` right
+before an `ldrsh`, it is part of the address, and `N / 2` is the subscript.
 
-Now the same function through an `s8 *`:
+Here is the same function reading through an `s8 *`:
 
 ```asm
 0        ldrb      r0, [r0, #5]
@@ -48,18 +47,18 @@ Now the same function through an `s8 *`:
 8        bx        lr
 ```
 
-The narrower type produces the longer code. gcc's halfword sign-extend pattern
-carries a spare operand it can allocate a register into, so it can always reach
-`ldrsh`; the byte pattern has no such operand, so a signed byte normally falls
-back to the shift pair you met in the last lesson. This asymmetry is pure
-ARMv4T, and it means `s8` and `s16` fields are read in completely different
-shapes.
+The narrower type produces longer code. gcc's pattern for sign-extending a
+halfword has a spare operand that it can put a register into, so it can always
+use `ldrsh`. The pattern for a byte has no such operand. So a signed byte is
+normally read with the shift pair you met two lessons ago. This difference
+is specific to ARMv4T, and it means `s8` and `s16` fields are read with very
+different code.
 
-One consequence is worth keeping: count the `mov rX, #N` instructions that feed
-an `ldrsh` and you have counted the function's signed halfword reads, without
-reading a single load.
+This gives you a useful shortcut. Count the `mov rX, #N` instructions that feed
+an `ldrsh`. That count is the number of signed halfword reads in the function,
+and you get it without reading any of the loads.
 
-Your target does two of them.
+Your target has two of these reads.
 
 ## Your task
 

@@ -10,15 +10,15 @@ concepts:
   - min-max
 symbol: func_80121f6c
 hints:
-  - "Identical skeleton to the worked example — but the `c.lt.s` operands are mirrored. Apply the no-greater-than rule before anything else."
+  - "Same structure as the worked example, but the `c.lt.s` operands are mirrored. Apply the mirror rule (there is no greater-than compare) before anything else."
   - "Trace both paths to their `mov.s`. Which argument comes back when the flag is true?"
 ---
 
 # Pick one of two floats
 
-Clamping a value to a floor — `if (x < lo) return lo; return x;` —
-is a two-outcome function, and IDO compiles it with a branch-likely
-form and a register copy you haven't met on the FPU yet. Here's
+Clamping a value to a floor, as in `if (x < lo) return lo; return x;`, gives
+a function with two possible results. IDO compiles it with a branch-likely
+instruction and an FPU register copy you have not seen yet. This is
 `atLeastW(x, lo)`:
 
 ```asm
@@ -28,30 +28,32 @@ form and a register copy you haven't met on the FPU yet. Here's
  c:  mov.s  fv0, fa0    #   (likely slot) …x itself
 10:  jr     ra
 14:  mov.s  fv0, fa1    # fall-through: return lo
-18:  mov.s  fv0, fa0    # duplicated tail — dead, but counted
+18:  mov.s  fv0, fa0    # duplicated tail: never runs, but still counted
 1c:  jr     ra
 20:  nop
 ```
 
-**`mov.s`** is the FPU's register copy — `or rd, rs, zero`'s cousin.
-And the branch is the **likely** form you know from loop back-edges,
-doing if-conversion duty: the `mov.s` in its slot runs *only when
-the branch is taken*, so each outcome gets its own copy-into-`fv0`.
+**`mov.s`** is the FPU's register copy. It does the same job as
+`or rd, rs, zero` on the integer side. The branch is the **likely** form you
+know from loop back-edges, used here for if-conversion. The `mov.s` in its
+delay slot runs *only when the branch is taken*, so each outcome gets its own
+copy into `fv0`.
 
-Trace it both ways. Flag false (`x >= lo`): branch taken, slot runs,
-`fv0 = x`, land on the second `jr`. Flag true (`x < lo`): slot
-annulled, fall through to the first `jr`, whose delay slot sets
-`fv0 = lo`. The `mov.s` at `0x18` is a duplicated tail the optimizer
-strands there — unreachable, but part of the byte count, so your C
-must produce it too (writing the natural two-return `if` does).
+Trace both paths. When the flag is false (`x >= lo`), the branch is taken,
+the slot runs and sets `fv0 = x`, and execution lands on the second `jr`.
+When the flag is true (`x < lo`), the slot is annulled (skipped). Execution
+falls through to the first `jr`, whose delay slot sets `fv0 = lo`. The
+`mov.s` at `0x18` is a duplicated tail that the optimizer leaves behind. It
+can never run, but it is part of the byte count, so your C must produce it
+too. (The natural `if` with two returns does.)
 
-This exact skeleton — compare, `bc1fl`, two `mov.s` returns, one
-stray tail — is how the game spells every float min, max, floor, and
-ceiling against a variable. Which *one* it is lives entirely in the
-compare's mnemonic and operand order.
+The game uses this exact structure for every float min, max, floor and
+ceiling against a variable: a compare, `bc1fl`, two `mov.s` returns and one
+unused tail. Which of the four it is depends only on the compare's mnemonic
+and operand order.
 
-The target caps a value against a *ceiling* instead. Remember what
-this instruction set doesn't have.
+The target limits a value to a *ceiling* instead. Remember which compare this
+instruction set does not have.
 
 ## Your task
 

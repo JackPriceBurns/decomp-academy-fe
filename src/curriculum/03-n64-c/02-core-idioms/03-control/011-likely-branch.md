@@ -10,47 +10,48 @@ concepts:
   - fingerprints
 symbol: func_802c8120
 hints:
-  - "`blezl` skips the increment when the condition FAILS the C's test — and
-    its likely slot holds the copy-out that only that path needs."
+  - "`blezl` skips the increment when the C's test FAILS, and its likely slot
+    holds the copy to the return register that only that path needs."
   - "The C is a plain guarded `+=` followed by a return. The `-l` form and the duplicated copy both come from the compiler."
 ---
 
 # The l is for likely
 
-Everything you know about delay slots has one exception, and IDO leans on it
-hard. The branch-likely forms — `beqzl`, `bnezl`, `blezl`, and friends, all
-ending in **l** — change the slot's contract:
+Everything you know about delay slots has one exception, and IDO uses it a
+lot. The branch-likely forms (`beqzl`, `bnezl`, `blezl` and others, all ending
+in **l**) change the rule for the slot:
 
 > A plain branch's slot **always** runs. A likely branch's slot runs **only
-> if the branch is taken**. Not taken? The slot is cancelled.
+> if the branch is taken**. If the branch is not taken, the slot is cancelled.
 
-That gives the compiler a superpower: it can park an instruction that would
-be *wrong* on the fall-through path. Here's the shape that summons it —
-a guarded assignment, `if (x != 0) y = y + 3; return y;`:
+So the compiler can put an instruction in the slot that would be *wrong* on
+the fall-through path. Here is the kind of code that produces it, an
+assignment inside an `if`: `if (x != 0) y = y + 3; return y;`:
 
 ```asm
- 0:  beqzl a0, 0x10       # x == 0? skip the add — AND run the slot
- 4:  or    v0, a1, zero   # (likely slot) v0 = y, untouched — taken path only
+ 0:  beqzl a0, 0x10       # x == 0? skip the add, AND run the slot
+ 4:  or    v0, a1, zero   # (likely slot) v0 = y, unchanged; taken path only
  8:  addiu a1, a1, 3      # fall through: y += 3
  c:  or    v0, a1, zero   # …and v0 = the new y
 10:  jr    ra
 14:  nop
 ```
 
-Follow each path. Condition fails the C's test (`x == 0`): branch taken, the
-likely slot copies the *original* `y` out, done. Condition holds: branch not
-taken, **the slot is cancelled as if it weren't there**, the add runs, and a
-second copy-out finishes the job.
+Follow each path. If the C's test fails (`x == 0`), the branch is taken. The
+likely slot copies the *original* `y` into the return register, and the
+function is done. If the test holds, the branch is not taken. **The slot is
+cancelled as if it were not there**, the add runs, and a second copy finishes
+the job.
 
-Notice the same `or v0, a1, zero` appears **twice** — once in the likely
-slot, once after the add. That duplication is the give-away: IDO cloned the
-"return y" ending onto both paths so each could finish without a join. A
-likely branch whose slot mirrors a later instruction = a small `if` with no
-`else`, compiled by if-conversion.
+Notice that the same `or v0, a1, zero` appears **twice**: once in the likely
+slot, and once after the add. That duplication is the sign to look for. IDO
+copied the "return y" ending onto both paths, so that each path can finish
+without joining the other. A likely branch whose slot matches a later
+instruction means a small `if` with no `else`, compiled by if-conversion.
 
-None of this needs special C. Write the guard, the assignment, the return —
-IDO chooses the `-l` form on its own. The target guards its increment with a
-different test and a different amount; read the branch (flipped, as ever)
+None of this needs special C. Write the `if`, the assignment and the return,
+and IDO chooses the `-l` form by itself. The target guards its increment with
+a different test and a different amount. Read the branch (flipped, as always)
 and the `addiu`.
 
 ## Your task

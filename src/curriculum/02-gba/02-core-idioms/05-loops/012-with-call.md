@@ -9,23 +9,23 @@ concepts:
   - registers
 hints:
   - Every value the loop carries across the `bl` had to move to a callee-saved
-    register first. Three of them are pushed, so three things survive the call -
-    the cursor, the countdown, and the result being built.
+    register first. Three of them are pushed, so three values survive the call.
+    They are the cursor, the countdown, and the result being built.
   - The loaded element goes straight into r0, which is the first argument
     register, and the value coming back in r0 is what gets accumulated.
-  - An `s32 *` and an `s32` count in, `s32` out - each element is passed through
-    `Adjust` and the returned values are summed.
+  - An `s32 *` and an `s32` count in, `s32` out. Each element is passed through
+    `Adjust`, and the returned values are summed.
 symbol: func_081a05d0
 ---
 
 # The call that empties your registers
 
 A `bl` destroys r0 through r3 and lr. Anything the loop needs on the next trip
-has to be somewhere the callee is obliged to preserve, which means r4 through
-r7, which means pushing them. So the push list of a calling loop is a direct
-count of how many values the loop carries.
+has to be in a register that the callee must preserve. Those are r4 through r7,
+and using them means pushing them. So the push list of a loop that makes a call
+tells you directly how many values the loop carries.
 
-Here is a loop that hands each element of a halfword array to a function:
+Here is a loop that passes each element of a halfword array to a function:
 
 ```asm
 0        push      {r4, r5, lr}
@@ -44,31 +44,32 @@ Here is a loop that hands each element of a halfword array to a function:
 28       bx        r0
 ```
 
-Two values cross the call — the cursor and the countdown — so both arguments are
-copied out of r0 and r1 into r4 and r5 before the loop starts, and the push list
-is `{r4, r5, lr}`. lr is in there because the `bl` overwrites it with the return
-address of the *callee*, which would otherwise destroy the way back to this
-function's own caller.
+Two values have to survive the call: the cursor and the countdown. So both
+arguments are copied out of r0 and r1 into r4 and r5 before the loop starts,
+and the push list is `{r4, r5, lr}`. lr is in the list because the `bl`
+overwrites it with the return address for the *callee*. Without the push, this
+function would lose the address it needs to return to its own caller.
 
-Two rendering details. The `bl` is a 32-bit instruction, so the addresses step
-by 4 across it rather than 2 — 12 to 16. And an undefined callee prints as
-`Notify-4`: the `-4` is the relocation addend the linker will fix up, not part
-of the name. Nothing in your C is called `Notify-4`.
+There are two details about how the listing is printed. The `bl` is a 32-bit
+instruction, so the address goes up by 4 across it instead of 2, from 12 to 16.
+Also, an undefined callee prints as `Notify-4`. The `-4` is the relocation
+addend that the linker will fix up, and it is not part of the name. Nothing in
+your C is called `Notify-4`.
 
 The epilogue pops lr into r0 and returns with `bx r0`, because this function
-returns nothing and r0 is free. A loop that returns a value pops into r1
-instead, since r0 is carrying the result. Reading which register the epilogue
-pops into tells you whether anything is handed back, before you have read a line
-of the body.
+returns nothing and r0 is free. A function that returns a value pops into r1
+instead, because r0 holds the result. So the register that the epilogue pops
+into tells you whether anything is returned, before you have read a line of the
+body.
 
-A `bl` in the body does not cost you the load-multiple the way a branch in the
-body does. The cursor sits in a callee-saved register and comes back from the
-call untouched, so a word-sized walk keeps its `ldmia rN!, {rX}` with a call in
-the middle of the loop. This example walks halfwords, which is why it pays for
-its advance separately.
+A branch in the body costs you the load-multiple. A `bl` in the body does not.
+The cursor is in a callee-saved register and comes back from the call
+unchanged, so a loop over words keeps its `ldmia rN!, {rX}` even with a call in
+the middle. This example walks halfwords, which is why it needs a separate
+instruction to advance the pointer.
 
-Your target calls `Adjust`, declared for you, and pushes one register more than
-this one.
+Your target calls `Adjust`, which is declared for you. It pushes one more
+register than this example does.
 
 ## Your task
 

@@ -9,16 +9,16 @@ concepts:
   - endianness
 symbol: func_80115df0
 hints:
-  - "A word store then a *halfword* load from the same address — the write goes in through one union member, the read comes out through the other."
-  - "The load is `lh` at offset 0. On this machine the first two bytes of a stored word are its upper half — pick the inner field accordingly."
+  - "There is a word store, then a *halfword* load from the same address. The write goes in through one union member, and the read comes out through the other."
+  - "The load is `lh` at offset 0. On this machine, the first two bytes of a stored word are its upper half. Choose the inner field to match."
 ---
 
-# Same bytes, different glasses
+# The same bytes, read in different ways
 
-A union stacks all its members at **offset 0** — they overlap, and
-each member is just a different way of reading the same bytes. In
-assembly that becomes: accesses to one address with *mismatched
-widths*. Here's a union used to peel a byte out of a word:
+A union places all its members at **offset 0**, so they overlap. Each member
+is a different way of reading the same bytes. In assembly, this shows up as
+accesses to one address with *mismatched widths*. Here is a union used to take
+one byte out of a word:
 
 ```c
 typedef union {
@@ -33,27 +33,27 @@ u32 first_byte(Reg32 *r, u32 w) {
 ```
 
 ```asm
-sw    a1, 0(a0)     # in through .word — all 32 bits
-lbu   v0, 0(a0)     # out through .bytes[0] — just one byte
+sw    a1, 0(a0)     # in through .word (all 32 bits)
+lbu   v0, 0(a0)     # out through .bytes[0] (one byte)
 jr    ra
 nop
 ```
 
-A `sw` and an `lbu` on the same `0(a0)` — that width clash is the
-union fingerprint. A plain `u32` field would never be re-read narrow.
+There is a `sw` and an `lbu` on the same `0(a0)`. This clash of widths is the
+sign of a union. A plain `u32` field would never be read back with a narrower
+load.
 
-And *which* byte did we get? Here's the fact this lesson exists to
-plant: **this machine is big-endian** — a stored word's *most
-significant* byte lands at the lowest address. `bytes[0]` is the top
-byte of `w`, not the bottom. (Check the target diffs all tier: that's
-why halves and bytes come back "upper first" whenever widths mix.)
-Also worth knowing: the compiler keeps these honest by actually going
-through memory — store, then reload — rather than shifting in a
-register, so the pair of instructions survives to be read.
+The main point of this lesson is *which* byte comes back. **This machine is
+big-endian.** When a word is stored, its *most significant* byte goes to the
+lowest address. So `bytes[0]` is the top byte of `w`, and not the bottom byte.
+(This is why, in the target diffs throughout this tier, halves and bytes come
+back "upper first" whenever widths mix.) Also note that the compiler really
+does go through memory here. It stores and then reloads, instead of shifting
+in a register, so both instructions stay in the listing for you to read.
 
-The target's union (below) overlays an `s32` with a pair of
-halfwords. It stores the whole thing, then returns one half — the
-load's width, sign, and offset select which inner field the C names.
+The target's union (below) puts an `s32` and a pair of halfwords in the same
+place. The function stores the whole value, then returns one half. The load's
+width, sign and offset tell you which inner field the C names.
 
 ## Your task
 

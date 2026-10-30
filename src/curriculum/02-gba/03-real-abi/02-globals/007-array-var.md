@@ -9,18 +9,18 @@ concepts:
   - addressing
 symbol: func_08336c0c
 hints:
-  - The pooled base is used twice - once as the thing the scaled index is added
-    to, and once on its own as an address.
-  - "An `s32` in, an `s32` out. `ldr r1, [r1, #0]` with the base register untouched is element zero of the array."
+  - "The pooled base is used twice: once as the value the scaled index is added to, and once on its own as an address."
+  - "It takes an `s32` and returns an `s32`. `ldr r1, [r1, #0]`, with the base register unchanged, is element zero of the array."
 ---
 
 # Scaling the index by hand
 
-A runtime index cannot fold into a load offset, so the address has to be
-computed. The recipe is always the same three steps: shift the index left by the
-log of the element size, add the pooled base, load at offset zero.
+An index that is only known at run time can't go into a load offset, so the
+code has to compute the address. It always takes the same three steps: shift
+the index left by the log of the element size, add the pooled base (the array
+address loaded from the pool), and load at offset zero.
 
-The shift is the tell for the element width. A byte array skips it entirely:
+The shift tells you the element width. A byte array has no shift at all:
 
 ```asm
 0        ldr       r1, [pc, #4] (->8)
@@ -42,20 +42,20 @@ A halfword array shifts by one:
 12       .word     gPalette
 ```
 
-Both take the index in `r0` and fold the pooled base into it; the halfword case
-pays one shift on the way, the byte case pays none. Word arrays follow the
-pattern with `lsl #2`. The load instruction agrees with the shift — `ldrb` with
-no shift, `ldrh` with one, `ldr` with two — so those two rows always corroborate
-each other, and a mismatch between them means you are looking at something other
-than a plain array subscript.
+Both functions take the index in `r0` and add the pooled base to it. The
+halfword case needs one shift first, and the byte case needs none. Word arrays
+follow the same pattern with `lsl #2`. The load instruction always matches the
+shift: `ldrb` with no shift, `ldrh` with a shift of one, `ldr` with a shift of
+two. So those two rows should always agree. If they don't, the code is doing
+something other than a plain array subscript.
 
-Notice that the base lands in `r1` rather than being consumed by the `add`. That
-matters when the function needs the base again: a second access at a constant
-index can then be a bare load through the surviving register, with no arithmetic
-at all.
+Notice that the base stays in `r1`. The `add` writes its result into `r0`, so
+`r1` still holds the base afterwards. That matters when the function needs the
+base again. A second access at a constant index can then be a single load
+through the register that still holds the base, with no arithmetic at all.
 
-Your target does exactly that. One pool word, two elements, and only one of them
-needed any address computation.
+Your target does this. It uses one pool word and reads two elements, and only
+one of them needs any address computation.
 
 ## Your task
 

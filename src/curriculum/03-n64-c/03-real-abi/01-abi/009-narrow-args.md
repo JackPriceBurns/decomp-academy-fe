@@ -1,7 +1,7 @@
 ---
 id: ca803ec8-f485-413e-88c4-59cd02f7d3df
 slug: abi-narrow-args
-title: Narrow Arguments Re-Extend Themselves
+title: Re-Extending Narrow Arguments
 difficulty: 3
 concepts:
   - abi
@@ -10,50 +10,54 @@ concepts:
   - arguments
 symbol: func_802a00f8
 hints:
-  - "`andi` with 65535 keeps exactly the low 16 bits, zero-extending. Which C
-    type promises an unsigned 16-bit value?"
-  - "Only one argument is homed — that's your narrow one, and it's the first parameter. The other is a plain `s32`."
+  - "`andi` with 65535 keeps exactly the low 16 bits and fills the rest with
+    zeros. Which C type holds an unsigned 16-bit value?"
+  - "Only one argument is homed. That is your narrow one, and it is the first parameter. The other is a plain `s32`."
 ---
 
-# The callee doesn't trust the high bits
+# The callee does not rely on the high bits
 
-A `s16` or `u8` argument still travels in a full 32-bit register — there's no
+An `s16` or `u8` argument still travels in a full 32-bit register. There is no
 half-size `a0`. The o32 rule is that the *callee* must not assume the upper
-bits are clean, so on arrival IDO re-extends every narrow argument itself. And
-narrow counts as "not a plain word", so — as you learned last lesson — narrow
-arguments get **homed** too. Two fingerprints for the price of one.
+bits are clean, so IDO re-extends every narrow argument itself when the
+function starts. A narrow argument also counts as "not a plain word", so, as
+you learned in the last lesson, narrow arguments are **homed** too. This means
+each narrow argument shows up twice in the listing: in the re-extension and in
+the homing store.
 
-The re-extension differs by signedness. Here's `narrowAdd(a, b)` with both
+The re-extension depends on signedness. This is `narrowAdd(a, b)`, with both
 parameters declared `s16`:
 
 ```asm
-sw    a0, 0(sp)      # narrow ⇒ homed
-sll   t6, a0, 16     # push the low half up…
+sw    a0, 0(sp)      # narrow, so homed
+sll   t6, a0, 16     # shift the low half to the top
 sw    a1, 4(sp)      # (b homed too)
 sll   t8, a1, 16
-sra   a1, t8, 16     # …and arithmetic-shift back: sign bits refilled
+sra   a1, t8, 16     # arithmetic shift back down: fills in the sign bits
 sra   a0, t6, 16
 addu  v0, a0, a1
 jr    ra
 nop
 ```
 
-The `sll 16` / `sra 16` pair is the **signed** narrow signature: shift the
-16-bit value to the top, then shift back arithmetically so the sign bit smears
-down the upper half. For a signed byte it's the same dance with shift amount 24.
+The `sll 16` / `sra 16` pair is the pattern for a **signed** narrow argument.
+It shifts the 16-bit value to the top of the register, then shifts it back
+arithmetically, which copies the sign bit into the whole upper half. A signed
+byte uses the same pair with a shift amount of 24.
 
-**Unsigned** narrows don't need the sign smear — a mask does the job:
-`andi rt, rs, 255` for a `u8`, `andi rt, rs, 65535` for a `u16`. Zero-extension
-in one instruction.
+**Unsigned** narrow arguments don't need the sign copied. A mask is enough:
+`andi rt, rs, 255` for a `u8`, and `andi rt, rs, 65535` for a `u16`. That
+zero-extends the value in one instruction.
 
-So narrow argument types read straight off the listing:
+So you can read narrow argument types directly from the listing:
 
 - `sll`/`sra` by 16 → `s16`; by 24 → `s8`
 - `andi 65535` → `u16`; `andi 255` → `u8`
-- plus a homing `sw` for each narrow argument, interleaved by the scheduler
+- a homing `sw` for each narrow argument, mixed in with the other instructions
+  by the scheduler
 
-The target does one add. The mask and the homing tell you which argument is
-narrow, and what to declare.
+The target does one add. The mask and the homing store tell you which argument
+is narrow and what type to declare.
 
 ## Your task
 

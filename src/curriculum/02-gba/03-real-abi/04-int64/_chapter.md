@@ -1,4 +1,4 @@
 ---
 title: 64-bit Values
-blurb: Two registers pretending to be one number.
+blurb: How one 64-bit value is split across two registers.
 ---

@@ -10,28 +10,29 @@ concepts:
 symbol: func_08127c94
 hints:
   - "`r3` is a copy of the first argument, made at address 0 so that `r0` could
-    be loaded with the value that is going to be returned. That means the
-    compare's left operand is the second argument, not the first."
-  - Three `s32` arguments and an `s32` result. The third argument is what comes
-    back; the first is conditionally added onto it.
+    be loaded with the value that will be returned. So the left operand of the
+    compare is the second argument."
+  - There are three `s32` arguments and an `s32` result. The function returns
+    the third argument, and the first argument is added to it under a
+    condition.
 ---
 
 # Which value was on the left
 
-`cmp Ra, Rb` subtracts `Rb` from `Ra` and keeps the flags, and the signed
-branches read those flags as a relation with `Ra` on the left. The four of them
-map onto C exactly:
+`cmp Ra, Rb` subtracts `Rb` from `Ra` and keeps the flags. The signed branches
+read those flags as a comparison with `Ra` on the left. The four signed branches
+match C operators exactly:
 
     blt   <      bge   >=
     ble   <=     bgt   >
 
-That gives you two independent pieces of information from one branch. The
-mnemonic tells you the operator, once you have accounted for whether it was
-inverted; the `cmp`'s operand order tells you which C expression was on the left
-of that operator.
+So one branch gives you two separate pieces of information. The mnemonic tells
+you the operator, once you have checked whether it was inverted. The operand
+order of the `cmp` tells you which C expression was on the left of that
+operator.
 
-Here are both arms returning, so the branch keeps the polarity it was written
-with:
+In this example both arms return, so the branch keeps the condition as it was
+written:
 
 ```asm
 0        cmp       r0, r1
@@ -42,12 +43,12 @@ with:
 10     ~>bx        lr
 ```
 
-`cmp r0, r1` with `bge`: first argument on the left, `>=` as written, and the
-arm it jumps to is the one the source put first. Straightforward, because
-nothing had to move before the compare.
+`cmp r0, r1` with `bge` means the first argument is on the left and the
+operator is `>=`, as written. The arm the branch jumps to is the one the source
+put first. This one is direct to read, because nothing had to move before the
+compare.
 
-The next one has to move something, and that is where the reading gets
-interesting:
+The next example has to move values first, and that makes it harder to read:
 
 ```asm
 0        mov       r2, r0
@@ -58,19 +59,19 @@ interesting:
 10     ~>bx        lr
 ```
 
-The two `mov`s at the top swap the arguments out of the registers they arrived
-in: the first is copied to `r2` and the second is installed in `r0` because it
-is the value one of the arms returns. By the time the compare runs, `r2` holds
-argument one and `r0` holds argument two — so `cmp r2, r0` is *first versus
-second*, and `ble` is the `<=` the source wrote.
+The two `mov`s at the top move the arguments out of the registers they arrived
+in. The first argument is copied to `r2`. The second is placed in `r0`, because
+it is the value one of the arms returns. When the compare runs, `r2` holds
+argument one and `r0` holds argument two. So `cmp r2, r0` compares *the first
+against the second*, and `ble` is the `<=` that the source wrote.
 
-Get in the habit of tracking what each register holds at the moment of the
-`cmp`, rather than reading `cmp r2, r0` as "r2 versus r0". The register numbers
-mean nothing on their own; the shuffle above them is what gives them meaning.
+Make a habit of tracking what each register holds at the moment of the `cmp`.
+Do not read `cmp r2, r0` as "r2 versus r0". The register numbers mean nothing by
+themselves. The moves above the compare tell you what each register holds.
 
-Your target opens with two of those moves, and the compare that follows names
-one of them. Work out what each register holds before you decide which way round
-the relation was written.
+Your target starts with two of those moves, and the compare after them uses one
+of the moved registers. Work out what each register holds before you decide
+which way round the comparison was written.
 
 ## Your task
 

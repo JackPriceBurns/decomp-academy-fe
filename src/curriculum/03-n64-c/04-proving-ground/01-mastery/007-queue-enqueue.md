@@ -10,44 +10,45 @@ concepts:
   - multiply
 symbol: func_801c0070
 hints:
-  - "The `bcopy` call's a0 comes straight from the homed second parameter, and its a1 is data + top × elementSize. Remember bcopy's order — source first."
-  - "After the call, top gets incremented and stored, *reloaded*, and compared against capacity; the `bnel` skips an `sh zero`. That's a wrap-to-zero `if`, then the count bump."
+  - "The a0 of the `bcopy` call comes straight from the homed second parameter, and its a1 is data + top × elementSize. Remember the order of bcopy's arguments: source first."
+  - "After the call, top is incremented and stored, then *reloaded* and compared with capacity. The `bnel` skips an `sh zero`. That is an `if` that wraps top to zero, followed by the count increment."
 ---
 
-# Copying into a ring
+# Copying into a ring buffer
 
-Back to the generic queue from lesson 001 — this time the function that puts
-an element *in*. It has everything a real mid-sized function has: a computed
-address, a library call, state updates after the call, and a wrap-around test.
+This lesson returns to the generic queue from lesson 001. This time the
+function puts an element *in*. It has what a typical mid-sized function has: a
+computed address, a library call, state updates after the call, and a
+wrap-around test.
 
-The copy itself is `bcopy`, libultra's memory copy. One sharp edge to respect:
-**`bcopy` takes source first, then destination** — `bcopy(src, dst, len)`,
-the reverse of `memcpy`. The extern in the context has the order spelled out.
+The copy uses `bcopy`, libultra's memory copy. Be careful with one detail:
+**`bcopy` takes source first, then destination**, as in `bcopy(src, dst, len)`.
+This is the reverse of `memcpy`. The extern in the context shows the order.
 
 The destination is "slot number `top`" inside the queue's storage:
-base + top × elementSize. Both fields are `s16`s, and you'll see the product
-formed with `multu`/`mflo` — don't let the `u` make you reach for unsigned
-types. For the low 32 bits, signed and unsigned multiplies agree, so IDO uses
-whichever it likes; you just write `*`.
+base + top × elementSize. Both fields are `s16`s, and the product is computed
+with `multu`/`mflo`. The `u` does not mean you need unsigned types. For the low
+32 bits, signed and unsigned multiplies give the same result, so IDO may use
+either one. You write a plain `*`.
 
-Here's the same pattern in `binWipeNext`, which clears one cell of a bin and
+Here is the same pattern in `binWipeNext`, which clears one cell of a bin and
 advances it:
 
 ```asm
  0:  addiu sp, sp, -24
  4:  sw    ra, 20(sp)
- 8:  or    a2, a0, zero      # the struct pointer vacates a0 for the call
+ 8:  or    a2, a0, zero      # the struct pointer moves out of a0 for the call
  c:  lh    a1, 2(a2)         # b->cellSize
 10:  lh    t7, 0(a2)         # b->used
 14:  lw    t6, 4(a2)         # b->cells
-18:  sw    a2, 24(sp)        # pointer parked in the incoming-arg slot
+18:  sw    a2, 24(sp)        # pointer saved in the incoming-arg slot
 1c:  multu t7, a1            # used * cellSize
 20:  mflo  t8
 24:  addu  a0, t6, t8        # cells + used*cellSize → first argument
 28:  jal   wipe
 2c:  nop
-30:  lw    a2, 24(sp)        # parked pointer comes back
-34:  lh    t9, 0(a2)         # b->used again — memory may have changed
+30:  lw    a2, 24(sp)        # saved pointer is reloaded
+34:  lh    t9, 0(a2)         # b->used again: memory may have changed
 38:  addiu t0, t9, 1
 3c:  sh    t0, 0(a2)         # b->used += 1
 40:  lw    ra, 20(sp)
@@ -55,15 +56,17 @@ advances it:
 48:  addiu sp, sp, 24
 ```
 
-Note the rhythm: shuffle the pointer out of `a0`, build the callee's
-arguments, park what must survive, call, reload, and only *then* do the
-after-call bookkeeping — with fields re-loaded from memory, because a call
-invalidates everything the compiler thought it knew.
+Note the order of the steps. The pointer moves out of `a0`, the callee's
+arguments are built, values that must survive the call are saved, the call
+runs, and the saved values are reloaded. Only *then* does the bookkeeping after
+the call happen. Its fields are loaded again from memory, because the call
+could have changed anything in memory, so the compiler cannot reuse values it
+loaded before.
 
-The target adds one more beat after its increment: the freshly stored value is
-read back and compared against another field, and a `bnel` decides whether an
-`sh zero` runs. You've written that C a dozen times in tier 2 — an `if` with
-one store in it. Then one last field bumps and it's done.
+The target adds one more step after its increment. The value it just stored is
+read back and compared with another field, and a `bnel` decides whether an
+`sh zero` runs. You wrote that kind of C many times in tier 2: an `if` with one
+store in it. Finally, one more field is incremented and the function ends.
 
 ## Your task
 

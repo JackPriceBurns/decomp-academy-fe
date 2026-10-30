@@ -10,22 +10,22 @@ concepts:
   - fingerprints
 symbol: func_80117a14
 hints:
-  - "Same guard skeleton as the worked example — the difference is which special register the result comes from."
-  - "`mfhi`, not `mflo`. Which C operator asks for what HI holds?"
+  - "The checks are the same as in the worked example. The difference is which special register the result comes from."
+  - "The target uses `mfhi` where the example uses `mflo`. Which C operator asks for the value that HI holds?"
 ---
 
-# The safety net, armed
+# Division checks that can fire
 
-You've met `break 0x7` and `break 0x6` before, guarding a division whose
-divisor was a *constant* — dead code that could never fire. Divide by a
-**variable** and the same net goes live: nothing proves `b` isn't zero, or
-that `a / b` isn't the one overflowing case. Here's `ratio(a, b)`, returning
-`a / b`:
+You have seen `break 0x7` and `break 0x6` before. They guarded a division
+whose divisor was a *constant*, so they were dead code that could never run.
+When you divide by a **variable**, the same safety checks can fire. Nothing
+proves that `b` is not zero, or that `a / b` is not the one case that
+overflows. Here is `ratio(a, b)`, which returns `a / b`:
 
 ```asm
  0:  div    zero, a0, a1   # LO = a / b … computed before any checking
  4:  mflo   v0
- 8:  bnez   a1, 0x14       # divisor nonzero? hop over the trap
+ 8:  bnez   a1, 0x14       # divisor nonzero? jump over the trap
  c:  nop
 10:  break  0x7            # divide-by-zero trap
 14:  addiu  at, zero, -1   # is the divisor −1…
@@ -38,20 +38,22 @@ that `a / b` isn't the one overflowing case. Here's `ratio(a, b)`, returning
 30:  nop
 ```
 
-Read the order carefully: the `div` executes *first*, checks after. The
-hardware divider doesn't trap on zero by itself — it just produces garbage —
-so the compiler's `bnez`/`break 0x7` supplies the crash. Then the pair of
-`bne`s asks whether this is `−2³¹ ÷ −1` (the one signed division whose result
-doesn't fit) and raises `break 0x6` if so. Neither `at` load is conditional;
-the scheduler happily builds `0x80000000` in a delay slot whether or not the
-second check will use it.
+Read the order carefully: the `div` runs *first*, and the checks come after
+it. The hardware divider does not trap on zero by itself. It only produces a
+meaningless result, so the compiler adds `bnez`/`break 0x7` to cause the
+crash. Then the pair of `bne`s checks whether this is `−2³¹ ÷ −1`, the one
+signed division whose result does not fit, and raises `break 0x6` if it is.
+Neither `at` load is conditional. The scheduler builds `0x80000000` in a
+delay slot whether or not the second check will use it.
 
-For matching, the entire net — both traps, both branches, the slot placement
-— comes from the single `/` in your C. Your job is only to notice the shape,
-write the one-line division, and let the compiler rebuild its paranoia.
+For matching, all of these safety checks come from the single `/` in your C:
+both traps, both branches, and where the delay slots are filled. You only
+need to notice the shape and write the one-line division. The compiler adds
+the checks again on its own.
 
-The target uses the same net around the *other* result of the same hardware
-operation. One mnemonic differs. Make sure your C asks for what it fetches.
+The target has the same safety checks around the *other* result of the same
+hardware operation. One mnemonic is different. Make sure your C asks for the
+value that the target fetches.
 
 ## Your task
 

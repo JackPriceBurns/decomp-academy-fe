@@ -1,7 +1,7 @@
 ---
 id: d8c67045-aa85-4f70-947b-17492e0a279e
 slug: types-load-unsigned-byte
-title: "lbu: The Zero-Extended Twin"
+title: "lbu: Loading an Unsigned Byte"
 difficulty: 2
 concepts:
   - types
@@ -9,16 +9,15 @@ concepts:
   - zero-extension
 symbol: func_802319c0
 hints:
-  - "Two loads with different mnemonics from two different pointers — each mnemonic dictates that parameter's declaration."
-  - "The sum happens in scratch registers, straight into `v0`. One line of C."
+  - "There are two loads with different mnemonics, from two different pointers. Each mnemonic decides the declaration of its parameter."
+  - "The sum is computed from scratch registers straight into `v0`. It is one line of C."
 ---
 
-# What fills the top: nothing
+# Filling the top with zeros
 
-The unsigned byte answers the 24-bit question differently: fill with
-zeros. That's `lbu` — load byte **unsigned** — and this time the `u` means
-exactly what it says. Here's `fetch`, returning the third byte of a `u8`
-array:
+An unsigned byte fills the other 24 bits with zeros. The instruction for this
+is `lbu`, load byte **unsigned**, and here the `u` really does mean unsigned.
+Here is `fetch`, which returns the third byte of a `u8` array:
 
 ```c
 s32 fetch(u8 *src) {
@@ -32,22 +31,24 @@ jr    ra
 nop
 ```
 
-The same memory byte `0xFB` now arrives as `0x000000FB` — 251, not -5.
-Same bits in memory, two different 32-bit numbers in a register; the
-*declaration* decides which, and the mnemonic broadcasts the decision:
+The same byte `0xFB` in memory now arrives as `0x000000FB`, which is 251. With
+`lb` it was -5. The bits in memory are the same, but the register ends up
+holding two different 32-bit numbers. The *declaration* decides which one, and
+the mnemonic shows you that decision:
 
-- `lb` — the top bits mirror bit 7. Value range -128…127. C type `s8`.
-- `lbu` — the top bits are zero. Value range 0…255. C type `u8`.
+- `lb`: the top bits are copies of bit 7. The value range is -128…127. The C
+  type is `s8`.
+- `lbu`: the top bits are zero. The value range is 0…255. The C type is `u8`.
 
-When you're staring at a target, run the oracle backwards: every `lbu`
-forces a `u8` somewhere in your declarations, every `lb` an `s8`. Get one
-wrong and the diff disagrees on exactly that mnemonic — the register
-choreography around it will match perfectly, which is precisely how you'll
-know the *type* is the bug, not the expression.
+When you read a target, use the oracle in reverse. Every `lbu` means a `u8`
+somewhere in your declarations, and every `lb` means an `s8`. If you get one
+wrong, the diff disagrees on exactly that mnemonic, and the register use around
+it still matches perfectly. That pattern tells you the bug is in the *type*,
+and the expression is correct.
 
-The target reads one byte through each of its pointers and combines
-them — a one-line function, but only if each parameter is declared the
-way its load mnemonic demands.
+The target reads one byte through each of its pointers and combines them. It
+is a one-line function, but it only matches if each parameter is declared the
+way its load mnemonic requires.
 
 ## Your task
 

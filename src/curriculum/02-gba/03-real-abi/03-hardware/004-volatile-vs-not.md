@@ -9,19 +9,19 @@ concepts:
   - optimizer
 symbol: func_08363694
 hints:
-  - Two `ldrh` from the same base register, back to back, is the fingerprint.
-    The source named that location twice and the compiler was forbidden from
-    merging the loads.
-  - "Nothing goes in; the combined halfword comes out. The address 67108870 is
-    0x04000006, the scanline counter, and the two loaded values are
-    exclusive-ored together. Both reads have to go through a `vu16`."
+  - Two `ldrh` instructions from the same base register, one right after the
+    other, are the sign to look for. The source read that location twice, and
+    the compiler was not allowed to merge the loads.
+  - "Nothing goes in, and the combined halfword comes out. The address 67108870
+    is 0x04000006, the scanline counter, and the two loaded values are combined
+    with exclusive or. Both reads have to go through a `vu16`."
 ---
 
-# Two loads where one would do
+# Two loads where one would be enough
 
-Ask gcc to read the same address twice and it will normally read it once.
-Common subexpression elimination is one of the first things `-O2` does, it is
-correct for ordinary memory, and it is exactly wrong for hardware.
+If you ask gcc to read the same address twice, it will normally read it once.
+Common subexpression elimination is one of the first things `-O2` does. It is
+correct for ordinary memory and wrong for hardware.
 
 Here is a function that reads `BG0CNT` twice and adds the two results, written
 with a `vu16`:
@@ -38,12 +38,12 @@ with a `vu16`:
 16       .word     67108872
 ```
 
-Two `ldrh`, same base register, same offset, nothing between them. The compiler
-knows both loads return the same thing on ordinary memory and it issues them
-anyway, because `volatile` says each access in the source is an event that has
-to happen.
+There are two `ldrh` instructions, with the same base register, the same
+offset, and nothing between them. The compiler knows that on ordinary memory
+both loads would return the same value. It issues them anyway, because
+`volatile` says each access in the source must happen.
 
-Drop the qualifier and the same source collapses:
+If you remove the qualifier, the same source gets much shorter:
 
 ```asm
 0        ldr       r0, [pc, #8] (->12)
@@ -55,27 +55,28 @@ Drop the qualifier and the same source collapses:
 12       .word     67108872
 ```
 
-One load. And once there is one value instead of two, `a + a` is worth
-strength-reducing: `lsl #17` shifts left by one and up by sixteen at once, and
-`lsr #16` brings it back down, which doubles the value and truncates it to
-sixteen bits in two instructions.
+Now there is one load. With one value instead of two, the compiler can replace
+`a + a` with cheaper shifts. `lsl #17` shifts left by one, which doubles the
+value, and moves it up by sixteen more bits in the same instruction. `lsr #16`
+brings it back down. Together, the two instructions double the value and
+truncate it to sixteen bits.
 
-Notice what stayed the same in the volatile version. The pool word is fetched
-once and the base register is reused for both loads. `volatile` pins the
-accesses to the hardware; the address arithmetic around them is ordinary code
-and gets optimised normally.
+Look at what did not change in the volatile version. The pool word is loaded
+once, and the base register is reused for both loads. `volatile` only affects
+the accesses to the hardware. The address arithmetic around them is ordinary
+code, and the compiler optimises it as usual.
 
-One warning before you go, because it will cost you time otherwise. Naming the
-two reads as locals and folding them into a single expression are the same
-program, and gcc 2.9 allocates registers differently for them — sometimes the
-address lands in `r0` and the values in `r1`, sometimes the other way round, and
-which spelling gives which flips depending on the operator. If your two `ldrh`
-come out correct but with the base register swapped, rewrite the reads the other
-way and compile again.
+Here is one warning that will save you time. You can write the two reads as
+named locals, or fold them into a single expression. Both are the same program,
+but gcc 2.9 allocates registers differently for them. Sometimes the address
+goes in `r0` and the values in `r1`, and sometimes the other way round. Which
+form gives which layout also depends on the operator. If your two `ldrh`
+instructions are correct but the base register is swapped, write the reads the
+other way and compile again.
 
-This is the cleanest place in the course to read a keyword off a listing. Count
-the loads. Your target has two of them from one base, and no version of it
-written without `volatile` will survive the optimiser intact.
+This is the clearest place in the course to see a keyword in a listing. Count
+the loads. Your target has two of them from one base. If you write it without
+`volatile`, the optimiser will merge them into one.
 
 ## Your task
 

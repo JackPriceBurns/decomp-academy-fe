@@ -15,9 +15,9 @@ hints:
 
 # Same pair, store instead of load
 
-Writing a global is the mirror image of reading one: `lui` builds the upper
-half of the address, and the `%lo` half rides on a **store**. Here's
-`stashScore(pts)`, which assigns its argument to the global `gScore`:
+Writing a global uses the same pair as reading one. `lui` builds the upper half
+of the address, and the `%lo` half goes in a **store** instead of a load. Here
+is `stashScore(pts)`, which assigns its argument to the global `gScore`:
 
 ```asm
 lui   at, %hi(gScore)      # upper half of gScore's address
@@ -26,15 +26,15 @@ jr    ra
 nop
 ```
 
-One difference from the read: the address lands in `at`, the assembler
-temporary, not `v0` — there's no return value here, so the compiler grabs its
-designated scratch register. The value being written sits in the *first*
-operand of the `sw`; the *where* is the `%lo` pair. Read every global store as
-"**what** goes into **which name**".
+There is one difference from the read. The address goes into `at`, the
+assembler temporary, instead of `v0`. This function has no return value, so the
+compiler uses its designated scratch register. The value being written is the
+*first* operand of the `sw`. The `%lo` pair gives *where* it goes. Read every
+global store as "**what** goes into **which name**".
 
-The target also writes one global — but check the first `sw` operand carefully
-before assuming it's an argument. You know a register that always holds
-something.
+The target also writes one global. Before you assume the first `sw` operand is
+an argument, check it carefully. You have already met one register whose value
+never changes.
 
 ## Your task
 

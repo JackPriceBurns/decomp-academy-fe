@@ -9,22 +9,22 @@ concepts:
   - control-flow
 symbol: func_082c2a44
 hints:
-  - Read it in three pieces. Instructions 0 to 4 build a rounded Q8 product,
-    the `add` at 6 accumulates it into something, and 8 to 12 are a clamp
+  - Read it in three pieces. Instructions 0 to 4 build a rounded Q8 product.
+    The `add` at 6 adds it to another value. Instructions 8 to 12 are a clamp
     against `r3`.
-  - "Four `s32` in, an `s32` out. A position, a Q8 rate, a whole-number count
-    of steps, and a ceiling; the rounding bias is 128 and the shift is 8."
+  - "Four `s32` in, an `s32` out: a position, a Q8 rate, a whole number of
+    steps, and a ceiling. The rounding bias is 128 and the shift is 8."
 ---
 
 # One frame of movement
 
-This is the shape the chapter has been heading toward: scale a value by a
-fixed-point rate, round the step, and refuse to cross a limit. Every piece is
-something you have already read — a `mul` with an `asr`, a rounding bias, a
-compare — and the only new thing is that they arrive at once.
+This lesson puts the chapter's pieces together. You scale a value by a
+fixed-point rate, round the step, and stop the result from going past a limit.
+You have already read every piece: a `mul` with an `asr`, a rounding bias, and
+a compare. The only new thing is that they all appear together.
 
-Here is a relative: a damage figure scaled down by a Q12 armour fraction, with
-the fraction clamped before it is used.
+Here is a similar function. It scales a damage value down by a Q12 armour
+fraction, and it clamps the fraction before using it.
 
 ```asm
 0        mov       r2, r0
@@ -42,32 +42,33 @@ the fraction clamped before it is used.
 24       bx        lr
 ```
 
-Read it in pieces. The `mov r2, r0` at the top is gcc moving an argument out of
-`r0` so it can use that register for something else, a habit you have seen
+Read it in pieces. The `mov r2, r0` at the top moves an argument out of `r0`,
+so gcc can use that register for something else. You have seen this habit
 before. Then `mov #128` and `lsl #5` build 4096, which is 1.0 in Q12 and far
-too wide for an 8-bit immediate. That 4096 earns its two instructions twice
-over: it is the bound the `cmp` at 6 tests against, and it is the value the
-`sub` at 12 subtracts from.
+too large for an 8-bit immediate. That 4096 is used twice, so it is worth its
+two instructions. It is the bound the `cmp` at 6 tests against, and it is the
+value the `sub` at 12 subtracts from.
 
-The clamp is the part to memorise, because it is the compiler's standard form
-and it does not look like an `if`. There is no branch around a block: the
-comparison branches **over a single `mov`**, and that `mov` runs only in the
-case that needs correcting. An `if` that assigns one thing and a conditional
-expression that selects between two compile to exactly this, so you cannot tell
-them apart and either will match.
+Memorise the clamp, because it is the compiler's standard form and it does not
+look like an `if`. There is no branch around a block. The comparison branches
+**over a single `mov`**, and that `mov` runs only when the value needs
+correcting. An `if` that assigns one value and a conditional expression that
+selects between two both compile to exactly this. You cannot tell them apart,
+and either one will match.
 
-The tail is the rounded fixed-point scale: multiply, add half a unit, shift
-down by the width of the format. Half a unit in Q12 is 2048, which is also too
-wide for an immediate, so it costs its own `mov`/`lsl` pair.
+The end of the function is the rounded fixed-point scale. It multiplies, adds
+half a unit, and shifts down by the number of fractional bits in the format.
+Half a unit in Q12 is 2048, which is also too large for an immediate, so it
+needs its own `mov`/`lsl` pair.
 
-Notice that the whole thing is a leaf. A comparison, a multiply, four
-instructions of constant building, and not one `push`. Write the same function
-in `f32` and it pushes `lr` and three callee-saved registers and calls into
-libgcc three times.
+Notice that the whole function is a leaf. It has a comparison, a multiply and
+four instructions that build constants, but not a single `push`. If you write
+the same function with `f32`, it pushes `lr` and three callee-saved registers,
+and it calls libgcc three times.
 
-Your target holds the same ingredients in a different order and a different
-format. Read the four instructions before the `cmp` as one expression, then read
-the branch and the `mov` after it as the clamp.
+Your target has the same parts in a different order and a different format.
+Read the four instructions before the `cmp` as one expression. Then read the
+branch and the `mov` after it as the clamp.
 
 ## Your task
 

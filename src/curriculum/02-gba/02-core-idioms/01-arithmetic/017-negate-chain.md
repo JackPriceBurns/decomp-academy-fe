@@ -9,18 +9,19 @@ concepts:
   - expressions
 symbol: func_0807cb74
 hints:
-  - "`neg rD, rM` lands at the exact point the source wrote the minus sign, so
-    everything computed before it is the thing being negated."
-  - "Two `s32` parameters in, an `s32` out. The first is scaled by 5, that whole
-    product is negated, and the second parameter is then subtracted from it."
+  - "`neg rD, rM` appears at the exact point where the source wrote the minus
+    sign. So everything computed before it is the value being negated."
+  - The function takes two `s32` parameters and returns an `s32`. The first is
+    multiplied by 5, the whole product is negated, and then the second
+    parameter is subtracted from it.
 ---
 
-# A minus sign that survives as an instruction
+# A minus sign that stays as an instruction
 
-Subtracting two values in a row and subtracting their sum reach the same answer
-through different instructions.
+Subtracting two values one after the other and subtracting their sum give the
+same answer. They compile to different instructions.
 
-`x - y - z`:
+Here is `x - y - z`:
 
 ```asm
 0        sub       r0, r1
@@ -28,7 +29,7 @@ through different instructions.
 4        bx        lr
 ```
 
-`x - (y + z)`:
+And here is `x - (y + z)`:
 
 ```asm
 0        add       r1, r2
@@ -36,13 +37,15 @@ through different instructions.
 4        bx        lr
 ```
 
-Two subtracts against the accumulator, or one addition off to the side and a
-single subtract. The bracket is right there in the listing, exactly as it was in
-the earlier addition chains — agbcc will not turn one of these into the other.
+The first uses two subtracts on the running total. The second uses one addition
+in another register, then a single subtract. The bracket is visible in the
+listing, as it was in the earlier addition chains. agbcc will not turn one of
+these into the other.
 
-Explicit negation behaves the same way. gcc has a dedicated `neg rD, rM`, and it
-appears where the source wrote the minus, rather than being folded into whatever
-comes next. Here is `-(x + y) * 4`:
+An explicit negation behaves the same way. gcc has a separate instruction for
+it, `neg rD, rM`. It appears at the point where the source wrote the minus
+sign, and gcc does not merge it into the instruction that comes next. Here is
+`-(x + y) * 4`:
 
 ```asm
 0        add       r0, r1
@@ -51,17 +54,19 @@ comes next. Here is `-(x + y) * 4`:
 6        bx        lr
 ```
 
-Sum, negate, scale — in that order. Scaling first and negating afterwards would
-give the same number and a different function.
+The listing adds, then negates, then scales, in that order. If the source
+scaled first and negated afterwards, the result would be the same number, but
+the function would be different.
 
-A `neg` in the middle of a listing is therefore a boundary marker: everything
-before it built the value that the minus sign applied to, and everything after it
-operates on the negated result. That is all it takes to place the parentheses.
+So a `neg` in the middle of a listing marks a boundary. Everything before it
+built the value that the minus sign applied to. Everything after it works on
+the negated result. That is all you need to place the parentheses.
 
-Not every minus sign gets one, though. You saw in the shift-and-subtract lesson
-that a negative multiplier can be absorbed by swapping the operands of a `sub`,
-and when that happens no `neg` is emitted at all. A `neg` that *does* survive is
-telling you the negation could not be folded into the arithmetic around it.
+Not every minus sign produces a `neg`. In the lesson on a shift followed by a
+subtract, you saw that gcc can handle a negative multiplier by swapping the
+operands of a `sub`. When that happens, there is no `neg` at all. A `neg` that
+*does* appear tells you the negation could not be merged into the arithmetic
+around it.
 
 Your target has a chain, a `neg`, and a subtraction, in that order. Read them in
 that order too.

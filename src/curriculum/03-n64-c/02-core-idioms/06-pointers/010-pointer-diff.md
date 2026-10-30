@@ -9,17 +9,16 @@ concepts:
   - shifts
 symbol: func_800aee54
 hints:
-  - "`subu` then an arithmetic right shift: byte distance divided down to
-    an element count. The shift amount names the element size."
-  - "The `subu`'s first operand is the pointer being subtracted *from* — match your parameter order to it. The whole function is one return of a pointer difference."
+  - "A `subu` is followed by an arithmetic right shift, which divides the byte distance down to an element count. The shift amount gives the element size."
+  - "The first source operand of the `subu` is the pointer being subtracted *from*, so match your parameter order to it. The whole function is one return of a pointer difference."
 ---
 
-# end - start, in elements
+# `end - start`, in elements
 
-C lets you subtract two pointers of the same type, and the result is
-the number of *elements* between them — not bytes. The hardware only
-knows bytes, so the compiler subtracts raw addresses and then divides
-by the element size. For power-of-two sizes that divide is the signed
+In C you can subtract two pointers of the same type. The result is the number
+of *elements* between them, not the number of bytes. The hardware only works
+in bytes, so the compiler subtracts the raw addresses and then divides by the
+element size. When the size is a power of two, that divide is the signed
 shift you learned in the arithmetic chapter:
 
 ```c
@@ -30,27 +29,28 @@ s32 hw_gap(s16 *a, s16 *b) {
 
 ```asm
 subu  v0, a0, a1    # raw byte distance
-sra   t6, v0, 1     # ÷ 2 — elements, not bytes
+sra   t6, v0, 1     # ÷ 2: elements, not bytes
 or    v0, t6, zero
 jr    ra
 nop
 ```
 
-A `subu` of two incoming pointers feeding an `sra` is the whole
-fingerprint. Two readings to take from it:
+A `subu` of two incoming pointers that feeds an `sra` is the whole pattern.
+It tells you two things:
 
-- **The `sra` amount is the element size**, same encoding as the
-  indexing `sll`: shift 1 = halfwords, shift 2 = words. The scale-up
-  and scale-down instructions mirror each other across this chapter.
-- **It's `sra`, not `srl`** — a pointer difference is *signed*
-  (`ptrdiff_t`), because `a - b` is negative when `a` sits below `b`.
-  You met this exact sra-for-signed-divide reasoning with `/ 2`; here
-  the compiler applies it on your behalf.
+- **The `sra` amount gives the element size**, in the same way as the
+  indexing `sll`: shift 1 means halfwords, and shift 2 means words. In this
+  chapter, the shift that scales an index up and the shift that scales a
+  difference down use the same amounts.
+- **It is `sra`, not `srl`.** A pointer difference is *signed*
+  (`ptrdiff_t`), because `a - b` is negative when `a` is below `b`. You saw
+  the same reasoning, `sra` for a signed divide, with `/ 2`. Here the
+  compiler applies it for you.
 
-You saw a cousin of this in the loops chapter, where `subu` of two
-pointers manufactured a span length. Standing alone, it's usually a
-helper like the target: how many elements sit between these two
-pointers into the same word array?
+You saw something similar in the loops chapter, where a `subu` of two
+pointers produced the length of a span. On its own, this pattern is usually
+a small helper like the target, which counts how many elements lie between
+two pointers into the same array.
 
 ## Your task
 

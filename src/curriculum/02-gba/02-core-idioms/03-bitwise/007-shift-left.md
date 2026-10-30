@@ -9,17 +9,18 @@ concepts:
   - register-allocation
 symbol: func_080e943c
 hints:
-  - The opening `mov` keeps a copy of the incoming value, which means the value
-    is needed twice — once shifted, once as it arrived.
-  - One `u32` in, one `u32` out. Shift it up and combine it with itself.
+  - The opening `mov` keeps a copy of the incoming value. That means the value
+    is needed twice, once shifted and once as it arrived.
+  - The function takes one `u32` and returns a `u32`. Shift the value up and
+    combine it with itself.
 ---
 
 # lsl, and the copy that comes with it
 
-`lsl` shifts left by a constant count and costs one instruction per shift.
-Thumb has no shifted-operand form — nothing like ARM mode's
-`add r0, r0, r1, lsl #2`, where the shift rides along inside another
-instruction — so each shift in your C is its own line in the listing:
+`lsl` shifts left by a constant count, and each shift costs one instruction.
+Thumb has no shifted-operand form. ARM mode has instructions such as
+`add r0, r0, r1, lsl #2`, where the shift is part of another instruction, but
+Thumb does not. So each shift in your C is its own line in the listing:
 
 ```asm
 0        lsl       r0, #2
@@ -28,11 +29,11 @@ instruction — so each shift in your C is its own line in the listing:
 6        bx        lr
 ```
 
-Two shifted arguments, added. Which register the `lsl` lands on tells you which
-C operand carried which shift, and both shifts survive because they are
-different amounts.
+This function shifts two arguments and adds them. The register that each `lsl`
+writes to tells you which C operand had which shift. Both shifts stay in the
+listing because the amounts are different.
 
-Equal amounts are a different story:
+When the amounts are equal, the result is different:
 
 ```asm
 0        eor       r0, r1
@@ -41,18 +42,18 @@ Equal amounts are a different story:
 ```
 
 That function shifts *both* of its arguments left by 3 before combining them.
-gcc 2.9 factored the common shift out and did it once at the end, because
-shifting distributes over `eor`. One shift in the listing, two in the C. When
-your own attempt produces more instructions than the target, an identity like
-this one is often the reason.
+gcc 2.9 took the shared shift out and did it once at the end, because shifting
+distributes over `eor`. So there is one shift in the listing and two in the C.
+When your own attempt produces more instructions than the target, an identity
+like this one is often the reason.
 
-The other rendering to get used to is the three-operand form. `lsl r0, r1, #4`
-takes its input from `r1` and writes `r0`; `lsl r0, #4` shifts `r0` in place.
-They are the same instruction — the workspace prints the short form when the
-destination and source are the same register — and the long form appears exactly
-when the compiler needs the pre-shift value to survive. A `mov rN, r0` followed
-by a three-operand shift is the compiler stashing a copy of a value it is going
-to need again.
+The other thing to get used to is the three-operand form. `lsl r0, r1, #4`
+takes its input from `r1` and writes the result to `r0`. `lsl r0, #4` shifts
+`r0` in place. They are the same instruction: the workspace prints the short
+form when the destination and the source are the same register. The long form
+appears exactly when the compiler needs the value from before the shift to
+survive. A `mov rN, r0` followed by a three-operand shift means the compiler is
+saving a copy of a value that it will need again.
 
 ## Your task
 

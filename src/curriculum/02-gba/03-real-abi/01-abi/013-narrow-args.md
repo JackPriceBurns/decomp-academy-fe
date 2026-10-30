@@ -9,24 +9,25 @@ concepts:
   - calls
 symbol: func_0831306c
 hints:
-  - "Three shift pairs, all `lsl #24` / `lsr #24` — two before the call and one after — so both incoming values and the outgoing value are the same eight-bit unsigned width."
-  - Two `u8` parameters in, a `u8` out. The parameters reach `chan` in the opposite order to the one they arrived in, and the call's result has 1 added to it.
+  - "There are three shift pairs, all `lsl #24` and `lsr #24`: two before the call and one after it. So both incoming values and the outgoing value have the same eight-bit unsigned width."
+  - The function takes two `u8` parameters and returns a `u8`. The parameters reach `chan` in the opposite order from the one they arrived in, and the call's result has 1 added to it.
 ---
 
-# Shifts that are really casts
+# Casts written as shift pairs
 
-The ARM7TDMI has no sign-extend or zero-extend instruction. Every narrowing on
-this machine is a pair of shifts: push the value up to the top of the register
-and drag it back down, arithmetically if it is signed and logically if it is
-not.
+The ARM7TDMI has no sign-extend or zero-extend instruction. On this machine,
+every narrowing cast is a pair of shifts. The first shift moves the value up to
+the top of the register, and the second moves it back down. The second shift is
+arithmetic if the type is signed and logical if it is unsigned:
 
     (u8)  lsl #24, lsr #24        (s8)  lsl #24, asr #24
     (u16) lsl #16, lsr #16        (s16) lsl #16, asr #16
 
-Around a call gcc is thorough to the point of paranoia. It narrows an argument
-before the `bl` even though the callee will narrow it again on entry, and it
-narrows the returned value after the `bl` even though the callee narrowed it
-before returning. A single byte-wide call can burn four shift pairs.
+Around a call, gcc narrows values more often than it strictly needs to. It
+narrows an argument before the `bl`, even though the callee will narrow it
+again on entry. It also narrows the returned value after the `bl`, even though
+the callee narrowed it before returning. One call with byte-wide values can
+cost four shift pairs.
 
 ```asm
 0        push      {lr}
@@ -43,13 +44,14 @@ before returning. A single byte-wide call can burn four shift pairs.
 24       bx        r1
 ```
 
-The multiply by three is the usual shift-and-add. Then `lsl #16` / `asr #16`
-truncates it to sixteen signed bits because that is what `clampS16` takes, and
-the identical pair at 16-18 truncates the sixteen signed bits that came back
-before anything is done with them. Both pairs are casts you never wrote.
+The multiply by three is the usual shift and add. Then `lsl #16` and
+`asr #16` truncate the value to sixteen signed bits, because that is what
+`clampS16` takes. The identical pair at 16-18 truncates the sixteen signed bits
+that came back, before anything else is done with them. Both pairs are casts
+that you never wrote in the C.
 
-The second pair is also where narrow types get genuinely hard to read, because
-gcc folds other arithmetic into the shift count:
+The pair after a call is also where narrow types get hard to read, because gcc
+can merge other arithmetic into the shift count:
 
 ```asm
 0        push      {lr}
@@ -62,10 +64,10 @@ gcc folds other arithmetic into the shift count:
 16       bx        r1
 ```
 
-`lsl #24` then `lsr #23` corresponds to no width at all. It is a cast to `u8`
-followed by a multiply by two, with the doubling absorbed into the shift that
-was already happening. Whenever a shift pair comes back one short, look for a
-factor of two in the source.
+`lsl #24` followed by `lsr #23` does not match any type width. It is a cast to
+`u8` followed by a multiply by two. gcc does the doubling inside the shift that
+was already there. When the second shift of a pair is one less than the first,
+look for a factor of two in the source.
 
 ## Your task
 

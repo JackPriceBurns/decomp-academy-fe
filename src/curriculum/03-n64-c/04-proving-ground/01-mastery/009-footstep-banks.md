@@ -10,22 +10,23 @@ concepts:
   - hi-lo
 symbol: func_80135a1c
 hints:
-  - "`sltiu at, a0, 6` — six table entries, cases 0 through 5. Each body's
-    reloc names the bank it returns; write one `case` per body."
-  - "Two different case values end up returning the same bank as the default. Follow where the table sends case 0, and note which body the out-of-range path shares."
+  - "`sltiu at, a0, 6` means six table entries, cases 0 through 5. The reloc in each body names the bank it returns. Write one `case` per body."
+  - "Two different case values return the same bank as the default. Follow where the table sends case 0, and note which body the out-of-range path shares."
 ---
 
 # Which sound does grass make?
 
-When a character's foot lands, the game looks up a *bank* of footstep sounds —
-grass, stone, water, snow — and this function picks the bank. It's a `switch`
-over the bank index where every case returns **the address of a global array**.
-That combination is the lesson: jump-table dispatch (tier 3) where each case
-body is an address build (`lui`/`addiu` with `%hi`/`%lo`), not a constant.
+When a character's foot lands, the game looks up a *bank* of footstep sounds
+(grass, stone, water, snow), and this function picks the bank. It is a `switch`
+over the bank index, and every case returns **the address of a global array**.
+This lesson is about that combination: jump-table dispatch (tier 3) where each
+case body builds an address (`lui`/`addiu` with `%hi`/`%lo`) instead of a
+constant.
 
-Here's the same idea at compare-chain scale — `pickTrack`, three music tables
-and a fallback. Too few cases for a table, so IDO compares, but the *bodies*
-have exactly the shape you'll meet in the target:
+Here is the same idea in a smaller function, `pickTrack`, with three music
+tables and a fallback. It has too few cases for a jump table, so IDO uses a
+chain of compares. The *bodies* still have exactly the shape you will see in
+the target:
 
 ```asm
  0:  addiu at, zero, 1
@@ -50,17 +51,18 @@ have exactly the shape you'll meet in the target:
 4c:  nop
 ```
 
-Returning an array's address takes two halves, and the scheduler loves to
-split them: the `lui` rides a branch's delay slot while the matching
-`addiu %lo` waits at the case body. Pair them **by symbol name**, never by
-adjacency — the relocs make each pairing unambiguous, and each name tells you
-exactly which global that case returns. Free documentation, as always.
+An array's address is built in two halves, and the scheduler often splits
+them. The `lui` goes in a branch's delay slot, while the matching `addiu %lo`
+sits in the case body. Pair them **by symbol name**, never by position. The
+relocs make each pair clear, and each name tells you exactly which global that
+case returns. As usual, the relocs document the code for you.
 
-The target has enough cases for a real jump table: `sltiu` bounds check,
-`sll`/`lw`/`jr` through the table, bodies in case order. Read each body's
-symbol, notice which bodies are *shared* — the original `switch` lets two
-labels fall to the same return — and mind that the out-of-range default
-returns something too. All five banks are declared in the context.
+The target has enough cases for a real jump table: an `sltiu` bounds check,
+then `sll`/`lw`/`jr` through the table, then the bodies in case order. Read
+each body's symbol and notice which bodies are *shared*, because the original
+`switch` sends two labels to the same return. Also note that the
+out-of-range default returns a value too. All five banks are declared in the
+context.
 
 ## Your task
 

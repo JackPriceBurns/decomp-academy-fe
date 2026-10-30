@@ -9,24 +9,25 @@ concepts:
   - volatile
 symbol: func_083828c0
 hints:
-  - A load whose result is never read, sitting immediately before a store to the
-    same address, is not something a `vu16 *` can produce. The qualifier has to
-    be on the aggregate.
-  - "A slot index and two coordinates go in - the index a `u32`, the coordinates
-    `u16` - and nothing comes out. OAM starts at 0x07000000, an entry is eight
-    bytes, attr0 holds Y in its low byte and attr1 holds X in its low nine
-    bits."
+  - A `vu16 *` never produces a load whose result is unused right before a
+    store to the same address. The qualifier has to be on the aggregate (the
+    struct).
+  - "A slot index and two coordinates go in, and nothing comes out. The index is
+    a `u32` and the coordinates are `u16`. OAM starts at 0x07000000, an entry is
+    eight bytes, attr0 holds Y in its low byte, and attr1 holds X in its low
+    nine bits."
 ---
 
-# The load that goes nowhere
+# The load that is never used
 
-Object attribute memory is 128 sprites of eight bytes each at `0x07000000`.
-Three of those four halfwords are attributes — `attr0` carries the Y
-coordinate in its low byte plus the shape and mode flags, `attr1` carries a
-nine-bit X plus the size, `attr2` carries the tile number and palette bank —
-and the fourth belongs to the rotation and scaling tables interleaved through
-OAM. GBA code almost always models that as a four-field struct and indexes it,
-so a slot number is scaled by eight rather than by two.
+Object attribute memory holds 128 sprites of eight bytes each, at
+`0x07000000`. Three of the four halfwords in each entry are attributes.
+`attr0` holds the Y coordinate in its low byte, plus the shape and mode flags.
+`attr1` holds a nine-bit X, plus the size. `attr2` holds the tile number and
+palette bank. The fourth halfword belongs to the rotation and scaling tables,
+which are spread through OAM between the entries. GBA code almost always models
+an entry as a struct with four fields and indexes an array of them. So a slot
+number is multiplied by eight instead of by two.
 
 Here is a sprite being switched off by writing the disable bit into `attr0`:
 
@@ -44,19 +45,18 @@ Here is a sprite being switched off by writing the disable bit into `attr0`:
 
 Look at offsets 8 and 10. The `ldrh` loads the current attribute into `r1`, and
 the very next instruction overwrites `r1` with the constant being stored. The
-load is dead. Nothing reads it, removing it would change nothing about the
-program's meaning, and gcc emitted it anyway.
+load is dead. Nothing reads it, and removing it would not change what the
+program does. gcc emitted it anyway.
 
-That dead load is the fingerprint of assigning to a member of a **volatile
-struct**. agbcc reads the destination halfword before writing it, once per
-member assignment, and it does this only for struct members — a plain
-`vu16 *` store produces the `strh` alone. If a listing shows a load immediately
-before a store to the same address with the loaded register unused, the original
-code had a `volatile` aggregate, and no amount of rewriting with scalar pointers
-will match it.
+This dead load is the sign of an assignment to a member of a **volatile
+struct**. agbcc reads the destination halfword before it writes it, once for
+each member assignment. It does this only for struct members. A plain `vu16 *`
+store produces the `strh` alone. If a listing shows a load right before a store
+to the same address, and the loaded register is never used, the original code
+had a `volatile` aggregate. No rewrite that uses scalar pointers will match it.
 
-A constant slot skips the index arithmetic entirely and folds into the
-addressing mode:
+A constant slot skips the index arithmetic completely. The offset goes straight
+into the addressing mode:
 
 ```asm
 0        lsl       r0, #16
@@ -71,17 +71,16 @@ addressing mode:
 18       bx        lr
 ```
 
-`[r2, #28]` is entry 3, member `attr2`: three entries of eight bytes plus four.
-The dead load is right there again, at the same offset as the store.
+`[r2, #28]` is entry 3, member `attr2`: three entries of eight bytes, plus four.
+The dead load appears again, at the same offset as the store.
 
-Now put that together with a read-modify-write, which is what real sprite code
-does — a coordinate has to be merged into an attribute without disturbing the
-flags packed alongside it. The merge needs a genuine load of the old value, and
-the dead load happens as well, so **each attribute you update produces two
-`ldrh` from the same address**: the one whose value you mask, and the one that
-goes nowhere, wedged between the `orr` and the `strh`. That pairing looks like a
-disassembler error the first time you meet it. It is exactly what the compiler
-emits.
+Now combine that with a read-modify-write, which is what real sprite code does.
+A coordinate has to be merged into an attribute without changing the flags
+packed next to it. The merge needs a real load of the old value, and the dead
+load happens as well. So **each attribute you update produces two `ldrh` from
+the same address**: the one whose value you mask, and the unused one, placed
+between the `orr` and the `strh`. The first time you see this pair, it looks
+like a disassembler error. It is exactly what the compiler emits.
 
 ## Your task
 

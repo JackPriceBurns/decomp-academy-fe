@@ -9,23 +9,24 @@ concepts:
   - stores
 symbol: func_081d5f40
 hints:
-  - Each pair of load and store is one statement, and the instruction between
-    them is the arithmetic. Nothing narrows the result, so ask which construct
-    in C does the narrowing for free.
-  - "A `u8 *` and an `s32`, no return value, and two statements that read a
-    byte, combine it with the `s32`, and write it back."
+  - Each load and store pair is one statement, and the instruction between them
+    is the arithmetic. No instruction narrows the result, so think about which C
+    construct does the narrowing for free.
+  - "The arguments are a `u8 *` and an `s32`, and there is no return value.
+    There are two statements. Each reads a byte, combines it with the `s32`, and
+    writes it back."
 ---
 
-# Promotion, and where it stops costing anything
+# Integer promotion, and where narrowing happens
 
 C does not have 8-bit arithmetic. Every `u8` or `s16` in an expression is
 promoted to `int` first, and the operation happens at full width. On a machine
-with 32-bit registers that costs nothing, which is why you have already seen
-byte loads feeding a plain `add` with no masking in sight.
+with 32-bit registers this costs nothing. That is why you have already seen byte
+loads going straight into a plain `add`, with no masking.
 
-The compiler only has to behave *as if* the promotion happened. Where the result
-is about to be narrowed again, it takes the shortcut. Look at what changes when
-an intermediate result is parked in a `u8` variable:
+The compiler only has to behave *as if* the promotion happened. When the result
+is about to be narrowed again, it can save instructions. Look at what changes
+when an intermediate result is stored in a `u8` variable:
 
 ```asm
 0        ldrb      r0, [r0, #0]
@@ -35,7 +36,7 @@ an intermediate result is parked in a `u8` variable:
 8        bx        lr
 ```
 
-and what happens when the same value stays in the expression:
+and what happens when the same value stays inside the expression:
 
 ```asm
 0        ldrb      r0, [r0, #0]
@@ -44,22 +45,23 @@ and what happens when the same value stays in the expression:
 6        bx        lr
 ```
 
-Both compute a byte plus an `s32` and then double it. The second one doubles
-with a single `lsl #1`. The first assigns the sum to a `u8` on the way, and that
-assignment is a truncation the compiler has to honour, because the doubling must
-see the wrapped value.
+Both compute a byte plus an `s32` and then double the result. The second one
+doubles with a single `lsl #1`. The first assigns the sum to a `u8` before
+doubling. That assignment is a truncation the compiler must respect, because
+the doubling has to use the wrapped value.
 
-Look closely at how it pays for it. Truncating to a byte is `lsl #24` then
-`lsr #24`, and doubling is `lsl #1`; gcc folds them into `lsl #24` and
-`lsr #23`, one shift short of what the two operations would cost separately.
-Mismatched shift counts like that are everywhere in agbcc output, and they are
-almost always a truncation with another shift baked into it.
+Look at how the first version does this. Truncating to a byte is `lsl #24` then
+`lsr #24`, and doubling is `lsl #1`. gcc combines them into `lsl #24` and
+`lsr #23`, which is one shift fewer than the two operations would need
+separately. You will see shift pairs with different counts like this all
+through agbcc output. They are almost always a truncation combined with another
+shift.
 
-The rule to carry forward: arithmetic happens at 32 bits, and narrowing happens
-where C says a value becomes narrow again - an assignment, a store, a cast, a
-return. Everywhere else the width is invisible.
+The rule to remember is this. Arithmetic happens at 32 bits. Narrowing happens
+where C says a value becomes narrow again: an assignment, a store, a cast or a
+return. Everywhere else, the width does not appear in the code.
 
-Your target narrows twice, and in the cheapest way there is.
+Your target narrows twice, both times in the cheapest way possible.
 
 ## Your task
 

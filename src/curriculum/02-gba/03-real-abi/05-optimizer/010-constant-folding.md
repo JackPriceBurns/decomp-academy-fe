@@ -9,32 +9,31 @@ concepts:
   - literal-pool
 symbol: func_083e0544
 hints:
-  - "The `.word 1023` is a mask and the `mov #128` / `lsl #3` pair is the
-    single constant 1024. Neither of those numbers was written as a decimal
-    literal in the source."
-  - Two `s32` parameters, an `s32` out. The first is masked down to its low
-    bits, the second is shifted up into the high half, and one fixed bit is
-    OR-ed in on top.
+  - "The `.word 1023` is a mask, and the `mov #128` / `lsl #3` pair builds the
+    single constant 1024. Neither number was written as a decimal literal in
+    the source."
+  - The function takes two `s32` parameters and returns an `s32`. The first is
+    masked down to its low bits. The second is shifted up into the high half.
+    Then one fixed bit is set with an OR.
 ---
 
-# The constants are already finished
+# Constant arithmetic is already done
 
-Any operator whose operands are both constants is evaluated by the compiler
-before code generation begins. `8 * 8 - 4` never exists as arithmetic; the
-machine only ever sees 60. That is unremarkable on its own, and it has two
-consequences that matter for matching.
+If both operands of an operator are constants, the compiler evaluates it before
+code generation begins. `8 * 8 - 4` never exists as arithmetic in the output.
+The machine only sees 60. This has two consequences that matter for matching.
 
-The first is that the spelling is unrecoverable. `1 << 10`, `1024` and `0x400`
-reach the optimizer as the same integer, so no listing can tell you which one
-the original programmer typed. Write whichever documents the hardware best — a
-shift for a bit position, hex for a mask — and the bytes come out the same.
+First, you cannot recover how a constant was written. `1 << 10`, `1024` and
+`0x400` reach the optimizer as the same integer, so no listing can tell you
+which one the original programmer typed. Write whichever form describes the
+hardware best, such as a shift for a bit position or hex for a mask. The bytes
+come out the same.
 
-The second is that the folded value, not the expression, decides how many
-instructions you get. Thumb can put anything under 256 in an immediate, can
-build `k << n` with a `mov`/`lsl` pair, and needs a pool word for everything
-else. Fold two constants together and the result may cross one of those
-boundaries in either direction, so the arithmetic you never see still changes
-the size of the function.
+Second, the folded value decides how many instructions you get. Thumb can put
+any value under 256 in an immediate. It can build `k << n` with a `mov`/`lsl`
+pair. Everything else needs a pool word. When two constants fold together, the
+result may cross one of those limits in either direction. So arithmetic that you
+never see in the listing still changes the size of the function.
 
 Here is `rowOffset`, which multiplies by `16 * 2` and adds `8 * 8 - 4`:
 
@@ -44,11 +43,11 @@ Here is `rowOffset`, which multiplies by `16 * 2` and adds `8 * 8 - 4`:
 4        bx        lr
 ```
 
-Two instructions for five written operations. The multiply by `16 * 2` folded
-to 32 and then strength-reduced to a shift, and `8 * 8 - 4` folded to 60, which
-fits an immediate.
+There are two instructions for five written operations. The multiply by
+`16 * 2` folded to 32, and strength reduction then turned it into a shift.
+`8 * 8 - 4` folded to 60, which fits in an immediate.
 
-Folding also deletes things. `blend` writes three terms, one of which is a
+Folding can also remove code. `blend` writes three terms, and one of them is a
 constant subtraction:
 
 ```asm
@@ -58,15 +57,15 @@ constant subtraction:
 6        bx        lr
 ```
 
-`(100 - 100)` folded to zero and the whole subtraction went with it, and
-`(8 - 5)` became the shift count 3. Nothing in the listing records that either
-expression was ever written.
+`(100 - 100)` folded to zero, so the whole subtraction was removed. `(8 - 5)`
+became the shift count 3. Nothing in the listing shows that either expression
+was ever written.
 
-Your target ORs a hardware attribute word together out of three pieces. Two
-constants shape it: a mask too wide for an immediate, which had to go in the
-pool, and a single set bit built in a register by `mov`/`lsl`. Recover both
-values from the listing, then write them in whichever form documents the
-hardware — the bytes are the same either way.
+Your target builds a hardware attribute word by ORing three pieces together.
+Two constants shape it. One is a mask too wide for an immediate, so it had to
+go in the pool. The other is a single set bit, built in a register by
+`mov`/`lsl`. Recover both values from the listing. Then write them in whichever
+form describes the hardware best, because the bytes are the same either way.
 
 ## Your task
 

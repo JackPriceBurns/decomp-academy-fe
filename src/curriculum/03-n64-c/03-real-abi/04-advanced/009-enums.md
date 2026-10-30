@@ -9,46 +9,48 @@ concepts:
   - control-flow
 symbol: func_800fb7a0
 hints:
-  - "Match each immediate in the target to its position in the `State` list — declaration order is the numbering."
-  - "The value copied in the branch's delay slot is what comes back when the test fails. One `if`, two returns."
+  - "Match each immediate in the target to its position in the `State` list. The declaration order gives the numbering."
+  - "The value copied in the branch's delay slot is what is returned when the test fails. There is one `if` and two returns."
 ---
 
-# The names dissolve at compile time
+# The names disappear at compile time
 
-C lets you give states honest names, and game code leans on that
-heavily — `ST_IDLE`, `ST_RUN`, and friends instead of bare numbers. But an
-`enum` is just an `int` costume: enumerators number off `0, 1, 2, …` in
-declaration order, and by the time IDO is done, only the numbers remain.
+In C you can give states readable names, and game code does this a lot. It
+uses `ST_IDLE`, `ST_RUN` and so on instead of bare numbers. An `enum` is an
+`int` with names attached. The enumerators are numbered `0, 1, 2, …` in
+declaration order, and after IDO compiles the code, only the numbers remain.
 Given this type:
 
 ```c
 typedef enum { ST_IDLE, ST_RUN, ST_PAUSE, ST_DONE } State;
 ```
 
-here's `isDone(s)`, which returns whether `s == ST_DONE`:
+here is `isDone(s)`, which returns whether `s == ST_DONE`:
 
 ```asm
-xori   v0, a0, 0x3    # XOR with 3 — zero only when s IS 3
+xori   v0, a0, 0x3    # XOR with 3: zero only when s IS 3
 sltiu  v0, v0, 1      # unsigned < 1: turns "zero" into 1, anything else 0
 jr     ra
 nop
 ```
 
-`ST_DONE` compiled to a bare `3` — fourth name, counting from zero. And note
-the idiom around it: an equality used as a *value* (not a branch) becomes
-`xori` + `sltiu`, manufacturing the 0-or-1 without any jump. File that pair
-away; it's everywhere in state-heavy code.
+`ST_DONE` compiled to a bare `3`, because it is the fourth name, counting from
+zero. Also note the idiom around it. When an equality is used as a *value*
+instead of in a branch, it becomes `xori` + `sltiu`, which produces the 0 or
+1 without any jump. Remember this pair, because it appears all the time in
+code that works with states.
 
-When the comparison instead steers an `if`, you get the branches you know —
-`beq`/`bne` against a small immediate. Either way, **your matching job gains
-a translation step**: see a magic number, look it up in the enum the lesson
-provides, and write the *name* in your C. The compiled bytes are identical —
-`3` and `ST_DONE` are the same thing to the machine — but real decomp always
-restores the names, and so do we.
+When the comparison controls an `if` instead, you get the branches you
+already know: `beq`/`bne` against a small immediate. In both cases,
+**matching needs one extra translation step**. When you see a magic number,
+look it up in the enum the lesson provides, and write the *name* in your C.
+The compiled bytes are the same, because `3` and `ST_DONE` are the same value
+to the machine. Real decomp always puts the names back, and so does this
+course.
 
-The target (using the same `State` type, declared for you) checks its
-argument against one state and maybe hands back a different one. Translate
-every immediate you see into its name before writing the function.
+The target uses the same `State` type, which is declared for you, and it
+compares against one of the states. Translate every immediate you see into
+its name before you write the function.
 
 ## Your task
 

@@ -9,27 +9,27 @@ concepts:
   - alignment
 symbol: func_803ba330
 hints:
-  - "Offsets 0 and 1 with `lb` are the two signed bytes; offset 4 with `lw` is the word. One field of the struct never gets touched."
-  - "Three loads folded together with two `addu`s — a single return expression adding three fields."
+  - "The `lb` loads at offsets 0 and 1 are the two signed bytes. The `lw` at offset 4 is the word. One field of the struct is never used."
+  - "Three loads are combined with two `addu`s. That is a single return expression that adds three fields."
 ---
 
 # Offset math with real structs
 
-Real game structs mix widths — a byte of flags here, a halfword of HP
-there — and the offsets follow two rules:
+Real game structs mix fields of different widths, such as a byte of flags and
+a halfword of HP. Their offsets follow two rules:
 
-1. **Each field is aligned to its own size.** Bytes go anywhere,
-   halfwords on even offsets, words on multiples of 4. The compiler
-   inserts invisible padding to make that true.
-2. Fields otherwise pack in declaration order.
+1. **Each field is aligned to its own size.** Bytes can go anywhere.
+   Halfwords go on even offsets, and words go on multiples of 4. The compiler
+   adds hidden padding to make this true.
+2. Apart from that, fields are packed in declaration order.
 
-Run the rules over this struct and check each comment:
+Apply the rules to this struct and check each comment:
 
 ```c
 typedef struct {
     u8  kind;    // offset 0
     u8  level;   // offset 1
-    s16 hp;      // offset 2  (even — no padding needed)
+    s16 hp;      // offset 2  (even, so no padding needed)
     s32 score;   // offset 4
 } Unit;
 
@@ -39,24 +39,23 @@ s32 unit_power(Unit *u) {
 ```
 
 ```asm
-lh    t6, 2(a0)     # u->hp    — halfword at 2
-lbu   t7, 1(a0)     # u->level — byte at 1
+lh    t6, 2(a0)     # u->hp    (halfword at 2)
+lbu   t7, 1(a0)     # u->level (byte at 1)
 addu  v0, t6, t7
 jr    ra
 nop
 ```
 
-The mnemonics and offsets now cross-check each other *twice over*: the
-load width must match the field's declared width, and its
-sign must match the field's signedness — `lh` for the `s16`, `lbu` for
-the `u8`, exactly as the type-oracle rules from the width chapter
-demand. When you reconstruct an unknown struct in a real project, this
-is the evidence you work from: every `lbu 3(…)` pins a `u8` at offset
-3, and the gaps no load ever touches are padding — or fields this
-function just doesn't use.
+Now the mnemonics and the offsets check each other in two ways. The width of
+the load must match the declared width of the field. The sign of the load must
+match the signedness of the field: `lh` for the `s16` and `lbu` for the `u8`,
+as the type-oracle rules from the Types & Width chapter require. When you
+rebuild an unknown struct in a real project, this is your evidence. Every
+`lbu 3(…)` tells you there is a `u8` at offset 3. A gap that no load touches
+is either padding or a field that this function does not use.
 
-The target adds three fields of the `Mover` below and skips one
-entirely. Compute the offsets, match the mnemonics, and mind the signs.
+The target adds three fields of the `Mover` below and skips one. Work out the
+offsets, then match each mnemonic to a field and check its sign.
 
 ## Your task
 

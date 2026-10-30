@@ -1,7 +1,7 @@
 ---
 id: fe6ce0df-2c80-4b15-9a43-89443544caf0
 slug: gba-memory-offset-limit
-title: The Offset Ceiling
+title: The Offset Limit
 difficulty: 2
 concepts:
   - addressing
@@ -9,21 +9,21 @@ concepts:
   - encoding-limits
 symbol: func_082029c8
 hints:
-  - The `add` in the middle is not something the C wrote. It is one element
-    access whose offset would not fit in the load.
-  - One `u32 *` in, a `u32` out. Both halves of the sum are elements of that
-    one array; work out each index by dividing its byte offset by four.
+  - The C did not write the `add` in the middle. It comes from one element
+    access whose offset does not fit in the load.
+  - It takes one `u32 *` and returns a `u32`. Both values in the sum are
+    elements of that array. Divide each byte offset by four to get its index.
 ---
 
 # Where the offset field runs out
 
-The offset inside `ldr rD, [rB, #n]` is five bits wide, so it counts 0 to 31,
-and the hardware multiplies it by the access size. For a word that is 0 to 124
-in steps of four. 124 is the largest offset a word load or store can encode,
-and one element further along the addressing mode simply cannot express the
+The offset inside `ldr rD, [rB, #n]` is five bits wide, so it counts from 0
+to 31. The hardware multiplies it by the access size. For a word, that gives 0
+to 124 in steps of four. 124 is the largest offset a word load or store can
+encode. For the next element along, the addressing mode cannot express the
 address.
 
-What happens then is that the compiler builds the address itself:
+When that happens, the compiler builds the address itself:
 
 ```asm
 0        str       r1, [r0, #120]
@@ -33,15 +33,15 @@ What happens then is that the compiler builds the address itself:
 ```
 
 The first store is element 30 at offset 120, which fits. The second is element
-35 at offset 140, which does not, so the offset moves out of the store and into
-a separate `add` on the base — and the base is clobbered in place, because
-nothing needs the original pointer afterwards. The store that follows uses
-`[r0, #0]`, the same shape you saw for a plain dereference.
+35 at offset 140, which does not fit. So the offset moves out of the store and
+into a separate `add` on the base. The `add` changes the base register in
+place, because nothing needs the original pointer afterwards. The store that
+follows uses `[r0, #0]`, the same form you saw for a plain dereference.
 
-The ceiling is not a fixed number of bytes. It is always 31 times the access
-size, so it moves with the load width: 124 for words, 62 for halfwords, 31 for
-bytes. On an 8-bit array the index and the byte offset are the same number,
-which makes the wall easy to read:
+The limit is not a fixed number of bytes. It is always 31 times the access
+size, so it changes with the load width: 124 for words, 62 for halfwords, 31
+for bytes. On an 8-bit array the index and the byte offset are the same number,
+which makes the limit clear to see:
 
 ```asm
 0        ldrb      r1, [r0, #31]
@@ -52,20 +52,20 @@ which makes the wall easy to read:
 10       bx        lr
 ```
 
-Element 31 is the last one a byte load can name, so element 100 gets an `add`
-of its own. The number of elements you can reach is 32 for every width; the
-width only changes the byte figure printed in the offset.
+Element 31 is the last one a byte load can reach, so element 100 gets its own
+`add`. You can reach 32 elements at every width. The width only changes the
+byte value printed in the offset.
 
-Whether the `add` lands on the pointer itself or on a copy depends on whether
-the original is still wanted. When it is, you get the `mov` from the previous
-lesson in front of the pair, and the bump goes to the copy.
+Whether the `add` goes to the pointer itself or to a copy depends on whether
+the original is still needed. If it is, you get the `mov` from the previous
+lesson before the pair, and the `add` goes to the copy.
 
-The thing to internalise is that an `add rB, #N` feeding a load or store at
+The important point is that an `add rB, #N` feeding a load or store at
 `[rB, #0]` is **not** pointer arithmetic in the C. It is one array element or
-one field whose offset overflowed the encoding, and you write it as an ordinary
-index.
+one field whose offset was too large for the encoding. You write it as an
+ordinary index.
 
-Your target straddles the wall: one access encodes its offset, the next one
+Your target crosses the limit: one access encodes its offset, and the next one
 cannot.
 
 ## Your task

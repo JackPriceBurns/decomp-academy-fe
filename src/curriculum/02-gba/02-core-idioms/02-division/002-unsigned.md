@@ -9,24 +9,24 @@ concepts:
   - signedness
 symbol: func_08093880
 hints:
-  - The multiply sits after the `bl`, so 100 never reaches the helper. Work out
-    what it is scaling.
+  - The multiply comes after the `bl`, so 100 never reaches the helper. Work out
+    which value it multiplies.
   - Two `u32` parameters in, a `u32` out. The first is divided by the second and
-    the quotient is scaled by 100.
+    the quotient is multiplied by 100.
 ---
 
 # The type is in the name
 
-On a machine with a divide instruction, the signedness of a division is part of
-the opcode — one mnemonic for signed, another for unsigned. The ARM7TDMI has
-neither, so that distinction moves into the name of the routine gcc calls.
-`__divsi3` divides signed operands; `__udivsi3` divides unsigned ones. Nothing
-else in the frame changes.
+On a machine with a divide instruction, the opcode says whether a division is
+signed or unsigned: there is one mnemonic for each. The ARM7TDMI has neither, so
+the difference moves into the name of the routine gcc calls. `__divsi3` divides
+signed operands, and `__udivsi3` divides unsigned ones. Nothing else in the
+frame changes.
 
-The choice is made from the operand types after C's usual arithmetic
-conversions, and it is made at compile time, so the helper name in a target is a
-fact about the original declarations. Here is a difference divided by a third
-value, with every declaration unsigned:
+gcc picks the helper from the operand types after C's usual arithmetic
+conversions. It does this at compile time, so the helper name in a target tells
+you something certain about the original declarations. Here is a difference
+divided by a third value, with every declaration unsigned:
 
 ```asm
 0        push      {lr}
@@ -48,21 +48,21 @@ Now the same expression with every declaration signed:
 12       bx        r1
 ```
 
-One letter of difference across the whole function. Read the helper name before
-you read anything else: it settles the signedness of the operands in a glance,
-and nothing else in the listing mentions types again.
+The two functions differ by one letter. Read the helper name before anything
+else. It tells you at once whether the operands are signed, and nothing else in
+the listing says anything about types.
 
-The two helpers do genuinely different work. `__udivsi3` runs a plain
-restoring-division loop over the bits; `__divsi3` records the sign of each
-operand, negates them, calls the same loop, and negates the quotient back. The
-signed one is slower, which is a real reason GBA code declares counters and
-sizes `u32`.
+The two helpers really do different work. `__udivsi3` runs a plain restoring
+division loop over the bits. `__divsi3` records the sign of each operand,
+negates them, runs the same loop, and then negates the quotient back. The
+signed one is slower, and that is one real reason GBA code declares counters and
+sizes as `u32`.
 
-While you are here, read the `sub`. It sits in front of the `bl`, working on
-`r0` — the register the helper takes its dividend from — so it is part of what
-gets divided. An instruction that sits after the call works on whatever came
-back instead. Your target does arithmetic of its own around the call, and which
-side of the `bl` it falls on decides what it applies to.
+Now look at the `sub`. It comes before the `bl` and works on `r0`, the register
+the helper takes its dividend from. So it is part of what gets divided. An
+instruction after the call works on the value that came back instead. Your
+target does some arithmetic of its own around the call. Whether that arithmetic
+comes before or after the `bl` decides what it applies to.
 
 ## Your task
 

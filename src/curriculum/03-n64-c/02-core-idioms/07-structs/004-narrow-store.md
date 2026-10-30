@@ -9,18 +9,18 @@ concepts:
   - types
 symbol: func_8024ca14
 hints:
-  - "`sb` at 1, `sh` at 2, `sw` at 4 — three fields of three widths,
-    written in declaration order. One field is left alone."
-  - "The two argument registers go through stores untouched — no masking needed, the narrow store truncates for you. The word field gets `zero`."
+  - "`sb` at 1, `sh` at 2, `sw` at 4: three fields of three widths, written in declaration order. One field is left alone."
+  - "The two argument registers are stored without any change. No masking is needed, because the narrow store truncates for you. The word field gets `zero`."
 ---
 
 # The store picks the field's width
 
-Writing a narrow field uses the narrow store — `sb` for byte fields,
-`sh` for halfword fields — at the field's offset. And as the width
-chapter taught, narrow stores are the one place truncation is free: the
-store keeps the low bits and drops the rest, no `andi`, no shift pair.
-Passing an `s32` into a `u8` field is just an `sb`:
+To write a narrow field, the compiler uses a narrow store at the field's
+offset: `sb` for byte fields and `sh` for halfword fields. As the Types & Width
+chapter showed, a narrow store is the one place where truncation costs
+nothing. The store keeps the low bits and drops the rest, so there is no
+`andi` and no shift pair. Storing an `s32` into a `u8` field takes a single
+`sb`:
 
 ```c
 typedef struct {
@@ -37,25 +37,25 @@ void promote(Unit *u, s32 lv) {
 
 ```asm
 addiu t6, zero, 100  # the constant for hp, built first
-sb    a1, 1(a0)      # u->level = lv — sb truncates the s32 for free
+sb    a1, 1(a0)      # u->level = lv (sb truncates the s32 for free)
 sh    t6, 2(a0)      # u->hp = 100
 jr    ra
 nop
 ```
 
-Note the schedule: IDO likes to build constants *before* the store run,
-so the `addiu` floats to the top even though `hp` is assigned second in
-the C. Match stores to statements by their **offsets**, never by their
-order on the page.
+Look at the order of the instructions. IDO tends to build constants *before*
+the run of stores, so the `addiu` moves to the top even though `hp` is
+assigned second in the C. Match stores to statements by their **offsets**,
+never by their order in the listing.
 
-Reading inventory, as always: `sb … 1(…)` writes the byte field at
-offset 1, `sh … 2(…)` the halfword at 2, and each store's source
-register is the right-hand side — an argument, a built constant, or
+Take the inventory as before. `sb … 1(…)` writes the byte field at offset 1,
+and `sh … 2(…)` writes the halfword at 2. Each store's source register is
+the right-hand side of the assignment: an argument, a built constant, or
 `zero`.
 
-The target sets three of the `Walker`'s fields — value arguments into
-the two narrow fields, and a zero into the word field. Offsets and
-widths first, then it's three assignment lines.
+The target sets three of the `Walker`'s fields. Argument values go into the
+two narrow fields, and a zero goes into the word field. Work out the offsets
+and widths first. After that, it is three assignment lines.
 
 ## Your task
 

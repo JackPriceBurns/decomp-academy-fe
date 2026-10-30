@@ -10,40 +10,43 @@ concepts:
 concept: true
 ---
 
-# The tier where the assembly stops being obvious
+# What this tier covers
 
-Warm-up taught you to read a listing and to recover a signature from it. Both
-were about the frame around a function. This tier is about the inside: every
-shape C compiles into on this machine, one idiom at a time, until a listing you
-have never seen decomposes into C expressions on sight.
+The warm-up taught you to read a listing and to recover a signature from it.
+Both skills are about the outside of a function. This tier is about the inside.
+It covers each shape that C compiles into on this machine, one idiom at a time.
+The goal is that you can look at a listing you have never seen and quickly turn
+it back into C expressions.
 
-Arithmetic comes first because it is where the ARM7TDMI's personality shows up
-soonest, and because everything later — loops, structs, fixed point — is built
-out of it.
+Arithmetic comes first for two reasons. It is where the unusual features of the
+ARM7TDMI show up earliest, and everything later (loops, structs, fixed point)
+is built from it.
 
-# Sixteen bits, and what had to go
+# What Thumb gives up to fit in sixteen bits
 
-Thumb spends its sixteen bits carefully, and three of the economies it made are
-going to shape everything in this chapter.
+Each Thumb instruction is only sixteen bits long, so the instruction set had to
+leave some things out. Three of those limits affect everything in this chapter.
 
-**Most ALU instructions are two-operand and destructive.** `add r0, r1` means
-`r0 = r0 + r1`, and `r0`'s old value is gone. When the compiler still needs that
-value it must copy it somewhere first, so a lot of what you will read is a
-`mov` that exists purely to keep a value alive.
+**Most ALU instructions are two-operand.** The result overwrites the first
+operand. `add r0, r1` means `r0 = r0 + r1`, and the old value of `r0` is lost.
+If the compiler still needs that value, it must copy it somewhere first. So a
+lot of what you read will be a `mov` that only exists to keep a copy of a value.
 
-**Only `r0`–`r7` are freely usable.** Eight registers, four of which arrive
-holding arguments. Expressions run out of room quickly.
+**Only `r0` to `r7` are freely usable.** That is eight registers, and four of
+them hold the arguments when the function starts. Expressions run out of
+registers quickly.
 
-**Immediates are eight bits.** Any constant past 255 has to be built out of
-instructions or fetched from memory, which turns a single `+ 1000` in the source
-into three lines of assembly.
+**Immediates are eight bits.** Any constant above 255 has to be built with extra
+instructions or loaded from memory. So a single `+ 1000` in the source becomes
+three lines of assembly.
 
-None of that changes what the arithmetic means. It changes what it looks like,
-and matching is a game about what it looks like.
+None of this changes the result of the arithmetic. It changes how the assembly
+looks, and to match a function you have to reproduce how it looks.
 
-# There is a multiplier, and gcc does not trust it
+# When gcc uses the multiplier
 
-The ARM7TDMI does have a hardware multiply. agbcc uses it — sometimes:
+The ARM7TDMI does have a hardware multiply instruction, and agbcc sometimes uses
+it:
 
 ```asm
 0        mov       r1, #100
@@ -51,11 +54,11 @@ The ARM7TDMI does have a hardware multiply. agbcc uses it — sometimes:
 4        bx        lr
 ```
 
-That is a multiply by 100. There is no immediate form of `mul`, so the constant
-has to be moved into a register first, and then the two-operand `mul` overwrites
-`r0` with the product.
+That is a multiply by 100. `mul` has no immediate form, so the constant must be
+moved into a register first. Then the two-operand `mul` overwrites `r0` with the
+product.
 
-Now the same function with the constant changed to 96:
+Here is the same function with the constant changed to 96:
 
 ```asm
 0        mov       r1, r0
@@ -65,20 +68,21 @@ Now the same function with the constant changed to 96:
 8        bx        lr
 ```
 
-No `mul` at all. gcc took the constant apart instead: triple the input, then
-shift left by five — 3 × 32 = 96. Every constant multiply goes through the same
-weighing. gcc builds the shortest chain of shifts, adds and subtracts that
-reaches the constant and prices it against `mul`, which costs two to five cycles
-on this core. 96 factors into a triple and a shift and loses the multiply; 100
-has no such shape and keeps it.
+There is no `mul` at all. Instead, gcc split the constant into simpler steps. It
+triples the input, then shifts left by five, because 3 × 32 = 96. gcc makes this
+choice for every multiply by a constant. It builds the shortest chain of shifts,
+adds and subtracts that produces the constant. Then it compares the cost of that
+chain with `mul`, which takes two to five cycles on this core. 96 is a triple
+followed by a shift, so the chain is cheaper and the multiply goes away. 100 has
+no short chain like that, so gcc keeps the `mul`.
 
-Several lessons in this chapter are about reading those chains backwards. They
-are the main reason a GBA listing can look nothing like the line of C it came
-from.
+Several lessons in this chapter teach you to read those chains backwards. They
+are the main reason a GBA listing can look very different from the line of C it
+came from.
 
-# There is no divider at all
+# There is no divide instruction
 
-The other half of the story:
+Now look at division:
 
 ```asm
 0        push      {lr}
@@ -89,21 +93,23 @@ The other half of the story:
 ```
 
 That is division by 100. The ARM7TDMI has no divide instruction, so a division
-is a **function call** into a library routine, with a stack frame around it to
-preserve the return address. An expression that costs one line of C costs a call
-here — which is why real GBA games avoid division in anything that runs every
-frame, and why the next chapter is entirely about the shapes it takes.
+becomes a **function call** to a library routine. The function needs a stack
+frame around the call to save the return address. So one line of C costs a whole
+call here. That is why real GBA games avoid division in code that runs every
+frame. It is also why the next chapter is entirely about the forms division
+takes.
 
-# The habits worth building now
+# Habits to build now
 
-Three questions answer most listings in this chapter:
+Three questions will help you read most listings in this chapter:
 
 1. **Which register is written first?** That is the innermost part of the
-   expression, and it is how you recover parentheses.
-2. **Which operand survives?** A two-operand form destroys its destination; a
-   three-operand form does not. The difference tells you the order the source
-   was written in.
-3. **Where are the copies?** A `mov` between registers is never decoration. It
-   marks a value the compiler needed twice, or a destination it was forced into.
+   expression. It tells you where the parentheses go.
+2. **Which operand survives?** A two-operand form overwrites its destination. A
+   three-operand form does not. The difference tells you the order in which the
+   source was written.
+3. **Where are the copies?** A `mov` between registers always has a reason. It
+   marks either a value the compiler needed twice, or a value that had to be
+   moved into a particular register.
 
-Start with the plainest addition there is.
+The first lesson starts with the simplest possible addition.

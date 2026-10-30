@@ -9,15 +9,16 @@ concepts:
   - compare-chain
 symbol: func_8020e61c
 hints:
-  - "Each `addiu at, zero, N` names a case; the `beq` beside it jumps to that case's body. Three cases, three return values, one default."
-  - "It's still a `switch` in C — the compiler chose the chain, not you."
+  - "Each `addiu at, zero, N` gives a case value, and the `beq` next to it jumps to that case's body. There are three cases, three return values and one default."
+  - "It is still a `switch` in C. The compiler chose the chain on its own."
 ---
 
-# When a table would be mostly holes
+# When a table would be mostly empty
 
-Jump tables pay one word per possible value between the lowest and highest
-case. Cases 2, 19, and 40 would mean a 39-entry table with 3 real entries —
-so IDO doesn't build one. It compares, case by case. Here's `rank(code)`:
+A jump table needs one word for every possible value between the lowest and
+the highest case. Cases 2, 19, and 40 would need a 39-entry table with only 3
+real entries, so IDO does not build one. Instead, it compares the value
+against each case in turn. Here is `rank(code)`:
 
 ```asm
  0:  addiu  at, zero, 2      # case 2?
@@ -26,7 +27,7 @@ so IDO doesn't build one. It compares, case by case. Here's `rank(code)`:
  c:  beq    a0, at, 0x2c     # case 19?
 10:  addiu  at, zero, 40
 14:  beq    a0, at, 0x34     # case 40?
-18:  or     v0, zero, zero   # nothing matched — default result
+18:  or     v0, zero, zero   # nothing matched: default result
 1c:  b      0x3c
 20:  nop
 24:  jr     ra               # case 2:
@@ -39,22 +40,22 @@ so IDO doesn't build one. It compares, case by case. Here's `rank(code)`:
 40:  nop
 ```
 
-The rhythm: load a case constant into `at`, `beq` against it, and — the
-scheduler's touch — each branch's delay slot *already loads the next case's
-constant*. The chain reads like dominoes. Fall off the end and you're in the
-default; each matched case has its own `jr ra` body, return value in the
-slot, exactly like a table's bodies.
+The pattern repeats: load a case constant into `at`, then `beq` against it.
+The scheduler also puts the load of *the next case's constant* in each
+branch's delay slot. If no case matches, the code reaches the end of the
+chain and runs the default. Each matched case has its own `jr ra` body with
+the return value in the delay slot, exactly like the bodies of a jump table.
 
-The important judgment call: **this is still a `switch` in your C.** Don't
-write an `if`/`else if` ladder just because the assembly compares — for a
-handful of scattered constants against one value, IDO compiles `switch` into
-exactly this chain. (It happens to compile the equivalent `if` ladder the
-same way, but the `switch` says what the code *means*.) Dense cases become a
-table, sparse become a chain; the C stays the same construct either way.
+The important decision: **this is still a `switch` in your C.** Do not write
+an `if`/`else if` ladder just because the assembly compares. When a few
+scattered constants are tested against one value, IDO compiles a `switch`
+into exactly this chain. (It compiles the matching `if` ladder the same way,
+but the `switch` shows what the code *means*.) Dense cases become a table and
+sparse cases become a chain. In both cases the C uses a `switch`.
 
-The target chains three scattered case values of its own. Read them out of
-the `at` loads, match each to its return value, and note what the default
-hands back.
+The target has a chain of three scattered case values of its own. Read them
+from the `at` loads, match each one to its return value, and note what the
+default returns.
 
 ## Your task
 

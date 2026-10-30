@@ -8,35 +8,34 @@ concepts:
   - bitfields
   - structs
 hints:
-  - Every `and` here is a *keep* mask - it preserves the bits the coordinate
-    does not live in. Complement the mask to find the field, and read the second
-    `and` on each path for the field's width.
-  - "OAM attribute 0 holds the Y coordinate in its low eight bits; attribute 1
-    holds X in its low nine. Shape, size and flip flags live in the bits above
-    them and have to survive the write."
-  - "An `OamEntry *` and two `s32` coordinates, nothing returned. The two
-    coordinates are not stored in the order they are declared - follow the
-    registers."
+  - "Every `and` here is a *keep* mask. It preserves the bits that the
+    coordinate does not use. Take the complement of the mask to find the field,
+    and read the second `and` on each path to get the field's width."
+  - "OAM attribute 0 holds the Y coordinate in its low eight bits, and attribute
+    1 holds X in its low nine bits. Shape, size and flip flags are in the bits
+    above them, and the write must keep them unchanged."
+  - "An `OamEntry *` and two `s32` coordinates go in, and nothing is returned.
+    The two coordinates are not stored in the order they are declared, so
+    follow the registers."
 symbol: func_08403de4
 ---
 
 # Packing a sprite into OAM
 
-The GBA describes every sprite in four halfwords of object attribute memory.
-Attribute 0 carries the Y coordinate in its low eight bits, with the shape, the
-blend mode and the double-size flag packed above it. Attribute 1 carries X in
-its low nine bits, with the flip flags and the size in the rest. There is no
-room for anything to have its own word, so moving a sprite means rewriting part
-of a halfword and leaving the rest exactly as it was.
+The GBA describes every sprite with four halfwords of object attribute memory.
+Attribute 0 holds the Y coordinate in its low eight bits, with the shape, the
+blend mode and the double-size flag packed above it. Attribute 1 holds X in its
+low nine bits, with the flip flags and the size in the other bits. No value has
+a word to itself. To move a sprite, the game rewrites part of a halfword and
+leaves the rest exactly as it was.
 
-That shape - load, mask off the field, or the new value in, store - is the most
-common thing in a GBA game's code, and it is easy to read backwards. The mask
-in the `and` is the part being **kept**, so its complement is the field. The
-second `and`, the one applied to the incoming value, tells you how wide the
-field is.
+The code for this has four steps: load, mask off the field, OR the new value in,
+and store. It is the most common pattern in a GBA game's code, and people often
+read it backwards. The mask in the `and` is the part being **kept**, so its
+complement is the field. The second `and`, the one applied to the incoming
+value, tells you how wide the field is.
 
-Here it is on a tilemap entry, where the palette number sits in the top four
-bits:
+Here it is on a tilemap entry, where the palette number is in the top four bits:
 
 ```asm
 0        lsl       r1, #1
@@ -52,13 +51,13 @@ bits:
 20       .word     4095
 ```
 
-4095 is 0x0FFF, so the low twelve bits survive and bits 12-15 are the field -
-confirmed by the `lsl #12` that shifts the new value into exactly that place.
-The `lsl r1, #1` / `add r1, r0` at the top is a halfword array index being
-scaled and folded into the base.
+4095 is 0x0FFF, so the low twelve bits are kept and bits 12-15 are the field.
+The `lsl #12` confirms this, because it shifts the new value into exactly that
+position. The `lsl r1, #1` / `add r1, r0` at the top scales a halfword array
+index and adds it to the base.
 
-When the keep-mask happens to be a byte shifted left, agbcc builds it in two
-instructions instead of spending a pool word:
+When the keep mask is a byte shifted left, agbcc builds it with two
+instructions and does not use a pool word:
 
 ```asm
 0        push      {r4, lr}
@@ -78,16 +77,16 @@ instructions instead of spending a pool word:
 28       .word     1023
 ```
 
-`mov r2, #192` / `lsl r2, #8` is 0xC000: only the top two bits are kept, and the
-pooled 1023 confirms a ten-bit field going in. Notice this function calls
-nothing and still opens with `push {r4, lr}` - once gcc 2.9 decides it wants
-`r4`, the push comes along with `lr` and the return turns into the three-step
-`pop {r4}` / `pop {r0}` / `bx r0`. That is a register-pressure signature, not
-evidence of a call.
+`mov r2, #192` / `lsl r2, #8` is 0xC000, so only the top two bits are kept. The
+1023 from the pool confirms that a ten-bit field goes in. Notice that this
+function calls nothing, yet it still starts with `push {r4, lr}`. Once gcc 2.9
+decides to use `r4`, it pushes `lr` along with it, and the return becomes the
+three-step `pop {r4}` / `pop {r0}` / `bx r0`. This pattern comes from register
+pressure. It does not mean the function makes a call.
 
-Your target rewrites both attribute halfwords, and it builds its masks both
-ways - two of them out of a `mov` and a shift, one out of the pool. Work out
-each field from its keep-mask before you write a line of C.
+Your target rewrites both attribute halfwords, and it builds its masks in both
+ways: two from a `mov` and a shift, and one from the pool. Work out each field
+from its keep mask before you write any C.
 
 ## Your task
 

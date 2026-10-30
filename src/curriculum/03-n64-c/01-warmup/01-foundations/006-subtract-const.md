@@ -8,26 +8,27 @@ concepts:
   - immediates
 symbol: subConst
 hints:
-  - "There's no subtract-immediate on MIPS — subtracting N is `addiu` with -N."
+  - "MIPS has no subtract-immediate instruction. Subtracting N is `addiu` with -N."
   - "The negative number on the `addiu` is the amount being subtracted; flip its sign."
 ---
 
 # There is no subtract-immediate
 
-MIPS has no `subiu`. When C subtracts a constant, the compiler reaches for the
-instruction you already know — `addiu` — and simply hands it a negative
-immediate. That signed 16-bit field works in both directions:
+MIPS has no `subiu`. When C subtracts a constant, the compiler uses the
+instruction you already know, `addiu`, and gives it a negative immediate. The
+signed 16-bit field holds negative values as well as positive ones:
 
 ```asm
-addiu v0, a0, -7   # v0 = a0 + (-7)  …i.e. a0 - 7
+addiu v0, a0, -7   # v0 = a0 + (-7), which is a0 - 7
 jr    ra
 nop
 ```
 
-Some disassemblers invent a friendlier `subi` alias to paper over this. Ours
-doesn't, and honestly that's better: the listing shows you the truth, an `addiu`
-carrying a negative number. Once you know the idiom, reading it is nothing —
-find the immediate, flip its sign, and that's the amount the C subtracts.
+Some disassemblers print a friendlier `subi` alias to hide this. The one on
+this site doesn't, and that is better: the listing shows what the instruction
+really is, an `addiu` with a negative number. Once you know the pattern, it is
+quick to read. Find the immediate and flip its sign. The result is the amount
+the C subtracts.
 
 ## Your task
 

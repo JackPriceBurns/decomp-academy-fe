@@ -9,19 +9,21 @@ concepts:
   - constants
 symbol: func_081664ec
 hints:
-  - "`cmp r0, #4` bounds five case values, and the `sub r0, #1` in front of it
-    says where they start. Table slot plus that bias gives you the case label."
-  - The `.word` rows are data the compiler emitted. You write cases; the table
-    appears on its own.
-  - Two `s32` arguments and an `s32` result. Five consecutive cases beginning at
-    one, each a small operation on the second argument, and a default of zero.
+  - "`cmp r0, #4` limits the selector to five case values, and the `sub r0, #1`
+    before it shows where they start. Add that bias to the table slot to get the
+    case label."
+  - The `.word` rows are data that the compiler emits. You write the cases, and
+    the table appears by itself.
+  - There are two `s32` arguments and an `s32` result. There are five
+    consecutive cases starting at one, each a small operation on the second
+    argument, and a default of zero.
 ---
 
-# Five cases and the shape changes completely
+# At five cases, the code changes completely
 
-The threshold is exact and worth memorising. Four dense cases give the compare
-tree from the previous lesson. Five give a jump table, and nothing about the
-function looks the same afterwards:
+The threshold is exact, and you should memorise it. Four dense cases give the
+compare tree from the previous lesson. Five give a jump table, and the whole
+function looks different:
 
 ```asm
 0        cmp       r0, #4
@@ -52,32 +54,34 @@ function looks the same afterwards:
 62     ~>bx        lr
 ```
 
-Addresses 0 to 12 are a fixed seven-instruction preamble, and it is worth
-learning as one unit. Bound the selector against the number of cases minus one;
-send anything above it to the default with `bhi`; multiply by four to turn a
-case number into a word offset; load the table's base address; add; load the
-entry; jump to it.
+Addresses 0 to 12 are a fixed preamble of seven instructions. Learn it as one
+unit. It compares the selector against the number of cases minus one, and
+`bhi` sends anything above that to the default. Then it multiplies by four to
+turn a case number into a word offset, loads the table's base address, and adds
+the two. Finally it loads the table entry and jumps to it.
 
-`bhi` is unsigned, and that single choice handles negative selectors for free —
-a value like -1 reads as an enormous unsigned number and fails the same compare
-that catches values above the range. One branch covers both ends.
+`bhi` is unsigned, so it also handles negative selectors at no extra cost. A
+value like -1 reads as a very large unsigned number, so it fails the same
+compare that catches values above the range. One branch covers both ends.
 
-There are two levels of indirection and it is easy to conflate them. The `.word`
-at 16 is a literal-pool entry holding the *address of the table*, which is 20.
-The five words from 20 onwards are the table proper, and each holds the address
-of a case body. The dispatch is `mov pc, r0` rather than `bx r0`, because Thumb
-`mov pc` does not change instruction set — which is why the table entries carry
-no Thumb bit on their addresses. The `.hword 0` at 14 is alignment padding,
-present only because the pool would otherwise land off a four-byte boundary. All
-of those rows are data. You write cases; the compiler emits the table.
+There are two levels of indirection, and you should not confuse them. The
+`.word` at 16 is a literal pool entry that holds the *address of the table*,
+which is 20. The five words from 20 onwards are the table itself, and each one
+holds the address of a case body. The jump is `mov pc, r0` instead of `bx r0`,
+because a Thumb `mov pc` does not change the instruction set. That is why the
+table entries have no Thumb bit set in their addresses. The `.hword 0` at 14 is
+alignment padding. It is there only because the pool would otherwise not sit on
+a four-byte boundary. All of those rows are data. You write the cases, and the
+compiler emits the table.
 
-When the cases do not start at zero, a bias instruction appears in front of the
-bound check — `sub` for a range starting high, `add` for one starting negative —
-and the arithmetic to recover the labels is table slot plus bias. Holes are not
-compressed: a gap in the case values becomes a table entry pointing at the
-default.
+When the cases do not start at zero, a bias instruction appears before the
+bound check. It is a `sub` for a range that starts above zero, and an `add` for
+one that starts below zero. To get the case labels back, add the bias to the
+table slot. Gaps are not removed: a missing case value becomes a table entry
+that points at the default.
 
-Your target has the bias, and its bodies compute rather than loading constants.
+Your target has the bias, and its bodies compute values instead of loading
+constants.
 
 ## Your task
 

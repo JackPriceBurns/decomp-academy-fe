@@ -9,21 +9,20 @@ concepts:
   - rmw
 symbol: func_8030ae28
 hints:
-  - "`lbu`/`ori`/`sb`, all at the same offset — which byte field of
-    `Enemy` is that? The `ori` immediate is the flag being set."
-  - "One `|=` line. Write the flag constant in hex, as the listing spells it."
+  - "`lbu`/`ori`/`sb` all use the same offset. Find the byte field of `Enemy` at that offset. The `ori` immediate is the flag being set."
+  - "Write one `|=` line. Write the flag constant in hex, as the listing does."
 ---
 
 # flags |= BIT
 
-Games track dozens of on/off facts per object — seen, invincible,
-airborne — packed as individual bits in a flag byte. Setting one bit
-is the RMW sandwich with `ori` in the middle, and it's so common it
-deserves its own reflex:
+Games track many on/off facts for each object, such as whether it has been
+seen, is invincible, or is in the air. These facts are packed as single bits
+in a flag byte. Setting one bit is the RMW sandwich with `ori` in the middle.
+It is so common that you should learn to recognize it on sight:
 
 ```c
 typedef struct {
-    u8 flags;    // offset 0 — bit 2 = "active"
+    u8 flags;    // offset 0, bit 2 = "active"
     u8 kind;     // offset 1
     s16 hp;      // offset 2
 } Ent;
@@ -41,21 +40,21 @@ jr    ra
 nop
 ```
 
-`lbu`, `ori`, `sb` — same offset throughout. The `ori` immediate is
-the mask: `0x4` is bit 2, `0x10` bit 4, `0x81` bits 7 and 0 at once.
-OR-ing leaves every other bit alone, which is the entire point:
-neighbors' flags survive.
+`lbu`, `ori` and `sb` all use the same offset. The `ori` immediate is the
+mask: `0x4` is bit 2, `0x10` is bit 4, and `0x81` is bits 7 and 0 together.
+OR leaves every other bit unchanged, which is why it is used here. The other
+flags in the byte keep their values.
 
-Note what this *isn't*: a bitfield. A `u8` used as a flag byte and a
-struct full of 1-bit bitfields both exist in real code, but the flag
-byte compiles to these clean `ori`/`andi` one-liners with
-programmer-chosen hex masks, and the C convention is a plain integer
-field plus `#define`d or literal masks. When you see `ori` with a
-round hex immediate on a byte field, decompile it as `|=`.
+This is *not* a bitfield. Real code has both: a `u8` used as a flag byte, and
+structs full of 1-bit bitfields. The flag byte compiles to these short
+`ori`/`andi` patterns, each from one line of C, with hex masks chosen by the
+programmer. In C, it is written as a plain integer field with `#define`d or
+literal masks. When you see `ori` with a round hex immediate on a byte field,
+decompile it as `|=`.
 
-In the target, the flag byte isn't the struct's first field — check
-the offset against the `Enemy` layout below before naming it — and a
-different bit gets set.
+In the target, the flag byte is not the first field of the struct. Check the
+offset against the `Enemy` layout below before you name it. A different bit
+is set, too.
 
 ## Your task
 

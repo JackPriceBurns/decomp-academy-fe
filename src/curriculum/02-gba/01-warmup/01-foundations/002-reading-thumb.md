@@ -13,109 +13,111 @@ concept: true
 
 # Reading a line of assembly
 
-Assembly is the code the machine runs, tidied up just enough to be readable. On
-this site it looks like this:
+Assembly is the code the machine runs, written out in a form that people can
+read. On this site it looks like this:
 
 ```asm
 0        mov       r0, #7
 2        bx        lr
 ```
 
-Two lines, two instructions — assembly is **one instruction per line**, running
-top to bottom.
+That is two lines and two instructions. Assembly has **one instruction per
+line**, and the instructions run from top to bottom.
 
-## The numbers down the left are addresses
+## The numbers on the left are addresses
 
 They are not line numbers. Each one is the **address** of its instruction: where
-that instruction sits in memory, counted in bytes from the start of the function.
+that instruction is in memory, counted in bytes from the start of the function.
 
-They step by **2**, because a Thumb instruction is exactly **two bytes** wide.
-That is the whole point of Thumb — ARM's normal instructions are four bytes, and
-the GBA's cartridge bus can only fetch sixteen bits at a time, so a 32-bit
-instruction costs two fetches from ROM and a 16-bit one costs a single fetch.
-Halving the code size roughly doubles the speed of code running from the
-cartridge, and that trade is why almost all GBA game code is Thumb.
+They go up by **2**, because a Thumb instruction is exactly **two bytes** wide.
+That is the reason Thumb exists. ARM's normal instructions are four bytes, and
+the GBA's cartridge bus can only fetch sixteen bits at a time. A 32-bit
+instruction needs two fetches from ROM, and a 16-bit one needs only one. Halving
+the code size roughly doubles the speed of code that runs from the cartridge,
+and that is why almost all GBA game code is Thumb.
 
-Squeezing an instruction into sixteen bits costs something, though, and you are
-about to spend the whole course paying it.
+Fitting an instruction into sixteen bits has costs, though, and you will deal
+with them throughout this course.
 
 ## Mnemonic and operands
 
 Every instruction is a **mnemonic** followed by its **operands**.
 
-- The **mnemonic** says what the instruction does — move, add, load, branch.
-- The **operands** are what it does it to.
+- The **mnemonic** says what the instruction does, such as move, add, load or
+  branch.
+- The **operands** are the values and registers it works on.
 
-Take `mov r0, #7`. The mnemonic is `mov`, "move". The operands are `r0` and
-`#7`, and — as on nearly every machine — the **destination comes first**. So
+Take `mov r0, #7`. The mnemonic is `mov`, short for "move". The operands are
+`r0` and `#7`. As on nearly every machine, the **destination comes first**, so
 this line puts the constant 7 into register `r0`. The `#` marks an
-**immediate**: a constant carried inside the instruction itself, rather than
-fetched from anywhere.
+**immediate**: a constant stored inside the instruction itself, so it does not
+need to be loaded from anywhere.
 
-Immediates print in **decimal** in this workspace. Assembly listings elsewhere
-often use hex, so keep that in mind when you compare notes with other tools.
+Immediates are shown in **decimal** in this workspace. Assembly listings in
+other tools often use hex, so keep that in mind when you compare them.
 
-## The registers are numbered, not named
+## Registers are numbered
 
-Registers are the handful of fast slots inside the processor where it keeps the
-values it is working on. The ARM7TDMI has sixteen, and unlike some machines they
-go by number:
+Registers are a small number of fast storage slots inside the processor. They
+hold the values that the processor is working on. The ARM7TDMI has sixteen.
+Some machines give their registers names, but on the ARM7TDMI they are known by
+number:
 
-- **`r0`–`r7`** — the **low registers**. Thumb instructions can reach these
-  freely, so essentially all the work happens here.
-- **`r8`–`r12`** — the **high registers**. Most Thumb instructions cannot touch
-  them at all, so the compiler mostly leaves them alone. You will rarely see one.
-- **`sp`** (`r13`) — the **stack pointer**.
-- **`lr`** (`r14`) — the **link register**, holding the address a function must
-  return to.
-- **`pc`** (`r15`) — the **program counter**, the address being executed.
+- **`r0` to `r7`** are the **low registers**. Thumb instructions can use these
+  freely, so almost all the work happens here.
+- **`r8` to `r12`** are the **high registers**. Most Thumb instructions cannot
+  use them at all, so the compiler mostly avoids them. You will rarely see one.
+- **`sp`** (`r13`) is the **stack pointer**.
+- **`lr`** (`r14`) is the **link register**. It holds the address that a
+  function must return to.
+- **`pc`** (`r15`) is the **program counter**, the address being executed.
 
-Eight usable registers is not many. A great deal of what you will learn to read
-is the compiler shuffling values between them because it ran out of room.
+Eight usable registers is not many. Much of the code you will learn to read is
+the compiler moving values between registers because it has run out of room.
 
-There is no separate bank of floating-point registers, because there is no
-floating-point unit. The GBA cannot do decimal arithmetic in hardware at all —
-a fact with consequences big enough that a whole chapter is devoted to it.
+There is no separate set of floating-point registers, because there is no
+floating-point unit. The GBA cannot do decimal arithmetic in hardware at all.
+This has large consequences, and a whole chapter covers it.
 
-## Two operands, and the destination gets overwritten
+## Two operands, and the destination is overwritten
 
-Here is the first place sixteen bits starts to hurt:
+This is the first limit that comes from fitting instructions into sixteen bits:
 
 ```asm
 0        add       r0, r1
 2        bx        lr
 ```
 
-`add r0, r1` means **`r0 = r0 + r1`**. There is no third operand naming a
-separate destination — the first operand is *both* a source and the destination,
-and its old value is gone. Most Thumb arithmetic works this way.
+`add r0, r1` means **`r0 = r0 + r1`**. There is no third operand for a separate
+destination. The first operand is *both* a source and the destination, and its
+old value is lost. Most Thumb arithmetic works this way.
 
-A three-operand form exists for a few instructions when the destination differs
-from the sources:
+A few instructions also have a three-operand form, which is used when the
+destination is different from the sources:
 
 ```asm
 0        add       r0, r1, r2
 2        bx        lr
 ```
 
-That one is `r0 = r1 + r2`. When you see the two-operand form, remember that
-something was overwritten; when you see the three-operand form, the compiler
-needed the original kept.
+That one is `r0 = r1 + r2`. When you see the two-operand form, remember that a
+value was overwritten. When you see the three-operand form, the compiler needed
+to keep the original value.
 
-## The return
+## How a function returns
 
-`bx lr` is how a function returns: "**b**ranch and e**x**change to the address in
-`lr`" — and `lr` holds wherever the caller wants to resume. Nearly every function
-you decompile ends with one.
+`bx lr` is how a function returns. It means "**b**ranch and e**x**change to the
+address in `lr`", and `lr` holds the address where the caller wants to continue.
+Nearly every function you decompile ends with one.
 
-The "exchange" part refers to switching between ARM and Thumb code. GBA games mix
-both, so returns go through `bx` rather than a plain jump, and you will see the
-consequences of that later in some slightly odd-looking function endings.
+The "exchange" part means switching between ARM and Thumb code. GBA games use
+both, so functions return with `bx` instead of a plain jump. Later you will see
+that this makes some function endings look a little unusual.
 
 ## Branches point at addresses
 
-A conditional branch prints its destination, and the workspace draws you an
-arrow:
+A conditional branch shows its destination, and the workspace draws an arrow for
+it:
 
 ```asm
 0        cmp       r0, #0
@@ -125,21 +127,23 @@ arrow:
 8        bx        lr
 ```
 
-`cmp r0, #0` compares `r0` against zero. `bge 6 ~>` then jumps to address `6`
-when that comparison came out **greater or equal** — and the ` ~>` marks it as a
-branch, with the matching `~>` in the gutter of line `6` showing where it lands.
-When the branch is not taken, execution simply falls through to the next line.
+`cmp r0, #0` compares `r0` with zero. `bge 6 ~>` then jumps to address `6` if
+the result was **greater or equal**. The ` ~>` marks the line as a branch, and
+the matching `~>` in the gutter of line `6` shows where the branch lands. When
+the branch is not taken, execution continues with the next line.
 
-So this function skips the `add` for non-negative values and always runs the
-`asr`. Reading the arrows is how you recover `if`, `else`, and every loop.
+So this function skips the `add` for values that are not negative, and it always
+runs the `asr`. Reading the arrows is how you recover `if`, `else`, and every
+loop.
 
-## You do not have to memorise any of this
+## You do not need to memorise this
 
-There are a lot of mnemonics and you will meet them a few at a time. You do not
-need to hold them all in your head: **hover any instruction in the diff** and a
-tooltip explains it, with that line's own registers and values filled in. Lean
-on it as much as you like.
+There are many mnemonics, and you will learn them a few at a time. You do not
+need to remember them all: **hover over any instruction in the diff** and a
+tooltip explains it, with that line's own registers and values filled in. Use it
+as often as you like.
 
 ---
 
-That is enough to read your first target. Let's go match a function.
+That is enough to read your first target. In the next lesson you will match a
+function.

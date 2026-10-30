@@ -1,7 +1,7 @@
 ---
 id: 641dbc8f-a5c2-4ee1-ae8e-08b94c5e3ea5
 slug: opt-capstone
-title: "Capstone: Fingerprints, All at Once"
+title: "Capstone: All the Fingerprints Together"
 difficulty: 4
 concepts:
   - optimizer
@@ -11,15 +11,15 @@ concepts:
   - capstone
 symbol: func_801076f0
 hints:
-  - "Split the listing at the `bne`. Above it, an unrolled loop you've read before; below it, a multiply — of what, by what?"
-  - "The second argument is untouched until after the loop ends. That places it in your C too."
+  - "Split the listing at the `bne`. Above it is an unrolled loop you have read before. Below it is a multiply. What is multiplied, and by what?"
+  - "The second argument is not used until after the loop ends. That also tells you where it goes in your C."
 ---
 
-# One function, every tell
+# One function with every fingerprint
 
-Time to read a function the way you'll read real game code: several optimizer
-fingerprints layered in one listing, none of them announced. First, a small
-worked example — `damp(x, k)`, which clamps `x` up to zero, then multiplies
+Now you will read a function the way you will read real game code: several
+optimizer fingerprints in one listing, and nothing that points them out. First,
+a small worked example. `damp(x, k)` clamps `x` up to zero, then multiplies it
 by `k`:
 
 ```asm
@@ -34,19 +34,24 @@ by `k`:
 20:  nop
 ```
 
-Inventory the tells: a sign-test branch (`bgez` — "branch if greater than or
-equal to zero") steering around a one-instruction clamp; a `nop` in its slot,
-because IDO doesn't *always* pick a likely form — read what's there, don't
-assume; then the multiply ritual with its fully-padded window. Three lessons'
-worth of fingerprints in nine lines, and the C is two short statements.
+List the fingerprints you can see:
 
-That's the skill this chapter was building: you no longer decode instruction
-by instruction. You spot *shapes* — there's a clamp, there's a multiply
-window — and assemble the C at the statement level.
+- a sign-test branch (`bgez`, "branch if greater than or equal to zero") that
+  jumps around a one-instruction clamp
+- a `nop` in that branch's slot, because IDO does not *always* pick a likely
+  form (read what is there instead of assuming)
+- the multiply sequence, with both slots of its window padded
 
-The target stacks bigger shapes: a loop you'll recognize on sight from
-earlier in the chapter, feeding a multiply that closes the function. Name
-each section, then write the few lines of C that generate all of it.
+That is three lessons' worth of fingerprints in nine lines, and the C is two
+short statements.
+
+This is the skill the chapter has been building. You no longer decode one
+instruction at a time. You spot *shapes* (here, a clamp and a multiply window)
+and write the C one statement at a time.
+
+The target combines bigger shapes: a loop from earlier in the chapter that you
+will recognize straight away, feeding a multiply at the end of the function.
+Name each section, then write the few lines of C that produce all of it.
 
 ## Your task
 

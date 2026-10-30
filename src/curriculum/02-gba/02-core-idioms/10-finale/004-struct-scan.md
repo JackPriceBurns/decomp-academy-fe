@@ -9,23 +9,23 @@ concepts:
   - narrow-types
 hints:
   - The constant that advances the pointer at the bottom of the loop is the
-    element's size. Every load's offset names a field at that offset.
-  - One load in the body is a signed halfword and one is not. Match each to a
-    field in the struct you were given, then read the compare that decides
-    whether the accumulate happens.
-  - "An `Ent *` and an `s32` count in, an `s32` out. Only entries whose timer is above zero contribute, and what they contribute is the other narrow field."
+    element's size. The offset in each load tells you which field it reads.
+  - One load in the body is a signed halfword, and the other is not. Match each
+    load to a field in the struct you were given. Then read the compare that
+    decides whether the accumulate happens.
+  - "The function takes an `Ent *` and an `s32` count, and returns an `s32`. Only entries whose timer is above zero are added. What each one adds is the other narrow field."
 symbol: func_082d4814
 ---
 
-# The stride is the size, the offset is the field
+# The stride is the size and the offset is the field
 
-A walk over an array of structs tells you the layout twice over. The constant
-that advances the pointer at the bottom of the body is `sizeof` the element, and
-every load inside the body carries the offset of the field it reads. Put those
-together with the load's width and signedness and you can name each field
-without ever seeing the header.
+A loop over an array of structs tells you the struct's layout in two ways. The
+constant that advances the pointer at the bottom of the body is the `sizeof` of
+the element. Every load inside the body contains the offset of the field that
+it reads. Combine those with each load's width and signedness, and you can name
+each field without seeing the header.
 
-Here is a scan over this eight-byte element:
+Here is a scan over an array of this eight-byte element:
 
 ```c
 typedef struct {
@@ -37,7 +37,7 @@ typedef struct {
 } Obj;
 ```
 
-keeping the largest `depth` it finds:
+The scan keeps the largest `depth` that it finds:
 
 ```asm
 0        push      {r4, lr}
@@ -59,32 +59,32 @@ keeping the largest `depth` it finds:
 32       bx        r1
 ```
 
-`add r0, #8` at 18 is the stride, and 8 is `sizeof(Obj)`. The load at 10 reaches
-offset 4, which lands on `depth`, and it is an `ldrsh`, so that field is signed
-and sixteen bits wide. Between them, those two instructions give you the
-element's size and one field's offset, width and signedness.
+`add r0, #8` at 18 is the stride, and 8 is `sizeof(Obj)`. The load at 10 reads
+offset 4, which is `depth`. It is an `ldrsh`, so that field is signed and
+sixteen bits wide. Together, those two instructions give you the element's
+size, and the offset, width and signedness of one field.
 
-The pair at 8 and 10 is the awkward part of ARMv4T you met in the types chapter.
-Thumb has `ldrsh` only in the register-offset form, so the offset cannot be an
-immediate — agbcc has to build it in a register first. What is worth noticing
-here is where that `mov` sits: inside the body, at the branch target, running on
-every single trip. The masks in the first lesson of this chapter got hoisted
-above the loop; this one does not.
+The pair at 8 and 10 is the ARMv4T limitation that you met in the types
+chapter. Thumb has `ldrsh` only in the register-offset form, so the offset
+cannot be an immediate. agbcc has to put the offset in a register first. Notice
+where that `mov` is: inside the body, at the branch target, so it runs on every
+iteration. The masks in the first lesson of this chapter were hoisted above the
+loop. This `mov` stays inside it.
 
-Then look at the prologue. This function calls nothing at all, and it still
-pushes a callee-saved register and returns through `pop {r1} ; bx r1` rather
-than `bx lr`. It needed one more low register than r0-r3 gave it, and asking for
-r4 is what costs the frame. Read `push {r4, lr}` as a census of how many values
-have to stay alive, not as proof that something gets called.
+Next, look at the prologue. This function calls nothing, but it still pushes a
+callee-saved register and returns with `pop {r1} ; bx r1` instead of `bx lr`.
+It needed one more low register than r0-r3 provide, and using r4 is what makes
+it build a frame. Read `push {r4, lr}` as a count of how many values have to
+stay alive. It does not prove that the function calls anything.
 
-The rest is the loop shape you know: an entry guard at 4 that skips the body when
-the count is not positive, and a back edge at 24 whose trip count is counted down
-to zero because the subscript was strength-reduced into the walking pointer at
-18.
+The rest is the loop shape you already know. The entry guard at 4 skips the
+body when the count is not positive. The back edge at 24 counts the trip count
+down to zero, because the subscript was strength-reduced into the walking
+pointer at 18.
 
-Your target scans a smaller element and reads two different fields out of it in
-the same body. The offsets and the load widths are all you need to match them to
-the struct you have been given.
+Your target scans a smaller element and reads two different fields from it in
+the same body. The offsets and the load widths are all you need to match those
+loads to the struct you were given.
 
 ## Your task
 

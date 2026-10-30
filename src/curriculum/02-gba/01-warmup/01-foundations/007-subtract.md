@@ -1,32 +1,31 @@
 ---
 id: 97d507c7-a675-431d-9a5d-2fc6d86fc062
 slug: gba-foundations-subtract
-title: Taking a Constant Away
+title: Subtracting a Constant
 difficulty: 1
 concepts:
   - arithmetic
   - immediates
 symbol: decay
 hints:
-  - The target subtracts, so your C should too — the constant is the one shown.
+  - The target subtracts, so your C should too. Use the constant that is shown.
   - Adding a negative number would compile to exactly the same `sub`, so either
     spelling matches.
 ---
 
-# The instruction picks itself
+# The compiler picks the instruction
 
-Subtracting a constant is the mirror of adding one:
+Subtracting a constant works the same way as adding one:
 
 ```asm
 0        sub       r0, #20
 2        bx        lr
 ```
 
-`sub rD, #imm` is `rD = rD - imm`, with the same eight-bit immediate field and
-the same lack of any separate load.
+`sub rD, #imm` is `rD = rD - imm`. It has the same eight-bit immediate field,
+and it also needs no separate load.
 
-Here is the part worth noticing. This function does not subtract anything — it
-adds negative nine:
+Now look at this function. Its C adds negative nine:
 
 ```c
 s32 backNine(s32 x) {
@@ -41,11 +40,11 @@ and the compiler emits this:
 2        bx        lr
 ```
 
-There is no "add a negative" instruction, so `add` and `sub` are chosen purely
-by the sign of the constant. Two different-looking pieces of C collapse to the
-same instruction, which means the assembly cannot tell you which one the
-original author wrote. Matching is about instructions, so either is correct —
-and you will meet this ambiguity constantly. Write whichever reads more
+There is no "add a negative" instruction, so the compiler chooses `add` or `sub`
+based only on the sign of the constant. Two different pieces of C compile to the
+same instruction, so the assembly cannot tell you which one the original author
+wrote. Matching only compares instructions, so either version is correct. You
+will see this kind of ambiguity often. Write whichever version reads more
 naturally.
 
 ## Your task

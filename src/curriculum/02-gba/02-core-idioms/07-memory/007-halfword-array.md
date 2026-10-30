@@ -9,17 +9,17 @@ concepts:
   - addressing
 symbol: func_08210024
 hints:
-  - Only one of the two elements can ride the offset field. Ask yourself which
-    direction the field cannot go.
-  - A `u16 *` and an `s32` index in, a sum out. The two elements sit one on
-    each side of the one the index names.
+  - Only one of the two elements can use the offset field. Think about which
+    direction the field cannot reach.
+  - It takes a `u16 *` and an `s32` index, and returns a sum. The two elements
+    are one on each side of the element the index names.
 ---
 
 # Two bytes per element
 
 A 16-bit array scales its index by two, loads with `ldrh`, and encodes its
-constant offsets in units of two. All three follow from the element size, and
-all three are visible:
+constant offsets in units of two. All three come from the element size, and you
+can see all three in the listing:
 
 ```asm
 0        lsl       r1, #1
@@ -29,9 +29,9 @@ all three are visible:
 8        bx        lr
 ```
 
-`lsl #1` doubles the index, `ldrh` moves sixteen bits, and the `neg` afterwards
-works on the loaded value rather than on the address. With constant indices the
-shift and the add both vanish into the offset field:
+`lsl #1` doubles the index, and `ldrh` loads sixteen bits. The `neg` afterwards
+works on the loaded value, not on the address. With constant indices, the shift
+and the add both disappear into the offset field:
 
 ```asm
 0        mov       r1, r0
@@ -41,19 +41,19 @@ shift and the add both vanish into the offset field:
 8        bx        lr
 ```
 
-Halve each offset to recover the index — 20 is element 10, 2 is element 1. And
-since the field is five bits scaled by two, a halfword load reaches 0 to 62,
-so the ceiling arrives at element 31 rather than element 63.
+Halve each offset to get the index back: 20 is element 10, and 2 is element 1.
+The field is five bits scaled by two, so a halfword load reaches 0 to 62. This
+means the limit is at element 31 rather than element 63.
 
-Now the part that catches people out. **The offset field is unsigned.** It can
-only reach forwards from the base. Once the compiler has folded a variable
-index into a register, an element *after* that position rides along in the
-offset field for free, but an element *before* it has no encoding at all and
-needs its own instruction to move the base backwards. Two accesses that look
-equally cheap in C come out asymmetric in the listing, and the asymmetry is the
-sign of the index arithmetic.
+There is one more property to know. **The offset field is unsigned.** It can
+only reach forwards from the base. After the compiler adds a variable index to
+the base register, an element *after* that position fits in the offset field at
+no extra cost. An element *before* it cannot be encoded at all, so it needs its
+own instruction to move the base backwards. Two accesses that look equally
+cheap in C come out differently in the listing, and that difference tells you
+the sign of the index arithmetic.
 
-Your target's two accesses are not both reachable from the same base register.
+Your target's two accesses cannot both be reached from the same base register.
 
 ## Your task
 

@@ -9,24 +9,24 @@ concepts:
   - registers
 hints:
   - Nothing in the body reads a counter, so gcc deleted it and counted the trip
-    count itself down instead. The register being decremented is the bound, not
-    a variable the source decremented.
+    count down instead. The register being decremented is the bound, which the
+    source never decremented.
   - The guard compares two registers, which means one of them is a local
     initialized to zero before the loop.
-  - One `s32` in, `s32` out - an ordinary ascending `for` whose body adds a fixed
-    amount to a running total, once per trip.
+  - One `s32` in, `s32` out. It is an ordinary `for` loop counting up, and its
+    body adds a fixed amount to a running total once per trip.
 symbol: func_0817ca30
 ---
 
 # The counter you will not find
 
-Counting up to a bound needs the bound in a register and a compare against it
-every trip. Counting down to zero needs neither: the decrement sets the flags
-itself, and the test is against zero, so no register has to carry the bound. So
-when nothing in the body reads the loop counter, gcc throws the counter away and
-counts the trip count down instead.
+Counting up to a bound needs the bound in a register, and a compare against it
+on every trip. Counting down to zero needs neither. The decrement sets the flags
+by itself, and the test is against zero, so no register has to hold the bound.
+So when nothing in the body reads the loop counter, gcc removes the counter and
+counts the trip count down to zero instead.
 
-This function transforms `x` a fixed number of times:
+This function changes `x` in the same way a set number of times:
 
 ```asm
 0        cmp       r1, #0
@@ -40,26 +40,26 @@ This function transforms `x` a fixed number of times:
 ```
 
 The source counted `i` from 0 up to `n`. There is no `i` in the output. r1 is
-the argument `n`, and it is being decremented to zero — the trip count has
-become the counter. The body is two instructions, and it never mentions the
-number of the iteration because the source never did either.
+the argument `n`, and it is decremented down to zero, so the trip count has
+become the counter. The body is two instructions. It never uses the iteration
+number, because the source never used it either.
 
-This is worth being precise about, because it is easy to read backwards. A
-listing that decrements an argument register does not mean the C wrote `n--`.
-The trip count is *the same number* either way, so gcc is free to consume the
-argument as its counter, and it will.
+Be careful here, because this is a common misreading. A listing that decrements
+an argument register does not mean the C wrote `n--`. The trip count is *the
+same number* either way, so gcc is free to use up the argument as its counter,
+and it does.
 
-Compare the guard here — `cmp r1, #0 / ble` — with the two-register form from
-the previous lesson. This function has no zero-initialized local, so there was
-no spare zero lying around and gcc compared the bound against an immediate
-instead. The guard's shape tells you whether a local was initialized to zero
-before the loop.
+Compare the guard here (`cmp r1, #0 / ble`) with the two-register form from the
+previous lesson. This function has no local initialized to zero, so there was no
+spare zero in a register, and gcc compared the bound against an immediate
+instead. The shape of the guard tells you whether a local was initialized to
+zero before the loop.
 
-The `cmp r1, #0` at address 10 is the redundant one again: `sub` already set the
-flags. It is in every countdown loop this compiler emits, and there is no C that
-produces the shorter version, so do not go looking for one.
+The `cmp r1, #0` at address 10 is the redundant compare again, because `sub`
+already set the flags. It appears in every countdown loop this compiler emits.
+No C code produces the shorter version, so do not look for one.
 
-Your target has the same missing counter, and its guard is the other form.
+Your target is also missing its counter, and its guard uses the other form.
 
 ## Your task
 

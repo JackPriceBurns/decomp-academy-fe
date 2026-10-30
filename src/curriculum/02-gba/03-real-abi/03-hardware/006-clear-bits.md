@@ -9,20 +9,20 @@ concepts:
   - constants
 symbol: func_0836c57c
 hints:
-  - A `bic` means the compiler could not fold the complement at compile time, so
-    the `~` in the source was wrapped around something it only knows at run
-    time. Everything before the `ldrh` is that operand being assembled.
-  - "One `u32` in, nothing out. The register is 0x04000004 and the mask being
-    cleared is the caller's bit position ored with a constant 8."
+  - A `bic` means the compiler could not work out the complement at compile
+    time. So the `~` in the source was applied to something it only knows at
+    run time. Everything before the `ldrh` builds that operand.
+  - "One `u32` goes in and nothing comes out. The register is 0x04000004, and
+    the mask being cleared is the caller's bit position ored with a constant 8."
 ---
 
-# Two spellings of "turn this off"
+# Two forms of "turn this off"
 
-Clearing a bit is `x &= ~mask`, and gcc renders it two completely different ways
-depending on whether it knows the mask while compiling.
+Clearing a bit is `x &= ~mask`. gcc compiles it in two very different ways,
+depending on whether it knows the mask at compile time.
 
-When the mask is a constant, the complement is computed at compile time and the
-result is just an `and` with an ordinary number:
+When the mask is a constant, the complement is computed at compile time. The
+result is an `and` with an ordinary number:
 
 ```asm
 0        mov       r2, #128
@@ -36,12 +36,12 @@ result is just an `and` with an ordinary number:
 16       .word     64511
 ```
 
-That switches background 2 off in `DISPCNT`. 64511 is 0xFBFF — sixteen bits of
-ones with bit 10 punched out. The `~` never reaches the instruction stream, and
-the mask is already narrowed to the width of the access, so a pool word of
-mostly-ones is the signature of a constant bit clear.
+That code turns background 2 off in `DISPCNT`. 64511 is 0xFBFF: sixteen bits of
+ones with bit 10 cleared. The `~` never appears in the instructions. The mask is
+also already narrowed to the width of the access. So a pool word that is mostly
+ones is the sign of a bit clear with a constant mask.
 
-When the mask is computed at run time there is nothing to fold, and Thumb has an
+When the mask is computed at run time, there is nothing to fold. Thumb has an
 instruction for exactly this case:
 
 ```asm
@@ -56,19 +56,19 @@ instruction for exactly this case:
 16       .word     67109376
 ```
 
-`bic r0, r1` is "bit clear": `r0 &= ~r1`. The complement lives in the opcode, so
-the mask register holds the bits to *remove*, in the same polarity the source
-wrote them. `mov r1, #3` / `lsl r1, r0` is a two-bit field slid up to a position
-the compiler only learns at run time, and 67109376 is `0x04000200`, the
-interrupt-enable register — so this switches off an adjacent pair of interrupt
+`bic r0, r1` means "bit clear": `r0 &= ~r1`. The complement is part of the
+instruction, so the mask register holds the bits to *remove*, exactly as the
+source wrote them. `mov r1, #3` / `lsl r1, r0` is a two-bit field shifted up to
+a position the compiler only learns at run time. 67109376 is `0x04000200`, the
+interrupt-enable register. So this code turns off two adjacent interrupt
 sources.
 
-That gives you a reliable reading. A `bic` proves the source complemented
-something the compiler could not see the value of. Whatever ends up in the
-second register is the mask as the programmer wrote it, before the `~`.
+This gives you a reliable way to read the code. A `bic` proves that the source
+complemented something whose value the compiler could not know. Whatever is in
+the second register is the mask as the programmer wrote it, before the `~`.
 
-Your target assembles its mask out of two pieces before the `bic` — read those
-instructions as one expression, and remember that everything inside the
+Your target builds its mask from two pieces before the `bic`. Read those
+instructions as one expression. Remember that everything inside the
 parentheses of the `~` has to be built first.
 
 ## Your task

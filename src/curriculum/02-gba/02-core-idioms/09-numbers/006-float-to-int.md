@@ -1,7 +1,7 @@
 ---
 id: 8aaec5de-862e-435f-859b-cee4554b0f07
 slug: gba-numbers-float-to-int
-title: Converting Out
+title: Converting a Float to an Integer
 difficulty: 2
 concepts:
   - floating-point
@@ -9,18 +9,18 @@ concepts:
   - soft-float
 symbol: func_08295fbc
 hints:
-  - The last helper before the epilogue is the one that decides what type comes
-    back. Everything before it happened in floats.
-  - "Two `f32` in, an `s32` out — the cast is applied to the product, not to
-    either operand."
+  - The last helper before the epilogue decides what type comes back.
+    Everything before it was done in floats.
+  - "Two `f32` in, an `s32` out. The cast applies to the product. Neither
+    operand is cast on its own."
 ---
 
-# Truncation, always
+# It always truncates
 
-Going the other way is `__fixsfsi`: **fix** a **s**ingle **f**loat into a
-**s**igned **i**nt. "Fix" is old numerical-analysis vocabulary for converting
-to a fixed-point representation, and integers are just fixed point with no
-fractional bits.
+The conversion in the other direction is `__fixsfsi`: **fix** a **s**ingle
+**f**loat into a **s**igned **i**nt. "Fix" is an old term from numerical
+analysis. It means converting to a fixed-point representation, and an integer
+is fixed point with no fractional bits.
 
 ```asm
 0        push      {lr}
@@ -29,10 +29,10 @@ fractional bits.
 8        bx        r1
 ```
 
-The helper truncates toward zero. Always. There is no rounding mode to set, no
-alternative entry point, and C requires exactly this behaviour: 2.9 becomes 2,
-and -2.9 becomes -2. If the original programmer wanted rounding they had to
-build it themselves, and the usual way is visible in the assembly:
+The helper always truncates toward zero. There is no rounding mode to set and
+no other entry point, and C requires exactly this behaviour: 2.9 becomes 2,
+and -2.9 becomes -2. If the original programmer wanted rounding, they had to
+write it themselves. The usual way looks like this in the assembly:
 
 ```asm
 0        push      {lr}
@@ -44,18 +44,18 @@ build it themselves, and the usual way is visible in the assembly:
 16       .word     1056964608
 ```
 
-1056964608 is 0x3F000000, which is 0.5f. Add a half and then truncate and you
-have rounded to nearest — for positive values. For negative ones this rounds
-the wrong way, which is the kind of asymmetry that shows up as a one-pixel
-jitter once a coordinate crosses zero.
+The pool word 1056964608 is 0x3F000000, which is 0.5f. Adding a half and then
+truncating rounds to the nearest integer, but only for positive values. For
+negative values it rounds the wrong way. That difference can show up as a
+one-pixel jitter when a coordinate crosses zero.
 
-Notice what the epilogue does **not** tell you here. Both of these return one
-word, so both pop into `r1`, and the interwork return looks identical whether
-the value is an `s32` or an `f32`. When the return type is in question, the
-tell is the last helper called: end on `__fixsfsi` and an integer comes back;
-end on `__floatsisf` and a float does.
+Notice what the epilogue does **not** tell you here. Both of these functions
+return one word, so both pop into `r1`. The interwork return looks the same
+whether the value is an `s32` or an `f32`. When you are unsure of the return
+type, look at the last helper called. If it is `__fixsfsi`, an integer comes
+back. If it is `__floatsisf`, a float comes back.
 
-Your target ends on a conversion too. Read what happened before it.
+Your target also ends with a conversion. Read what happens before it.
 
 ## Your task
 

@@ -9,23 +9,22 @@ concepts:
   - calls
 symbol: func_083a1cec
 hints:
-  - The `bl` hands back a pair in `r0:r1`. Count how many of those two registers
-    anything after the call ever reads.
-  - Two `s32` parameters and an `s32` result. The second parameter is the value
-    that has to survive the call in `r4`.
+  - The `bl` returns a pair in `r0:r1`. Count how many of those two registers
+    the code after the call ever reads.
+  - It takes two `s32` parameters and returns an `s32`. The second parameter is
+    the value that has to survive the call in `r4`.
 ---
 
-# Truncation is not an instruction
+# Truncation has no instruction
 
-Cutting a 64-bit value down to 32 bits costs nothing at all. The low half is
-already in a register on its own, so a truncation is the compiler simply never
-emitting the code that would have touched the high half. There is no instruction
-to look for. What you look for instead is **absence**: a missing `adc`, a
-missing sign fill, a missing second load.
+Cutting a 64-bit value down to 32 bits costs nothing. The low half is already in
+a register of its own, so to truncate, the compiler leaves out the code that
+would have used the high half. There is no instruction to look for. Instead, you
+look for what is **missing**: an `adc`, a sign fill, or a second load that never
+appears.
 
-A function that hands back 64 bits makes that visible, because its result
-arrives as a pair in `r0:r1` and the caller is free to care about only one of
-them:
+You can see this when a function returns 64 bits. Its result arrives as a pair
+in `r0:r1`, and the caller can use only one of the two registers:
 
 ```asm
 0        push      {r4, lr}
@@ -37,13 +36,13 @@ them:
 14       bx        r0
 ```
 
-The call returns two registers and this function stores one. `r1` is never
-mentioned again, and not a single instruction is spent discarding it. The
-pointer had to survive the call, so it lives in `r4` and pays for the
-`push {r4, lr}`. The frame is the price of holding a value across a call; the
+The call returns two registers, and this function stores one of them. `r1`
+never appears again, and no instruction is spent discarding it. The pointer has
+to survive the call, so it is kept in `r4`, and that is why the function needs
+`push {r4, lr}`. The frame is the cost of keeping a value across a call. The
 truncation itself costs nothing.
 
-Selecting the other half is barely more expensive:
+Selecting the other half costs almost nothing extra:
 
 ```asm
 0        push      {lr}
@@ -53,17 +52,18 @@ Selecting the other half is barely more expensive:
 10       bx        r1
 ```
 
-`mov r0, r1` is the entire body. A 64-bit right shift by 32 followed by a
-truncation to 32 bits is one register rename, because the bits that survive were
-already sitting in a register by themselves.
+`mov r0, r1` is the whole body. A 64-bit right shift by 32 followed by a
+truncation to 32 bits is one register copy, because the bits that are kept were
+already in a register of their own.
 
-Compare the two epilogues. The first pops the saved link register into `r0` and
-the second into `r1`, even though both called the same 64-bit-returning
-function - the scratch register in the last two instructions describes the width
-**this** function returns, not the width it received.
+Compare the two epilogues. The first pops the saved link register into `r0`,
+and the second pops it into `r1`. Both called the same function, which returns
+64 bits. The scratch register in the last two instructions depends on the width
+that **this** function returns, and the width it got back from the call does not
+matter.
 
-Your target keeps a second value alive across the call, so read what the code
-after the `bl` actually consumes.
+Your target keeps a second value alive across the call. Read what the code after
+the `bl` actually uses.
 
 ## Your task
 

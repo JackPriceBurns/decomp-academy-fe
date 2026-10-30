@@ -9,16 +9,17 @@ concepts:
   - registers
 symbol: func_80294440
 hints:
-  - "Concatenate the `lui` and `ori` immediates into one 32-bit value first, then read the final register instruction as normal."
-  - "0x186a0 is a suspiciously round number in decimal — convert before you decide how to write it in C."
+  - "First join the `lui` and `ori` immediates into one 32-bit value. Then read the final register instruction as normal."
+  - "0x186a0 is a very round number in decimal. Convert it before you decide how to write it in C."
 ---
 
-# When the helper is at
+# Big constants go through at
 
-Add a constant that fits 16 bits and it rides inside `addiu`. Add one that
-doesn't, and the compiler must build the constant first — in a register — and
-then do *register* arithmetic. Which register? `at`, the assembler temporary,
-doing exactly the scratch job it was named for. Here's `x + 0x12340`:
+A constant that fits in 16 bits is stored inside the `addiu` instruction. For
+one that doesn't fit, the compiler must first build the constant in a
+register, and then do *register* arithmetic. The register it uses is `at`, the
+assembler temporary, which exists for this kind of scratch work. Here's
+`x + 0x12340`:
 
 ```asm
 lui  at, 0x1          # at = 0x0001_0000
@@ -28,18 +29,19 @@ jr   ra
 nop
 ```
 
-The decode is two steps you already own: concatenate the `lui`/`ori` pair into
-one constant, then read the `addu` as a plain register add — one operand a
-variable, the other your rebuilt constant. The same pattern serves any
-operation: a `subu` third line would subtract the big constant, and you saw
-`div` lean on an `at`-parked divisor chapters ago.
+You already know both decoding steps. First join the `lui`/`ori` pair into one
+constant. Then read the `addu` as a plain register add: one operand is a
+variable, and the other is the constant you rebuilt. The same pattern works for
+any operation. A `subu` on the third line would subtract the big constant, and
+earlier you saw `div` use a divisor held in `at`.
 
-One judgment call recurs here: **hex or decimal?** The instruction stream
-only gives you 0x12340; whether the programmer wrote `0x12340` or `74560` is
-lost. Both compile identically, so matching doesn't care — but readable
-decomp does. Round hex (masks, addresses) should stay hex; round *decimal*
-(offsets like 100000, timeouts, prices) reads better in decimal. Convert the
-target's constant both ways and see which one looks intentional.
+Here you often have to make a choice: **hex or decimal?** The instructions
+only give you 0x12340. Whether the programmer wrote `0x12340` or `74560` is
+lost. Both compile identically, so the match is the same either way, but the
+choice matters for readable decomp. Values that are round in hex (masks,
+addresses) should stay in hex. Values that are round in *decimal* (offsets
+like 100000, timeouts, prices) read better in decimal. Convert the target's
+constant both ways and see which one looks deliberate.
 
 ## Your task
 

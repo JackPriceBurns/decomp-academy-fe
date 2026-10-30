@@ -9,19 +9,19 @@ concepts:
   - constants
 symbol: func_0813e1d8
 hints:
-  - 200 is written into `r1` before the compare, so it is the answer that
-    survives when the branch is taken. That makes it the arm after the colon.
-  - One `s32` argument and an `s32` result, chosen between two constants by a
-    single comparison against zero.
+  - 200 is written into `r1` before the compare, so it is the answer that is left
+    when the branch is taken. That makes it the arm after the colon.
+  - There is one `s32` argument and an `s32` result. The result is one of two
+    constants, chosen by a single comparison against zero.
 ---
 
 # The first constant you see is the else arm
 
-A ternary that produces a value gets a different skeleton from an `if`/`else`
-that branches. The false arm is written into the destination register *before*
-the compare, and the true arm is one instruction that conditionally overwrites
-it. There is no join branch, because the skip target is simply the next
-instruction.
+A ternary that produces a value compiles to a different pattern from an
+`if`/`else` that branches. The false arm is written into the destination
+register *before* the compare. The true arm is one instruction that overwrites
+it when the condition is true. There is no join branch, because the skip target
+is the next instruction.
 
 ```asm
 0        mov       r2, #0
@@ -32,13 +32,13 @@ instruction.
 10       bx        lr
 ```
 
-Read it backwards from the `mov r0, r2`: whatever is in `r2` at address 8 is the
+Read it backwards from the `mov r0, r2`. Whatever is in `r2` at address 8 is the
 answer. `r2` starts as 0, and the subtraction at 6 replaces it only when `ble`
-falls through — that is, when the relation the source wrote is true. So 0 is the
-arm after the colon, the subtraction is the arm after the question mark, and
-`ble` is the inversion of the operator between them.
+falls through, which means when the condition in the source is true. So 0 is the
+arm after the colon, and the subtraction is the arm after the question mark.
+`ble` is the opposite of the operator in the condition.
 
-The seed disappears when the false arm already lives somewhere useful:
+When the false arm is already in a useful place, the seed is not needed:
 
 ```asm
 0        mov       r2, #7
@@ -49,19 +49,21 @@ The seed disappears when the false arm already lives somewhere useful:
 10       bx        lr
 ```
 
-Same skeleton with a constant false arm and a register true arm. `beq` skips the
-overwrite when the tested value is zero, so the condition is a bare truth test
-of the first argument and 7 is what a zero produces.
+This is the same pattern, with a constant false arm and a register true arm.
+`beq` skips the overwrite when the tested value is zero. So the condition is a
+plain truth test of the first argument, and 7 is the result when it is zero.
 
-This matters for matching because the `if`/`else` spelling of the same decision
-compiles to something else. Give both arms a `return` and an instruction of
-their own and you get the join-branch shape from earlier in the chapter: no seed
-above the compare, and a `b` at the end of the first arm. The seed is what
-separates the two, so read the instruction above the `cmp` before anything else.
+This matters for matching, because the same decision written as an `if`/`else`
+compiles to different code. If both arms have a `return` and their own
+instruction, you get the join branch pattern from earlier in the chapter. There
+is no seed above the compare, and there is a `b` at the end of the first arm.
+The seed is how you tell the two apart, so read the instruction above the `cmp`
+first.
 
-Your target seeds a constant, compares against zero, and overwrites the seed
-with a second constant. Apply the reading above to sort the two arms out, then
-invert the branch for the relation.
+Your target puts a constant in a register as the seed, compares against zero,
+and overwrites the seed with a second constant. Use the reading above to work
+out which arm is which. Then take the opposite of the branch to get the
+condition.
 
 ## Your task
 

@@ -9,17 +9,17 @@ concepts:
   - sign-extension
 symbol: func_80010ec8
 hints:
-  - "Left-shift amount = bits above the field; 32 minus the right-shift amount = the field's width. Solve both, then find the matching field in `Ctl`."
-  - "It's `sra` coming back down, and the fields are declared `s32` — a signed slice, returned as-is. One return line."
+  - "The left-shift amount is the number of bits above the field. 32 minus the right-shift amount is the field's width. Work out both, then find the matching field in `Ctl`."
+  - "The shift back down is `sra`, and the fields are declared `s32`. It is a signed slice, returned without any change. The body is one return line."
 ---
 
 # The shift pair, aimed at a slice
 
-Bitfields pack several tiny values into one word, and *reading* one
-compiles to a pattern you already own: the left-then-right shift pair
-from the width chapter, cutting a slice out of the middle of a
-register. The layout rule that makes it decodable: **fields fill the
-word from the most significant bit down**, in declaration order. So:
+Bitfields pack several small values into one word. *Reading* one compiles to a
+pattern you already know: the left-then-right shift pair from the Types &
+Width chapter, used to cut a slice out of the middle of a register. To decode
+it, you need one layout rule: **fields fill the word from the most significant
+bit down**, in declaration order. For example:
 
 ```c
 typedef struct {
@@ -41,22 +41,22 @@ jr    ra
 nop
 ```
 
-The two shift amounts are a pair of simultaneous equations handing you
-the layout:
+The two shift amounts give you two equations, and together they tell you the
+layout:
 
-- **`sll` amount = how many bits sit *above* the field** (here `top`'s
-  8);
+- **`sll` amount = the number of bits *above* the field** (here, the 8 bits
+  of `top`);
 - **32 − `sra` amount = the field's width** (32 − 20 = 12).
 
-`sra` because the fields are declared `s32` — a signed slice keeps its
-sign. Unsigned bitfields ride `srl` instead, and when an unsigned
-field fits entirely in the word's first *byte*, IDO gets clever and
-compiles the read as `lbu` plus `andi` — a narrowed load instead of
-shifts. File that variant away; the shift pair is the general shape.
+The right shift is `sra` because the fields are declared `s32`, and a signed
+slice keeps its sign. Unsigned bitfields use `srl` instead. When an unsigned
+field fits entirely in the first *byte* of the word, IDO compiles the read as
+`lbu` plus `andi`. That is a narrower load in place of the shifts. This
+variant is worth remembering, but the shift pair is the general shape.
 
-The target reads one field of the `Ctl` below. Solve the two equations
-from its shift amounts, check them against the declaration, and name
-the field.
+The target reads one field of the `Ctl` below. Solve the two equations using
+its shift amounts. Then check the result against the declaration and name the
+field.
 
 ## Your task
 

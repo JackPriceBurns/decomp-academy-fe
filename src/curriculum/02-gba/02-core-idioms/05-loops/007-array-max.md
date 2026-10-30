@@ -12,18 +12,19 @@ hints:
     and the address it branches to. Everything from that address down is loop
     machinery.
   - The compare is between the loaded element and the register that the guard
-    also used, so the thing being compared against is the running result.
-  - An `s32 *` and an `s32` count in, `s32` out - a running maximum starting from
-    zero, replaced whenever an element beats it.
+    also used, so the value it is compared against is the running result.
+  - An `s32 *` and an `s32` count in, `s32` out. It keeps a running maximum that
+    starts at zero and is replaced whenever an element is larger.
 symbol: func_0818a08c
 ---
 
 # A branch in the body costs you the writeback
 
-An `if` inside a loop body compiles to a skip. gcc evaluates the condition,
-inverts it, and branches forward over the conditional instructions to the point
-where both paths meet. The merge point is where the loop machinery resumes, so
-finding the target of that forward branch splits the body into "the conditional
+An `if` inside a loop body compiles to a forward branch that skips some code.
+gcc evaluates the condition, inverts it, and branches forward over the
+conditional instructions to the point where both paths meet. This point is the
+merge point, and the loop machinery continues from there. So when you find the
+target of that forward branch, you can split the body into "the conditional
 part" and "the part that always runs".
 
 Here is a loop that counts the negative elements of an array:
@@ -46,23 +47,25 @@ Here is a loop that counts the negative elements of an array:
 ```
 
 The source condition is `a[i] < 0`, and the assembly tests the opposite:
-`bge 16` jumps past the increment when the element is *not* negative. That
-inversion is universal for a body-level `if`, so read a forward `bge` as a
-source-level `<`, a `bne` as a `==`, and so on.
+`bge 16` jumps past the increment when the element is *not* negative. An `if` in
+the body is always inverted like this. So read a forward `bge` as a `<` in the
+source, a `bne` as a `==`, and so on.
 
-Now look at address 16. The pointer advance sits *at* the merge point, and the
-load at 8 is a plain `ldr` rather than the load-multiple from the last lesson.
-That is the third of the load-multiple's conditions breaking: the forward branch
-splits the body into two runs of instructions, the advance has to sit on the
-path both of them take, and once it is no longer beside the load gcc cannot fold
-the two together. A word-array loop showing `ldr` plus a separate `add rP, #4`
-is telling you there is a branch in the body, before you have read the branch.
+Now look at address 16. The pointer advance is *at* the merge point, and the
+load at 8 is a plain `ldr` instead of the load-multiple from the last lesson.
+This is the third load-multiple condition failing. The forward branch splits the
+body into two runs of instructions. The advance has to be on the path that both
+of them take, so it is no longer next to the load, and gcc cannot combine the
+two. So when a loop over a word array shows `ldr` plus a separate `add rP, #4`,
+there is a branch in the body. You can tell this before you have read the
+branch.
 
-Everything else is unchanged: the guard still compares the zeroed accumulator
-against the bound, and the countdown still consumes the count in r1.
+Everything else is the same as before. The guard still compares the accumulator,
+which was set to zero, against the bound. The countdown still uses up the count
+in r1.
 
-Your target has the same skeleton with one conditional instruction in the body,
-and its compare is between two live values rather than against an immediate.
+Your target has the same structure, with one conditional instruction in the
+body. Its compare is between two live values, instead of against an immediate.
 
 ## Your task
 

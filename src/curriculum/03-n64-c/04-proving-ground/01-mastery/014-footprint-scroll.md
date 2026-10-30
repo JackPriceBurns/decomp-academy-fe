@@ -11,40 +11,40 @@ concepts:
   - capstone
 symbol: func_802a808c
 hints:
-  - "Skeleton: outer loop over the 40-entry global array (stride 144, `beqzl`
-    skips inactive entries by `132(v1)`), two deltas = global minus field at
-    120/124, added back into those fields, then the vertex adjustments."
-  - "The four-vertex inner loop is fully unrolled — write it as a plain `for (k = 0; k < 4; k++)` over the entry's `Vtx_t`s, subtracting one delta from `ob[0]` and the other from `ob[2]`. The two float locals must be initialized to 0 before the loop."
+  - "Skeleton: an outer loop over the 40-entry global array (stride 144, with `beqzl` skipping inactive entries using `132(v1)`). Two deltas, each a global minus the field at 120/124, are added back into those fields. The vertex adjustments come last."
+  - "The inner loop over four vertices is fully unrolled. Write it as a plain `for (k = 0; k < 4; k++)` over the entry's `Vtx_t`s, subtracting one delta from `ob[0]` and the other from `ob[2]`. The two float locals must be initialized to 0 before the loop."
 ---
 
-# The world moves; the footprints stay
+# Moving the footprints with the world
 
-The game world is bigger than an N64 can address with float precision, so the
-engine *slides the world* under the player, keeping the camera near the origin —
-`gWorldX` and `gWorldZ` record the current shift. Anything stamped into world
-space must be dragged along when the origin jumps. This function drags the
-**footprints**: up to 40 of them, each a little quad of four vertices, each
-remembering (fields `unk78`/`unk7C`) the world offset it was last adjusted to.
+The game world is bigger than an N64 can handle with float precision. So the
+engine *slides the world* under the player and keeps the camera near the
+origin. `gWorldX` and `gWorldZ` record the current shift. Anything placed in
+world space must move too when the origin jumps. This function moves the
+**footprints**. There are up to 40 of them. Each one is a small quad of four
+vertices, and each one stores the world offset it was last adjusted to (fields
+`unk78`/`unk7C`).
 
-Everything in it is something you've matched before, at shipped-game density:
-`%hi`/`%lo` address builds hoisted to the top, a `beqzl`-guarded loop over
-144-byte structs, float deltas computed from globals, and — the capstone
-fingerprint — a **fully unrolled** inner loop. The original C says
-`for (k = 0; k < 4; k++)`; the assembly says the same thing four times with
-no branch, exactly as tier 3's constant-trip unrolling promised.
+You have matched everything in it before, but here it is all together, as
+dense as shipped code usually is. There are `%hi`/`%lo` address builds moved
+to the top, a loop over 144-byte structs guarded by `beqzl`, float deltas
+computed from globals, and the main pattern of this capstone: a **fully
+unrolled** inner loop. The original C says `for (k = 0; k < 4; k++)`. The
+assembly repeats the body four times with no branch, as tier 3 showed for
+loops with a constant trip count.
 
 Each unrolled iteration subtracts a float from an `s16` vertex coordinate.
-That conversion chain is the one genuinely new-feeling read, so here it is
-alone — `sinkOne`, which lowers a single vertex coordinate:
+That chain of conversions is the one part that may feel new, so here it is on
+its own, in `sinkOne`, which lowers a single vertex coordinate:
 
 ```asm
  0:  mtc1  a1, fa0          # the f32 arg (it followed a pointer arg)
  4:  nop
  8:  lh    t6, 0(a0)        # pt[0], an s16
- c:  mtc1  t6, ft0          # integer bits over to the FPU…
+ c:  mtc1  t6, ft0          # integer bits moved to the FPU…
 10:  nop
 14:  cvt.s.w ft1, ft0       # …become a float
-18:  sub.s ft2, ft1, fa0    # pt[0] - d, in float land
+18:  sub.s ft2, ft1, fa0    # pt[0] - d, computed as a float
 1c:  trunc.w.s ft3, ft2     # back to int, rounding toward zero
 20:  mfc1  t8, ft3
 24:  nop
@@ -53,29 +53,30 @@ alone — `sinkOne`, which lowers a single vertex coordinate:
 30:  nop
 ```
 
-`lh` → `mtc1`/`cvt.s.w` → `sub.s` → `trunc.w.s` → `mfc1` → `sh`: once per
-coordinate, and the target has eight such chains braided together by the
-scheduler, two coordinates (`ob[0]` and `ob[2]`) times four vertices. Don't
-try to read them in order — pick one `sh`, trace its value backwards, and
-trust that the C is just the loop.
+Each coordinate goes through this chain once:
+`lh` → `mtc1`/`cvt.s.w` → `sub.s` → `trunc.w.s` → `mfc1` → `sh`. The target
+has eight such chains, two coordinates (`ob[0]` and `ob[2]`) times four
+vertices, and the scheduler mixes them together. Do not try to read them in order. Pick one `sh`, trace its value
+backwards, and trust that the C is only the loop.
 
-Three details that decide the match:
+Three details decide the match:
 
-- **The homed argument.** The `sw a0, 0(sp)` on line one is `-g3` homing
-  an argument the function never reads. Declare it anyway, or the store
-  vanishes.
-- **The loop bound.** The `addiu` building the end address carries the whole
-  array's size in its `%lo` — the compiler walks a pointer from the array's
-  start to its end. Your C just loops `i` to 40; IDO does the
-  strength-reduction, as tier 3 showed.
-- **The two deltas** are computed from the globals *once per entry*, stored
-  back into `unk78`/`unk7C` via `add.s`, and only then applied to vertices.
-  Declare them as `f32` locals set to 0 before the loop — the original did,
-  and the compiler's layout depends on it.
+- **The homing store.** The `sw a0, 0(sp)` on line one is `-g3` homing. The
+  store appears even when the function never reads that argument, and it
+  disappears if the C does not declare it. Work out from it what the
+  signature must contain.
+- **The loop bound.** The `addiu` that builds the end address holds the size
+  of the whole array in its `%lo`, because the compiler walks a pointer from
+  the start of the array to its end. Your C loops `i` up to 40, and IDO does
+  the strength reduction, as tier 3 showed.
+- **The two deltas** are computed from the globals *once per entry*, added
+  back into `unk78`/`unk7C` with `add.s`, and only then applied to the
+  vertices. Declare them as `f32` locals set to 0 before the loop. The
+  original did this, and the compiler's layout depends on it.
 
 The struct, with its display-list header and vertex array, is in the context.
-This is the last target of the course. Take it slow, label the listing, and
-write the function the way its author did — plainly.
+This is the last target of the course. Take your time, label the listing, and
+write the function in the same plain way its author did.
 
 ## Your task
 

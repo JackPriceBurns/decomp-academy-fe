@@ -10,17 +10,18 @@ concepts:
   - delay-slots
 symbol: func_80302adc
 hints:
-  - "Same skeleton as the worked example, but the element is one byte — so the load is `lbu` and the pointer steps by 1, not 4."
-  - "The C is the classic count-the-length loop over a `u8 *` ending at a zero byte. Guard load first, next-load in the likely slot."
+  - "This has the same structure as the worked example, but each element is one byte. So the load is `lbu`, and the pointer steps by 1 instead of 4."
+  - "The C is the classic loop that counts the length of a `u8 *` up to a zero byte. The guard load comes first, and the load of the next element sits in the likely slot."
 ---
 
 # The load that reads one step ahead
 
-Loops that walk memory until a terminator — end of a string, end of a
-zero-terminated table — add one wrinkle to the `while (x != 0)` shape: the
-tested value comes from a **load**, and IDO schedules that load in a very
-particular way. Here's `count_words`, which counts entries before the first
-zero in a word array:
+Some loops walk through memory until they reach an end marker, such as the
+end of a string or the zero at the end of a table. These loops add one
+detail to the `while (x != 0)` shape: the tested value comes from a
+**load**, and IDO schedules that load in a specific way. Here is
+`count_words`, which counts the entries before the first zero in an array of
+words:
 
 ```c
 s32 count_words(s32 *p) {
@@ -34,7 +35,7 @@ s32 count_words(s32 *p) {
 ```
 
 ```asm
- 0:  lw    t6, 0(a0)      # first element — loaded before any loop exists
+ 0:  lw    t6, 0(a0)      # first element, loaded before the loop starts
  4:  or    v1, zero, zero # n = 0
  8:  beqzl t6, 0x28       # empty from the start? straight to the exit…
  c:  or    v0, v1, zero   # (likely slot) …copying out n = 0
@@ -48,25 +49,29 @@ s32 count_words(s32 *p) {
 2c:  nop
 ```
 
-Walk it slowly, because this schedule looks wrong until it clicks:
+Go through it slowly, because this schedule looks wrong at first:
 
-- **The guard loads `0(a0)`, the loop loads `4(a0)`.** The first element
-  gets a private, peeled load and test. From then on the loop always
-  inspects *one element ahead* of the pointer, at offset `+4` — because by
-  the time the test runs, `p++` for the current trip hasn't happened yet.
-- **The back-edge clones the load** into its likely slot, exactly like the
-  cloned `addu` earlier: iteration N's bottom loads the value iteration
-  N+1 will test. On the final trip the slot cancels — no read past the
-  terminator gets *used*.
-- **Both likely slots here hold different things** — the guard's holds the
-  early-out copy of the result, the back-edge's holds the cloned load.
-  Read each slot with its own branch.
+- **The guard loads `0(a0)`, and the loop loads `4(a0)`.** The first element
+  gets its own peeled load and test, before the loop. After that, the loop
+  always reads *one element ahead* of the pointer, at offset `+4`. This is
+  because by the time the test runs, the `p++` for the current trip has not
+  happened yet.
+- **The back-edge clones the load** into its likely slot, just like the
+  cloned `addu` earlier. The bottom of iteration N loads the value that
+  iteration N+1 will test. On the final trip the slot is cancelled, so no
+  value read past the end marker is ever *used*.
+- **The two likely slots here hold different things.** The guard's slot
+  holds the copy of the result for the early exit. The back-edge's slot holds
+  the cloned load. Read each slot together with its own branch.
 
-None of that structure appears in the C. You write the naive
-test-then-increment loop; peeling, look-ahead offsets, and load cloning are
-all IDO. The target is the same walk over *bytes* — one mnemonic and one
-stride change, plus the little detail that a byte load zero-extends (a
-lesson of its own next chapter; for now, `lbu` = "load a byte, unsigned").
+None of that structure appears in the C. You write the simple loop that
+tests and then increments. The peeling, the offsets that read ahead, and the
+load cloning all come from IDO.
+
+The target is the same walk over *bytes*. Only one mnemonic and one stride
+change. There is also a small detail: a byte load zero-extends. That gets its
+own lesson in the next chapter. For now, read `lbu` as "load a byte,
+unsigned".
 
 ## Your task
 

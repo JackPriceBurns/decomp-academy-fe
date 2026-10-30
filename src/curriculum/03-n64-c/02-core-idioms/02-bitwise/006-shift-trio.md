@@ -8,43 +8,45 @@ concepts:
   - types
 symbol: func_8019e9c0
 hints:
-  - "Two right shifts with different mnemonics on two different arguments — the mnemonics are telling you the two parameter types differ."
-  - "Both shift amounts are equal; only the signedness distinguishes the halves of the sum."
+  - "There are two right shifts with different mnemonics, on two different arguments. The mnemonics tell you that the two parameter types are different."
+  - "Both shift amounts are the same. Only the signedness is different between the two halves of the sum."
 ---
 
 # Three shifts, two questions
 
-You've met all three shift instructions scattered across arithmetic lessons.
-Time to line them up as what they are — a family answering two questions:
-which direction, and what fills the vacated bits?
+You have already met all three shift instructions in the arithmetic lessons.
+Here they are together. Each one answers two questions: which direction does
+it shift, and what fills the bits that become empty?
 
-- **`sll`** — left, zeros fill from the bottom. C's `<<`.
-- **`srl`** — right, zeros fill from the top. C's `>>` on **unsigned** values.
-- **`sra`** — right, *copies of the sign bit* fill from the top. C's `>>` on
-  **signed** values.
+- **`sll`** shifts left, and zeros fill in from the bottom. This is C's `<<`.
+- **`srl`** shifts right, and zeros fill in from the top. This is C's `>>` on
+  **unsigned** values.
+- **`sra`** shifts right, and *copies of the sign bit* fill in from the top.
+  This is C's `>>` on **signed** values.
 
-Left shifting has one C spelling, so `sll` is unambiguous. But `>>` in C
-splits into two instructions depending on the operand's type, and that makes
-right shifts a *type oracle*, the same way `div`/`divu` was. Watch the same
-shift compiled twice — first on a `u32`, then on an `s32`:
+A left shift has only one form in C, so `sll` always means `<<`. But `>>` in C
+becomes one of two instructions, depending on the operand's type. That makes
+right shifts a *type oracle*: the instruction tells you the type, the same way
+`div`/`divu` did. Here is the same shift compiled twice, first on a `u32` and
+then on an `s32`:
 
 ```asm
-srl  v0, a0, 6     # u32 x >> 6 — zeros pour in from the top
+srl  v0, a0, 6     # u32 x >> 6: zeros fill in from the top
 ```
 
 ```asm
-sra  v0, a0, 6     # s32 y >> 6 — the sign bit smears down
+sra  v0, a0, 6     # s32 y >> 6: copies of the sign bit fill in from the top
 ```
 
-Identical C text, different instruction — the declaration alone chose the
-mnemonic. Decoding runs the oracle backwards: `srl` in the target forces the
-shifted value to be unsigned in your C, `sra` forces it signed. Get it wrong
-and the diff shows one stubborn mnemonic mismatch on an otherwise perfect
-line — now you know exactly what that smells like, and the fix is in the
-declaration, not the expression.
+The C text is the same, but the instruction is different. Only the
+declaration chose the mnemonic. When decoding, you use the oracle in reverse.
+`srl` in the target means the shifted value must be unsigned in your C, and
+`sra` means it must be signed. If you get this wrong, the diff shows a single
+mnemonic mismatch on a line that is otherwise correct. When you see that, fix
+the declaration and leave the expression alone.
 
-The target below shifts *both* of its arguments and adds the results. Let
-each mnemonic pick each parameter's type.
+The target below shifts more than one value and adds the results. Let each
+mnemonic choose the type of the value it shifts.
 
 ## Your task
 

@@ -8,15 +8,16 @@ concepts:
   - immediates
 symbol: adjust
 hints:
-  - "Adding a constant uses the immediate form `addiu` — the constant rides inside the instruction."
+  - "Adding a constant uses the immediate form `addiu`, which stores the constant inside the instruction."
   - "The `u` doesn't mean unsigned; plain signed `s32` addition compiles to `addiu`."
 ---
 
 # Folding a constant into the instruction
 
-Adding a small constant is free of any load. The compiler folds the number
-straight into the instruction with the immediate form `addiu rt, rs, imm` —
-`imm` being the literal value, riding along inside the opcode:
+Adding a small constant does not need a separate load. The compiler puts the
+number straight into the instruction, using the immediate form
+`addiu rt, rs, imm`. Here `imm` is the constant itself, stored as part of the
+instruction:
 
 ```asm
 addiu v0, a0, 5    # v0 = a0 + 5
@@ -24,24 +25,25 @@ jr    ra
 nop
 ```
 
-One instruction: take the first argument, add 5, and the sum is already sitting
-in the return register.
+This is one instruction. It takes the first argument, adds 5, and writes the
+sum straight into the return register.
 
-Two things about `addiu` are worth filing away early:
+Two things about `addiu` are worth knowing early:
 
-- **The `u` does not mean unsigned.** It means "never trap on overflow" — a
-  hardware detail. Ordinary signed C arithmetic compiles to the `u` forms, so
-  `addiu` on an `s32` is completely normal. Expect `u`-suffixed instructions
-  everywhere.
-- **The immediate field is signed and 16 bits wide**, reaching from -32768 up to
-  32767. Ask for a constant beyond that and the compiler builds it separately —
-  a `lui`/`ori` pair into the scratch register `at`, then a register-to-register
-  add. Won't happen in this exercise, but file the shape away.
+- **The `u` does not mean unsigned.** It means the instruction never traps on
+  overflow, which is a hardware detail. Ordinary signed C arithmetic compiles
+  to the `u` forms, so `addiu` on an `s32` is normal. You will see instructions
+  ending in `u` everywhere.
+- **The immediate field is signed and 16 bits wide.** It holds values from
+  -32768 to 32767. For a constant outside that range, the compiler builds the
+  value separately: a `lui`/`ori` pair loads it into the scratch register `at`,
+  and then a register-to-register add uses it. That won't happen in this
+  exercise, but it is worth knowing the pattern.
 
-And because the field is signed, the very same `addiu` can *subtract* too —
-that's the next lesson.
+Because the field is signed, the same `addiu` can also *subtract*. The next
+lesson covers that.
 
-Whatever immediate the target `addiu` carries is the constant you are after.
+The immediate in the target's `addiu` is the constant you need.
 
 ## Your task
 

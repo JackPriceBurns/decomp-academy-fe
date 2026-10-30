@@ -9,22 +9,22 @@ concepts:
   - libgcc
 symbol: func_083b3abc
 hints:
-  - There are two sign fills in the listing and they widen different things. The
-    one inside the loop widens each element before it is accumulated; the one
-    after the loop widens a value for the helper call.
-  - An `s32 *` and an `s32` in, an `s32` out. Sum the array into a 64-bit
-    accumulator, divide by the count, and let the result truncate on the way
-    back.
+  - There are two sign fills in the listing, and they widen different things.
+    The one inside the loop widens each element before it is added to the
+    total. The one after the loop widens a value for the helper call.
+  - It takes an `s32 *` and an `s32`, and returns an `s32`. Sum the array into a
+    64-bit accumulator, divide by the count, and let the result truncate when it
+    is returned.
 ---
 
 # Everything at once
 
-An accumulator wider than the values it accumulates is the reason 64-bit
-arithmetic shows up in GBA code at all. It also drags in nearly everything this
-chapter has covered: a widening per element, an `add`/`adc` per element, and a
-truncation on the way out.
+In GBA code, 64-bit arithmetic appears mainly in accumulators that are wider
+than the values they add up. An accumulator like this also uses nearly
+everything this chapter has covered: a widening for each element, an `add`/`adc`
+for each element, and a truncation at the end.
 
-Here is one summing halfwords:
+Here is one that sums halfwords:
 
 ```asm
 0        push      {r4, r5, lr}
@@ -48,31 +48,32 @@ Here is one summing halfwords:
 36       bx        r1
 ```
 
-Work through it in layers.
+Read it one part at a time.
 
-The **loop skeleton** is the rotated shape you know: a guard (`cmp r1, #0` /
-`ble`) before the body and a duplicated test at the bottom (`cmp r3, #0` /
-`bne`), with the counter rewritten to count down to zero even though the source
-counts up.
+The **loop skeleton** is the rotated shape you already know. There is a guard
+(`cmp r1, #0` / `ble`) before the body and a repeated test at the bottom
+(`cmp r3, #0` / `bne`). The counter is rewritten to count down to zero, even
+though the source counts up.
 
-The **accumulator** is `r4:r5`, zeroed by two `mov`s before the guard and
-carried in callee-saved registers because it has to survive the whole loop.
-Each iteration widens the loaded element - `mov r1, #0`, a zero fill, so the
-elements are unsigned - and folds it in with `add r4, r0` / `adc r5, r1`.
+The **accumulator** is `r4:r5`. Two `mov`s set it to zero before the guard. It
+is kept in callee-saved registers because it has to survive the whole loop. Each
+iteration widens the loaded element with `mov r1, #0`. That is a zero fill, so
+the elements are unsigned. Then `add r4, r0` / `adc r5, r1` adds the element to
+the accumulator.
 
-The **cursor** is `r2`, advanced by `add r2, #2` because these elements are two
-bytes wide.
+The **cursor** is `r2`. `add r2, #2` moves it forward, because these elements
+are two bytes wide.
 
-The **exit** is `mov r0, r4`: the low half is the answer and the high half is
-dropped without an instruction, and `pop {r1}` confirms this function hands back
+The **exit** is `mov r0, r4`. The low half is the answer, and the high half is
+dropped without any instruction. `pop {r1}` confirms that this function returns
 32 bits.
 
-Your target's loop is tighter than this one. Its load and its cursor bump have
-collapsed into the `ldmia rN!, {rX}` you met in the loops chapter, so the stride
-never shows up as an `add` at all.
+Your target's loop is shorter than this one. Its load and its cursor update are
+combined into the `ldmia rN!, {rX}` you met in the loops chapter, so the stride
+never appears as an `add`.
 
-Past the loop it reaches for a helper, because a 64-bit divide has no
-instruction either. Here is one dividing by a constant:
+After the loop, your target calls a helper, because there is no 64-bit divide
+instruction either. Here is one that divides by a constant:
 
 ```asm
 0        push      {lr}
@@ -86,10 +87,11 @@ instruction either. Here is one dividing by a constant:
 20       .word     0
 ```
 
-Both pool words are the divisor. `__divdi3` wants one pair in `r0:r1` and the
-other in `r2:r3`, so anything narrower than 64 bits has to be built into a pair
-before the call - which is why your target spends four instructions between the
-loop and its `bl`. Work out which two of them are the divisor.
+The two pool words together are the divisor. `__divdi3` expects one pair in
+`r0:r1` and the other in `r2:r3`, so any value narrower than 64 bits has to be
+built into a pair before the call. That is why your target spends four
+instructions between the loop and its `bl`. Work out which two of them are the
+divisor.
 
 ## Your task
 

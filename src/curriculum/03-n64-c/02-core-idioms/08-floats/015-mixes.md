@@ -10,15 +10,15 @@ concepts:
 symbol: func_8022f78c
 hints:
   - "One `.s` op on the two arguments happens *before* the constant is even ready. Its result is what gets scaled."
-  - "Decode the `lui` with the ladder, then read the chain bottom-up."
+  - "Decode the `lui` with the ladder, then read the chain from the bottom up."
 ---
 
 # Blending two values
 
-Averaging, easing, crossfading — game code is full of expressions
-that combine two floats with constant weights. They compile to
-exactly what they say, and reading them is chain-tracing plus
-constant-decoding. Here's `mix25(a, b)`, a 25/75 blend:
+Game code is full of expressions that combine two floats with constant
+weights, for example for averaging, easing and crossfading. They compile to
+exactly what the C says. To read them, trace the chain and decode the
+constants. This is `mix25(a, b)`, a 25/75 blend:
 
 ```asm
  0:  lui   at, 0x3e80      # 0.25f
@@ -33,24 +33,23 @@ constant-decoding. Here's `mix25(a, b)`, a 25/75 blend:
 24:  nop
 ```
 
-Notes worth keeping:
+Things to note:
 
-- **Two constants, one `at`.** The integer scratch register rebuilds
-  itself for each ferry — `lui`, `mtc1`, `lui`, `mtc1` — while the
-  FPU keeps both passengers. Only the float side needs the values
-  simultaneously.
-- **The hazard `nop`s dissolved.** Both ferries got covered by other
-  work; the lone `nop` at `0x14` is the mul-adjacency pad, not a
-  ferry toll. By now you can tell the pads apart by their neighbors.
-- **`0x3f40` is a ladder stop you haven't used**: halfway between
-  `0.5f` (`0x3f00`) and `1.0f` (`0x3f80`). The ladder interpolates —
-  a top half exactly between two rungs is the value exactly between
+- **Two constants, one `at`.** The integer scratch register is rebuilt for
+  each constant: `lui`, `mtc1`, `lui`, `mtc1`. The FPU keeps both values,
+  because only the float side needs them at the same time.
+- **The hazard `nop`s are gone.** Other work fills the slot after each
+  `mtc1`. The single `nop` at `0x14` is padding after a multiply, which you
+  have seen in earlier lessons. By now you can tell the two kinds of padding
+  apart by the instructions next to them.
+- **`0x3f40` is a ladder value you have not used yet.** It is halfway between
+  `0.5f` (`0x3f00`) and `1.0f` (`0x3f80`). The ladder also works between
+  steps: a top half exactly between two steps gives the value exactly between
   them.
 
-The target blends its arguments with *equal* weight — and does it
-with one operation before the constant is applied, not two after.
-Read the order of operations off the register flow, then decode the
-single `lui`.
+The target blends its arguments with *equal* weight. It uses one operation
+before the constant is applied, instead of two after. Work out the order of
+operations from the register flow, then decode the single `lui`.
 
 ## Your task
 

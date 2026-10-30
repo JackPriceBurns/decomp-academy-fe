@@ -11,21 +11,21 @@ concepts:
   - capstone
 symbol: func_8014e3e8
 hints:
-  - "Map every offset to the `Unit` layout first — the `lh`/`sh` at 2 is one field, the `lbu`/`sb` at 0 another. Then read the branch as the skip-over-the-body shape."
-  - "The `sh zero` stores a constant without building it, and the `andi` mask has exactly one bit OFF — it's a flag being cleared, inside the `if`."
+  - "First match every offset to the `Unit` layout. The `lh`/`sh` at 2 is one field, and the `lbu`/`sb` at 0 is another. Then read the branch as the shape that skips over the if-body."
+  - "The `sh zero` stores a constant without building it first. The `andi` mask has exactly one bit OFF, so a flag is cleared inside the `if`."
 ---
 
 # Everything at once
 
-A real struct function reads a field, changes it, tests it, and
-touches a neighbor on one path — every idiom from this chapter in ten
-lines. Here's `charge`, which feeds energy into a cell and latches a
-flag when it tops out:
+A real struct function often reads a field, changes it, tests it, and on one
+path also updates another field. That brings the idioms of this chapter
+together in ten lines. Here is `charge`, which adds energy to a cell and sets
+a flag that stays set once the energy reaches its limit:
 
 ```c
 typedef struct {
     u8 state;     // offset 0
-    u8 flags;     // offset 1 — bit 3 = "charged"
+    u8 flags;     // offset 1, bit 3 = "charged"
     s16 energy;   // offset 2
 } Cell;
 
@@ -55,26 +55,28 @@ void charge(Cell *c, s32 amt) {
 34:  nop
 ```
 
-Walk it idiom by idiom:
+Go through it one idiom at a time:
 
-- **The RMW sandwich** opens: `lh`/`addu`/`sh` at offset 2 is
-  `energy += amt`, width and signedness read straight off the `lh`.
-- **The re-read at `0xc`** is the narrow-field tax: `energy` lives in
-  memory as 16 bits, so testing its post-store value means loading it
-  again — `sh` then `lh` at the same offset. The compiler will not
-  reuse `t7`, because the store just truncated it.
-- **`slti` + `bnez` is the flipped guard**: the C says `>= 100`, the
-  branch jumps *away* on `< 100`. Un-flip it to recover the source.
-- **Inside the body**, a constant store and a flag-set interleave —
-  the scheduler shuffled them, but offset 2 lines are `energy` and
-  offset 1 lines are `flags`, so sorting them back into C is just
-  reading offsets.
+- **The RMW sandwich** comes first. `lh`/`addu`/`sh` at offset 2 is
+  `energy += amt`. The `lh` tells you the width and the signedness.
+- **The re-read at `0xc`** is the extra cost of a narrow field. `energy` is
+  stored in memory as 16 bits, so to test its value after the store, the
+  compiler loads it again: `sh` then `lh` at the same offset. The compiler
+  does not reuse `t7`, because the store truncated the value and `t7` still
+  holds the untruncated sum.
+- **`slti` + `bnez` is the flipped guard.** The C says `>= 100`, and the
+  branch jumps *away* on `< 100`. Flip the condition back to recover the
+  source.
+- **Inside the body**, a constant store and a flag set are mixed together,
+  because the scheduler reordered them. The lines at offset 2 are `energy`
+  and the lines at offset 1 are `flags`. To sort them back into C, you only
+  need to read the offsets.
 
-The target is the same anatomy pointed the other way: a stat gets
-*drained*, floored rather than capped, and a flag *cleared* rather
-than set when it bottoms out. The `Unit` layout below names every
-offset you'll meet — let the widths, the branch, and the mask dictate
-the C.
+The target has the same structure, working in the other direction. A stat is
+*reduced*, and it has a lower limit (a floor) instead of an upper limit (a
+cap). When it reaches the bottom, a flag is *cleared* instead of set. The
+`Unit` layout below names every offset you will see. Let the widths, the
+branch and the mask tell you the C.
 
 ## Your task
 

@@ -10,17 +10,18 @@ concepts:
 symbol: func_80375670
 hints:
   - "The two source registers of the `addu` are the 1st and 3rd argument registers."
-  - "The lone `sw` parks the one argument that's never read — 4(sp) is the second argument's slot. You must still declare it, or the argument you need would never land in a2."
+  - "The only `sw` parks the one argument that is never read. Its slot, 4(sp), belongs to the second argument. You must still declare it, or the argument you need would never arrive in a2."
 ---
 
-# Mind the gap
+# Don't skip the arguments in between
 
-Same game, except now the function actually *does* something with its arguments
-instead of handing one straight back. The counting doesn't change: arguments
-doing work show up in the arithmetic, arguments being ignored show up parked,
-and the highest position on either list is your parameter count.
+This works like the last lesson, but now the function *does* something with its
+arguments. It no longer returns one of them unchanged. The counting stays the
+same. Arguments that do work appear in the arithmetic. Arguments that are
+ignored appear as parking stores. The highest position on either list is your
+parameter count.
 
-Say an `addu` takes its two sources from `a0` and `a3`:
+Suppose an `addu` takes its two sources from `a0` and `a3`:
 
 ```asm
 sw   a1, 4(sp)
@@ -31,10 +32,10 @@ nop
 ```
 
 `a0` is the 1st argument and `a3` is the 4th, so there are four parameters. The
-two in between are exactly what the parking predicts: `4(sp)` and `8(sp)` are
-the 2nd and 3rd arguments' slots, so `b` and `c` arrive and are ignored. You
-still have to declare them — leave one out and the value you need would never
-land in `a3` to begin with:
+parking stores match the two in between: `4(sp)` and `8(sp)` are the slots of
+the 2nd and 3rd arguments, so `b` and `c` arrive and are ignored. You still have
+to declare them. If you leave one out, the value you need no longer arrives in
+`a3`:
 
 ```c
 s32 edge(s32 a, s32 b, s32 c, s32 d) {
@@ -42,8 +43,8 @@ s32 edge(s32 a, s32 b, s32 c, s32 d) {
 }
 ```
 
-Read your target, find the `addu`'s two source registers, and let the parked
-slot fill in the roster.
+Read your target and find the two source registers of the `addu`. Then use the
+parked slot to fill in the rest of the argument list.
 
 ## Your task
 

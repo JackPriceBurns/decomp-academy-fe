@@ -9,32 +9,33 @@ concepts:
   - induction-variables
 symbol: func_083ca000
 hints:
-  - There is no `mul` anywhere in the listing, yet a register starts at zero
-    and grows by a fixed register every trip. That register holds a product.
-  - Two `s32` parameters, an `s32` out. The first bounds the loop; the second
-    is what the loop index gets multiplied by.
+  - There is no `mul` anywhere in the listing, but one register starts at zero
+    and has the same register added to it every trip. That register holds a
+    product.
+  - The function takes two `s32` parameters and returns an `s32`. The first is
+    the loop bound, and the second is what the loop index is multiplied by.
 ---
 
 # A multiply that never happens
 
-A variable that changes by a fixed amount every trip through a loop is an
-induction variable. Multiply one by something the loop never changes and the
-product is an induction variable too — it also moves by a fixed amount each
-trip, namely the multiplier. gcc 2.9 spots that and replaces the multiply with
-an addition. The pass is called strength reduction.
+A variable that changes by a fixed amount on every trip through a loop is
+called an induction variable. If you multiply one by a value the loop never
+changes, the product is an induction variable too. It also changes by a fixed
+amount each trip, and that amount is the multiplier. gcc 2.9 notices this and
+replaces the multiply with an addition. This pass is called strength reduction.
 
-ARM7TDMI makes the trade worth taking. Thumb's `mul` is a real multiply whose
-cycle count depends on the operand, while `add` is one cycle always. Getting a
-multiply out of a loop body is worth real time here, and gcc takes the trade
-whenever it can see the pattern.
+On the ARM7TDMI this change is worth making. Thumb's `mul` is a real multiply,
+and the number of cycles it takes depends on the operand. An `add` always takes
+one cycle. Removing a multiply from a loop body saves real time, so gcc makes
+the change whenever it can see the pattern.
 
-What survives the pass is a register initialised before the loop and advanced
-inside it. The multiply goes, and usually the loop counter with it: gcc
-rewrites the ascending test into a countdown on the register that held the
-bound, because a countdown keeps one value alive where comparing `i` against
-the bound would keep two.
+After the pass, you see a register that is set before the loop and increased
+inside it. The multiply is gone, and usually the loop counter is gone too. gcc
+rewrites the test that counts up as a countdown on the register that held the
+bound. A countdown keeps one value alive, while comparing `i` against the bound
+would keep two alive.
 
-Here is `strideSum`, walking an array three elements at a time:
+Here is `strideSum`, which walks through an array three elements at a time:
 
 ```asm
 0        mov       r3, #0
@@ -51,20 +52,21 @@ Here is `strideSum`, walking an array three elements at a time:
 22       bx        lr
 ```
 
-The C subscripts with `i * 3`, so the byte offset is `i * 12`. Neither the
-multiply by three nor the scaling by four appears. Instead `r2` is seeded with
-the base pointer in the preheader and bumped by 12 at address 12 — the address
-itself became the induction variable, and the load is a plain `[r2, #0]`.
-Meanwhile `i` is gone: `r1` counts the trip count down to zero.
+The C uses the subscript `i * 3`, so the byte offset is `i * 12`. Neither the
+multiply by three nor the scaling by four appears. Instead, the preheader sets
+`r2` to the base pointer, and the instruction at address 12 adds 12 to it on
+every trip. The address itself has become the induction variable, so the load
+is a plain `[r2, #0]`. The variable `i` is gone as well: `r1` counts the trip
+count down to zero.
 
-`r3` is doing two jobs at the top. It is zeroed for the accumulator, and the
-guard at 2 then compares it against the count, because `i` is zero at that
-point too and the compiler has a register holding zero already.
+At the top, `r3` does two jobs. It is set to zero for the accumulator. Then the
+guard at 2 compares it against the count. `i` is also zero at that point, and
+the compiler already has a register that holds zero, so it uses that one.
 
-In your target the product never becomes an address, so the register the pass
-creates holds a plain value: it starts at zero and gains the same register
-every trip. Find it, work out what it gains, and the multiply it replaced is
-right there.
+In your target, the product never becomes an address. So the register that the
+pass creates holds a plain value. It starts at zero and has the same register
+added to it every trip. Find that register and work out what is added to it.
+That tells you which multiply it replaced.
 
 ## Your task
 

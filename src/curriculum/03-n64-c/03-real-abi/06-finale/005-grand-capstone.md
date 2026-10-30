@@ -11,18 +11,18 @@ concepts:
   - capstone
 symbol: func_8027719c
 hints:
-  - "`multu`'s low word serves signed multiplies too. Its operands: the
-    parameter, and the freshly incremented value about to be stored."
-  - "The `slti` compares against 10 and the `bnez` *skips* the call — so the call runs on the opposite condition. Both globals are stored before the branch decides anything."
+  - "The low word of `multu` works for signed multiplies too. Its operands are
+    the parameter and the newly incremented value that is about to be stored."
+  - "The `slti` compares against 10, and the `bnez` *skips* the call, so the call runs on the opposite condition. Both globals are stored before the branch runs."
 ---
 
-# The tier, in one function
+# The whole tier in one function
 
-This is the last exercise of the tier, and it's shaped like a function you
-would actually meet in a shipped game: globals, a frame, a conditional
-call, and optimizer scheduling smeared over all of it. First, a worked
-sibling — `fireShot(cost)`, which spends ammo and complains when it runs
-out:
+This is the last exercise of the tier. It is shaped like a function you would
+really find in a shipped game. It has globals, a frame, a conditional call,
+and optimizer scheduling spread across all of it. First, here is a worked
+example of a similar function, `fireShot(cost)`, which spends ammo and plays
+a sound when the ammo runs out:
 
 ```asm
  0:  addiu  sp, sp, -24
@@ -31,35 +31,36 @@ out:
  c:  sw     ra, 20(sp)
 10:  lw     t6, 0(v0)
 14:  subu   t7, t6, a0            # gAmmo - cost
-18:  bgez   t7, 0x28              # still non-negative? we're done
-1c:  sw     t7, 0(v0)             # (slot) the store happens EITHER WAY
+18:  bgez   t7, 0x28              # skip the call if still non-negative
+1c:  sw     t7, 0(v0)             # (slot) this store runs on both paths
 20:  jal    clickSound
-24:  sw     zero, 0(v0)           # (slot) overwrite with 0, riding the call
+24:  sw     zero, 0(v0)           # (slot) overwrite with 0, in the call's delay slot
 28:  lw     ra, 20(sp)
 2c:  addiu  sp, sp, 24
 30:  jr     ra
 34:  nop
 ```
 
-In C this is four honest lines — subtract, store, and an `if (gAmmo < 0)`
-that clamps to zero and calls a sound. But look at what the scheduler did
-to them. The first store rides the *branch's* delay slot, executing on
-both paths — so the "then" branch's clamp becomes a second store that
-simply overwrites it, itself riding the *call's* delay slot. Two
-statements, two delay slots, zero wasted cycles. The prologue is
-interleaved with the address build. Nothing is where the C put it, and
-everything is still there.
+In C this is four plain lines: a subtract, a store, and an `if (gAmmo < 0)`
+that clamps to zero and calls the sound function. Now look at what the
+scheduler did to them. The first store sits in the *branch's* delay slot, so
+it runs on both paths. The clamp in the "then" branch becomes a second store
+that overwrites the first one, and that store sits in the *call's* delay
+slot. The two statements fill two delay slots, and no cycles are wasted. The
+prologue is interleaved with the address build. The instructions are out of
+the C's order, and every statement is still present.
 
-That's the final skill this tier asked you to build: not reading
-instructions — you've been able to do that for two chapters — but
-*un-scheduling* a function in your head, sorting each instruction into
-the C statement it came from.
+This is the final skill the tier has been building. You have been able to read
+single instructions for two chapters already. Now you need to *un-schedule* a
+function in your head: sort each instruction back into the C statement it
+came from.
 
-The target is one notch richer: **two** globals (two address builds — keep
-their registers straight), an increment that must be stored *and* used, a
-multiply whose product feeds one of the stores, and a threshold test
-guarding a call. Every fingerprint in it has its own lesson behind it.
-Take it slowly, label everything, and write the five lines it deserves.
+The target is a little bigger. It has **two** globals, so there are two
+address builds, and you need to keep their registers apart. It has an
+increment that must be stored *and* used, a multiply whose product feeds one
+of the stores, and a threshold test that guards a call. Every fingerprint in
+it was taught in its own lesson. Take it slowly, label every instruction, and
+write the five lines it needs.
 
 ## Your task
 

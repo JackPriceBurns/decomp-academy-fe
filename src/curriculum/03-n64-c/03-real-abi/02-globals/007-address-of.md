@@ -1,7 +1,7 @@
 ---
 id: 9a41cc10-8bd9-4d7e-9c14-9c5d60341bd9
 slug: globals-address-of
-title: "No Memory Op at All: Taking an Address"
+title: Taking the Address of a Global
 difficulty: 2
 concepts:
   - globals
@@ -10,17 +10,16 @@ concepts:
   - arrays
 symbol: func_80290730
 hints:
-  - "`lui` + `addiu` and no load anywhere: the function returns an address,
-    not a value."
-  - "The global is an array — and in C, an array's bare name already *is* its address. No `&` needed."
+  - "There is a `lui` + `addiu` and no load anywhere, so the function returns an address instead of a value."
+  - "The global is an array. In C, an array's bare name already gives its address, so you don't need `&`."
 ---
 
 # lui + addiu, and nothing else
 
-Sometimes a function hands out *where* a global lives rather than what it
-holds. You met this shape in the read-modify-write lesson as a step along the
-way; here it's the entire function. Here's `whereTimer`, which returns
-`&gTimer`:
+Sometimes a function returns *where* a global is stored instead of what it
+holds. You met this pattern in the read-modify-write lesson as one step of a
+larger function. In this lesson it is the whole function. This is `whereTimer`,
+which returns `&gTimer`:
 
 ```asm
 lui    v0, %hi(gTimer)
@@ -29,16 +28,16 @@ jr     ra
 nop
 ```
 
-No `lw`, no `sw` — the `addiu` completes the address in `v0` and that *is* the
-return value. Whenever a `%hi`/`%lo` pair ends in `addiu` with nothing reading
-memory afterward, the C is dealing in pointers: `&global`, a pointer being
-returned, an address passed as an argument.
+There is no `lw` and no `sw`. The `addiu` completes the address in `v0`, and
+that address is the return value. Whenever a `%hi`/`%lo` pair ends in `addiu`
+and nothing reads memory afterward, the C is working with pointers: `&global`, a
+pointer being returned, or an address passed as an argument.
 
-One C wrinkle makes this lesson's target interesting: for an **array** global,
-you don't write `&`. An array's name, used as a value, *decays* to the address
-of its first element — `gBuffer` and `&gBuffer[0]` mean the same thing, and
-both compile to exactly this pair. The assembly can't tell you which spelling
-the original programmer used; the idiomatic choice is the bare name.
+One rule of C matters for this lesson's target: for an **array** global, you
+don't write `&`. When you use an array's name as a value, it *decays* to the
+address of its first element. `gBuffer` and `&gBuffer[0]` mean the same thing,
+and both compile to exactly this pair. The assembly can't tell you which form
+the original programmer used. The usual choice is the bare name.
 
 ## Your task
 

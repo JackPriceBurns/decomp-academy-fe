@@ -10,18 +10,19 @@ concepts:
 symbol: func_0814ffa8
 hints:
   - Both branches go to the same address, and that address is the `bx lr`
-    itself — so the answer on the failing path is already in `r0` before the
+    itself. So the answer on the failing path is already in `r0` before the
     first compare runs.
-  - Two `s32` arguments and an `s32` result. The first argument is what normally
-    comes back; the second replaces it only when both tests pass.
+  - There are two `s32` arguments and an `s32` result. The function normally
+    returns the first argument. The second replaces it only when both tests
+    pass.
 ---
 
 # Two branches, one destination
 
-`&&` has no instruction behind it. What the compiler emits is a run of compares
-in source order, each one branching to the *same* address with the inverted
-condition, so that falling off the end of the run is the only way to reach the
-guarded code:
+No instruction does `&&` directly. The compiler emits a series of compares in
+source order. Each one branches to the *same* address with the inverted
+condition. So the only way to reach the guarded code is to fall through the end
+of the series:
 
 ```asm
 0        cmp       r0, r1
@@ -34,19 +35,19 @@ guarded code:
 14     ~>bx        lr
 ```
 
-Address 12 is where both branches point, and it holds the answer for "the
-condition did not hold". `bge` is the inversion of the first test, `bgt` the
-inversion of the second — and the second test's constant has been nudged the
-usual way, so the source bound is 100 rather than the 99 you can see.
+Both branches point to address 12, which holds the answer for "the condition was
+false". `bge` is the opposite of the first test, and `bgt` is the opposite of
+the second. The second test's constant has also been changed by one in the
+usual way, so the bound in the source is 100, while the listing shows 99.
 
 This is why you read branch *targets* before branch mnemonics. Two compares that
-both jump to one label is `&&`, whatever the operators are. Short-circuiting
-comes out of the shape for free: if the first branch is taken, the second
-compare never executes, which is exactly what C promises.
+both jump to one label mean `&&`, whatever the operators are. Short-circuiting
+comes from this pattern with no extra code. If the first branch is taken, the
+second compare never runs, which is exactly what C requires.
 
-There is one arrangement where the whole thing disappears. When both tests are
-against constants and together they describe a contiguous range of one variable,
-gcc rewrites them as a single unsigned comparison:
+In one case, the two compares are replaced. When both tests are against
+constants, and together they describe a continuous range of one variable, gcc
+rewrites them as a single unsigned comparison:
 
 ```asm
 0        sub       r0, #10
@@ -58,14 +59,16 @@ gcc rewrites them as a single unsigned comparison:
 12     ~>bx        lr
 ```
 
-Subtract the low bound, compare against the width of the range, branch
-*unsigned*. Anything below the low bound wraps to a huge unsigned value and
-fails the compare, which is the trick's whole point — and note `bls` even though
-the variable under test is signed. A `sub` immediately followed by a `cmp` and
-an unsigned branch is a range test, not an `&&` you can read literally.
+The code subtracts the low bound, compares against the width of the range, and
+uses an *unsigned* branch. Any value below the low bound wraps around to a very
+large unsigned value and fails the compare. That is the purpose of the
+subtraction. Note that the branch is `bls` even though the variable being
+tested is signed. A `sub` followed directly by a `cmp` and an unsigned branch is
+a range test. Do not read it literally as an `&&`.
 
-Your target keeps its two compares, so no such rewrite happened. Find the shared
-target first, then work backwards through the two conditions that lead there.
+Your target still has its two compares, so this rewrite did not happen. Find the
+shared target first. Then work backwards through the two conditions that lead
+there.
 
 ## Your task
 

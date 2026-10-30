@@ -1,7 +1,7 @@
 ---
 id: 13406e0e-3924-4a30-9264-4bcc42511224
 slug: gba-finale-masked-sum
-title: Masked, Guarded, Summed
+title: A Masked, Guarded Sum
 difficulty: 3
 concepts:
   - loops
@@ -9,20 +9,21 @@ concepts:
   - control-flow
 symbol: func_082c71b8
 hints:
-  - Find the back edge first. The conditional branch at the bottom names the top of the body, and everything above that address runs once.
-  - "Each `mov` / `and` / `cmp #0` triple is a single bit test. The constant in the `mov` is the mask, and the branch after the `cmp` tells you whether the source had a `!` in front of it."
-  - A `u16 *` and an `s32` count in, an `s32` out. One mask decides whether an element counts at all; the other selects the bits that get added.
+  - Find the back edge first. The conditional branch at the bottom jumps to the top of the body. Everything above that address runs only once.
+  - "Each `mov` / `and` / `cmp #0` group is one bit test. The constant in the `mov` is the mask. The branch after the `cmp` tells you whether the source had a `!` in front of the test."
+  - The function takes a `u16 *` and an `s32` count, and returns an `s32`. One mask decides whether an element counts at all. The other mask selects the bits that get added.
 ---
 
 # Four idioms sharing one loop
 
-Everything in this chapter is made of parts you already know. What is new is the
-number of them running at once, and the fact that they do not arrive in the order
-you wrote them. A loop, a bit test, a guard and an accumulator produce a listing
-whose first six instructions belong to three different pieces of the source.
+Every function in this chapter is built from parts you already know. What is
+new is that several of them run in the same function, and the compiler does not
+emit them in the order you wrote them. A loop, a bit test, a guard and an
+accumulator together give a listing whose first six instructions come from
+three different parts of the source.
 
-Here is a function that ORs together the low three bits of every byte in an array
-that has bit 5 set:
+Here is a function that walks an array of bytes. For every byte that has bit 5
+set, it ORs the low three bits of that byte into a result:
 
 ```asm
 0        push      {r4, r5, r6, r7, lr}
@@ -51,40 +52,44 @@ that has bit 5 set:
 46       bx        r1
 ```
 
-Read it back to front. The `blt` at 38 jumps to 16, so 16 is the top of the body
-and 34 is the increment. Everything from 0 to 14 runs once: the base pointer is
-parked in `r5`, the accumulator and the index are both zeroed, the entry guard at
-8 skips the whole loop when the count is not positive, and then two constants are
-loaded into `r6` and `r7`.
+Read it from the bottom up. The `blt` at 38 jumps back to 16, so 16 is the top
+of the loop body and 34 is the increment. Everything from 0 to 14 runs only
+once. It keeps the base pointer in `r5` and sets the accumulator and the index
+to zero. The entry guard at 8 skips the whole loop when the count is not
+positive. Then two constants are loaded into `r6` and `r7`.
 
-Those two `mov`s are the masks, hoisted out of the body. gcc will not spend an
-instruction per iteration rebuilding a constant it can hold in a register, so the
-masks get materialised once and live in callee-saved registers for the duration.
-That is the entire reason this function pushes four callee-saved registers
-despite calling nothing: the base pointer, the accumulator and both masks all
-have to survive every trip.
+Those two `mov`s are the masks, hoisted out of the body. gcc does not spend an
+instruction on every iteration to rebuild a constant that it can keep in a
+register. So it builds each mask once, before the loop, and keeps it in a
+callee-saved register until the function returns. This is the only reason the
+function pushes four callee-saved registers even though it calls nothing. The
+base pointer, the accumulator and both masks must all stay alive through every
+iteration.
 
-Inside the body, `mov r0, r7 ; and r0, r2 ; cmp r0, #0` is one thing, not three.
-agbcc never emits `tst`, so a bit test is always "copy the mask, AND it, compare
-against zero", and the `beq` after it skips the accumulate. The second triple is
-the same shape without the compare, because its result is wanted as a value
-rather than as a condition.
+Inside the body, the three instructions `mov r0, r7 ; and r0, r2 ; cmp r0, #0`
+form one bit test. agbcc never emits `tst`, so a bit test always has the same
+three steps: copy the mask, AND it with the value, and compare the result with
+zero. The `beq` after it skips the accumulate. The second group has the same
+shape without the compare. Its result is the value that gets ORed into the
+accumulator, so there is no condition to test.
 
-Two details that read wrong and are right. The entry guard at 8 compares `r4` —
-the accumulator — against the count, not `r3`, the index. Both are zero at that
-point and gcc picked either one. And the loop here keeps a real subscript,
-`add r0, r5, r3` per trip, because a byte element needs no scaling. When the
-element is wider the subscript gets strength-reduced into a walking pointer
-instead, the index loses its last use, and the loop counts the trip count down to
-zero: `add rP, #size ; sub rN, #1 ; cmp rN, #0 ; bne`.
+Two details look wrong but are correct. First, the entry guard at 8 compares
+`r4`, the accumulator, against the count. You might expect `r3`, the index.
+Both registers hold zero at that point, so either one works, and gcc chose
+`r4`. Second, this loop keeps a real subscript, with `add r0, r5, r3` on every
+iteration, because a byte element needs no scaling. When the element is wider,
+gcc strength-reduces the subscript into a walking pointer instead. The index
+then has no uses left, and the loop counts the trip count down to zero:
+`add rP, #size ; sub rN, #1 ; cmp rN, #0 ; bne`.
 
-Masks obey the ordinary constant rules. One under 256 fits in a `mov`; one that
-is a small number times a power of two becomes `mov` plus `lsl`; anything else
-lands in the literal pool as a `.word` you read back as the mask.
+Masks follow the usual rules for constants. A mask under 256 fits in a `mov`. A
+mask that is a small number times a power of two becomes a `mov` followed by an
+`lsl`. Any other mask goes in the literal pool as a `.word`, and you read that
+word as the mask.
 
-Your target runs the same four pieces, and the constant that advances its
-pointer will tell you how wide an element is. Expect the countdown skeleton, and
-expect both of its masks to have cost more than a single `mov`.
+Your target uses the same four pieces. The constant that advances its pointer
+tells you how wide each element is. Expect the countdown loop shape, and expect
+each of its two masks to need more than a single `mov`.
 
 ## Your task
 

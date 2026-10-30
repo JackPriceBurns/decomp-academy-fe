@@ -9,18 +9,18 @@ concepts:
   - signedness
 symbol: func_080fb20c
 hints:
-  - Both fields are the same width and sit at different offsets. Work out each
-    one's low bit from the difference between its two shift amounts.
-  - One argument in, an `s32` out. Two signed fields are extracted from that
-    argument and the second is subtracted from the first.
+  - Both fields have the same width but sit at different offsets. Work out each
+    field's low bit from the difference between its two shift amounts.
+  - The function takes one argument and returns an `s32`. Two signed fields are
+    extracted from that argument, and the second is subtracted from the first.
 ---
 
 # asr on the way down
 
-Swap the `lsr` of a field extraction for an `asr` and the field comes out
-signed. The left shift is doing double duty: it discards the bits above the
-field *and* parks the field's top bit at bit 31, which is exactly where `asr`
-looks to decide what to feed in.
+If you replace the `lsr` of a field extraction with an `asr`, the field comes
+out signed. The left shift does two jobs. It throws away the bits above the
+field, *and* it puts the field's top bit at bit 31. That is exactly the bit that
+`asr` reads to decide what to shift in.
 
 ```asm
 0        lsl       r0, #21
@@ -28,19 +28,19 @@ looks to decide what to feed in.
 4        bx        lr
 ```
 
-The arithmetic is the one you already know. Width is 32 minus 27, so 5 bits;
-low bit is 27 minus 21, so bit 6. The field is a 5-bit signed number living at
-bits 6 through 10, and a value of `0x1F` in it reads as -1 rather than 31.
+The arithmetic is the same as before. The width is 32 minus 27, so 5 bits. The
+low bit is 27 minus 21, so bit 6. The field is a 5-bit signed number at bits 6
+through 10, so a value of `0x1F` in it reads as -1 instead of 31.
 
-This is how GBA code stores small signed quantities — a velocity, a sprite
-offset, a delta in a packed animation table — and once a field is signed it must
-stay signed all the way through your C. A right shift on a `u32` gives `lsr` no
-matter what you do with the result afterwards, so the value has to be signed
-before the shift happens: either the expression is cast on the way in, or the
-thing being shifted was declared signed to start with. Both spellings produce
-the same instructions here, so match whichever reads better.
+GBA code stores small signed values this way, for example a velocity, a sprite
+offset, or a delta in a packed animation table. Once a field is signed, it must
+stay signed all the way through your C. A right shift on a `u32` gives `lsr`,
+whatever you do with the result afterwards. So the value has to be signed
+before the shift happens. Either the expression is cast on the way in, or the
+value being shifted was declared signed in the first place. Both forms produce
+the same instructions here, so use whichever reads better.
 
-A wider one, from a value that was already signed:
+Here is a wider field, taken from a value that was already signed:
 
 ```asm
 0        lsl       r0, #8
@@ -48,12 +48,12 @@ A wider one, from a value that was already signed:
 4        bx        lr
 ```
 
-Width 8, low bit 16 — the signed byte in bits 16 through 23. Note that this is
-not the same as loading an `s8`; nothing was fetched from memory, the byte was
-already sitting in a register and the shift pair carved it out.
+The width is 8 and the low bit is 16, so this is the signed byte in bits 16
+through 23. This is different from loading an `s8`. Nothing was read from
+memory. The byte was already in a register, and the shift pair cut it out.
 
-Your target carves two of these out of one incoming word. Decode each pair on
-its own before you write a line.
+Your target cuts two of these out of one incoming word. Decode each pair on its
+own before you write any C.
 
 ## Your task
 

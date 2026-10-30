@@ -10,18 +10,18 @@ concepts:
   - pointers
 symbol: func_801165ac
 hints:
-  - "Two `lwc1`s at different offsets, one `add.s`, one `swc1` — match each offset to an element of the array."
+  - "Two `lwc1`s at different offsets, one `add.s`, one `swc1`. Match each offset to an element of the array."
   - "Note which offset gets stored back. Only one element changes."
 ---
 
 # The FPU's own load and store
 
-Floats read and write memory with their own instruction pair:
-**`lwc1`** — load word to coprocessor 1 — and **`swc1`**, its store.
-Same `offset(base)` grammar as `lw`/`sw`, but the destination is an
-FPU register and the base is still an *integer* register, because
-addresses are integer business. Here's `squareAt(p)`, which squares
-the float `p` points at, in place:
+Floats are read from and written to memory with their own pair of
+instructions: **`lwc1`** (load word to coprocessor 1) and **`swc1`**, the
+matching store. They use the same `offset(base)` form as `lw`/`sw`. The
+destination is an FPU register, but the base is still an *integer* register,
+because addresses are integers. This is `squareAt(p)`, which squares the float
+that `p` points at and stores the result back in the same place:
 
 ```asm
 lwc1  fv0, 0(a0)      # load *p onto the FPU
@@ -31,22 +31,20 @@ jr    ra
 nop
 ```
 
-The pointer arrives in `a0` — pointers are integers, whatever they
-point at — and the value crosses into the float world the natural
-way, by being *loaded* there. Read-modify-write, the same sandwich
-you know from byte fields, wearing FPU instructions.
+The pointer arrives in `a0`, because pointers are integers whatever they point
+at. The value gets onto the FPU in the normal way: it is *loaded* there. This
+is the same read-modify-write pattern you saw with byte fields, using FPU
+instructions.
 
-One eyebrow-raiser: the load targets `fv0` in a function that returns
-nothing. The job names are *conventions*, not enforcement — when
-there's no return value in flight, `fv0` is just the lowest free
-register and IDO grabs it as scratch. Read the dataflow, not the
-name.
+One thing may look odd: the load writes to `fv0` in a function that returns
+nothing. The job names are *conventions*, and nothing enforces them. When there
+is no return value to hold, `fv0` is the lowest free register, and IDO uses it
+as scratch. Follow where the data goes and ignore the register's name.
 
-An `f32` is four bytes, so array indexing scales exactly like `s32`
-arrays: element `[1]` lives at offset 4, `[2]` at 8. The target works
-on a two-element stretch of a float array — two loads at different
-offsets, one operation, and one store. Watch which element is the
-destination.
+An `f32` is four bytes, so array indexing scales the same way as for `s32`
+arrays: element `[1]` is at offset 4 and `[2]` is at offset 8. The target works
+on two neighbouring elements of a float array. It has two loads at different
+offsets, one operation and one store. Check which element is the destination.
 
 ## Your task
 

@@ -9,24 +9,25 @@ concepts:
   - constants
 hints:
   - Convert the pool word to hex before you do anything else. A `.word` that
-    feeds an `and` is a mask, not an address.
-  - Count the set bits in each mask to get a field's width, then read the `lsl`
-    after it to get the field's position. A masked value with no shift after it
-    stays where it already is.
-  - "A `u16 *` table, an `s32` index and an `s32` palette number in, an `s32` out. It builds a background map entry: ten bits of tile number from the table, four bits of palette starting at bit 12."
+    feeds an `and` is a mask, so do not read it as an address.
+  - Count the set bits in each mask to get the field's width. Then read the
+    `lsl` after it to get the field's position. A masked value with no shift
+    after it stays where it is.
+  - "The function takes a `u16 *` table, an `s32` index and an `s32` palette number, and returns an `s32`. It builds a background map entry: ten bits of tile number from the table, and four bits of palette starting at bit 12."
 symbol: func_082cb92c
 ---
 
 # Reading a packed word back into fields
 
-Almost every number the GBA hardware consumes is packed: a tile-map entry, an
-OAM attribute, a display control word. Each one is a handful of independent
-fields sharing sixteen or thirty-two bits, and building one in C is a mask, a
-shift and an `orr` per field. The listing gives you the whole layout if you read
-those three in the right order.
+Almost every value that the GBA hardware reads is packed. Examples are a
+tile-map entry, an OAM attribute and a display control word. Each one holds
+several independent fields in sixteen or thirty-two bits. To build one in C,
+you use a mask, a shift and an `orr` for each field. If you read those three
+instructions in the right order, the listing gives you the whole layout.
 
-Here is a function that builds a sprite's second OAM attribute — a nine-bit X
-coordinate from one argument, and a two-bit size code fetched from a table:
+Here is a function that builds a sprite's second OAM attribute. It combines a
+nine-bit X coordinate from one argument with a two-bit size code read from a
+table:
 
 ```asm
 0        add       r0, r1
@@ -42,31 +43,33 @@ coordinate from one argument, and a two-bit size code fetched from a table:
 20       .word     511
 ```
 
-The table read is the first two instructions. `add r0, r1` is base plus index
-with no scaling at all, which is only correct when each element is one byte
-wide; a halfword table puts an `lsl #1` in front of that add and a word table an
-`lsl #2`. The `ldrb` then reads the entry.
+The first two instructions read the table. `add r0, r1` adds the index to the
+base with no scaling. That is only correct when each element is one byte wide.
+A halfword table would have an `lsl #1` before that add, and a word table would
+have an `lsl #2`. The `ldrb` then reads the entry.
 
-Address 4 fetches a pool word. Decode it: 511 is 0x1FF, nine bits, and it is
-being `and`ed with `r2`. A `.word` that feeds an `and` is a mask — the same
-literal pool you have been reading as constants and addresses also holds masks
-too wide for `mov`, and nothing in the listing labels which is which except what
-the value gets used for.
+Address 4 loads a word from the literal pool. Convert it: 511 is 0x1FF, which
+is nine set bits, and it is `and`ed with `r2`. A `.word` that feeds an `and` is
+a mask. You have already seen the literal pool hold constants and addresses. It
+also holds masks that are too wide for `mov`. Nothing in the listing labels
+which is which. Only the way the value is used tells you.
 
-The other field is the pair at 8 and 10: mask 3, so two bits wide, followed by
-`lsl r0, #14`, so those two bits belong at bit 14. `orr` merges the two halves
-and the function is done. Notice that the nine-bit field never gets a shift,
-because it was already at the bottom of the word.
+The other field is the pair at 8 and 10. The mask is 3, so the field is two
+bits wide. It is followed by `lsl r0, #14`, so those two bits belong at bit 14.
+`orr` then combines the two fields, and the function returns. Notice that the
+nine-bit field is never shifted, because it is already at the bottom of the
+word.
 
-That gives you the reading rule. The `and` tells you a field's **width** — count
-the set bits in the mask. The `lsl` after it tells you the field's **position**.
-A masked value with no shift following it stays where it is. And the `.hword 0`
-at 18 is alignment padding so the pool word lands on a four-byte boundary; it is
-data, and no C you write produces it directly.
+This gives you a rule for reading packed values. The `and` tells you a field's
+**width**: count the set bits in the mask. The `lsl` after it tells you the
+field's **position**. A masked value with no shift after it stays where it is.
+Finally, the `.hword 0` at 18 is alignment padding, so that the pool word
+starts on a four-byte boundary. It is data, and no C that you write produces it
+directly.
 
-Your target packs two fields into one word the same way. Work out both masks in
-hex first, note which of the two values gets shifted, and let the address
-arithmetic at the top tell you how wide the table's elements are.
+Your target packs two fields into one word in the same way. First, convert
+both masks to hex. Then note which of the two values gets shifted. The address
+arithmetic at the top tells you how wide the table's elements are.
 
 ## Your task
 

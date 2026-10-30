@@ -9,20 +9,22 @@ concepts:
   - memory
 symbol: func_08394690
 hints:
-  - Four loads at +0, +4, +8 and +12, one `sub`/`sbc` pair, two stores at +16
-    and +20. Three 64-bit slots reached through one base register.
-  - One parameter, an `s64 *`, and nothing returned. The third slot receives the
-    first slot minus the second.
+  - There are four loads at +0, +4, +8 and +12, one `sub`/`sbc` pair, and two
+    stores at +16 and +20. That is three 64-bit slots, all reached through one
+    base register.
+  - It takes one parameter, an `s64 *`, and returns nothing. The third slot gets
+    the first slot minus the second.
 ---
 
 # sub, then sbc
 
-Subtraction mirrors addition. `sub` clears the carry flag when the low half
-needs to borrow, and `sbc` subtracts that borrow along with the high halves.
-Low half first again, for the same reason: the borrow only travels upward.
+Subtraction works the same way as addition. `sub` clears the carry flag when the
+low half needs to borrow, and `sbc` subtracts that borrow along with the high
+halves. The low half goes first again, for the same reason: the borrow only
+moves upward.
 
-The pair the result lands in is decided by Thumb's two-operand encoding, and it
-is not always the pair you want:
+Thumb's two-operand encoding decides which pair holds the result, and it is not
+always the pair you want:
 
 ```asm
 0        sub       r2, r0
@@ -32,13 +34,13 @@ is not always the pair you want:
 8        bx        lr
 ```
 
-The subtraction happens in `r2:r3`, because `sub`/`sbc` overwrite their left
-operand and the left operand of this subtraction is the second argument. The
-result then has to be carried home to `r0:r1` with two `mov`s. Expect that
-trailing pair of moves whenever a 64-bit expression starts from a value that is
-already sitting outside the return pair.
+The subtraction happens in `r2:r3`. `sub`/`sbc` overwrite their left operand,
+and the left operand of this subtraction is the second argument. The result
+then has to be moved back to `r0:r1` with two `mov`s. Expect those two moves at
+the end whenever a 64-bit expression starts from a value that is outside the
+return pair.
 
-Now watch what happens when one operand is a constant:
+Here is what happens when one operand is a constant:
 
 ```asm
 0        mov       r3, r1
@@ -51,18 +53,19 @@ Now watch what happens when one operand is a constant:
 14       bx        lr
 ```
 
-No `sub` and no `sbc` anywhere. The compiler rewrote the subtraction as an
-addition of a negative constant, then built that constant as a pair:
-`mov r0, #1` / `neg r0, r0` gives -1 in the low half, and `asr r1, r0, #31`
-smears its sign bit across the high half. Only then does the familiar
-`add`/`adc` run. `sub`/`sbc` survive only when the value being **subtracted** is
-one the compiler cannot fold: a constant on the right gets negated at compile
-time and the whole expression turns into an addition, while a constant on the
-*left* leaves the `sub`/`sbc` in place, because that is not the operand being
-negated.
+There is no `sub` and no `sbc` in this listing. The compiler rewrote the
+subtraction as an addition of a negative constant, then built that constant as a
+pair. `mov r0, #1` / `neg r0, r0` puts -1 in the low half, and
+`asr r1, r0, #31` copies its sign bit into every bit of the high half. After
+that, the usual `add`/`adc` runs.
 
-Your target's operands are both in memory, and the offsets tell you how they are
-laid out.
+`sub`/`sbc` stay only when the compiler cannot fold the value being
+**subtracted**. A constant on the right is negated at compile time, and the
+whole expression becomes an addition. A constant on the *left* leaves the
+`sub`/`sbc` in place, because it is not the operand that would be negated.
+
+Both of your target's operands are in memory, and the offsets tell you how they
+are laid out.
 
 ## Your task
 

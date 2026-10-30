@@ -8,30 +8,31 @@ concepts:
   - fixed-point
   - narrow-types
 hints:
-  - Three `mul` instructions, three channels. Each one is a five-bit field
-    pulled out, scaled, and pushed back where it came from.
-  - "The `lsr #4` after each `mul` makes the scale a 1.4 fixed-point factor -
-    16 is full brightness, 8 is half. And every right shift that pulls a channel
-    out is sixteen more than the one the source wrote; the `lsr #4` and the two
-    `lsl` near the end are the source's own counts."
-  - "A `u16` colour and a `u32` level go in and a `u16` comes out. Red is bits
-    0-4, green 5-9, blue 10-14, and the three results are recombined with `|`."
+  - "Three `mul` instructions means three channels. For each one, a five-bit
+    field is extracted, scaled, and put back in its original position."
+  - "The `lsr #4` after each `mul` makes the scale a 1.4 fixed-point factor: 16
+    is full brightness and 8 is half. Every right shift that extracts a channel
+    is sixteen more than the shift in the source. The `lsr #4` and the two
+    `lsl` near the end use the source's own counts."
+  - "A `u16` colour and a `u32` level go in, and a `u16` comes out. Red is bits
+    0-4, green is 5-9 and blue is 10-14. The three results are combined again
+    with `|`."
 symbol: func_08408258
 ---
 
 # Fading a colour
 
-A GBA palette entry is a halfword in BGR555: five bits of red at the bottom,
-five of green above it, five of blue above that, and the top bit unused. Fading
-a picture to black means walking the palette and scaling all three channels of
-every entry by the same factor - which is exactly the routine you are about to
-match.
+A GBA palette entry is a halfword in BGR555 format. It has five bits of red at
+the bottom, five bits of green above that, five bits of blue above that, and an
+unused top bit. To fade a picture to black, the game goes through the palette
+and scales all three channels of every entry by the same factor. That is the
+routine you are about to match.
 
-Unpacking a channel is a shift and a mask, and agbcc has a habit that makes
-those unrecognisable at first sight. A `u16` parameter arrives in a 32-bit
-register with garbage possibly above bit 15, so the compiler zero-extends it
-with `lsl #16` / `lsr #16`. When the very next thing you do is shift right, it
-folds the two together:
+To unpack a channel, the code uses a shift and a mask. agbcc has a habit that
+makes these hard to recognise at first. A `u16` parameter arrives in a 32-bit
+register, and the bits above bit 15 might hold garbage. So the compiler
+zero-extends it with `lsl #16` / `lsr #16`. When the next operation is a right
+shift, the compiler combines the two:
 
 ```asm
 0        lsl       r0, #16
@@ -41,13 +42,13 @@ folds the two together:
 8        bx        lr
 ```
 
-That is one field extraction, not two shifts. `lsl #16` then `lsr #21` moves the
-value right by five overall while discarding everything above bit 15, so the
-source shifted right by **five** - the extra sixteen is the narrowing coming
-along for the ride. Subtract 16 from any `lsr` that follows an `lsl #16` and you
-have the shift the programmer typed.
+Read these two shifts as one field extraction. `lsl #16` then `lsr #21` moves
+the value right by five in total, and it also discards everything above bit 15.
+So the source shifted right by **five**, and the extra sixteen comes from the
+narrowing. Subtract 16 from any `lsr` that follows an `lsl #16`, and you get the
+shift the programmer wrote.
 
-It gets stranger when several fields come out of the same value. Here is a
+This is harder to read when several fields come from the same value. Here is a
 routine that swaps a colour's red and blue channels:
 
 ```asm
@@ -68,17 +69,17 @@ routine that swaps a colour's red and blue channels:
 28       bx        lr
 ```
 
-`r1` holds the colour shifted **up** by sixteen from offset 2 until offset 12,
-where blue is shifted straight out of it. `lsr r1, #26` is bit 10 measured
-against that pre-shifted copy. The plain value is pulled back down once into
-`r3` and reused for the two fields that need it. So one live register carries
-the input in a form nobody wrote, and every constant near it has been rebased
-by sixteen.
+From offset 2 until offset 12, `r1` holds the colour shifted **up** by sixteen.
+At offset 12, blue is shifted straight out of it. `lsr r1, #26` is bit 10,
+measured against that shifted copy. The plain value is shifted back down once
+into `r3`, and the two fields that need it both use it. So one live register
+holds the input in a form that does not appear in the source, and every
+constant used with it has sixteen added.
 
-Your target does this three times over, once per channel, with a `mul` in the
-middle of each. Do the arithmetic on the shift counts before you try to guess
-the source, and remember that a `lsl` at the very end of a function is usually
-the return type narrowing rather than part of the value.
+Your target does this three times, once for each channel, with a `mul` in the
+middle of each one. Work out the shift counts before you try to guess the
+source. Also remember that a `lsl` at the very end of a function usually
+narrows the result to the return type, so it is not part of the calculation.
 
 ## Your task
 

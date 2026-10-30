@@ -8,11 +8,11 @@ concepts:
   - control-flow
   - strength-reduction
 hints:
-  - Two backward branches means two loops. The one whose destination is further
+  - Two backward branches mean two loops. The one whose destination is further
     down the listing is the inner loop, and it sits entirely inside the outer
     loop's body.
-  - The inner loop counts r1 down to zero and the outer latch restores r1 from
-    the `+1` computed before the inner loop ran - so the inner trip count is
+  - The inner loop counts r1 down to zero, and the outer latch restores r1 from
+    the `+1` computed before the inner loop ran. So the inner trip count is
     whatever the outer counter held on entry.
   - One `s32` in, `s32` out. The inner bound is the outer counter, and the body
     only adds one to a total, so the answer counts the pairs below the diagonal.
@@ -21,14 +21,15 @@ symbol: func_0819be5c
 
 # Two back-edges
 
-Nested loops do not get a special shape. Each one is built exactly as it would
-be alone — its own guard, its own body, its own back-edge — and the inner loop
-simply lands inside the outer loop's body. So the reading rule follows from the
-nesting: of two backward branches, the one whose destination is *later* in the
-listing is the inner loop, and everything from the outer destination to the
-outer back-edge is one outer trip.
+Nested loops do not get a special shape. Each loop is built exactly as it would
+be on its own, with its own guard, body and back-edge. The inner loop sits
+inside the outer loop's body. This gives a reading rule. Of two backward
+branches, the one whose destination is *later* in the listing belongs to the
+inner loop. Everything from the outer destination to the outer back-edge is one
+outer trip.
 
-Here is a doubly counted loop that accumulates the inner counter:
+Here is a pair of counted loops, one inside the other, that adds up the inner
+counter:
 
 ```asm
 0        push      {r4, lr}
@@ -52,23 +53,23 @@ Here is a doubly counted loop that accumulates the inner counter:
 36       bx        r1
 ```
 
-Two back-edges: `blt 20` at 26 and `blt 12` at 30. The inner loop is 20 to 26,
-the outer is 12 to 30. Both guards are present — address 10 skips the whole
-thing, address 18 skips just the inner loop — and the inner guard is re-tested
-on every outer trip, because the bound could be anything.
+There are two back-edges: `blt 20` at 26 and `blt 12` at 30. The inner loop is
+20 to 26, and the outer loop is 12 to 30. Both guards are present. Address 10
+skips both loops, and address 18 skips only the inner loop. The inner guard is
+tested again on every outer trip, because the bound could be anything.
 
-The line to be careful with is address 14. `add r3, #1` increments the outer
-counter at the *top* of the outer body, before the inner loop runs. Computing it
-early leaves the inner loop free to use the low registers as it likes, and
-leaves the outer latch at 28 with only a compare to do. A `+1` sitting above an
-inner loop is the outer induction variable being computed early; it is not part
-of the body.
+Be careful with address 14. `add r3, #1` increments the outer counter at the
+*top* of the outer body, before the inner loop runs. Doing this early leaves the
+inner loop free to use the low registers as it needs. It also leaves the outer
+latch at 28 (the test at the bottom of the outer loop) with only a compare to
+do. A `+1` above an inner loop is the outer counter being computed early. It is
+not part of the body.
 
-Your target takes that further, and this is the part worth slowing down for. Its
-outer counter register is *consumed* by the inner loop's countdown, and the
-outer latch reloads it from a register set before the inner loop. Work out what
-that register holds and you will have the inner loop's trip count, which is the
-whole shape of the source.
+Your target goes one step further, so read this part slowly. Its outer counter
+register is *used up* by the inner loop's countdown. The outer latch then
+reloads it from a register that was set before the inner loop. Work out what
+that register holds and you will have the inner loop's trip count. That trip
+count gives you the whole shape of the source.
 
 ## Your task
 

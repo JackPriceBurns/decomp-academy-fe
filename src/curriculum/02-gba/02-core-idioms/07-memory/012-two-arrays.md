@@ -11,8 +11,9 @@ symbol: func_08226568
 hints:
   - One `lsl` and two `add`s means one index shared between two bases. The
     scaled index is built once and kept.
-  - Two `s32 *` and an `s32` index in, an `s32` out. `mul` is two-operand, so
-    the operand order in it is not evidence of the order in the C.
+  - It takes two `s32 *` arguments and an `s32` index, and returns an `s32`.
+    `mul` has only two operands, so its operand order does not tell you the
+    order in the C.
 ---
 
 # One index, two bases
@@ -21,8 +22,9 @@ When two arrays are read at the same position, the index is scaled once and
 then added to each base in turn. There is no reason to do the shift twice, and
 gcc does not.
 
-Keeping the scaled index alive across both adds is what forces the
-three-operand form of `add`. The destructive `add rD, rS` would overwrite it:
+The scaled index must stay live across both adds, so gcc uses the
+three-operand form of `add`. The two-operand `add rD, rS` writes over one of
+its sources, so it would overwrite the index:
 
 ```asm
 0        lsl       r3, #2
@@ -37,18 +39,19 @@ three-operand form of `add`. The destructive `add rD, rS` would overwrite it:
 18       bx        lr
 ```
 
-Three arrays, one index. `lsl r3, #2` scales it, then `add r0, r3, r0` and
-`add r1, r3, r1` form two addresses without disturbing `r3`, both writing into
-the base registers whose original values are finished with.
+This example reads three arrays with one index. `lsl r3, #2` scales the index.
+Then `add r0, r3, r0` and `add r1, r3, r1` form two addresses without changing
+`r3`. Both write into base registers whose original values are no longer
+needed.
 
-The last one is different: `add r3, r2` is the two-operand form, destroying the
-scaled index, because by then nothing else needs it. That choice is readable
-information. A three-operand `add` says the source is still wanted later; the
-two-operand form says this was its last use. When you are trying to work out
-how many array accesses a listing contains, counting adds onto a preserved
-index register is more reliable than counting loads.
+The last add is different. `add r3, r2` is the two-operand form, and it
+destroys the scaled index, because nothing needs it after that. This choice
+tells you something. A three-operand `add` says the source is still needed
+later. The two-operand form says this was its last use. When you want to count
+the array accesses in a listing, counting the adds onto a preserved index
+register is more reliable than counting loads.
 
-Your target scales its index once and then spends it twice.
+Your target scales its index once and then uses it twice.
 
 ## Your task
 

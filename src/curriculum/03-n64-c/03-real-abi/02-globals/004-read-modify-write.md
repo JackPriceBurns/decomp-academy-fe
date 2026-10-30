@@ -9,16 +9,16 @@ concepts:
   - rmw
 symbol: func_80303ed4
 hints:
-  - "The address is built once, then used by both the `lw` and the `sw` at offset 0 — one global, touched twice."
-  - "The middle instruction combines the loaded value with the argument; its mnemonic tells you the operation, and `+=` is the natural C spelling."
+  - "The address is built once, then used by both the `lw` and the `sw` at offset 0. One global is accessed twice."
+  - "The middle instruction combines the loaded value with the argument. Its mnemonic tells you the operation, and `+=` is the natural way to write it in C."
 ---
 
 # One address, used twice
 
-Bump a global — read it, change it, store it back — and something new appears
-in the address math. Two accesses to the same global would mean two `%lo`
-pairs, so instead IDO **materializes the full address once** and reuses it.
-Watch `bumpFrames`, which adds 1 to the global `gFrames`:
+When you increment a global, you read it, change it, and store it back. This
+adds something new to the address math. Two accesses to the same global would
+need two `%lo` pairs, so IDO **builds the full address once** in a register and
+reuses it. Here is `bumpFrames`, which adds 1 to the global `gFrames`:
 
 ```asm
 lui    v0, %hi(gFrames)
@@ -30,15 +30,15 @@ jr     ra
 nop
 ```
 
-There's the third shape from the machinery lesson: `lui` + `addiu` with `%lo`
-completes the address *as a value*, and after that the accesses are plain
-`0(v0)` — no relocations needed, because the register already holds the whole
-address. Whenever you see a global's address finished with an `addiu` like
-this, expect **more than one access** through it.
+This is the third pattern from the machinery lesson. `lui` + `addiu` with `%lo`
+completes the address *as a value*. After that, the accesses are plain `0(v0)`
+with no relocations, because the register already holds the whole address.
+Whenever you see a global's address finished with an `addiu` like this, expect
+**more than one access** through it.
 
-The pattern reads straight into C as a compound assignment: load, one
-arithmetic op, store back. The target does the same to a different global,
-except the amount isn't a constant this time.
+This pattern translates directly into a C compound assignment: a load, one
+arithmetic operation, and a store back. The target does the same to a different
+global, except that the amount is not a constant this time.
 
 ## Your task
 

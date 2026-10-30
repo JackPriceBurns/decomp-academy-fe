@@ -8,24 +8,24 @@ concepts:
   - bitwise
   - control-flow
 hints:
-  - Take the target in three pieces — the flag test, the guarded work, and the
-    subtraction at the end — and name the field each memory access touches
-    before you write any C.
-  - A `struct Entity *` in, an `s32` out. One local starts from a narrow field,
-    a flag decides whether something is added to it, and the field at 124 is
-    what it gets taken away from.
+  - "Split the target into three pieces: the flag test, the guarded work, and
+    the subtraction at the end. Name the field that each memory access touches
+    before you write any C."
+  - The function takes a `struct Entity *` and returns an `s32`. One local
+    starts from a narrow field, and a flag decides whether something is added
+    to it. Then the local is subtracted from the field at 124.
 symbol: func_0827fa78
 ---
 
 # Everything at once
 
-Real entity-update code is exactly what this chapter has been building towards:
-a byte of flags, a couple of narrow counters, and a payload big enough to push
-the interesting fields past the addressing ceiling. This target uses all three
+This chapter has been building towards real entity update code. That code has
+a byte of flags, a couple of narrow counters, and a payload large enough to
+push the interesting fields past the offset limit. This target uses all three
 at once.
 
-Here is a function over a window record — a byte flag, a halfword field, and a
-pair of words either side of the 124-byte limit:
+Here is a function that works on a window record. The record has a byte flag, a
+halfword field, and a pair of words on either side of the 124-byte limit:
 
 ```asm
 0        mov       r2, r0
@@ -46,27 +46,29 @@ pair of words either side of the 124-byte limit:
 30     ~>bx        lr
 ```
 
-Three things to pick out. The flag test at 2 to 10 is the standard shape: load
-the byte, put the mask in a scratch register, `and`, compare against zero. The
-`bne` jumps *forward* to the code for the true case, so the fall-through path at
-12 is the `else` — a taken branch means the condition held.
+There are three things to notice here. The flag test at 2 to 10 is the
+standard pattern: load the byte, put the mask in a scratch register, `and` them,
+and compare the result with zero. The `bne` jumps *forward* to the code for the
+true case. So the fall-through path at 12 is the `else`, and a taken branch
+means the condition was true.
 
-Instructions 20, 22 and 26 are one field access, with the `ldrh` for a different
-field slipped in among them. The struct base is in `r2`, and this time the `add`
-does not clobber it, because `r2` is still needed for that `ldrh`. So the
-compiler copies the base with `mov r0, r2` and does the `add` on the copy —
-three instructions to read the field at 128, where the field at 124 took one.
+Instructions 20, 22 and 26 are one field access, with the `ldrh` for a
+different field placed among them. The struct base is in `r2`. This time the
+`add` does not overwrite it, because `r2` is still needed for that `ldrh`. So
+the compiler copies the base with `mov r0, r2` and does the `add` on the copy.
+It takes three instructions to read the field at 128, while the field at 124
+took one.
 
-That is the pattern to carry into your own target. The `add` lands on whichever
-copy of the pointer nothing needs again — a fresh `mov` copy when the base still
-has another field to serve, the base register itself when it does not. Either
-way the `mov`, the `add` and the load at `[rD, #0]` are one field access, and
-anything sitting between them belongs to a different one.
+This is the pattern to look for in your own target. The `add` goes into
+whichever copy of the pointer is not needed again. That is a new `mov` copy
+when the base is still needed for another field, and the base register itself
+when it is not. Either way, the `mov`, the `add` and the load at `[rD, #0]` are
+one field access. Any instruction between them belongs to a different access.
 
-Your target tests a flag of its own, does work only on one side of the branch,
-and finishes with a subtraction. Work every offset against the struct in the
-context block — there is an array in the middle, and the size of that array is
-what puts the last two fields where they are.
+Your target tests a flag of its own, does work on only one side of the branch,
+and ends with a subtraction. Work out every offset from the struct in the
+context block. There is an array in the middle, and the size of that array
+decides where the last two fields are.
 
 ## Your task
 

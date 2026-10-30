@@ -9,35 +9,35 @@ concepts:
   - pointers
 symbol: func_0801d288
 hints:
-  - Nothing is left in r0 at the end, so nothing is returned; r0 is being used as
-    an address to store through instead.
-  - "A `void` function taking an `s32 *` and two `s32`s, writing their difference through the pointer."
+  - Nothing is left in `r0` at the end, so nothing is returned. Instead, `r0` is
+    used as an address to store through.
+  - "A `void` function that takes an `s32 *` and two `s32` values, and writes their difference through the pointer."
 ---
 
-# Look at r0 on the way out
+# Check r0 at the end
 
-You have been assuming every function returns a value. Plenty do not, and the
-tell is at the bottom of the listing rather than the top: **whatever is in `r0`
-when `bx lr` runs is the return value**, so if the function never puts anything
-meaningful there, it does not return anything.
+So far you have assumed that every function returns a value. Many do not. You
+can tell which kind a function is by looking at the bottom of the listing.
+**Whatever is in `r0` when `bx lr` runs is the return value.** If the function
+never puts a useful value there, it does not return anything.
 
-That leaves a question. A function that returns nothing and changes nothing is
-pointless, so if the return register is empty, the function must be doing its
-work somewhere else — and "somewhere else" means memory. Here is one:
+A function that returns nothing and changes nothing would be useless. So if the
+return register holds no result, the function must do its work some other way,
+and that means writing to memory. Here is an example:
 
 ```asm
 0        str       r2, [r0, #0]
 2        bx        lr
 ```
 
-`str` is **st**o**r**e: write a register into memory. The operand `[r0, #0]`
-means "the address held in `r0`, plus zero" — so `r0` is not a number being
-worked on here, it is an **address**. The instruction writes `r2` to the memory
-`r0` points at, and then the function returns having left `r0` holding the same
-address it arrived with.
+`str` means **st**o**r**e: write a register to memory. The operand `[r0, #0]`
+means "the address held in `r0`, plus zero". So here `r0` holds an **address**,
+and the function does no arithmetic with it. The instruction writes `r2` to the
+memory that `r0` points to. Then the function returns, and `r0` still holds the
+same address it had at the start.
 
-That makes the signature readable. Three argument registers are involved, the
-first is used as an address, and nothing is returned:
+Now you can read the signature. Three argument registers are involved, the
+first one holds an address, and nothing is returned:
 
 ```c
 void storeSecond(s32 *p, s32 a, s32 b) {
@@ -45,11 +45,12 @@ void storeSecond(s32 *p, s32 a, s32 b) {
 }
 ```
 
-Pointers get a whole chapter of their own later; for now the only thing to take
-from this is the reading habit. When you meet a new target, check the last
-instruction before `bx lr` first. If it left a computed value in `r0`, the
-function returns one. If it stored through a register instead, you are looking at
-a `void` function and one of its arguments is an address.
+A later chapter covers pointers in full. For now, the thing to learn from this
+is the habit of checking the end. When you see a new target, look first at the
+last instruction before `bx lr`. If it left a computed value in `r0`, the
+function returns a value. If it stored through a register instead (wrote to the
+address that the register holds), the function is `void` and one of its
+arguments is an address.
 
 ## Your task
 

@@ -11,17 +11,17 @@ concepts:
   - capstone
 symbol: func_8024604c
 hints:
-  - "Same skeleton as the worked example. Look at the match path's `jr` slot — what does it hand back this time? And the two failure loads — what value do they build?"
-  - "The function returns a pointer. Which C expression *is* that pointer, given `arr` walks by increment?"
+  - "The skeleton is the same as in the worked example. Look at the delay slot of the `jr` on the match path. What does it return this time? Then look at the two failure loads. What value do they build?"
+  - "The function returns a pointer. `arr` moves forward by increment, so which C expression *is* that pointer?"
 ---
 
-# while, if, return, next
+# A loop with an early return
 
-The last compact shape before the grand finale: walk a
-sentinel-terminated table of structs, return something on match,
-something else on running off the end. Here's `lookupNum`, which
-maps a code to its number in an `Entry` table (a zero `code` ends
-the table):
+This is the last short pattern before the grand capstone. The function
+walks a table of structs that ends with a sentinel. It returns one value
+when it finds a match, and a different value when it reaches the end of
+the table. Here is `lookupNum`, which finds a code in an `Entry` table
+and returns its number (a zero `code` ends the table):
 
 ```c
 typedef struct {
@@ -57,22 +57,23 @@ s32 lookupNum(Entry *e, s32 code) {
 34:  nop
 ```
 
-Everything earns its place:
+Every line here has a reason:
 
-- **The peek runs an entry ahead**, at offset `8(a0)` — *next*
-  entry's code — loaded before `a0` advances. Sentinel walks always
-  test one step in front; the offset arithmetic just moved into the
-  load.
-- **A `jr ra` mid-function is an early return**, and its slot does
-  the return's work: loading `e->num`. Multi-exit functions put a
-  result in every `jr`'s shadow.
-- **The failure value materializes twice** — once in the empty-table
-  guard's likely slot, once after the loop. Same C `return -1`,
-  two compiled copies.
+- **The peek runs one entry ahead.** It loads from `8(a0)`, the code of
+  the *next* entry, before `a0` advances. A sentinel walk always tests
+  one step ahead. Here the step forward is part of the load's offset
+  instead of a separate add.
+- **A `jr ra` in the middle of a function is an early return.** Its
+  delay slot does the return's work, which here is loading `e->num`. A
+  function with several exits puts a result in place for every `jr`,
+  often in its delay slot.
+- **The failure value is built twice**: once in the likely slot of the
+  empty-table guard, and once after the loop. One `return -1` in C
+  becomes two copies in the compiled code.
 
-The target searches an `Item` table the same way, but returns *the
-entry itself* on match, and the null pointer on failure. Watch what each exit path leaves in `v0`, and remember the
-walker variable is doing double duty as the answer.
+The target searches an `Item` table in the same way, but its exits
+return different values from `lookupNum`. Watch what each exit path
+leaves in `v0`, and work out which C value it is.
 
 ## Your task
 

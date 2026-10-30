@@ -15,12 +15,12 @@ hints:
     and the difference is taken modulo 512.
 ---
 
-# A remainder you can see through
+# Keeping the bottom bits
 
 An unsigned value modulo 2 to the power `n` is the bottom `n` bits of that
-value, and keeping the bottom `n` bits is exactly what an `and` with a mask of
-`n` ones does. So `% 8` on an unsigned operand is a mask with 7, and the mask is
-the entire operation:
+value. An `and` with a mask of `n` one bits keeps exactly those bottom `n` bits.
+So `% 8` on an unsigned operand is an `and` with 7, and that `and` is the whole
+operation:
 
 ```asm
 0        mov       r1, r0
@@ -29,15 +29,15 @@ the entire operation:
 6        bx        lr
 ```
 
-Four instructions and no call. Notice the order gcc chose. Thumb's `and` is
-two-operand and destructive, and there is no immediate form of it, so the mask
-has to be materialised in a register first — and gcc 2.9 prefers to build the
-constant in the register the result must end up in, then move the incoming value
-out of the way to make room. That `mov r1, r0` before a `mov r0, #imm` is a
-fingerprint of this compiler; the obvious ordering, with the mask in the scratch
-register, is what most other compilers emit.
+That is four instructions and no call. Look at the order gcc chose. Thumb's
+`and` takes two operands and overwrites the first, and it has no immediate form.
+So the mask must be loaded into a register first. gcc 2.9 prefers to build the
+constant in the register where the result must end up, so it first moves the
+incoming value out of the way. A `mov r1, r0` before a `mov r0, #imm` is typical
+of this compiler. Most other compilers do it the other way round and put the
+mask in the scratch register.
 
-The value never has to move when it arrives somewhere other than `r0`:
+When the value arrives in a register other than `r0`, it does not need to move:
 
 ```asm
 0        mov       r0, #7
@@ -45,22 +45,22 @@ The value never has to move when it arrives somewhere other than `r0`:
 4        bx        lr
 ```
 
-Same operation on a third argument, one instruction shorter, because `r0` was
-already free for the constant.
+This is the same operation on a third argument. It is one instruction shorter,
+because `r0` was already free for the constant.
 
-The mask is where the divisor is hiding, and it is always one less than it: 7
-for `% 8`, 63 for `% 64`, 255 for `% 256`. Above 255 a mask can no longer be
-moved with an immediate, and since a run of ones wider than eight bits cannot be
-built with a `mov` and an `lsl` either, it goes to the literal pool — the same
-`ldr rN, [pc, #k]` and trailing `.word` you met building large constants in the
-arithmetic chapter. A pool word one less than a power of two, sitting next to an
-`and`, is a modulo.
+The mask gives you the divisor. It is always one less than the divisor: 7 for
+`% 8`, 63 for `% 64`, and 255 for `% 256`. A mask above 255 is too big for a
+`mov` immediate. A run of more than eight one bits also cannot be built with a
+`mov` and an `lsl`. So the mask goes to the literal pool, using the same
+`ldr rN, [pc, #k]` and `.word` at the end of the function that you met for large
+constants in the arithmetic chapter. A pool word one less than a power of two,
+used by an `and`, is a modulo.
 
-The usual honesty applies: `x % 8` and `x & 7` on an unsigned value produce
-identical instructions, so either spelling matches. Write whichever describes
-what the value means.
+As with an unsigned divide by a power of two, `x % 8` and `x & 7` on an unsigned
+value produce identical instructions, so either spelling matches. Write the one
+that best describes what the value means.
 
-Your target masks a value it had to compute first.
+Your target applies a mask to a value that it has to compute first.
 
 ## Your task
 

@@ -1,7 +1,7 @@
 ---
 id: 6a3d66f1-88a1-494a-be96-059b91546ee4
 slug: globals-statics
-title: "Statics: The Global With No Name"
+title: "Statics: Globals Without a Symbol Name"
 difficulty: 3
 concepts:
   - globals
@@ -10,16 +10,15 @@ concepts:
   - rmw
 symbol: func_8028f598
 hints:
-  - "`[.bss]` means a file-local variable — declare it `static` yourself,
-    above the function. Nothing is provided in context this time."
-  - "The shape is the read-modify-write idiom, and the returned register holds the *updated* value. Check the `addiu`'s constant."
+  - "`[.bss]` means a file-local variable. Declare it `static` yourself, above the function. Nothing is provided in context this time."
+  - "The pattern is the read-modify-write idiom, and the returned register holds the *updated* value. Check the constant in the `addiu`."
 ---
 
 # When the diff says [.bss]
 
-Every global so far has worn its name in the relocation. Now meet the one that
-doesn't. Here's `countUp`, which bumps a counter and returns the new value —
-but the counter is declared `static`:
+Every global so far has shown its name in the relocation. This one does not.
+Here is `countUp`, which increments a counter and returns the new value. The
+counter is declared `static`:
 
 ```asm
 lui    v1, %hi([.bss])
@@ -31,30 +30,31 @@ jr     ra
 nop
 ```
 
-`static` at file scope means *file-local*: the variable exists in memory like
+`static` at file scope means *file-local*. The variable exists in memory like
 any global, but its name is private to the file that declares it, so the
-relocation can't point at an exported symbol. The diff shows the section it
-lives in instead — `[.bss]`, the zero-initialized data section — plus the
-offset within it (0 here, folded invisibly into the addend). An initialized
-static would point at `[.data]` the same way.
+relocation can't point at an exported symbol. Instead, the diff shows the
+section the variable is in: `[.bss]`, the zero-initialized data section. It also
+includes the offset within that section (0 here, so nothing extra appears in the
+addend). An initialized static would point at `[.data]` in the same way.
 
-Two practical consequences:
+This has two practical effects:
 
-- **You must define the variable yourself.** There's nothing to `extern` — a
+- **You must define the variable yourself.** There is nothing to `extern`. A
   `static s32` declaration above your function creates it, and your compile
   will produce its own matching `[.bss]` relocation.
-- The body is the read-modify-write idiom from earlier, with one nicety:
-  the updated value is computed straight into `v0`, doing double duty as the
-  store source *and* the return value. `bump-and-return` compiles this tightly
-  whenever the C returns the freshly assigned variable.
+- The body is the read-modify-write idiom from earlier, with one small
+  improvement. The updated value is computed straight into `v0`, so the same
+  register is both the store source *and* the return value. The
+  `bump-and-return` pattern compiles to this short form whenever the C returns
+  the variable it has just assigned.
 
-The target is the same counter pattern with its own step amount. Name the
-static whatever you like — the name never reaches the object file.
+The target uses the same counter pattern with its own step amount. You can give
+the static any name you like, because the name never reaches the object file.
 
 ## Your task
 
-Write `func_8028f598`, using a `static s32` you declare yourself, to reproduce the
-target assembly.
+Write `func_8028f598`, using a `static s32` you declare yourself, to reproduce
+the target assembly.
 
 <!-- solution -->
 ```c

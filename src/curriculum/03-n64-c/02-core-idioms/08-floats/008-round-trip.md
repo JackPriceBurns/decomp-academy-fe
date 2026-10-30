@@ -9,47 +9,48 @@ concepts:
   - constants
 symbol: func_8020b410
 hints:
-  - "Both border crossings are here, entrance and exit — between them, one `mul.s` with a ladder constant. Decode the `lui`."
-  - "The C is one line, no explicit `(f32)` cast needed on the way in — mixing an `s32` into float math promotes it silently."
+  - "Both conversions are here, in and out. Between them is one `mul.s` with a ladder constant. Decode the `lui`."
+  - "The C is one line. You don't need an explicit `(f32)` cast on the way in, because mixing an `s32` into float math promotes it automatically."
 ---
 
-# An integer takes a float detour
+# An integer goes through the FPU
 
-Games constantly scale integers by fractional amounts — damage
-percentages, speed modifiers — and the cheapest honest way is a
-round trip through the FPU. Here's `quarterOf(n)`, which divides an
-`s32` by `4.0f` and returns the whole part:
+Games often scale integers by fractions, for example damage percentages or
+speed modifiers. The cheapest correct way to do this is a round trip through
+the FPU. This is `quarterOf(n)`, which divides an `s32` by `4.0f` and returns
+the whole part:
 
 ```asm
- 0:  mtc1      a0, ft0        # n's bits ferry in…
- 4:  lui       at, 0x3e80     # 0.25f (two rungs below 1.0f)
- 8:  mtc1      at, ft2        # …the constant ferries in too
+ 0:  mtc1      a0, ft0        # n's bits move in…
+ 4:  lui       at, 0x3e80     # 0.25f (two ladder steps below 1.0f)
+ 8:  mtc1      at, ft2        # …the constant moves in too
  c:  cvt.s.w   ft1, ft0       # n becomes a float
 10:  mul.s     ft3, ft1, ft2  # n * 0.25f
 14:  trunc.w.s ft4, ft3       # back to a whole number
-18:  mfc1      v0, ft4        # exit ferry
+18:  mfc1      v0, ft4        # move the result out
 1c:  nop
 20:  jr        ra
 24:  nop
 ```
 
-Every piece is a lesson you've had, fused: the entrance trio, a
-clean-bits constant, one `.s` op, the exit pair. Two reading notes:
+Every part of this is something you have already learned: the three entry
+instructions, a constant with clean bits, one `.s` operation and the exit
+pair. Two things to note when you read it:
 
-- **The scheduler shuffled the hazards away.** No `nop` after either
-  `mtc1` — the second ferry and the `cvt` slid into the gaps. The
-  *pattern* survives even when the padding doesn't; match
-  instructions, not spacing.
-- **A divide became a multiply.** The C says `/ 4.0f`, the machine
-  says `* 0.25f` — multiplying by the reciprocal is exact when the
-  divisor is a power of two, and IDO takes that deal every time.
-  A `mul.s` by a below-1.0 ladder constant often *decompiles* as
-  either; the original programmer's spelling is yours to choose.
+- **The scheduler filled the hazard slots.** There is no `nop` after either
+  `mtc1`, because the second `mtc1` and the `cvt` were placed in those gaps.
+  The *pattern* is still there when the padding is gone, so match the
+  instructions and ignore the spacing.
+- **A divide became a multiply.** The C says `/ 4.0f`, and the machine code
+  says `* 0.25f`. Multiplying by the reciprocal gives an exact result when the
+  divisor is a power of two, so IDO always makes this change. A `mul.s` by a
+  ladder constant below 1.0 can often be *decompiled* as either a multiply or
+  a divide, and you can choose which one to write.
 
-The target is the same round trip with a different ladder constant —
-this one built from `1.0f`'s pattern with an extra bit, `0x3F40` —
-and it really is a multiply this time. One line of C, and the
-promotion into float happens without an explicit cast on the way in.
+The target is the same round trip with a different ladder constant. This one
+is `1.0f`'s pattern with one extra bit set, `0x3F40`, and this time the C
+really is a multiply. The C is one line, and the integer becomes a float on
+the way in without an explicit cast.
 
 ## Your task
 

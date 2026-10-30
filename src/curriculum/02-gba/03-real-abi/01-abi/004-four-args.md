@@ -10,23 +10,23 @@ concepts:
 symbol: func_082ead58
 hints:
   - The two copies made before the arithmetic become outgoing arguments three
-    and four, and the two values built on top of them become arguments one and
-    two.
-  - Two `s32` parameters in, an `s32` out, and the call's result is returned
-    unchanged. Each of the two parameters is passed twice, once adjusted and
-    once plain.
+    and four. The two values computed from them become arguments one and two.
+  - The function takes two `s32` parameters and returns an `s32`, and the
+    call's result is returned unchanged. Each of the two parameters is passed
+    twice, once adjusted and once as it is.
 ---
 
 # Filling r0 to r3
 
-Four arguments is the whole register budget. The caller loads argument one into
-`r0`, two into `r1`, three into `r2`, four into `r3`, and branches. Reading a
-call site backwards from the `bl` therefore reconstructs the argument list
-directly — as long as you account for the fact that the registers you are
-filling are frequently the registers you are reading.
+Four arguments use all of the argument registers. The caller loads argument
+one into `r0`, argument two into `r1`, argument three into `r2` and argument
+four into `r3`, and then branches. So if you read a call site backwards from
+the `bl`, you can rebuild the argument list directly. There is one
+complication: the registers being filled are often the same registers being
+read.
 
-That collision is the interesting part. Consider a call that swaps its first two
-arguments and computes the other two from them:
+This overlap is the part to watch. Here is a call that passes the first two
+arguments in swapped order and computes the other two from them:
 
 ```asm
 0        push      {r4, lr}
@@ -41,21 +41,22 @@ arguments and computes the other two from them:
 20       bx        r0
 ```
 
-`a` has to move to `r1` and `b` to `r0`, and neither can go first without
-destroying the other. gcc solves it by evacuating `a` into `r4`, moving `b` down
-into `r0`, computing arguments three and four from the two copies while both are
-still available, and only then writing `a` back into `r1`. The order is chosen
-so that no live value is ever overwritten, which is why the argument setup does
-not read top to bottom.
+`a` has to move to `r1` and `b` has to move to `r0`. Neither move can happen
+first without destroying the other value. gcc solves this by doing things in a
+careful order. It copies `a` out of the way into `r4`, then moves `b` down into
+`r0`. Next it computes arguments three and four from the two copies, while both
+are still available. Only then does it write `a` into `r1`. gcc picks this
+order so that no live value is ever overwritten, and that is why the argument
+setup does not read top to bottom.
 
-The `pop {r0}` says the function doing the calling returns `void` — nothing is
-coming back in `r0`, so it is the cheapest place to land the return address.
+The `pop {r0}` tells you that the calling function returns `void`. Nothing
+comes back in `r0`, so `r0` is the cheapest place to put the return address.
 
-One more habit to watch for. When gcc parks a copy at a call site it will
-happily choose a register that is *already* destined to be an outgoing
-argument, so that one `mov` does double duty as the save and as the argument
-setup. A copy into `r2` or `r3` early in a call sequence is not always a
-temporary, and reading it as one will cost you an argument.
+Watch for one more habit. When gcc saves a copy of a value at a call site, it
+often picks a register that is *already* going to hold an outgoing argument.
+Then one `mov` both saves the value and sets up the argument. So a copy into
+`r2` or `r3` early in a call sequence is not always a temporary. If you read it
+as one, you will miss an argument.
 
 ## Your task
 

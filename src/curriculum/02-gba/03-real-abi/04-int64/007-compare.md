@@ -9,30 +9,32 @@ concepts:
   - memory
 symbol: func_083a6460
 hints:
-  - The high halves are compared before the low half is even loaded. The second
-    `ldr` sits inside the ladder because that half is only needed when the high
-    halves turn out to be equal.
-  - An `s64` and an `s64 *`, nothing returned. A single `if` that overwrites the
-    pointed-to value when the argument is the larger of the two.
+  - The high halves are compared before the low half is loaded. The second `ldr`
+    sits inside the ladder, because that half is only needed when the high
+    halves are equal.
+  - It takes an `s64` and an `s64 *` and returns nothing. The body is a single
+    `if` that overwrites the value at the pointer when the argument is the
+    larger of the two.
 ---
 
-# The ladder, and its duplicated cmp
+# The ladder and its repeated cmp
 
-There is no 64-bit compare instruction, so a relational test between two pairs
-becomes a three-step ladder that always has the same shape:
+There is no 64-bit compare instruction. A relational test between two pairs
+becomes three steps of compares and branches, which this lesson calls a ladder.
+It always has the same shape:
 
-1. compare the **high** halves and branch on a greater-than test - `bgt` for a
-   signed pair, `bhi` for an unsigned one - which settles every case where one
-   high half is above the other;
-2. compare the high halves **again**, so a `bne` can send the cases where they
-   differ the other way to the opposite side;
-3. only when the high halves are equal, compare the **low** halves with an
+1. Compare the **high** halves and branch on a greater-than test: `bgt` for a
+   signed pair, `bhi` for an unsigned one. This settles every case where one
+   high half is above the other.
+2. Compare the high halves **again**, so that a `bne` can catch the cases where
+   they differ in the other direction and send them to the opposite side.
+3. Only when the high halves are equal, compare the **low** halves with an
    unsigned condition.
 
-Which side each branch lands on depends on where the compiler put the two
-answers, so read the destination addresses rather than assuming.
+Where each branch goes depends on where the compiler placed the two answers, so
+read the destination addresses instead of guessing.
 
-Here is `a <= b` on a pair of unsigned values, materialised as a 0 or a 1:
+Here is `a <= b` on two unsigned values, computed as a 0 or a 1:
 
 ```asm
 0        push      {r4, lr}
@@ -50,24 +52,26 @@ Here is `a <= b` on a pair of unsigned values, materialised as a 0 or a 1:
 24       bx        r1
 ```
 
-`r4` holds the answer and starts at 0. `cmp r1, r3` / `bhi 18` handles the high
-half of `a` being above the high half of `b`: that makes the whole comparison
-false, so the branch jumps clean over the `mov r4, #1` at 16. The identical
-`cmp r1, r3` then runs again so `bne 16` can catch the other way the high halves
-can differ, and that one lands **on** the `mov r4, #1`. Only with the high
-halves proven equal does `cmp r0, r2` look at the low halves.
+`r4` holds the answer and starts at 0. `cmp r1, r3` / `bhi 18` handles the case
+where the high half of `a` is above the high half of `b`. That makes the whole
+comparison false, so the branch jumps past the `mov r4, #1` at 16. Then the same
+`cmp r1, r3` runs again, so that `bne 16` can catch the other way the high
+halves can differ. That branch lands **on** the `mov r4, #1`. Only when the high
+halves are known to be equal does `cmp r0, r2` compare the low halves.
 
-The repeated `cmp` is not an optimiser failure you can write around. gcc 2.9
-re-issues the comparison whenever it needs two different conditions off one
-pair of operands, and a listing without the duplicate is the one that is wrong.
+You cannot write the C in a way that removes the repeated `cmp`. gcc 2.9 issues
+the comparison again whenever it needs two different conditions from one pair
+of operands. If your listing has no repeated `cmp`, your listing is the one that
+is wrong.
 
-Two things to read off the branches. The first one is always that greater-than
-test whichever direction the source comparison ran, because gcc reverses the
-`cmp` operands instead of flipping the condition - so `bgt` versus `bhi` gives
-you the signedness, and the operand order plus the destination address give you
-`<` from `>`. The **low-half** branch is unsigned whatever the type is, since
-the bottom 32 bits are a magnitude. A comparison against zero skips the ladder
-entirely:
+You can read two things from the branches. The first branch is always the
+greater-than test, whatever direction the source comparison used, because gcc
+swaps the `cmp` operands instead of changing the condition. So `bgt` or `bhi`
+tells you the signedness, and the operand order together with the destination
+address tells you `<` from `>`. The **low-half** branch is unsigned whatever the
+type is, because the bottom 32 bits are a plain magnitude with no sign.
+
+A comparison against zero does not use the ladder at all:
 
 ```asm
 0        lsr       r0, r1, #31
@@ -77,8 +81,8 @@ entirely:
 The sign of a 64-bit value is the top bit of its high half, so `v < 0` is one
 shift.
 
-Your target runs the full ladder with one of the two values in memory, which
-moves a load to a place you would not expect it.
+Your target runs the full ladder with one of the two values in memory, and that
+moves one of the loads to an unusual place.
 
 ## Your task
 

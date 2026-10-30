@@ -9,17 +9,18 @@ concepts:
   - calling-convention
 symbol: func_08097f2c
 hints:
-  - Three `mov`s in front of the `bl` and only two registers hold anything worth
-    keeping. Follow each value through the shuffle and see where it ends up.
+  - There are three `mov`s in front of the `bl`, but only two registers hold
+    values that matter. Follow each value through the moves and see where it
+    ends up.
   - Two `s32` parameters in, an `s32` out. The second is divided by the first and
-    the remainder is what comes back.
+    the remainder is returned.
 ---
 
 # The remainder has its own routine
 
-`%` gets its own helper. Signed operands call `__modsi3`, which takes the same
-arguments in the same registers as `__divsi3` — dividend in `r0`, divisor in
-`r1` — and returns the remainder in `r0`:
+The `%` operator has its own helper. For signed operands gcc calls `__modsi3`.
+It takes its arguments in the same registers as `__divsi3` (the dividend in
+`r0`, the divisor in `r1`) and returns the remainder in `r0`:
 
 ```asm
 0        push      {lr}
@@ -28,15 +29,14 @@ arguments in the same registers as `__divsi3` — dividend in `r0`, divisor in
 8        bx        r1
 ```
 
-There is no helper that returns both results at once. libgcc has no divmod entry
-point for this target, so a function that wants the quotient *and* the remainder
-of the same pair pays for two complete calls. That comes up later in the
-chapter, and it is worth knowing now that the assembly gives you no way to share
-the work.
+No helper returns both results at once. libgcc has no divmod routine for this
+target, so a function that needs the quotient *and* the remainder of the same
+two values makes two complete calls. This comes up later in the chapter. For
+now, know that the assembly has no way to share the work between them.
 
-The quotient `__modsi3` computes internally never reaches your code. Compare it
-with the same value written out by hand as "subtract the truncated quotient
-times the divisor":
+`__modsi3` computes a quotient internally, but that quotient never reaches your
+code. Compare the call above with the same value written out by hand as
+"subtract the truncated quotient times the divisor":
 
 ```asm
 0        push      {r4, r5, lr}
@@ -51,16 +51,16 @@ times the divisor":
 20       bx        r1
 ```
 
-Ten instructions instead of four. Both operands have to survive the call, which
-means real registers pushed on entry and popped on exit, and then the quotient
-gets multiplied back up and subtracted. gcc 2.9 does no algebraic rewriting
-between the two forms, so the helper name in a target tells you which one the
-original author typed. `__modsi3` means somebody wrote `%`.
+That is ten instructions instead of four. Both operands have to survive the
+call, so they are kept in registers that are pushed on entry and popped on exit.
+Then the quotient is multiplied by the divisor and subtracted. gcc 2.9 never
+rewrites one of these forms into the other, so the helper name in a target tells
+you which one the original author typed. `__modsi3` means somebody wrote `%`.
 
-Your target calls `__modsi3` with a shuffle in front of it. The helper's
-registers are fixed, so every `mov` before the `bl` is telling you where an
-operand came from — read them in order and remember that each one overwrites its
-destination.
+Your target calls `__modsi3` after moving some registers around. The helper's
+registers are fixed, so every `mov` before the `bl` tells you where an operand
+came from. Read them in order, and remember that each one overwrites its
+destination register.
 
 ## Your task
 

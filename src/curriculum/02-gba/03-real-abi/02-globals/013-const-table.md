@@ -9,15 +9,15 @@ concepts:
   - arrays
 symbol: func_083518c4
 hints:
-  - Only one of the two objects in the context is capable of producing a pool
-    word; the other one can only show up as arithmetic.
-  - "An `s32` in, an `s32` out. `lsl r0, r1, #2 / add r0, r1` multiplies r1 by five, and the table element is what gets multiplied."
+  - Only one of the two objects in the context can produce a pool word. The
+    other one can only show up as arithmetic.
+  - "It takes an `s32` and returns an `s32`. `lsl r0, r1, #2 / add r0, r1` multiplies `r1` by five, and the table element is the value being multiplied."
 ---
 
-# The constant that leaves no trace
+# A constant scalar becomes an immediate
 
-A `const` scalar at file scope is folded into an immediate wherever it is used.
-It has no address in the listing, no pool word, and no load:
+The compiler replaces a `const` scalar at file scope with an immediate wherever
+it is used. It has no address in the listing, no pool word and no load:
 
 ```asm
 0        mov       r0, #3
@@ -25,14 +25,14 @@ It has no address in the listing, no pool word, and no load:
 ```
 
 That is a function returning a named `const s32` whose value is 3. It is
-byte-identical to a function returning the literal `3`, and no amount of staring
-at the assembly will tell you which one the source said. When you meet a small
-immediate in a real target, "this was a named constant" is always available as a
-guess and never provable.
+byte-identical to a function returning the literal `3`, and nothing in the
+assembly tells you which one the source used. When you see a small immediate
+in a real target, it might have been a named constant. You can always guess
+that, but you can never prove it.
 
-A `const` array behaves completely differently. It keeps its storage, keeps its
-symbol, and is read through the pool like any other global — even when the index
-is a compile-time constant:
+A `const` array is handled differently. It keeps its storage and its symbol,
+and the code reads it through the pool like any other global. This happens
+even when the index is a compile-time constant:
 
 ```asm
 0        ldr       r0, [pc, #4] (->8)
@@ -42,15 +42,15 @@ is a compile-time constant:
 8        .word     kBonus
 ```
 
-The compiler knows the address, knows the index, and knows every value in the
-initialiser, and it still emits the load. gcc 2.9 folds constant scalars and
-declines to fold table lookups, so a `const` table is as visible in the assembly
-as a mutable one.
+The compiler knows the address, the index and every value in the initialiser,
+but it still emits the load. gcc 2.9 folds constant scalars but does not fold
+table lookups. So a `const` table is as visible in the assembly as a table that
+can change.
 
-Between those two facts you get a useful reading rule. A `.word` row pointing at
-.rodata means a real table exists in the source; an unexplained immediate in the
-middle of an expression may be a named constant and may be a literal, and the
-listing genuinely cannot tell you.
+Together, those two facts give you a useful rule for reading listings. A
+`.word` row pointing at .rodata means a real table exists in the source. An
+unexplained immediate in the middle of an expression may be a named constant or
+a literal, and the listing cannot tell you which.
 
 Your target uses one of each.
 

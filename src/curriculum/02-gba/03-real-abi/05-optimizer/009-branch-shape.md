@@ -1,7 +1,7 @@
 ---
 id: a51af40d-c7c4-4b48-bcde-7ef8885bd2be
 slug: gba-optimizer-branch-shape
-title: Which Side Falls Through
+title: Which Arm Falls Through
 difficulty: 4
 concepts:
   - optimizer
@@ -10,34 +10,34 @@ concepts:
 symbol: func_083dbdd0
 hints:
   - The `bne` at address 8 jumps forward to the arm that runs when the tested
-    bit is set, so that arm is not the fall-through. Writing this as a ternary
-    would give you `beq` and the two arms the other way round.
-  - Three `s32` parameters, an `s32` out. The first is tested for its low bit;
-    the other two swap roles between the arms.
+    bit is set, so that arm is not on the fall-through path. A ternary would
+    give you `beq`, with the two arms the other way round.
+  - The function takes three `s32` parameters and returns an `s32`. The first
+    is tested for its low bit. The other two swap roles between the arms.
 ---
 
 # Which arm the compiler puts first
 
-A two-way choice has to be laid out in a line. One arm gets to be the
-fall-through, sitting immediately after the compare; the other gets an address
-further down and a conditional branch to reach it. gcc 2.9 makes that choice
-from the form of the statement you wrote, and it makes it consistently enough
-that you can read the form back out of the target.
+The two arms of a choice have to be placed one after the other in memory. One
+arm is the fall-through, placed right after the compare. The other arm goes at
+an address further down, and a conditional branch jumps to it. gcc 2.9 decides
+which is which from the form of the statement you wrote. It does this
+consistently enough that you can read the form back from the target.
 
-An `if`/`else` where each arm returns keeps the source's comparison. The
-compare is followed by a branch in the same sense the C wrote, jumping forward
-to the true arm; the false arm sits on the fall-through path and needs an
-unconditional `b` to skip over the true arm it was placed above.
+An `if`/`else` where each arm returns keeps the comparison from the source.
+After the compare comes a branch with the same condition the C wrote, and it
+jumps forward to the true arm. The false arm sits on the fall-through path. It
+needs an unconditional `b` to skip over the true arm, which is placed below it.
 
-A ternary inverts it. The condition is emitted in the opposite sense, which
-leaves the true arm on the fall-through path and sends the branch to the false
-arm. When the false value is cheap enough — one instruction into a scratch
-register — gcc computes it ahead of the compare and lets the branch skip the
-instruction that would replace it. An `if`/`else` that assigns one variable and
-returns it afterwards produces the same layout; those two spellings are
-indistinguishable.
+A ternary reverses this. The condition is emitted the opposite way round, so
+the true arm is on the fall-through path and the branch goes to the false arm.
+Sometimes the false value is cheap enough to build with one instruction into a
+scratch register. Then gcc computes it before the compare, and the branch skips
+the instruction that would replace it. An `if`/`else` that assigns one variable
+and returns it afterwards produces the same layout. You cannot tell those two
+versions apart.
 
-Here is the same absolute difference written both ways. First the `if`/`else`
+Here is the same absolute difference written both ways. First, the `if`/`else`
 with a return in each arm:
 
 ```asm
@@ -49,9 +49,9 @@ with a return in each arm:
 10     ~>bx        lr
 ```
 
-The C tested `x >= n` and the branch is `bge`, the same sense. The true arm is
-at 8, reached by that branch; the false arm at 4 is the fall-through and jumps
-over it.
+The C tested `x >= n`, and the branch is `bge`, the same condition. The true
+arm is at 8, and that branch reaches it. The false arm at 4 is the
+fall-through, and it jumps over the true arm.
 
 Now the ternary:
 
@@ -64,18 +64,18 @@ Now the ternary:
 10       bx        lr
 ```
 
-Same test in the source, `blt` in the object — inverted. The false value is
-already in `r2` before the compare runs, and the `blt` skips the instruction
-that would replace it. The join then needs `mov r0, r2` because the value was
-built in a scratch register.
+The source has the same test, but the object has `blt`, the reversed
+condition. The false value is already in `r2` before the compare runs, and the
+`blt` skips the instruction that would replace it. The join then needs
+`mov r0, r2`, because the value was built in a scratch register.
 
-Comparing branch conditions against the source is the reliable check. If your C
-produces the opposite condition to the target, the arithmetic is not the
-problem; the shape of the statement is.
+Comparing the branch condition with the source is the reliable check. If your C
+produces the opposite condition from the target, the problem is the shape of
+the statement, and your arithmetic can stay as it is.
 
-Your target tests a bit and takes a two-instruction arm on each side. Work out
-from the branch which of the two arms the compiler placed on the fall-through
-path, and write the C that puts it there.
+Your target tests a bit and has a two-instruction arm on each side. Use the
+branch to work out which arm the compiler placed on the fall-through path.
+Then write the C that puts it there.
 
 ## Your task
 

@@ -10,24 +10,24 @@ concepts:
 symbol: answer
 hints:
   - "The function should return the constant the target adds to `zero`."
-  - "A one-line `return` of that value is all it takes — the `addiu` and the `jr ra`/`nop` pair are the compiler's job."
+  - "A one-line `return` of that value is all you need. The compiler produces the `addiu` and the `jr ra`/`nop` pair."
 ---
 
 # Your first match
 
-You've met `addiu`, the zero register, `jr ra`, and the delay slot. Here's the
-one new fact that brings them together: `v0` is where a function's **return
-value** lives. So a function that just returns a constant has very little to do:
-it adds the constant to `zero`, lands the result in `v0`, and returns with a
-`nop` riding in the delay slot. Take a look:
+You have met `addiu`, the zero register, `jr ra`, and the delay slot. One new
+fact connects them: `v0` is where a function's **return value** goes. So a
+function that returns a constant has very little to do. It adds the constant to
+`zero` and puts the result in `v0`. Then it returns, with a `nop` in the delay
+slot. Here is what that looks like:
 
 ```asm
-addiu  v0, zero, 7    # v0 = 0 + 7 — the constant, loaded
+addiu  v0, zero, 7    # v0 = 0 + 7, the constant
 jr     ra             # return
-nop                   # delay slot — nothing to do
+nop                   # delay slot: nothing to do
 ```
 
-Written in C, that's just simply:
+In C, that is:
 
 ```c
 s32 answer(void) {
@@ -35,15 +35,15 @@ s32 answer(void) {
 }
 ```
 
-(That `s32` is this project's name for a signed 32-bit integer — the game's code
-uses `s32`/`u32`-style type names everywhere, so this course does too. They're
-already defined for you in every exercise.)
+(That `s32` is this project's name for a signed 32-bit integer. The game's code
+uses type names like `s32` and `u32` everywhere, so this course does too. They
+are already defined for you in every exercise.)
 
 ## Your task
 
-For the exercise we've changed the value, so it won't be exactly the same. Look
-closely at the **Target asm** and write the C. Hit **Compile & Check** (or
-⌘/Ctrl + Enter) to check your result.
+The exercise uses a different value, so your function won't be exactly the
+same. Look closely at the **Target asm** and write the C. Press
+**Compile & Check** (or ⌘/Ctrl + Enter) to check your result.
 
 <!-- starter -->
 ```c

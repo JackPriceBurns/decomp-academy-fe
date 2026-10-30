@@ -1,4 +1,4 @@
 ---
 title: Structs
-blurb: Fields, padding, bitfields and the offsets that outgrow the instruction.
+blurb: Fields, padding, bitfields, and offsets too large to fit in the instruction.
 ---

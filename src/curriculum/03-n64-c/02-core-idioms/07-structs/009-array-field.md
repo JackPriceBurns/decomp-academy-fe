@@ -9,16 +9,17 @@ concepts:
   - indexing
 symbol: func_800eac70
 hints:
-  - "The `sll` amount gives the element width of the embedded array; the load's offset gives where that array *starts* inside the struct."
-  - "Offset 8 with a signed halfword load — find the field of `Track` that begins there, and index it with the second argument."
+  - "The `sll` amount gives the element width of the embedded array. The load's offset gives where that array *starts* inside the struct."
+  - "The load is a signed halfword load at offset 8. Find the field of `Track` that begins there, and index it with the second argument."
 ---
 
 # Variable index, constant base
 
-Flip last lesson around: the *element* index is a variable, but the
-array lives at a fixed position **inside** a struct. The indexing trio
-computes the variable part, and the array's starting offset rides the
-load, exactly where constant address arithmetic always ends up:
+This is the opposite of the last lesson. Here the *element* index is a
+variable, and the array sits at a fixed position **inside** a struct. The
+indexing trio computes the variable part. The array's starting offset goes
+into the load's offset field, which is where constant address arithmetic
+always ends up:
 
 ```c
 typedef struct {
@@ -39,22 +40,21 @@ jr    ra
 nop
 ```
 
-Now compare this against the neighbor pattern from the
-pointers chapter — trio plus a non-zero load offset meant `a[i + 1]`
-there, and means `b->items[i]` here. **Identical machine code, two
-different C spellings.** The declared type of the base pointer is the
-tiebreaker, same as last lesson: on a `Bag *`, offset 4 is where
-`items` starts, so the trio must be indexing that embedded array.
+Compare this with the neighbor pattern from the pointers chapter. There, the
+trio plus a non-zero load offset meant `a[i + 1]`. Here it means
+`b->items[i]`. **The same machine code can come from two different pieces of
+C.** As in the last lesson, the declared type of the base pointer decides. On
+a `Bag *`, offset 4 is where `items` starts, so the trio must be indexing that
+embedded array.
 
-This ambiguity isn't a corner case — misreading an embedded array as
-index arithmetic (or vice versa) is one of the classic ways a
-decompiled function refuses to match its context. When the base is a
-struct pointer, always resolve the constant offset against the struct
-layout *first*, then spend what remains on the index.
+This ambiguity comes up often. A common reason a decompiled function fails to
+match its context is reading an embedded array as index arithmetic, or the
+other way round. When the base is a struct pointer, always match the constant
+offset against the struct layout *first*. Then use what is left for the index.
 
-In the target, the `Track` below embeds a halfword array — so expect
-the stride and mnemonic to say so — and the function returns one
-indexed element of it.
+In the target, the `Track` below contains a halfword array, so the stride and
+the mnemonic should show a halfword. The function returns one indexed element
+of that array.
 
 ## Your task
 

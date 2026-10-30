@@ -9,18 +9,18 @@ concepts:
   - constants
 symbol: func_080b8054
 hints:
-  - The two instructions in front of the call build one number between them.
-    Multiply before you read any further.
-  - One `s32` parameter in, an `s32` out, divided by the constant those two
-    instructions build.
+  - The two instructions in front of the call build one number together.
+    Multiply it out before you read any further.
+  - One `s32` parameter in, an `s32` out. The parameter is divided by the
+    constant those two instructions build.
 ---
 
 # The constant still goes to the helper
 
-Modern compilers turn `x / 3` into a multiply by a magic reciprocal and a shift.
-gcc 2.9 targeting Thumb does not. Every constant divisor that is not a power of
-two is loaded into `r1` and handed to the same helper a variable divisor would
-use:
+Modern compilers turn `x / 3` into a multiply by a precomputed reciprocal,
+followed by a shift. gcc 2.9 does not do this when it targets Thumb. Every
+constant divisor that is not a power of two is loaded into `r1` and passed to
+the same helper that a variable divisor would use:
 
 ```asm
 0        push      {lr}
@@ -30,17 +30,17 @@ use:
 10       bx        r1
 ```
 
-That is a division by 60, and it costs the whole call. Two consequences. Any
-`bl __divsi3` in a listing might have a constant divisor, so check `r1` before
-you assume the divisor is a parameter. And when a real GBA game divides by a
-constant in a hot loop, this is why it does not.
+That is a division by 60, and it costs a full call. This has two consequences.
+First, any `bl __divsi3` in a listing might have a constant divisor, so check
+`r1` before you assume the divisor is a parameter. Second, this cost is why real
+GBA games avoid dividing by a constant inside loops that run often.
 
-The divisor's *value* is the thing you have to recover, and materialising it
-follows the ladder from the arithmetic chapter. Up to 255 it is a single `mov
-r1, #k`, as above. A value that is a small number shifted left becomes `mov` and
-`lsl` — and the number in the `mov` is not the divisor, so a pair like that has
-to be multiplied out before it means anything. Anything else comes from the
-literal pool:
+The divisor's *value* is what you have to recover. The compiler builds it in one
+of the three ways from the arithmetic chapter. A value up to 255 is a single `mov
+r1, #k`, as above. A value that is a small number shifted left becomes a `mov`
+and an `lsl`. The number in that `mov` is not the divisor, so you must multiply
+the pair out before it means anything. Any other value comes from the literal
+pool:
 
 ```asm
 0        push      {lr}
@@ -51,17 +51,17 @@ literal pool:
 12       .word     257
 ```
 
-257 needs nine significant bits, so there is no way to build it in one or two
-instructions, and it is parked after the code as data. The `(->12)` points at
-the row holding it.
+257 needs nine significant bits, so it cannot be built in one or two
+instructions. It is stored after the code as data instead. The `(->12)` points
+at the row that holds it.
 
-Keep reading the `(->12)` rather than the `#8`, as you did in the arithmetic
-chapter. The immediate is measured from the PC, which runs four bytes ahead of
-the instruction and is rounded down to a multiple of four before the offset is
-added, so it never matches the gap you can count on the page. The arrow has
-already done that arithmetic.
+As in the arithmetic chapter, read the `(->12)` and ignore the `#8`. The
+immediate is measured from the PC. The PC is four bytes ahead of the
+instruction, and it is rounded down to a multiple of four before the offset is
+added. So the immediate never matches the distance you can count in the listing.
+The arrow has already done that calculation for you.
 
-Your target's divisor comes from the middle rung of the ladder.
+Your target builds its divisor in the second of those three ways.
 
 ## Your task
 

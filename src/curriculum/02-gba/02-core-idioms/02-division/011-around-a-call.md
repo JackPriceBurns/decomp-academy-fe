@@ -9,24 +9,24 @@ concepts:
   - register-allocation
 symbol: func_080bc7c0
 hints:
-  - The value copied into `r4` before the call is one the helper is about to
-    consume as well. Read which register that copy takes it from.
-  - Two `s32` parameters in, an `s32` out. Their quotient, with the first
-    argument added back on.
+  - The value copied into `r4` before the call is also about to be used by the
+    helper. Check which register the copy reads from.
+  - Two `s32` parameters in, an `s32` out. It returns their quotient plus the
+    first argument.
 ---
 
-# What survives a bl, and what does not
+# Which registers survive a call
 
-`r0` through `r3` belong to the callee. A helper is free to destroy all four,
-and the division helpers do. So the moment a division appears inside a larger
-expression, every other value the function still needs has to be somewhere
-safe — and safe means `r4` upward, the registers the ABI promises a callee will
-restore.
+`r0` to `r3` belong to the callee. A helper may overwrite all four, and the
+division helpers do. So when a division is part of a larger expression, every
+other value the function still needs must be kept somewhere safe. Safe means
+`r4` and above, the callee-saved registers. The ABI says a callee must restore
+them before it returns.
 
-Those registers belong to somebody else too, so using one means pushing it on
-entry and popping it on exit. A single extra live value turns `push {lr}` into
-`push {r4, lr}` and adds two instructions to the epilogue. Here is a remainder
-with a third argument subtracted from it:
+Those registers may hold values for your function's own caller, so using one
+means pushing it on entry and popping it on exit. One extra value that must stay
+live turns `push {lr}` into `push {r4, lr}` and adds two instructions to the
+epilogue. Here is a remainder with a third argument subtracted from it:
 
 ```asm
 0        push      {r4, lr}
@@ -39,11 +39,11 @@ with a third argument subtracted from it:
 ```
 
 `r2` would not survive the call, so it is copied to `r4` first and read back
-afterwards. That is the whole shape: park, call, use. When you see `mov r4, rN`
-as the first instruction after a push, you are looking at an argument being
-saved from a call that has not happened yet.
+afterwards. That is the whole pattern: save, call, use. When `mov r4, rN` is
+the first instruction after a push, an argument is being saved so that it is
+still there after a call that comes later.
 
-Now the same subtraction written the other way round — the third argument minus
+Now here is the same subtraction the other way round, the third argument minus
 the remainder:
 
 ```asm
@@ -57,21 +57,21 @@ the remainder:
 16       bx        r1
 ```
 
-One instruction longer, and the extra instruction is a `mov r0, r4` at the end.
-Thumb's `sub` is destructive, so a subtraction that has to keep the saved value
-on the left writes its result into `r4`, and the answer then has to be carried
-back to `r0` to be returned. Written the other way, the result lands in `r0`
-where it was already wanted and no move is needed.
+This is one instruction longer, and the extra instruction is a `mov r0, r4` at
+the end. Thumb's `sub` overwrites its first operand. So a subtraction with the
+saved value on the left writes its result into `r4`, and the answer then has to
+be moved back to `r0` to be returned. In the first version, the result goes
+straight into `r0`, where it is needed, so no move is required.
 
-That trailing `mov r0, rN` is a tell worth memorising. It says the expression
-was written with the saved value first and the call's result second, and it
-survives all the way from the source through register allocation. `+` behaves
-the same way; a named temporary changes nothing. When your diff shows one spare
-`mov` at the bottom, the fix is usually to swap the two operands in your C.
+That final `mov r0, rN` is worth remembering. It shows that the expression was
+written with the saved value first and the call's result second. That order is
+kept all the way from the source through register allocation. `+` behaves the
+same way, and using a named temporary changes nothing. When your diff shows one
+extra `mov` at the end, the fix is usually to swap the two operands in your C.
 
-Your target parks a value before its call as well, and that value is one the
-division itself uses. Work out which register the copy reads, then let the shape
-of the instruction after the `bl` tell you the operand order.
+Your target also saves a value before its call, and the division itself uses
+that value too. Work out which register the copy reads from. Then use the form
+of the instruction after the `bl` to find the operand order.
 
 ## Your task
 

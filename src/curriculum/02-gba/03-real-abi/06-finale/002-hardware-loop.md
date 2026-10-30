@@ -9,31 +9,34 @@ concepts:
   - globals
 symbol: func_083f2314
 hints:
-  - The pool load happens once, above the loop. Inside, the base register walks
-    forward two bytes a trip, and that step is the element size.
-  - The `ldrh` in front of the `strh` is not something you write. Write the
-    subscripted store on its own and the compiler adds the load for you.
-  - "`void func_083f2314(s32 n, s32 step)` — the loop runs `n` times over
-    `gPaletteRam`, and the value stored grows by `step` on every trip."
+  - The pool load happens once, before the loop. Inside the loop, the base
+    register moves forward two bytes on each trip, and that step is the element
+    size.
+  - You do not write the `ldrh` in front of the `strh`. Write only the
+    subscripted store, and the compiler adds the load for you.
+  - "`void func_083f2314(s32 n, s32 step)` is the signature. The loop runs `n`
+    times over `gPaletteRam`, and the value stored grows by `step` on every
+    trip."
 ---
 
-# A write per trip, and a load nobody asked for
+# One store per trip, and an extra load
 
-Video and palette memory behave like a big array of halfwords, so GBA code
-writes them in loops. Two rules you already know meet here: the address of a
-global is a constant, so its pool load lifts out of the loop; and `volatile`
-forbids the compiler from touching the stores at all — none of them can be
-hoisted, merged, or dropped, however obviously redundant they look.
+Video and palette memory work like a large array of halfwords, so GBA code
+writes to them in loops. Two rules you already know apply here. First, the
+address of a global is a constant, so the compiler moves its pool load out of
+the loop. Second, `volatile` stops the compiler from changing the stores in any
+way. It cannot move them out of the loop, merge them, or remove them, even when
+they look redundant.
 
-What the loop does with the base register is ordinary strength reduction. Rather
-than recompute `base + i * 2` each trip, gcc keeps a walking pointer and adds
-the element size to it, so the step in `add rN, #imm` tells you the width of the
-thing being written.
+The loop handles the base register with ordinary strength reduction. Instead of
+computing `base + i * 2` on every trip, gcc keeps a pointer that moves forward
+and adds the element size to it each time. So the constant in `add rN, #imm`
+tells you the width of each element being written.
 
-Then there is the part that reads like a mistake. A byte or halfword store
-written with the **subscript operator on a volatile array** comes out with a
-load of the same address in front of it, and the loaded value is never used.
-Here is `fadeRows`, writing a descending ramp into `gBlendTable`:
+One part of the output looks like a mistake. When you write a byte or halfword
+store with the **subscript operator on a volatile array**, the compiler puts a
+load of the same address in front of it. The loaded value is never used. Here
+is `fadeRows`, which writes a descending ramp of values into `gBlendTable`:
 
 ```asm
 0        push      {r4, r5, lr}
@@ -58,12 +61,12 @@ Here is `fadeRows`, writing a descending ramp into `gBlendTable`:
 ```
 
 `ldrh r1, [r2, #0]` at address 16 reads the halfword that address 18 is about to
-overwrite, and r1 is dead the moment it is written. The source has one
-assignment in it. This is a quirk of how gcc 2.9 handles a narrow volatile
-lvalue, and you get it for free by writing the plain subscripted store.
+overwrite. Nothing ever reads r1 after that load. The source has only one
+assignment. The extra load comes from the way gcc 2.9 handles a narrow volatile
+lvalue, and you get it automatically when you write the plain subscripted store.
 
-Now change how the store is spelled. Write `*(gBlendTable + i)` in place of
-`gBlendTable[i]`, and the phantom load is gone:
+Now write the store a different way. If you write `*(gBlendTable + i)` instead
+of `gBlendTable[i]`, the extra load disappears:
 
 ```asm
 0        push      {r4, lr}
@@ -85,24 +88,25 @@ Now change how the store is spelled. Write `*(gBlendTable + i)` in place of
 32       .word     gBlendTable
 ```
 
-The C standard defines `a[i]` as `*(a + i)`, so those two functions are the same
-program. gcc 2.9 disagrees by one instruction, and that instruction needs a
-register to land in. In `fadeRows` that is one register too many: it pushes r4
-and r5 where the pointer version pushes only r4. A loop with fewer live values
-pays for the load without paying for the extra push.
+The C standard defines `a[i]` as `*(a + i)`, so the two functions mean exactly
+the same thing. Even so, gcc 2.9 gives the subscript version one more
+instruction, and that instruction needs a register to load into. In `fadeRows`
+this is one register more than the function has free, so it pushes r4 and r5.
+The pointer version pushes only r4. In a loop with fewer live values, the extra
+load still appears, but no extra push is needed.
 
-That makes the phantom load worth more to you than it costs the game. It tells
-you which of two identical spellings the original programmer used, and that is
-the difference between a match and a near-match.
+The extra load costs the game very little, and it tells you something useful:
+which of the two equivalent spellings the original programmer used. Choosing the
+right one is the difference between a match and a near-match.
 
-One more thing to read off these listings. `fadeRows` counts **up**, comparing
-its counter against the trip count, because the body needs the value of `i`
-itself. When every use of the index has been strength-reduced away, gcc has no
-reason to keep it and turns the counter into a downcounter that runs to zero.
+These listings show one more thing. `fadeRows` counts **up** and compares its
+counter with the trip count, because the body uses the value of `i` itself.
+When strength reduction has removed every use of the index, gcc has no reason
+to keep it. It then turns the counter into one that counts down to zero.
 
-Your target counts down, so the index never reaches the body — everything the
-body needs is built by adding a fixed amount each trip, including the value that
-gets stored.
+Your target counts down, so the body never uses the index. Everything the body
+needs is built by adding a fixed amount on each trip, and that includes the
+value that gets stored.
 
 ## Your task
 

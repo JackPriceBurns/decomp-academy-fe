@@ -1,4 +1,4 @@
 ---
 title: Warm-up
-blurb: Learn to read the Thumb machine
+blurb: Learn to read Thumb assembly
 ---

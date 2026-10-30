@@ -9,17 +9,16 @@ concepts:
   - rmw
 symbol: func_80107a94
 hints:
-  - "The keep-mask `0xff0f` has a 4-bit hole at bits 4..7 — that hole is the field being replaced. The `sll` moves the new value into it."
-  - "`kind` occupies the top nibble of the first byte. One assignment
-    line; all five instructions fall out of it."
+  - "The keep-mask `0xff0f` has a 4-bit hole at bits 4..7. That hole is the field being replaced. The `sll` moves the new value into it."
+  - "`kind` is in the top nibble of the first byte. Write one assignment line, and all five instructions come from it."
 ---
 
-# Surgery: clear the hole, insert the value
+# Clear the hole, then insert the value
 
-Writing *one* bitfield can't disturb its neighbors, so the compiler
-performs the full RMW surgery: load the packed storage, mask out the
-old slice, position the new value, merge, store back. Every write
-follows this score:
+Writing *one* bitfield must not change the fields next to it. So the compiler
+does a full read-modify-write. It loads the packed storage, masks out the old
+slice, moves the new value into position, merges the two, and stores the
+result back. Every bitfield write follows these steps:
 
 ```c
 typedef struct {
@@ -43,22 +42,22 @@ jr    ra
 nop
 ```
 
-Both masks tell the same story from opposite sides — `0x1f` is
-level's five bits, `0xffe0` is everything else — and the **hole in
-the keep-mask locates the field**: bits 4..0, the low end of the
-first byte. (IDO has again narrowed the whole affair to one byte,
-`lbu`/`sb`, since both fields it touches live there.)
+The two masks describe the same field from opposite sides. `0x1f` covers the
+five bits of `level`, and `0xffe0` covers everything else. The **hole in the
+keep-mask shows where the field is**: bits 4..0, the low end of the first
+byte. (IDO has again narrowed the whole operation to one byte, `lbu`/`sb`,
+because both fields it touches are in that byte.)
 
-Two variations to expect. If the field doesn't end at bit 0, the new
-value gets an `sll` to slide it into position — the shift amount is
-the field's distance from the bottom of its byte or word. And IDO
-*skips* the value's clipping `andi` when the shift plus the narrow
-store already guarantee stray bits can't land — masks that "should"
-be there sometimes provably aren't needed, and the compiler knows.
+Expect two variations. If the field does not end at bit 0, the new value gets
+an `sll` to move it into position. The shift amount is the field's distance
+from the bottom of its byte or word. Also, IDO *leaves out* the `andi` that
+clips the value when the shift and the narrow store already make sure no
+stray bits can get in. Sometimes a mask you expect is not needed, and the
+compiler can prove it.
 
-The target writes the other field of a 4+4 split byte (context
-below). Read its keep-mask's hole and its shift, then write the one
-assignment they imply.
+The target writes the other field of a byte split 4+4 (see the context
+below). Read the hole in its keep-mask and its shift, then write the one
+assignment they point to.
 
 ## Your task
 

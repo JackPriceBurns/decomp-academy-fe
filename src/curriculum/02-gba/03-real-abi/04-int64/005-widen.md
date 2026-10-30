@@ -9,21 +9,21 @@ concepts:
   - memory
 symbol: func_0839d578
 hints:
-  - "`asr rX, rY, #31` and `mov rX, #0` are both building a high half out of
-    nothing. Which one appears depends on the signedness of the value being
-    widened."
-  - Three parameters - an `s32`, a `u32` and an `s64 *` - and nothing returned.
-    The two 8-byte slots at +0 and +8 each receive one of them.
+  - "`asr rX, rY, #31` and `mov rX, #0` both build a new high half. Which one
+    appears depends on whether the value being widened is signed."
+  - It takes three parameters (an `s32`, a `u32` and an `s64 *`) and returns
+    nothing. The two 8-byte slots at +0 and +8 each get one of the first two
+    parameters.
 ---
 
-# Inventing a high half
+# Building a high half
 
-A 32-bit value promoted to 64 bits needs a high half that does not exist yet,
-and the compiler has exactly two ways to invent one. For a signed value the high
-half is the sign bit repeated 32 times, which is `asr rHi, rLo, #31`. For an
-unsigned value it is `mov rHi, #0`. Every widening in every listing is one of
-those two instructions, and spotting which one tells you the signedness of the
-value that was widened.
+When a 32-bit value is promoted to 64 bits, it needs a high half that does not
+exist yet. The compiler has exactly two ways to create one. For a signed value,
+the high half is the sign bit repeated 32 times, which is `asr rHi, rLo, #31`.
+For an unsigned value, it is `mov rHi, #0`. Every widening in every listing uses
+one of those two instructions, and the one you see tells you whether the widened
+value was signed.
 
 Here is a sum of two 32-bit values done in 64-bit arithmetic:
 
@@ -42,13 +42,14 @@ Here is a sum of two 32-bit values done in 64-bit arithmetic:
 ```
 
 `asr r4, r3, #31` and `asr r2, r1, #31` fill the high halves of both operands,
-and then the usual `add`/`adc` runs on the two pairs. The interesting part is
-`push {r4, lr}`: this function calls nothing and touches no memory, yet it opens
-a stack frame. Each operand has to occupy a *consecutive* pair, and the two
-incoming values are already adjacent in `r0` and `r1`, so one of them is moved
-up out of the way and the pair it lands in reaches as far as `r4`.
+and then the usual `add`/`adc` runs on the two pairs. Look at `push {r4, lr}`.
+This function calls nothing and touches no memory, but it still opens a stack
+frame. Each operand has to sit in a *consecutive* pair of registers. The two
+incoming values are already next to each other in `r0` and `r1`, so one of them
+is moved up out of the way, and the pair it moves into reaches as far as `r4`.
 
-The same arithmetic, widened one step later, is a different function:
+If the widening happens one step later, the same arithmetic gives a different
+function:
 
 ```asm
 0        mov       r2, r0
@@ -59,11 +60,12 @@ The same arithmetic, widened one step later, is a different function:
 10       bx        lr
 ```
 
-Add first in 32 bits, then fill the high half once. Six instructions, no frame,
-no saved register. Casting only one of the operands would not have helped
-either - the other is promoted implicitly and you get the first listing back.
-The two spellings differ in what happens on overflow, which is exactly why you
-have to read the assembly instead of guessing.
+This version adds in 32 bits first, then fills the high half once. It is six
+instructions, with no frame and no saved register. Casting only one of the
+operands would not give you this version. The other operand is promoted
+implicitly, and you get the first listing back. The two ways of writing it give
+different results on overflow, so you have to read the assembly instead of
+guessing which one the source used.
 
 Your target contains both fills, and the offsets tell you where each result
 went.

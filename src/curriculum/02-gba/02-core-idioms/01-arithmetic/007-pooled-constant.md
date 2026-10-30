@@ -9,18 +9,19 @@ concepts:
   - immediates
 symbol: func_0804f1b8
 hints:
-  - A pool word larger than 2147483648 is a negative number - subtract
+  - A pool word larger than 2147483648 is a negative number. Subtract
     4294967296 to read it. The `add` that uses it is gcc's rewrite of a
     subtraction.
-  - "Two `s32` parameters in, an `s32` out. The register arithmetic is first
-    minus second, and the pooled constant is 4660 being taken away."
+  - The function takes two `s32` parameters and returns an `s32`. The register
+    arithmetic is the first parameter minus the second, and then the pooled
+    constant 4660 is subtracted.
 ---
 
 # The number is in the listing, and it may be negative
 
-When no small value shifted left reaches the constant, gcc gives up on building
-it and parks the full 32-bit word in the literal pool after the function, then
-loads it:
+Sometimes no small value shifted left gives the constant. Then gcc does not
+build it. Instead, it stores the full 32-bit word in the literal pool after the
+function, and loads it from there:
 
 ```asm
 0        ldr       r1, [pc, #4] (->8)
@@ -30,12 +31,11 @@ loads it:
 8        .word     5000
 ```
 
-5000 is 625 << 3, and 625 does not fit in the eight-bit `mov`, so the pool it is.
-The `.word` is the constant, printed in decimal, and reading it back is a matter
-of copying the number.
+5000 is 625 << 3, and 625 does not fit in the eight-bit `mov`, so the constant
+goes in the pool. The `.word` line is the constant, printed in decimal. To read
+it back, copy the number.
 
-Then there is the case that catches everyone. Here is a function subtracting
-300:
+Watch out for one case. Here is a function that subtracts 300:
 
 ```asm
 0        ldr       r2, [pc, #4] (->8)
@@ -45,24 +45,24 @@ Then there is the case that catches everyone. Here is a function subtracting
 8        .word     4294966996
 ```
 
-The instruction is an `add`, and the constant is enormous. Both of those are the
-same fact: gcc rewrites `value - K` as `value + (-K)`, and −300 stored in 32 bits
-is 4294967296 − 300 = 4294966996. To read a pool word, check whether it is above
-2147483648; if it is, subtract 4294967296 and you have the negative number the
-source actually wrote.
+The instruction is an `add`, and the constant is very large. Both have the same
+cause. gcc rewrites `value - K` as `value + (-K)`, and −300 stored in 32 bits is
+4294967296 − 300 = 4294966996. To read a pool word, check whether it is
+above 2147483648. If it is, subtract 4294967296, and you get the negative number
+that the source wrote.
 
-This is why **every** subtraction of a constant past 255 comes out as a pool
-load. A negative number can never be a small value shifted left, so the
-`mov`/`lsl` trick from the last lesson is unavailable no matter how tidy the
-constant looks in decimal. Adding 1024 is three instructions; subtracting 1024 is
-a pool word.
+This is why **every** subtraction of a constant above 255 becomes a pool load.
+A negative number can never be a small value shifted left. So the `mov`/`lsl`
+method from the last lesson cannot be used, however round the constant looks in
+decimal. Adding 1024 takes three instructions. Subtracting 1024 needs a pool
+word.
 
-One last detail from the two listings above: the `.hword 0` between the code and
-the `.word` is alignment padding, because a word has to start at a multiple of
-four and both functions ended at address 6. A function whose code already ends on
-a multiple of four gets no padding row, so the pool word sits directly after
-`bx lr`. Neither row is an instruction — but both are part of the function you
-are matching.
+One last detail from the two listings above. The `.hword 0` between the code and
+the `.word` is alignment padding. A word has to start at a multiple of four, and
+both functions ended at address 6. If a function's code already ends on a
+multiple of four, it gets no padding row, and the pool word comes straight after
+`bx lr`. Neither row is an instruction, but both are still part of the function
+you are matching.
 
 ## Your task
 

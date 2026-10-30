@@ -1,7 +1,7 @@
 ---
 id: 5d5359b1-ee3f-4570-9fff-1e4c8fe0e4e4
 slug: opt-level-o1
-title: "Reading a Different Dialect: -O1"
+title: "Recognizing Code Built at -O1"
 difficulty: 3
 concepts:
   - optimizer
@@ -11,20 +11,20 @@ concepts:
 opt: O1
 symbol: func_80354d64
 hints:
-  - "Two locals live on the stack. The slot that gets scaled by 4 is the index; the slot that accumulates is the sum — and which offset each sits at follows your declaration order."
+  - "Two locals live on the stack. The slot that gets scaled by 4 is the index, and the slot that accumulates is the sum. Which offset each one gets follows your declaration order."
   - "The guard is `blez` before the loop, and the bottom test is `slt` against `n`. It's still a plain three-line `for` loop."
 ---
 
-# Same C, different world
+# The same C at a different level
 
-Not every file in a real game ships at `-O2`. Some are built at **`-O1`**, and
-you must be able to *recognize* the dialect before you can match it. Here's
-`sum16(p)` — the exact function whose ×4-unrolled `-O2` form you read a few
-lessons ago — compiled at `-O1`:
+Not every file in a real game is built at `-O2`. Some are built at **`-O1`**,
+and you need to *recognize* that style before you can match it. Here is
+`sum16(p)`, the same function whose ×4-unrolled `-O2` form you read a few
+lessons ago, compiled at `-O1`:
 
 ```asm
  0:  addiu  sp, sp, -8        # a frame… in a leaf function?
- 4:  sw     zero, 0(sp)       # sum = 0 — the locals live ON THE STACK
+ 4:  sw     zero, 0(sp)       # sum = 0: the locals live ON THE STACK
  8:  sw     zero, 4(sp)       # i = 0
  c:  lw     t7, 4(sp)         # ── loop: load i…
 10:  lw     t2, 4(sp)         # …and load i AGAIN (yes, really)
@@ -43,20 +43,21 @@ lessons ago — compiled at `-O1`:
 44:  addiu  sp, sp, 8
 ```
 
-The fingerprint of `-O1` is unmissable: **locals are not promoted to
-registers.** `i` and `sum` each own a stack slot; every trip loads them,
-computes, and stores them back — it even loads `i` twice rather than reuse
-the register. No unrolling, no clever scheduling, a leaf function paying for
-a frame. Twenty instructions where `-O2` used a tight dozen.
+The fingerprint of `-O1` is hard to miss: **locals are not promoted to
+registers.** `i` and `sum` each have their own stack slot. Every trip loads
+them, does the computation, and stores them back. It even loads `i` twice
+instead of reusing the register. There is no unrolling and no clever
+scheduling, and a leaf function pays for a stack frame. This version takes
+twenty instructions, where `-O2` used a tight dozen.
 
-Matching an `-O1` target is mostly *bookkeeping*, and one piece of it is
-yours: each local's stack slot follows its position in your declarations.
-If the diff shows your two locals swapped between `0(sp)` and `4(sp)`,
-swap their declaration order — the code is right, the slots aren't.
+Matching an `-O1` target is mostly *bookkeeping*, and one part of it is up to
+you: each local's stack slot follows its position in your declarations. If the
+diff shows your two locals swapped between `0(sp)` and `4(sp)`, swap their
+declaration order. The code is correct, and only the slot order is wrong.
 
-For this exercise the grader compiles your C at `-O1`, matching the target.
-The function sums the first `n` words of an array — same job as the worked
-example but with a runtime count, so watch how the loop guards and tests `n`.
+For this exercise the grader compiles your C at `-O1`, the same as the target.
+In the target, the loop count is not a constant. Call that count `n`, and watch
+how the loop guards and tests it.
 
 ## Your task
 

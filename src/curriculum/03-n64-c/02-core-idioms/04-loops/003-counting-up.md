@@ -1,7 +1,7 @@
 ---
 id: b748d155-70e8-4759-b6c2-bcb90cb1c159
 slug: loops-counting-up
-title: "Counting Up: slt Joins the Loop"
+title: "Counting Up: slt in the Loop Test"
 difficulty: 2
 concepts:
   - loops
@@ -10,17 +10,17 @@ concepts:
   - delay-slots
 symbol: func_801d2344
 hints:
-  - "The accumulator starts at a non-zero value — the first `addiu` from `zero` sets it. The slot's immediate is the per-trip step."
-  - "Two registers initialize before the loop; the one compared by `slt` against `a0` is the counter, the other is your result."
+  - "The accumulator starts at a non-zero value, set by the first `addiu` from `zero`. The immediate in the delay slot is the step on each trip."
+  - "Two registers are set up before the loop. The one that `slt` compares against `a0` is the counter. The other one is your result."
 ---
 
 # When the test needs two registers
 
-`bgtz` could carry the whole test last lesson because the comparison was
-against zero. Count *up* toward a limit and the back-edge needs help — the
-`slt` family you know from the control chapter clocks in, right at the
-bottom of the loop. Here's `tally`, which adds 2 to a total, `n` times, with
-an `i` counting up:
+In the last lesson, `bgtz` could do the whole test because the comparison
+was against zero. When you count *up* toward a limit, the back-edge needs
+help. The `slt` family from the control chapter appears here, at the bottom
+of the loop. Here is `tally`, which adds 2 to a total `n` times, with an `i`
+that counts up:
 
 ```c
 s32 tally(s32 n) {
@@ -46,24 +46,24 @@ s32 tally(s32 n) {
 20:  nop
 ```
 
-The back-edge is now a *pair*: `slt` computes the C condition into `at`, and
-`bnez at` loops while it holds. Read them as one unit — `slt` + `bnez` =
-`while (i < n)`, exactly as written, no flipping on a back-edge.
+The back-edge is now a *pair*. `slt` computes the C condition into `at`, and
+`bnez at` loops while it is true. Read the two as one unit: `slt` + `bnez`
+means `while (i < n)`, exactly as written. A back-edge is never flipped.
 
-Everything else is the ritual you know: both locals zeroed via `or` from
-`zero` before the loop, the body op riding the slot, the accumulator copied
-to `v0` at the end. Notice IDO put `i++` at the *top* and the `t += 2` in
-the slot — again reordered from the C, again preserving only the per-trip
-count.
+The rest is what you already know. Both locals are set to zero with `or` from
+`zero` before the loop, one body operation sits in the delay slot, and the
+accumulator is copied to `v0` at the end. Notice that IDO put `i++` at the
+*top* and `t += 2` in the slot. Again the order differs from the C, and again
+only the number of updates per trip is kept.
 
-One register-allocation quirk worth filing: `v0` holds `i` during the loop,
-then gets reused to hold the return value after. Registers are recycled the
-moment their old job ends — never assume one register means one C variable
-for a whole function.
+One detail of register allocation to remember: `v0` holds `i` during the
+loop, and afterwards it is reused for the return value. The compiler reuses a
+register as soon as its old job is done. Never assume that one register means
+one C variable for a whole function.
 
-The target is the same skeleton: one counter, one accumulator — but the
-accumulator neither starts at zero nor steps by 2. Two immediates in the
-listing tell you both numbers.
+The target has the same structure, with one counter and one accumulator. But
+the accumulator does not start at zero, and it does not step by 2. Two
+immediates in the listing give you both numbers.
 
 ## Your task
 

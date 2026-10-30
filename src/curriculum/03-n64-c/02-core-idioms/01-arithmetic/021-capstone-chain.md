@@ -10,39 +10,41 @@ concepts:
   - capstone
 symbol: func_801b6710
 hints:
-  - "Split the listing at the register boundary — the instruction that starts the `t7` chain marks where the multiply begins, and its source register is what's being multiplied."
-  - "The shift chain touches its own intermediate, never a lone argument — so the ×1 add/sub steps use the *parenthesized value*, not `a0`."
+  - "Split the listing where the registers change. The instruction that starts the `t7` chain marks where the multiply begins, and its source register holds the value being multiplied."
+  - "The shift chain works on its own intermediate value, never on a single argument. So the ×1 add or subtract steps use the *value in parentheses*, not `a0`."
 ---
 
 # Assembling the pieces
 
-Time to read a whole expression cold. When a multiply chain's *input* is
-itself a computed value, the decode has two layers: figure out what value the
-chain is feeding on, then run the margin math. Here's `(p - q) * 10 + 3`:
+Now you will read a whole expression with no help. When the *input* of a
+multiply chain is itself a computed value, decoding has two steps. First, find
+the value the chain works on. Then track the running multiplier through the
+chain. Here's `(p - q) * 10 + 3`:
 
 ```asm
-subu  v0, a0, a1    # v0 = p - q          — the value being multiplied
+subu  v0, a0, a1    # v0 = p - q          (the value being multiplied)
 sll   t6, v0, 2     # t6 = (p-q) * 4
-addu  t6, t6, v0    # t6 = (p-q) * 5      — note: adds v0, NOT a0!
+addu  t6, t6, v0    # t6 = (p-q) * 5      (note: adds v0, NOT a0!)
 sll   t6, t6, 1     # t6 = (p-q) * 10
 addiu v0, t6, 3     # v0 = (p-q)*10 + 3
 jr    ra
 nop
 ```
 
-The read that matters is on line three. In a bare `× 5` the `addu` folds in the
-argument register; here it folds in **`v0`, the subtraction's result** —
-because the thing being quintupled is `(p − q)`, not `p`. The chain's ±1 steps
-always reference *the chain's own input*, whatever register that lives in.
-Spot that register once, at the first `sll`, and carry it through.
+The important line is line three. In a plain `× 5`, the `addu` adds the
+argument register. Here it adds **`v0`, the result of the subtraction**,
+because the value being multiplied is `(p − q)`, not `p`. The ±1 steps of a
+chain always use *the chain's own input*, whatever register holds it. Find
+that register once, at the first `sll`, and use it all the way through.
 
-So the general decode for compound arithmetic:
+So the general method for compound arithmetic is:
 
 1. Find the sub-expression: the instructions before the first `sll`, and the
-   register they leave their result in.
-2. Run margin math on the chain, reading "the input" as that register.
-3. Attach whatever trails the chain — here a constant, in the target below
-   something else you've seen.
+   register that holds their result.
+2. Track the running multiplier through the chain, reading "the input" as that
+   register.
+3. Apply whatever comes after the chain. Here that is a constant. In the
+   target below, it is something else you have seen.
 
 ## Your task
 

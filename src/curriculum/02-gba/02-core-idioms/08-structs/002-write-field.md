@@ -10,21 +10,24 @@ concepts:
 hints:
   - A load and a store at the same offset, with arithmetic in between, is one
     field being updated in place.
-  - "A `struct Cursor *` and an `s32` in, nothing out. The `mov r1, #1` parks a
-    literal in a register so the `str` after it has something to store."
+  - "The function takes a `struct Cursor *` and an `s32`, and returns nothing.
+    The `mov r1, #1` puts a constant in a register so that the `str` after it
+    has a value to store."
 symbol: func_08241220
 ---
 
-# Storing through a field name
+# Storing to a field
 
-A store uses the same addressing as a load: `str rV, [rB, #offset]`, with the
-value first and the base second. Thumb has no store-immediate form, so a
-constant being written to a field always arrives in two steps — a `mov` to get
-the constant into a register, then the `str`.
+A store uses the same addressing as a load: `str rV, [rB, #offset]`. The value
+register comes first and the base register second. Thumb has no instruction
+that stores an immediate value. So writing a constant to a field always takes
+two steps: a `mov` puts the constant into a register, and then the `str` stores
+it.
 
-Register traffic tells you whether there is a result at all. A value leaves in
-`r0`, so when `r0` is still serving as a base register at the last instruction,
-it was never rebuilt and nothing is going back to the caller.
+The registers also tell you whether the function returns anything. A return
+value leaves in `r0`. If `r0` is still being used as a base register at the
+last instruction, it was never rebuilt with a result, so nothing goes back to
+the caller.
 
 Here is a function that writes two fields of a score record:
 
@@ -36,15 +39,15 @@ Here is a function that writes two fields of a score record:
 8        bx        lr
 ```
 
-`r1` is the second argument and it goes straight into the field at offset 4.
-Then the field at offset 0 is loaded, added to that same `r1`, and the sum is
-stored at offset 8. Three fields touched, and `r0` is never disturbed because
-the function has no value to return.
+`r1` is the second argument, and it is stored directly into the field at
+offset 4. Then the field at offset 0 is loaded and added to that same `r1`, and
+the sum is stored at offset 8. The function touches three fields. `r0` never changes,
+because the function has no value to return.
 
-The shape to learn here is the one at instructions 0 to 4 of your own target: a
-load from an offset, an arithmetic instruction, and a store back to *the same*
-offset. That is a field being updated in place — one C statement, three
-instructions, and no temporary variable in the original source.
+The pattern to learn here is the one at instructions 0 to 4 of your own target:
+a load from an offset, an arithmetic instruction, and a store back to *the same*
+offset. That is a field being updated in place. It is one C statement and three
+instructions, and the original source used no temporary variable.
 
 ## Your task
 

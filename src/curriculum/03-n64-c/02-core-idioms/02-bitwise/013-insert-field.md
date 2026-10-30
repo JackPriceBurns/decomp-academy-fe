@@ -9,45 +9,45 @@ concepts:
   - fingerprints
 symbol: func_800ba3d4
 hints:
-  - "Two AND lines prepare the two ingredients — one clears the slot in `x`, the other clips the new value — and the `or` merges them. Each AND's constant tells you the slot."
-  - "The negative `addiu` constant is the inverted mask from the clear-bits lesson; the `andi` mask is its positive twin."
+  - "Two AND lines prepare the two parts. One clears the slot in `x`, and the other clips the new value. Then the `or` merges them. The constant in each AND tells you where the slot is."
+  - "The negative `addiu` constant is the inverted mask from the lesson on clearing bits. The `andi` mask is the positive form of the same mask."
 ---
 
-# Clear the slot, drop in the new value
+# Clear the slot, then put in the new value
 
-The last packing trick: replacing one field inside a word while leaving the
-rest untouched. It's the previous two lessons glued together — *clear* the
-field's bits in the old word, *clip* the new value to the field's width, *OR*
-the pieces. Here's the low nibble (4 bits) being replaced:
+The last packing technique replaces one field inside a word and leaves the
+rest unchanged. It combines what you learned about clearing bits and packing
+values: *clear* the field's bits in the old word, *clip* the new value to the
+field's width, and *OR* the two pieces together. Here the low nibble (4 bits)
+is replaced:
 
 ```asm
-addiu at, zero, -16   # 0xfffffff0 — everything EXCEPT the low nibble
+addiu at, zero, -16   # 0xfffffff0: everything EXCEPT the low nibble
 and   t6, a0, at      # x with its low nibble cleared to zero
 andi  t7, a1, 0xf     # the new value, clipped to nibble width
-or    v0, t6, t7      # slot the new nibble into the hole
+or    v0, t6, t7      # put the new nibble into the cleared slot
 jr    ra
 nop
 ```
 
-You've met every piece. The `addiu`-negative-then-`and` is the bit-clear
-idiom — -16 sign-extends to `0xfffffff0`, which is `~0xf`. The `andi 0xf`
-clips the incoming value with the *positive* twin of that same mask. And the
-`or` pastes them, safe because the clear guaranteed the two sides share no
-bits.
+You have seen every piece before. The negative `addiu` followed by `and` is
+the bit-clear idiom. The constant -16 sign-extends to `0xfffffff0`, which is
+`~0xf`. The `andi 0xf` clips the incoming value with the *positive* form of
+that same mask. Then the `or` combines them. This is safe because the clear
+made sure the two sides share no bits.
 
-In C, that reads exactly the way you'd say it:
+In C, it reads the way you would describe it:
 
 ```c
 (x & ~0xf) | (y & 0xf)
 ```
 
-The tell that you're looking at an *insert*, not two unrelated masks: **the
-two AND constants are inverses of each other**. Spot a negative
-`addiu`+`and` whose mask is the complement of a nearby `andi`, and you know a
-field is being swapped out.
+To tell an *insert* apart from two unrelated masks, check whether **the two
+AND constants are inverses of each other**. If a negative `addiu`+`and` uses
+the complement of the mask in a nearby `andi`, a field is being replaced.
 
-The target replaces a wider field. Recover the mask from the negative
-constant (remember: `~m` is `-m - 1`) and write the clear-clip-merge in C.
+The target replaces a wider field. Recover the mask from the negative constant
+(remember that `~m` is `-m - 1`), then write the clear, clip and merge in C.
 
 ## Your task
 

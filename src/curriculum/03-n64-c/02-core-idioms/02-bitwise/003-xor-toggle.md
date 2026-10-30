@@ -8,17 +8,18 @@ concepts:
   - immediates
 symbol: func_800f020c
 hints:
-  - "`xori`'s immediate marks the bits being flipped — the C operator is `^`
-    with that constant."
-  - "Two bits are toggled in the target; the constant names both at once."
+  - "The `xori` immediate marks the bits that are flipped. The C operator is `^`,
+    used with that constant."
+  - "The target toggles two bits, and one constant names both of them."
 ---
 
 # XOR as a toggle
 
-The third mask operator: XOR gives 1 where the inputs *differ*. Against a
-constant, that means the mask's ones **flip** the corresponding input bits —
-on becomes off, off becomes on — while the zeros pass through. The immediate
-form is `xori`. Here's the low byte being inverted:
+XOR is the third mask operator. It gives a 1 where the two inputs *differ*.
+With a constant, each 1 in the mask **flips** the matching input bit: a bit
+that is on turns off, and a bit that is off turns on. The zeros in the mask
+leave their bits unchanged.
+The immediate form is `xori`. Here it inverts the low byte:
 
 ```asm
 xori v0, a0, 0xff   # flip bits 0-7, keep the rest
@@ -26,20 +27,22 @@ jr   ra
 nop
 ```
 
-In C: `x ^ 0xff`. Run it twice and you'd get the original back — XOR undoes
-itself, which is exactly why game code loves it for state that alternates:
-blinking visibility, ping-pong directions, parity counters.
+In C this is `x ^ 0xff`. If you apply it twice, you get the original value
+back, because XOR undoes itself. That is why game code uses it for state that
+switches back and forth, such as blinking visibility, directions that reverse,
+and parity counters.
 
-That completes the trio, and it's worth pinning the three side by side,
-because reading them at a glance is the skill:
+That completes the three mask operators. Here they are side by side, because
+you need to tell them apart at a glance:
 
-- `andi` — the mask's ones are the bits **kept**.
-- `ori` — the ones are the bits **forced on**.
-- `xori` — the ones are the bits **flipped**.
+- `andi`: the mask's ones are the bits **kept**.
+- `ori`: the ones are the bits **forced on**.
+- `xori`: the ones are the bits **flipped**.
 
-Same encoding, same zero-extended immediate, three different verbs. When
-you're decoding, the mnemonic picks the C operator and the immediate rides
-across unchanged — there's genuinely nothing else to derive.
+All three have the same encoding and the same zero-extended immediate. Only
+the operation is different. When you decode one, the mnemonic tells you the C
+operator, and the immediate goes into the C unchanged. There is nothing else
+to work out.
 
 ## Your task
 

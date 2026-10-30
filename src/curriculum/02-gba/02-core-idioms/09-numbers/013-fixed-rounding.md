@@ -9,18 +9,19 @@ concepts:
   - signed-shift
 symbol: func_082b53e8
 hints:
-  - 383 is two biases added together — the one the source asked for and the one
-    the compiler adds for a signed division. Subtract 255 to recover the first.
-  - "Two `s32` in, an `s32` out. The scale-down is written as a division rather
-    than a shift, which is what brings the compiler's own bias into it, and the
+  - "383 is two biases added together: the one the source asked for and the one
+    the compiler adds for a signed division. Subtract 255 to get the first one
+    back."
+  - "Two `s32` in, an `s32` out. The scale-down is written as a division
+    instead of a shift. That is what brings in the compiler's own bias. The
     rounding term is half of that divisor."
 ---
 
-# Two biases meet in the pool
+# Two biases combined in the pool
 
-An arithmetic right shift throws the fractional bits away, which means it
-always rounds **down** — toward negative infinity. Adding half a unit first
-turns that into rounding to nearest:
+An arithmetic right shift discards the fractional bits, so it always rounds
+**down**, toward negative infinity. If you add half a unit first, it rounds to
+the nearest value instead:
 
 ```asm
 0        mul       r0, r1
@@ -29,11 +30,12 @@ turns that into rounding to nearest:
 6        bx        lr
 ```
 
-A Q4 product shifted down by 4, with 8 added first because 8 is half of 16.
-For Q8 the bias would be 128, for Q12 it would be 2048. One extra instruction
-buys you a result that is off by at most half a unit instead of always low.
+This is a Q4 product shifted down by 4. It adds 8 first, because 8 is half
+of 16. For Q8 the bias would be 128, and for Q12 it would be 2048. For one
+extra instruction, the result is off by at most half a unit, instead of always
+being too low.
 
-Now write the same scale-down as a division and watch a second bias appear:
+Now write the same scale-down as a division, and a second bias appears:
 
 ```asm
 0        mul       r0, r1
@@ -45,22 +47,24 @@ Now write the same scale-down as a division and watch a second bias appear:
 ```
 
 This is the pattern from the division chapter. C requires `/` to truncate
-toward zero, `asr` rounds toward negative infinity, and the two disagree for
-negative values — so gcc adds 2^n - 1 first, but only when the value is
-negative, which is what the `cmp` and `bge` are for. `>> 4` and `/ 16` are the
-same instruction for positive numbers and different code entirely once a sign
-is possible.
+toward zero, but `asr` rounds toward negative infinity. The two give different
+results for negative values. So gcc adds 2^n minus 1 first, but only when the
+value is negative. That is what the `cmp` and `bge` are for. For positive
+numbers, `>> 4` and `/ 16` are the same instruction. Once the value can be
+negative, they compile to different code.
 
-Put both biases in one expression and they meet. The bias the source wrote is a
-constant, the compiler's sign fix-up is a constant, and on the negative path
-both are added to the same product — so gcc adds them together at compile time
-and fetches the sum. The positive path still carries the bias your C contains as
-a plain immediate; the negative path gets the combined number, and since Thumb's
-`add` immediates stop at 255 that number arrives from the literal pool.
+If you put both biases in one expression, gcc combines them. The bias the
+source wrote is a constant, and the compiler's sign correction is also a
+constant. On the negative path, both are added to the same product. So gcc adds
+the two together at compile time and loads the sum. The positive path still
+adds the bias from your C as a plain immediate. The negative path gets the
+combined number. Thumb's `add` immediates only go up to 255, so that number is
+loaded from the literal pool.
 
-That fold is the whole lesson. When a fixed-point listing shows a bias you
-cannot account for, check whether it is a sum of two — and your target's pool
-word is exactly that. Work back from it to the constant the source contained.
+That combining step is the main point of this lesson. When a fixed-point
+listing shows a bias you cannot explain, check whether it is the sum of two
+biases. Your target's pool word is exactly that. Work back from it to the
+constant in the source.
 
 ## Your task
 

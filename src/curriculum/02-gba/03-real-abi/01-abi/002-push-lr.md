@@ -10,30 +10,30 @@ concepts:
 symbol: func_082e1e70
 hints:
   - The four instructions between the push and the `bl` build both outgoing
-    arguments; one is a constant, the other is a small multiply done with a
-    shift and an add.
-  - One `s32` in, an `s32` out. The whole body is a single call whose result is
-    returned untouched.
+    arguments. One argument is a constant. The other is a small multiply, done
+    with a shift and an add.
+  - The function takes one `s32` and returns an `s32`. The whole body is a
+    single call, and the result of that call is returned unchanged.
 ---
 
-# push {lr}, and the return that is never pop {pc}
+# push {lr}, and a return without pop {pc}
 
-`bl` does two things: it jumps, and it writes the address of the following
-instruction into `lr`. That second half is destructive. If your function already
-had a return address in `lr` — and it did, because that is how it was called —
-the call obliterates it.
+`bl` does two things. It jumps, and it writes the address of the next
+instruction into `lr`. The second part is destructive. Your function already
+had a return address in `lr`, because that is how it was called, and the call
+overwrites it.
 
-So any function containing a `bl` has to stash `lr` somewhere first, and the
-cheapest somewhere is the stack: `push {lr}` at the top, restore at the bottom.
-What it does *not* do is restore straight into `pc`. On the ARM7TDMI a
-`pop {pc}` loads the program counter without switching instruction sets, which
-breaks a Thumb function returning to an ARM caller. With `-mthumb-interwork` gcc
-refuses to emit it at all, so the return is always two steps: pop the address
-into a spare low register, then `bx` that register.
+So any function that contains a `bl` must save `lr` somewhere first. The
+cheapest place is the stack: `push {lr}` at the top, and a restore at the
+bottom. The restore does not load the address straight back into `pc`. On the
+ARM7TDMI, `pop {pc}` loads the program counter without switching instruction
+sets, which breaks a Thumb function that returns to an ARM caller. With
+`-mthumb-interwork`, gcc never emits it. The return always takes two steps: pop
+the address into a spare low register, then `bx` that register.
 
-*Which* spare register is free information. gcc takes the lowest one that is not
-carrying a result. Compare a function that returns nothing with one that returns
-a value:
+The spare register gcc picks gives you useful information. It takes the lowest
+register that is not holding a result. Compare a function that returns nothing
+with one that returns a value:
 
 ```asm
 0        push      {lr}
@@ -53,16 +53,16 @@ a value:
 12       bx        r1
 ```
 
-The first returns `void`, so `r0` is dead the moment the call comes back and the
-return address goes there. The second returns 32 bits in `r0`, so `r0` is
-occupied and the address goes into `r1` instead. A 64-bit result fills `r0` and
-`r1` together and pushes the return address up to `r2`. Read the last two
-instructions of any non-leaf and you know the width of its return type before
-you have written a line of C.
+The first function returns `void`, so `r0` is no longer needed once the call
+comes back, and the return address goes there. The second returns 32 bits in
+`r0`, so `r0` is in use and the address goes into `r1` instead. A 64-bit result
+fills both `r0` and `r1`, which moves the return address up to `r2`. So the
+last two instructions of any non-leaf function tell you the width of its return
+type before you write any C.
 
-Both listings also show the `-4` on the branch target. That is the workspace
-rendering the relocation's addend, not an instruction that does anything
-different; `bl emitPixel-4` is a plain call to `emitPixel`.
+Both listings also show `-4` on the branch target. This is how the workspace
+displays the relocation's addend. It does not change what the instruction does:
+`bl emitPixel-4` is a plain call to `emitPixel`.
 
 ## Your task
 

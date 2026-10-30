@@ -9,15 +9,16 @@ concepts:
   - control-flow
 symbol: func_8001f490
 hints:
-  - "The `addiu`'s constant is negative. What must the original case numbers have been for the slid range to start at zero?"
-  - "Count cases from the `sltiu`, then read each body's return constant in order from the first slid case upward."
+  - "The constant in the `addiu` is negative. What must the original case numbers be for the slid range to start at zero?"
+  - "Get the number of cases from the `sltiu`. Then read each body's return constant in order, starting from the first slid case."
 ---
 
-# Slide first, then look up
+# Slide the range first, then look up
 
-A jump table wants indexes starting at 0, but nothing says your cases start
-there. When they run, say, 20 through 25, IDO adds one instruction and
-carries on. Here's `slotFee(n)`, which prices slots 20–25:
+A jump table needs indexes that start at 0, but your cases might start
+somewhere else. If they run from 20 to 25, for example, IDO adds one
+instruction and then builds the table as usual. Here is `slotFee(n)`, which
+prices slots 20 to 25:
 
 ```asm
  0:  addiu  t6, a0, -20          # slide the range: case 20 becomes index 0
@@ -46,22 +47,24 @@ carries on. Here's `slotFee(n)`, which prices slots 20–25:
 5c:  nop
 ```
 
-One new line — `addiu t6, a0, -20` — and everything after is the machinery
-you already know, running on the *slid* value. Recovering the real case
-numbers is arithmetic: the slide is −20 and the `sltiu` allows 6 values, so
-the cases are 20 through 25. Everything in the C stays in original numbering;
-only the assembly does the sliding.
+There is one new line, `addiu t6, a0, -20`. It *slides* the range down so
+that it starts at 0. Everything after it is the code you already know,
+running on the slid value. To recover the real case numbers, do the
+arithmetic: the slide is −20 and the `sltiu` allows 6 values, so the cases
+are 20 to 25. Your C keeps the original case numbers. Only the assembly does
+the sliding.
 
-Two details to keep straight:
+Two details to remember:
 
-- **The slide and the bounds check compose.** `n < 20` wraps around to a huge
-  unsigned value after the subtraction, so the single `sltiu` still rejects
-  both too-small and too-large.
-- **Body order is slid-index order** — which is just case order. First body
-  after the dispatcher is the lowest case.
+- **The slide and the bounds check work together.** If `n < 20`, the
+  subtraction gives a negative result, which is a very large value when read
+  as unsigned. So the single `sltiu` still rejects values that are too small
+  and values that are too large.
+- **The bodies come in slid-index order**, which is the same as case order.
+  The first body after the dispatcher is the lowest case.
 
-The target slides by a different amount and holds a different number of
-cases. Do the arithmetic before writing any C.
+The target slides by a different amount and has a different number of cases.
+Do the arithmetic before you write any C.
 
 ## Your task
 

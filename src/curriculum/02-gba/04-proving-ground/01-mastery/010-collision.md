@@ -9,23 +9,31 @@ concepts:
   - boolean-logic
 symbol: func_08422910
 hints:
-  - "A register seeded with 0 before any work, a `mov #1` at the very bottom, and every failing branch aimed at the same address - that is a short-circuited `&&` chain producing a flag. Four branches out means four conditions."
-  - Each test compares one box's edge against the other box's edge plus its extent. Offsets 0 and 8 are one axis, 4 and 12 are the other; watch which of the two pointers each `ldr` reads from.
-  - '"Two `Box *` go in and an `s32` comes out. The source conditions use `<`, which the compiler inverted into `bge`, and the box that owns the bare coordinate is on the left of each comparison.'
+  - "Suppose a register is set to 0 before any work, a `mov #1` is at the very
+    bottom, and every failing branch goes to the same address. Then the code is
+    a short-circuited `&&` chain that produces a flag. Four branches out means
+    four conditions."
+  - "Each test compares an edge of one box with the other box's edge plus its
+    extent. Offsets 0 and 8 are one axis, and 4 and 12 are the other. Watch
+    which of the two pointers each `ldr` reads from."
+  - "Two `Box *` go in and an `s32` comes out. The source conditions use `<`,
+    which the compiler inverted into `bge`. In each comparison, the box that
+    supplies the plain coordinate is on the left."
 ---
 
 # Four questions, one answer
 
 Two axis-aligned rectangles overlap only if they overlap horizontally *and*
-vertically, and each axis takes two comparisons - one for each box being to the
-left of the other. Four tests, and the first one that fails settles it, which is
-exactly what `&&` promises.
+vertically. Each axis needs two comparisons, one for each box being to the left
+of the other. That makes four tests, and the first one that fails decides the
+result. This is exactly how `&&` behaves.
 
-gcc 2.9 has a fixed skeleton for that. It seeds a register with 0 before any of
-the work happens, tests each condition with its comparison **inverted** so a
-failure branches forward, and puts a `mov rN, #1` at the bottom that only
-executes if control fell all the way through. Every failure branch aims at the
-same address, because the compiler merged the identical exits into one:
+gcc 2.9 always compiles this with the same structure. It sets a register to 0
+before any of the work happens. It tests each condition with its comparison
+**inverted**, so that a failure branches forward. At the bottom it puts a
+`mov rN, #1`, which only runs if control reached the end without branching.
+Every failure branch goes to the same address, because the compiler merged the
+identical exits into one:
 
 ```asm
 0        mov       r3, #0
@@ -38,11 +46,12 @@ same address, because the compiler merged the identical exits into one:
 14       bx        lr
 ```
 
-`r3` is the answer, set up before the first `cmp`. The source asked `v >= lo`,
-so the escape is `blt`; it asked `v <= hi`, so the escape is `bgt`. Reading the
-conditions off a listing means flipping every branch you see.
+`r3` holds the answer, and it is set up before the first `cmp`. The source
+tested `v >= lo`, so the exit branch is `blt`. It tested `v <= hi`, so the exit
+branch is `bgt`. To read the conditions from a listing, reverse every branch you
+see.
 
-`||` builds the same pieces the other way round:
+`||` uses the same pieces the other way round:
 
 ```asm
 0        mov       r2, #0
@@ -57,14 +66,15 @@ conditions off a listing means flipping every branch you see.
 18       bx        lr
 ```
 
-Here a *passing* test jumps straight to the `mov r2, #1`, so the `ble` carries
-the condition the source wrote. The last test in the chain has nothing left to
-skip to, so it goes back to the inverted form and its `beq` branches past the
-`mov`. The direction of the jump tells you which operator was written: branches
-away from the `mov #1` are `&&`, branches into it are `||`.
+Here a *passing* test jumps straight to the `mov r2, #1`, so the `ble` has the
+same condition as the source. The last test in the chain has nothing left to
+jump to, so it uses the inverted form again, and its `beq` branches past the
+`mov`. The direction of the jump tells you which operator was written. Branches
+that skip the `mov #1` come from `&&`, and branches that jump to it come from
+`||`.
 
-Your target is four tests deep, and every comparison has an addition on one
-side of it. Take one branch at a time, flip it, and note which base register
+Your target has four tests in a row, and every comparison has an addition on one
+side. Take one branch at a time, reverse it, and note which base register
 supplied each operand.
 
 ## Your task

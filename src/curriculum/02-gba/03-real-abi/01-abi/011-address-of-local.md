@@ -9,22 +9,23 @@ concepts:
   - pointers
 symbol: func_0830a184
 hints:
-  - Eight bytes of frame and nothing stored into it before the call, so both slots are outputs — the call fills them and the two `ldr`s afterwards read them back.
-  - "One `s32` in, an `s32` out. The slot at `[sp, #4]` is the second pointer argument, and the subtraction reads it first."
+  - The frame is eight bytes and nothing is stored into it before the call, so both slots are outputs. The call fills them, and the two `ldr`s afterwards read them back.
+  - "The function takes one `s32` and returns an `s32`. The slot at `[sp, #4]` is the second pointer argument, and the subtraction reads it first."
 ---
 
-# Handing out a pointer to your own frame
+# Passing a pointer into your own frame
 
-Once a local has a slot, `&local` is just that slot's address, and computing it
-is one instruction. The first local sits at the bottom of the frame, so its
-address is `mov r0, sp`; anything above it is `add rN, sp, #offset`. No other
-addressing mode is involved, and the address is materialised at the point of use
-rather than parked in a variable of its own.
+Once a local has a stack slot, `&local` is the address of that slot, and
+computing it takes one instruction. The first local sits at the bottom of the
+frame, so its address is `mov r0, sp`. Any local above it uses
+`add rN, sp, #offset`. No other addressing mode is used. gcc computes the
+address at the point where it is needed, and does not keep it in a variable of
+its own.
 
-The consequence that matters for matching is what happens *after* you hand the
-address over. gcc has no idea what the callee did with it, so the register copy
-it was holding is dead — the slot in memory becomes the only authoritative copy,
-and the value has to be re-read:
+For matching, the important part is what happens *after* you pass the address
+to another function. gcc cannot know what the callee did with it, so it can no
+longer trust the copy of the value it was holding in a register. The slot in
+memory becomes the only reliable copy, and the value must be read again:
 
 ```asm
 0        push      {lr}
@@ -40,18 +41,19 @@ and the value has to be re-read:
 22       bx        r1
 ```
 
-Four bytes of frame for one `s32`. The value is computed in `r0`, stored into the
-slot, the slot's address replaces it in `r0`, and the call runs. Then look at
-address 14: the same value is loaded back out of the same slot rather than kept
-in a saved register, because `refine` was given a pointer to it and may have
-changed it. A local that is only *read* after a call gets copied to `r4`; a local
-whose address escaped gets re-loaded. The difference between those two shapes
-tells you whether a pointer was passed.
+The frame is four bytes, for one `s32`. The value is computed in `r0` and
+stored into the slot. Then the slot's address replaces it in `r0`, and the call
+runs. Now look at address 14. The same value is loaded back from the same slot
+instead of being kept in a saved register, because `refine` was given a pointer
+to it and may have changed it. A local that is only *read* after a call is
+copied to `r4`. A local whose address was given to another function is loaded
+again from memory. The difference between these two shapes tells you whether a
+pointer was passed.
 
-This also flips the usual signal about frames. `sub sp, #4` with a store into the
-slot before the call is an input being passed by pointer. `sub sp, #8` with no
-stores before the call is two *outputs* — the callee is expected to fill them, so
-there is nothing to write first, only reads afterwards.
+This also changes how you read a frame. A `sub sp, #4` with a store into the
+slot before the call means an input is being passed by pointer. A `sub sp, #8`
+with no stores before the call means two *outputs*. The callee is expected to
+fill them, so the caller writes nothing first and only reads afterwards.
 
 ## Your task
 

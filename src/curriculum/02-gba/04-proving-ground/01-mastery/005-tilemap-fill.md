@@ -8,31 +8,32 @@ concepts:
   - pointers
   - strength-reduction
 hints:
-  - Two loops. The inner one has lost its index entirely and runs backwards
-    over its entries, keeping only a countdown; the outer one still has its
-    index because the row address is rebuilt from it every pass.
-  - "`lsl #5` is a row of 32 map entries and the `lsl #1` after it turns entries
-    into bytes. The `add r0, #6` is the offset of the last entry in a run - use
-    it to count how wide the run is."
-  - "A `u16 *` map, two `s32` coordinates and a `u16` tile going in, nothing
-    coming out. The rectangle is four by four and the map is 32 entries wide,
+  - "There are two loops. The inner one has lost its index completely. It runs
+    backwards over its entries and keeps only a countdown. The outer one still
+    has its index, because the row address is calculated again from it on
+    every pass."
+  - "`lsl #5` is a row of 32 map entries, and the `lsl #1` after it converts
+    entries to bytes. The `add r0, #6` is the offset of the last entry in a
+    run. Use it to count how wide the run is."
+  - "A `u16 *` map, two `s32` coordinates and a `u16` tile go in, and nothing
+    comes out. The rectangle is four by four and the map is 32 entries wide,
     so an entry's index is `(y + row) * 32 + x + col`."
 symbol: func_0840c6cc
 ---
 
 # A rectangle of tiles
 
-A GBA background map is a flat array of halfwords, one per 8x8 tile, laid out 32
-entries to a row. Stamping a shape into it - a door, a platform, a chunk of
-scenery - is a nested loop over rows and columns, and it is the single most
-common loop in a 2D game's code.
+A GBA background map is a flat array of halfwords, one for each 8x8 tile, with
+32 entries in each row. To stamp a shape into it, such as a door, a platform or
+a piece of scenery, the code uses a nested loop over rows and columns. This is
+the most common loop in a 2D game's code.
 
-gcc 2.9 rewrites those loops hard. When the address moves by more than one byte
-a pass and the index is used for nothing except addressing, it deletes the
-index and walks the pointer instead, then flips the counter left behind to run
-down toward zero. When the trip count is a constant on top of that, it can work
-out the address of the *last* element up front, and the whole traversal runs
-**backwards** over memory:
+gcc 2.9 changes these loops a lot. Suppose the address moves by more than one
+byte on each pass, and the index is used only for addressing. Then the compiler
+deletes the index and steps the pointer instead. It also reverses the counter
+that is left, so that it counts down toward zero. If the trip count is also a
+constant, the compiler can calculate the address of the *last* element before
+the loop starts. Then the whole loop runs **backwards** through memory:
 
 ```asm
 0        lsl       r2, #16
@@ -49,16 +50,16 @@ out the address of the *last* element up front, and the whole traversal runs
 22       bx        lr
 ```
 
-That fills eight consecutive entries. `lsl r1, #6` is a row index times 64 - 32
-entries of two bytes each - and `add r1, #14` moves to the *eighth* entry
-before a single store happens. The body then stores and subtracts 2 each pass,
-so the writes land in reverse order. The `mov r3, #7` seeds a countdown of
-eight iterations and the loop closes on `bge`, falling out once the counter
-drops below zero. The `cmp r3, #0` in front of that branch is dead weight -
-`sub r3, #1` set the flags already - and gcc 2.9 emits it every time.
+That fills eight consecutive entries. `lsl r1, #6` multiplies a row index by
+64, which is 32 entries of two bytes each. `add r1, #14` moves to the *eighth*
+entry before any store happens. The body then stores and subtracts 2 on each
+pass, so the writes happen in reverse order. The `mov r3, #7` sets up a
+countdown of eight iterations. The loop ends with `bge`, and exits once the
+counter drops below zero. The `cmp r3, #0` before that branch is not needed,
+because `sub r3, #1` already set the flags. gcc 2.9 emits it every time anyway.
 
-Give the loop a reason to keep its index - here the body stores it - and a
-bound the compiler cannot see, and the skeleton stays close to the source:
+Now give the loop a reason to keep its index (here the body stores it), and a
+bound the compiler cannot see. Then the structure stays close to the source:
 
 ```asm
 0        mov       r2, #0
@@ -72,17 +73,18 @@ bound the compiler cannot see, and the skeleton stays close to the source:
 16     ~>bx        lr
 ```
 
-Here the counter survives because the loop body stores it, the pointer walks
-forward by the element stride, and gcc adds a test before the loop in case the
-count is zero, because with a variable bound it cannot know the body runs at
-all. Two loops over an array, two skeletons with nothing in common.
+Here the counter stays because the loop body stores it. The pointer moves
+forward by the element stride. gcc also adds a test before the loop in case the
+count is zero, because with a variable bound it cannot know whether the body
+runs at all. So two loops over an array can compile to two structures that look
+completely different.
 
-Your target nests one inside the other. The inner run is the reversed kind,
-walking down from its last entry; the outer keeps its index, because the row
-address is rebuilt from it every pass - which is why you find the row
-arithmetic inside the loop body rather than hoisted above it. The outer trip
-count is a constant, so it gets no guard in front of it. Find the inner run's
-width from the offset it starts at, then work out the row stride from the
+Your target puts one loop inside the other. The inner run is the reversed kind,
+and it moves down from its last entry. The outer loop keeps its index, because
+the row address is calculated again from it on every pass. That is why the row
+arithmetic is inside the loop body and has not been moved above it. The outer
+trip count is a constant, so there is no guard before it. Find the inner run's
+width from the offset it starts at. Then work out the row stride from the
 shifts.
 
 ## Your task

@@ -1,4 +1,4 @@
 ---
 title: Bits and Shifts
-blurb: Masks, fields and the packing GBA hardware is built around.
+blurb: Masks, bit fields, and packing several values into one, which GBA hardware formats rely on.
 ---

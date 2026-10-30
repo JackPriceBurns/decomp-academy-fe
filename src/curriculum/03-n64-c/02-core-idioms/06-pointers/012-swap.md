@@ -9,16 +9,16 @@ concepts:
   - scheduling
 symbol: func_800d78ac
 hints:
-  - "Two loads then two stores, criss-crossed between the two pointer arguments. The temporary variable exists only as a register."
-  - "Note which pointer gets loaded first in the target and write the plain three-line swap; IDO handles the ordering itself."
+  - "There are two loads, then two stores, crossed over between the two pointer arguments. The temporary variable exists only as a register."
+  - "Note which pointer is loaded first in the target, and write the plain three-line swap. IDO handles the ordering itself."
 ---
 
-# Two reads, two writes, zero temps in memory
+# Two reads and two writes, with no temporary in memory
 
-The classic swap needs a temporary in C — you can't overwrite the
-first value before saving it. In the compiled output that temporary is
-invisible: it lives its entire life as a register. Here's `swap_ends`,
-exchanging the first and last words of a little array:
+A swap in C needs a temporary variable, because you can't overwrite the first
+value before you save it. In the compiled output you can't see that
+temporary. It only ever exists in a register. Here is `swap_ends`, which
+exchanges the first and last words of a small array:
 
 ```c
 void swap_ends(s32 *a) {
@@ -39,21 +39,20 @@ jr    ra
 nop
 ```
 
-The shape to memorize: **both loads first, then both stores, with the
-offsets crossed** — what came from `0` goes to `12`, what came from
-`12` goes to `0`. IDO hoists the second load above the first store so
-the loads' latency overlaps; your C stays the naive
-save-copy-restore three-liner and the compiler produces this exact
-schedule.
+Remember this shape: **both loads first, then both stores, with the offsets
+crossed over.** The value from `0` goes to `12`, and the value from `12` goes
+to `0`. IDO moves the second load above the first store so that the waits
+for the two loads overlap. Your C stays the plain three-line swap (save, copy,
+restore), and the compiler produces this exact order.
 
-Also worth noticing: three C statements, four instructions, and neither
-count matches the other. By now that should feel normal — you're
-matching *dataflow*, not statement-for-statement.
+Notice also that there are three C statements and four instructions, so the
+counts don't match. By now that should feel normal. You are matching the
+*dataflow*, not one instruction per statement.
 
-The target swaps through **two separate pointers** instead of two slots
-of one array — the criss-cross runs between `a0`'s pointee and `a1`'s
-pointee, all at offset 0. Watch which pointer's value gets loaded first
-and let your C be ordinary.
+The target swaps through **two separate pointers** instead of two slots of
+one array. The values cross over between what `a0` points to and what `a1`
+points to, all at offset 0. Note which pointer's value is loaded first, and
+write ordinary C.
 
 ## Your task
 

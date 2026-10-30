@@ -1,7 +1,7 @@
 ---
 id: f2f32939-1b7f-4543-8e59-7c0c925f6c4f
 slug: globals-hi-lo-machinery
-title: How %hi and %lo Really Work
+title: How %hi and %lo Work
 difficulty: 2
 concepts:
   - hi-lo
@@ -11,55 +11,57 @@ concepts:
 concept: true
 ---
 
-# The carry hiding inside every address pair
+# The carry inside every address pair
 
-You've seen the pattern: `lui` with `%hi(name)`, then a memory op with
-`%lo(name)`. This lesson is the fine print — worth ten minutes now, because
-these pairs are on nearly every screen of assembly you'll read from here on.
+You have seen the pattern: `lui` with `%hi(name)`, then a memory operation with
+`%lo(name)`. This lesson covers the details. It is worth ten minutes now,
+because these pairs appear on nearly every screen of assembly you will read from
+here on.
 
-## Splitting an address isn't just cutting it in half
+## Splitting an address needs a correction
 
-A 32-bit address should split cleanly: top 16 bits in the `lui`, bottom 16 in
-the load's offset. Almost. The catch is that a load's offset field is
-**signed**. If the low half of an address is `0x8000` or above, the hardware
-treats it as *negative*, and `upper + lower` would land 65536 bytes too low.
+You might expect a 32-bit address to split cleanly: the top 16 bits go in the
+`lui`, and the bottom 16 go in the load's offset. That is almost right. The
+problem is that a load's offset field is **signed**. If the low half of an
+address is `0x8000` or above, the hardware treats it as *negative*, and
+`upper + lower` would land 65536 bytes too low.
 
-The fix is baked into the definition of `%hi`: **when the low half is `0x8000`
-or more, `%hi` is the upper half *plus one*.** The oversized `%hi` and the
-negative `%lo` then cancel exactly. So `%hi` and `%lo` aren't literally "top
-half" and "bottom half" — they're two numbers *engineered to sum to the
-address* through a signed 16-bit offset. You never compute them; it's the
-linker's job. But now the names won't mislead you.
+The definition of `%hi` corrects for this: **when the low half is `0x8000` or
+more, `%hi` is the upper half *plus one*.** The extra one in `%hi` and the
+negative `%lo` then cancel exactly. So `%hi` and `%lo` do not always equal the
+top and bottom halves of the address. They are two numbers *chosen to add up to
+the address* through a signed 16-bit offset. You never compute them, because
+the linker does that. But now the names won't mislead you.
 
-## Relocations are promises, not values
+## Relocations are placeholders
 
-Until the game is linked, `gTimer` has no address — just a name. A compiled
-object file leaves the `lui`'s immediate and the load's offset as **zeros**,
-plus a note telling the linker "patch these two slots with `%hi`/`%lo` of
-whatever address `gTimer` gets." That note is the relocation, and the diff view
-renders it *inline*, writing `%hi(gTimer)` where the raw zero sits.
+Until the game is linked, `gTimer` has no address. It only has a name. A
+compiled object file leaves the `lui`'s immediate and the load's offset as
+**zeros**. It also adds a note telling the linker "patch these two slots with
+`%hi`/`%lo` of whatever address `gTimer` gets." That note is the relocation.
+The diff view shows it *inline*, writing `%hi(gTimer)` where the raw zero is.
 
-This is good news for matching:
+This helps you when matching:
 
-- **You can't get the address wrong, because there isn't one.** Your compile
-  and the target both carry placeholders; the diff compares *which symbol* and
+- **You can't get the address wrong, because there isn't one yet.** Your compile
+  and the target both contain placeholders. The diff compares *which symbol* and
   *which kind* of placeholder. Name the same global and the line matches.
-- **The symbol name is data.** When a target line says `%lo(gRocketFuel)`,
-  you've just learned a variable's name — free documentation, straight from
-  the original developers' source.
+- **The symbol name is useful information.** When a target line says
+  `%lo(gRocketFuel)`, you have learned a variable's name. It comes straight from
+  the original developers' source, so it is free documentation.
 
-## Reading the pairs at speed
+## Reading the pairs quickly
 
-A few shapes to file away (you'll practice each in coming lessons):
+Here are a few patterns to recognize. You will practice each one in the coming
+lessons:
 
-- `lui` + a load ⇒ *read* a global; the load's mnemonic tells the type.
+- `lui` + a load ⇒ *read* a global. The load's mnemonic tells you the type.
 - `lui` + a store ⇒ *write* a global.
-- `lui` + `addiu` with `%lo` ⇒ no memory access at all — that's building the
+- `lui` + `addiu` with `%lo` ⇒ no memory access at all. This builds the
   **address itself** as a value.
-- The `lui` half often drifts several lines from its `%lo` partner, and one
-  `lui` can serve two accesses. Match pairs by the symbol name, not by
-  adjacency.
+- The `lui` is often several lines away from its `%lo` partner, and one `lui`
+  can serve two accesses. Pair them up by the symbol name, even when the lines
+  are far apart.
 
-That's the machinery. From here, `%hi`/`%lo` pairs should read as a single
-mental token: *"global access, this name."* The next lessons put it to work in
-every direction.
+That is all the machinery. From now on, read each `%hi`/`%lo` pair as one unit:
+*"global access, this name."* The next lessons use it in each of these ways.

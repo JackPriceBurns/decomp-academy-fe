@@ -9,16 +9,16 @@ concepts:
   - hi-lo
 symbol: func_80043638
 hints:
-  - "The `sub.s` operand order is `ft0` minus `fa0` — the global on the left, the argument on the right."
-  - "Two lines of thought — load the global, subtract — but one line of C."
+  - "The `sub.s` operand order is `ft0` minus `fa0`: the global on the left, the argument on the right."
+  - "There are two steps (load the global, then subtract), but they fit in one line of C."
 ---
 
 # lwc1 takes a %lo too
 
-A float global uses the exact same address machinery — the only change is the
-final instruction: `lwc1`, the FPU load you met with the third float argument,
-carries the `%lo` half and delivers the value directly into a float register.
-Here's `getSpeed`, which returns the global `f32` `gSpeed`:
+A float global uses the same address machinery. Only the final instruction
+changes. `lwc1`, the FPU load you met with the third float argument, carries the
+`%lo` half and loads the value directly into a float register. Here is
+`getSpeed`, which returns the global `f32` `gSpeed`:
 
 ```asm
 lui   at, %hi(gSpeed)
@@ -27,15 +27,15 @@ jr    ra
 nop
 ```
 
-The *address* half stays on the integer side — `lui` into `at`, because
-addresses are integers no matter what they point at. Only the data crosses to
-the FPU. So a float global read is a little hybrid: integer register for the
-address, float register for the value. (Stores mirror it: `swc1` with a `%lo`,
-when you meet one.)
+The *address* half stays on the integer side: `lui` loads into `at`, because
+addresses are integers whatever they point at. Only the data moves to the FPU.
+So a float global read uses both kinds of register: an integer register for the
+address and a float register for the value. (Stores work the same way, using
+`swc1` with a `%lo`, when you meet one.)
 
-The target loads a float global and does one `.s` operation against the
-argument before returning. Operand order decides the meaning — check which
-side the freshly loaded global sits on.
+The target loads a float global and does one `.s` operation with it before
+returning. The operand order decides the meaning, so check which side the
+loaded global is on.
 
 ## Your task
 

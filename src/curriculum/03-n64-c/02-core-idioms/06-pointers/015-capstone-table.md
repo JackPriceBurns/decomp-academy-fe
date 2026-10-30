@@ -10,16 +10,17 @@ concepts:
   - capstone
 symbol: func_803f6350
 hints:
-  - "Guard, then the indexing trio, then the RMW sandwich — three idioms from this chapter in a row. The `sll` in the branch's delay slot belongs to the indexing, hoisted up."
-  - "The load and store share `0(v0)` — one element updated in place, by the amount in the third argument. Two lines of C inside the `if`, or one compound assignment."
+  - "The guard comes first, then the indexing trio, then the RMW sandwich: three idioms from this chapter in a row. The `sll` in the delay slot of the branch belongs to the indexing and was moved up."
+  - "The load and the store share `0(v0)`, so one element is updated in place by the amount in the third argument. Inside the `if`, write two lines of C or one compound assignment."
 ---
 
 # Three idioms, one function
 
-Chapter capstone. Real functions don't use one idiom at a time — they
-stack a guard on an index on an update, and you read the stack from
-the top down. A worked example first, with the same spirit: `tally`
-reads two neighboring bytes, but only if the table exists:
+This is the capstone for the chapter. Real functions often use several
+idioms at once. A guard, an index and an update can sit one on top of the
+other, and you read them from the top down. First, here is a worked example
+of the same kind. `tally` reads two neighboring bytes, but only if the table
+exists:
 
 ```c
 s32 tally(u8 *v, s32 i) {
@@ -32,31 +33,32 @@ s32 tally(u8 *v, s32 i) {
 
 ```asm
  0:  bnez  a0, 0x10       # table present? skip the bail-out
- 4:  addu  v1, a1, a0     # (slot) &v[i] — the byte-array duo, hoisted!
+ 4:  addu  v1, a1, a0     # (slot) &v[i]: the byte-array duo, moved up
  8:  jr    ra
  c:  or    v0, zero, zero # (slot) the NULL result, 0
-10:  lbu   t6, 1(v1)      # v[i + 1] — neighbor via offset
+10:  lbu   t6, 1(v1)      # v[i + 1]: the neighbor, via the offset
 14:  lbu   t7, 0(v1)      # v[i]
 18:  addu  v0, t6, t7
 1c:  jr    ra
 20:  nop
 ```
 
-The instructive line is the first delay slot: the *address
-computation* for `v[i]` runs before the guard has decided anything.
-If `v` is NULL the `addu` still executes — computing a garbage address
-is harmless as long as nothing *loads* from it, and IDO exploits that
-to keep the slot busy. Work in a slot may belong to the path that
-*isn't* taken; ask "who uses this register later?" rather than
-assuming slot work is universal.
+The line to study is the first delay slot. The *address computation* for
+`v[i]` runs before the guard has decided anything. If `v` is NULL, the `addu`
+still runs. Computing a garbage address does no harm as long as nothing
+*loads* from it, and IDO uses that fact to fill the slot with useful work.
+Work in a delay slot may belong to the path that *isn't* taken. So ask "who
+uses this register later?" instead of assuming that the slot's work is used
+on every path.
 
-From there it's pure vocabulary: duo with offsets 0 and 1 = byte
-neighbors, `or v0, zero, zero` in the early-out slot = `return 0`.
+The rest uses idioms you already know. A duo with offsets 0 and 1 means
+neighboring bytes, and `or v0, zero, zero` in the delay slot of the early exit
+means `return 0`.
 
-The target is the writing counterpart: guard a word table for NULL,
-address one element by variable index, and nudge it in place by the
-third argument. Guard, trio, sandwich — read each layer, then write
-them in order.
+The target is the writing version. It checks a word table for NULL, finds one
+element by a variable index, and updates that element in place by an amount
+passed in as an argument. Read each layer (guard, trio, sandwich), then write
+them in the same order.
 
 ## Your task
 

@@ -9,24 +9,32 @@ concepts:
   - narrow-types
 symbol: func_084152b4
 hints:
-  - "The pooled 65535 is loaded once before the loop and used on every pass. The `lsr #16` beside it is the other half of the same idea - together they fold a sum that has outgrown sixteen bits back into sixteen."
-  - '"`mvn` is `~`. The `lsl #16` / `lsr #16` after it is the return type being narrowed, not part of the arithmetic, and the accumulator that feeds it is wider than what comes out.'
-  - '"A `u16 *` and an `s32` count go in and a `u16` comes out. The accumulator is a `u32` and the loop body is two statements - add the element, then fold.'
+  - "The 65535 from the pool is loaded once before the loop and used on every
+    pass. The `lsr #16` beside it is the other half of the same idea. Together
+    they fold a sum that has grown past sixteen bits back into sixteen bits."
+  - "`mvn` is `~`. The `lsl #16` / `lsr #16` after it narrows the value to the
+    return type and is not part of the arithmetic. The accumulator that feeds
+    it is wider than the value that comes out."
+  - "A `u16 *` and an `s32` count go in, and a `u16` comes out. The accumulator
+    is a `u32`, and the loop body has two statements: add the element, then
+    fold."
 ---
 
 # A checksum over save data
 
-A GBA cartridge's save RAM is one byte-wide chip with no error correction, and a
-half-written block during a power-off is a real thing. So every game that saves
-also checksums, and refuses to load a block whose sum does not match.
+A GBA cartridge's save RAM is a single chip, one byte wide, with no error
+correction. If the power goes off during a write, a block can be left half
+written, and this does happen. So every game that saves also stores a checksum,
+and it refuses to load a block whose sum does not match.
 
-The pattern in your target is the one every network stack uses too: accumulate
-into a value wider than the checksum, then after each addition fold whatever
-climbed above bit 15 back down into bit 0. Nothing is thrown away, and the
-result stays inside sixteen bits no matter how long the data is.
+The pattern in your target is the same one that every network stack uses. It
+adds into a value wider than the checksum. After each addition, it takes
+anything that went above bit 15 and folds it back down, adding it in at bit 0.
+Nothing is lost, and the result stays within sixteen bits however long the data
+is.
 
-Before you read it, look at what gcc 2.9 does to an accumulating loop in
-general. Here is a byte-wide one:
+Before you read the target, look at what gcc 2.9 does to an accumulating loop
+in general. Here is one that works on bytes:
 
 ```asm
 0        push      {r4, lr}
@@ -50,25 +58,26 @@ general. Here is a byte-wide one:
 36       bx        r1
 ```
 
-`mov r3, #90` is the accumulator's seed. The `cmp r2, r1` / `bge` before the
-loop is the guard for a count of zero - with a variable trip count the compiler
-cannot know the body runs at all. Inside, the index survives, the address is
-rebuilt with `add r0, r4, r2` every pass, and the counter climbs with `blt`.
-`mvn` at the end is `~`, and the `lsl #24` / `lsr #24` after it narrows the
-result to the declared return type.
+`mov r3, #90` is the starting value of the accumulator. The `cmp r2, r1` /
+`bge` before the loop is the guard for a count of zero. With a variable trip
+count, the compiler cannot know whether the body runs at all. Inside the loop,
+the index stays, and the address is calculated again with `add r0, r4, r2` on
+every pass. The counter increases, and `blt` repeats the loop. `mvn` at the end
+is `~`, and the `lsl #24` / `lsr #24` after it narrows the result to the
+declared return type.
 
-Your target's loop looks different, and what decides that is the width of one
-element. Indexing a byte array costs a single `add` however you compute it, so
-gcc leaves the index where it is. Make the elements wider and the index would
-need a shift as well, so gcc strength-reduces it away, walks the pointer with
-the `add` in the loop body, and flips what is left of the counter to run *down*
-to zero, ending on `bne`. The same `for` in the source; the element width picks
-the skeleton.
+Your target's loop looks different, and the width of one element is what causes
+this. Indexing a byte array costs a single `add` however you compute it, so gcc
+keeps the index. With wider elements, the index would also need a shift. So gcc
+strength-reduces the index away and steps the pointer with the `add` in the
+loop body. It also reverses what is left of the counter so that it counts
+*down* to zero, and the loop ends on `bne`. The `for` in the source is the same.
+The element width decides the structure.
 
-One more thing to expect: the zero that seeds the accumulator and the zero the
-guard compares against are the same register. `mov r1, #0` sets up the
+One more thing to expect. The zero that starts the accumulator and the zero that
+the guard compares against are in the same register. `mov r1, #0` sets up the
 comparison, the `bge` uses it, and then the loop body starts adding into it. If
-you read the guard as a test on the accumulator you will chase your tail.
+you read the guard as a test on the accumulator, you will misread the loop.
 
 ## Your task
 

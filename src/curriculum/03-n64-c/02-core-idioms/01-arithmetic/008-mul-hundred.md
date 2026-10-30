@@ -1,7 +1,7 @@
 ---
 id: 070d3b7e-d74b-4cb2-8c9d-fe1f15259b9f
 slug: arithmetic-mul-hundred
-title: The Compiler Never Gives Up
+title: Shift Chains for Any Constant
 difficulty: 3
 concepts:
   - arithmetic
@@ -9,15 +9,15 @@ concepts:
   - fingerprints
 symbol: func_801c34ec
 hints:
-  - "Five instructions, one constant. Decode in the margin like always — watch whether each `sll`/`addu`/`subu` touches the argument or the running result."
-  - "The first four lines build an odd multiple; the final `sll` scales it by a power of two. Multiply through."
+  - "The chain has five instructions and one constant. Track the running multiplier as before, and check whether each `sll`/`addu`/`subu` uses the argument or the running result."
+  - "The first four lines build an odd multiple. The final `sll` multiplies it by a power of two. Multiply the factors together."
 ---
 
-# Five instructions, one multiply
+# Five instructions for one multiply
 
-You might expect that past some size, IDO would shrug and use the actual
-multiply unit. It doesn't. Watch it build ×25 — four instructions, no
-multiplier in sight:
+You might expect IDO to switch to the real multiply unit once the constant is
+large enough. It does not. Here it builds ×25 with four instructions and no
+multiply:
 
 ```asm
 sll  v0, a0, 2     # v0 = x * 4
@@ -28,19 +28,20 @@ jr   ra
 nop
 ```
 
-Every move is one you know: ×3 by the subtract form, ×8 by shifting the
-result, then one more copy of the original argument on top. (Check that last
-`addu`'s second operand — `a0`, the untouched input, so it's +1×, not a
-doubling.)
+You know every step already: ×3 with the subtract form, ×8 by shifting the
+result, then one more copy of the original argument. (Check the second operand
+of that last `addu`. It is `a0`, the unchanged input, so it adds 1× the input
+and does not double the result.)
 
-And it doesn't stop there. Multiply by 1000? A chain. By 12345? A chain of
-*eight*. For constant multiplies of an `s32`, this compiler emits shift
-chains, period — so when you finally do see a real multiply instruction in a
-target, it's a loud signal that *both* operands are runtime values. That
-instruction is next lesson's business.
+Larger constants work the same way. A multiply by 1000 is a chain, and a
+multiply by 12345 is a chain of *eight*. For constant multiplies of an `s32`,
+this compiler always emits shift chains. So when you do see a real multiply
+instruction in a target, it is a clear sign that *both* operands are runtime
+values. You will meet that instruction soon.
 
-For now, decode the five-op target below. It's the longest chain yet, but your
-margin math doesn't care how long it goes.
+For now, decode the target below, which has five instructions. It is the
+longest chain so far, but the running multiplier works the same way at any
+length.
 
 ## Your task
 

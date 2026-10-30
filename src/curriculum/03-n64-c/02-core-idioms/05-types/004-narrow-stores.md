@@ -1,24 +1,25 @@
 ---
 id: 37b9a40f-311b-4241-90af-aba6ef89957d
 slug: types-narrow-stores
-title: "sb and sh: Stores Don't Care About Sign"
+title: "sb and sh: Stores Ignore Signedness"
 difficulty: 2
 concepts:
   - types
   - stores
 symbol: func_801ee690
 hints:
-  - "Two stores of the same register at neighboring element offsets — the element size shows in the gap between them."
-  - "The value parameter stays a plain `s32`; the pointer's type does all the narrowing."
+  - "There are two stores of the same register at neighboring element offsets. The gap between the offsets shows the element size."
+  - "The value parameter stays a plain `s32`. The pointer's type does all the narrowing."
 ---
 
-# Half the mnemonics this time
+# Fewer mnemonics for stores
 
-Storing narrow values is simpler than loading them, and the instruction
-set says so: there's `sb` (store byte) and `sh` (store halfword) — **no
-`sbu`, no `shu`**. A store just chops off the register's low bits and
-writes them; there's nothing to extend, so there's no signed/unsigned
-split. Here's `put_byte`, writing an `s32` value into a byte slot:
+Storing narrow values is simpler than loading them, and the instruction set
+reflects that. There is `sb` (store byte) and `sh` (store halfword), but
+**there is no `sbu` or `shu`**. A store takes the low bits of the register and
+writes them to memory. Nothing needs to be extended, so stores have no separate
+signed and unsigned versions. Here is `put_byte`, which writes an `s32` value
+into a byte slot:
 
 ```c
 void put_byte(u8 *p, s32 v) {
@@ -32,23 +33,23 @@ jr    ra
 nop
 ```
 
-Note what *didn't* happen: no `andi 0xff`, no mask before the store. C
-says an assignment into a `u8` keeps only the low byte — and `sb` does
-that by construction, so the compiler emits nothing extra. The store *is*
-the truncation.
+Notice what is missing: there is no `andi 0xff` and no mask before the store.
+C says that assigning a value to a `u8` keeps only the low byte. `sb` already
+writes only the low byte, so the compiler emits nothing extra. The store itself
+does the truncation.
 
-Two consequences for your decompiles:
+This has two consequences when you decompile:
 
-- A bare `sb`/`sh` tells you the *width* of the destination but **not its
-  signedness** — `s8` and `u8` targets store identically. When only a
-  store touches a field, either declaration matches; the loads elsewhere
-  usually break the tie.
-- Assigning a wide value to a narrow location costs zero instructions of
-  conversion. If you see masking before a store, something else is going
-  on (the value is *used* narrow elsewhere too).
+- A bare `sb`/`sh` tells you the *width* of the destination, but **not its
+  signedness**. Stores to `s8` and `u8` look the same. When only a store
+  touches a field, either declaration matches. Loads of that field elsewhere
+  usually tell you which one is right.
+- Assigning a wide value to a narrow location needs zero conversion
+  instructions. If you see a mask before a store, something else is happening
+  (the value is also *used* as a narrow value somewhere else).
 
-The target writes one value into two neighboring slots of an array — read
-the store mnemonic for the width and the offsets for the two indices.
+The target writes one value into two neighboring slots of an array. Read the
+store mnemonic for the width, and the offsets for the two indices.
 
 ## Your task
 

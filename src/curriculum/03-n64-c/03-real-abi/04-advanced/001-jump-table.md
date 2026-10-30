@@ -9,24 +9,25 @@ concepts:
   - control-flow
 symbol: func_800348b0
 hints:
-  - "The `sltiu` immediate is the case count, and each case body is a `jr ra` with its return value in the slot. Read the constants off in order."
-  - "Case numbering starts at 0. Body order in the assembly follows case order, so the first `jr ra` pair after the dispatcher is case 0."
+  - "The `sltiu` immediate is the number of cases. Each case body is a `jr ra` with its return value in the delay slot. Read the constants in order."
+  - "Case numbering starts at 0. The bodies in the assembly come in case order, so the first `jr ra` pair after the dispatcher is case 0."
 ---
 
-# switch, dispatched by data
+# A switch that jumps through a table
 
-A `switch` with enough consecutive cases stops comparing and starts *looking
-up*. Here's `cost(op)`, which maps operations 0–5 to their prices — with a
-default of −1:
+When a `switch` has enough consecutive cases, the compiler stops comparing the
+value against each case. Instead, it *looks up* where to go in a table. Here is
+`cost(op)`, which maps operations 0 to 5 to their prices, with a default of
+−1:
 
 ```asm
  0:  sltiu  at, a0, 6            # bounds: is op in 0..5?
  4:  beqz   at, 0x54             # no → default
  8:  addiu  v0, zero, -1         #   slot: default result, preloaded
  c:  sll    t6, a0, 2            # case × 4: an index into a table of words
-10:  lui    at, %hi(.rodata)     # the table's address —
+10:  lui    at, %hi(.rodata)     # the table's address,
 14:  addu   at, at, t6
-18:  lw     t6, %lo(.rodata)(at) # — fetch THIS case's code address
+18:  lw     t6, %lo(.rodata)(at) # then load this case's code address
 1c:  jr     t6                   # and jump to it
 20:  nop
 24:  jr     ra                   # case 0:
@@ -45,25 +46,28 @@ default of −1:
 58:  nop
 ```
 
-The pieces worth naming:
+The important parts:
 
-- **`sltiu` is the whole bounds check.** Unsigned "less than 6" is false for
-  every negative number too (as unsigned they're huge), so one instruction
-  rejects both directions of out-of-range.
-- **The table itself is data, not code.** It lives in the object's read-only
-  data section — that's the `.rodata` the relocs point at — one word per
-  case, each holding the address of that case's body. You never see the
-  addresses in the diff; you see the *load* and the `jr` through `t6`.
-- **`jr t6`** — the same "jump to register" that returns through `ra` works
-  with any register. This is computed control flow: the case picks itself.
-- **Each case body** is two instructions: `jr ra` with the return value
-  built in the delay slot. The default's value rides the dispatcher's
-  `beqz` slot, so it's already in `v0` if the bounds check fails.
+- **`sltiu` does the whole bounds check.** It tests unsigned "less than 6".
+  A negative number read as unsigned is very large, so the test is false for
+  negative numbers too. One instruction rejects values that are too small and
+  values that are too large.
+- **The table is stored as data.** It lives in the object's read-only data
+  section, which is the `.rodata` that the relocations point at. It holds one
+  word per case, and each word is the address of that case's body. The diff
+  never shows these addresses. You only see the *load* and the `jr` through
+  `t6`.
+- **`jr t6` jumps to the address in `t6`.** It is the same "jump to register"
+  instruction that returns through `ra`, and it works with any register. This
+  is computed control flow: the case value decides where the code goes.
+- **Each case body is two instructions:** a `jr ra`, with the return value
+  built in its delay slot. The default value is set in the delay slot of the
+  dispatcher's `beqz`, so it is already in `v0` if the bounds check fails.
 
-Reading one of these is fast once you trust the layout: `sltiu` tells you how
-many cases, the bodies come in case order, and the constants line up in the
-delay slots. Recover each case's value, note the default, and write the
-`switch` plainly — IDO rebuilds the table for you.
+These functions are quick to read once you know the layout. The `sltiu` tells
+you how many cases there are. The bodies come in case order, and each
+constant sits in a delay slot. Recover each case's value, note the default,
+and write a plain `switch`. IDO builds the table again for you.
 
 ## Your task
 

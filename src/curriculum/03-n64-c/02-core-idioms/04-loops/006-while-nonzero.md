@@ -10,16 +10,17 @@ concepts:
   - delay-slots
 symbol: func_802dbfc4
 hints:
-  - "Two temporaries per trip — one is the tested low bit, one is the shifted remainder. The accumulator collects the first; the slot commits the second back into the loop variable."
-  - "The shift amount is 1 and the mask is 1 — this is the classic count-the-set-bits body, written as a plain `while (mask != 0)`."
+  - "There are two temporaries per trip. One is the tested low bit, and the other is the shifted remainder. The accumulator collects the first. The delay slot copies the second back into the loop variable."
+  - "The shift amount is 1 and the mask is 1. This is the classic loop body that counts the set bits, written as a plain `while (mask != 0)`."
 ---
 
-# beqz / bnez, loop edition
+# beqz and bnez in a loop
 
-Not every `while` compares magnitudes. Grinding through the bits of a word
-runs *while anything is left* — `while (x != 0)` — and compiles to the
-zero-test branches: `beqz` flipped as the guard, `bnez` straight as the
-back-edge. Here's `fold_down`, which XOR-folds a word four bits at a time:
+Not every `while` compares sizes. A loop that works through the bits of a
+word runs *while any bits are left*, which is `while (x != 0)`. It compiles
+to the branches that test against zero: `beqz`, flipped, as the guard, and
+`bnez`, as written, as the back-edge. Here is `fold_down`, which XORs a word
+into a total and shifts the word down four bits on each trip:
 
 ```c
 u32 fold_down(u32 x) {
@@ -44,22 +45,24 @@ u32 fold_down(u32 x) {
 20:  nop
 ```
 
-The interesting move is at `c`–`14`: the C says `x = x >> 4` *then* test
-`x` — the assembly shifts into a scratch `t6`, tests **`t6`**, and only
-commits it back to `a0` in the slot. Same values, better schedule: the test
-doesn't have to wait for the copy. When a back-edge tests a `t`-register
-and the slot copies that same register into the loop variable, read it as
-the plain C sequence "update, test" — the compiler just overlapped them.
+The interesting part is lines `c` to `14`. The C does `x = x >> 4` and
+*then* tests `x`. The assembly shifts into a scratch register `t6`, tests
+**`t6`**, and only copies it back to `a0` in the delay slot. The values are
+the same, and the schedule is better, because the test doesn't have to wait
+for the copy. When a back-edge tests a `t`-register and the slot copies that
+same register into the loop variable, read it as the plain C sequence
+"update, then test". The compiler has only overlapped the two steps.
 
-Note also which slot got the copy this time: the *plain* `bnez` carries it
-safely, because on the final trip "commit the remainder into `x`" is still
-correct — `x` ends as 0, exactly what the C says. Compare that with the
-accumulate that needed cloning two lessons ago. Whether the slot's op is
-harmless on the last trip is precisely what decides plain versus likely.
+Also notice which delay slot holds the copy this time. The *plain* `bnez`
+can carry it safely, because on the final trip "copy the remainder into `x`"
+is still correct: `x` ends as 0, which is what the C says. Compare that with
+the accumulate that needed cloning two lessons ago. What decides between a
+plain and a likely back-edge is whether the instruction in the slot is
+harmless on the last trip.
 
-The target walks a word one bit at a time, pulling each low bit off with a
-mask and adding it up — same guard, same back-edge shape, one more
-instruction in the body.
+The target works through a word one bit at a time. It takes each low bit
+with a mask and adds it to a total. It has the same guard and the same
+back-edge shape, with one more instruction in the body.
 
 ## Your task
 

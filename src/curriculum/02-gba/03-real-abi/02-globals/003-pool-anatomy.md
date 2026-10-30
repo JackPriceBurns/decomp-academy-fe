@@ -9,39 +9,39 @@ concepts:
   - constants
 symbol: func_08324e3c
 hints:
-  - Two pool rows means two things the instruction set could not encode - one
-    of them is an address, the other is a plain number printed in decimal.
-  - "Nothing goes in, an `s32` comes out. 23130 is 0x5A5A; `eor` is C's `^`."
+  - Two pool rows means two values that no instruction could encode. One of
+    them is an address. The other is a plain number, printed in decimal.
+  - "It takes no arguments and returns an `s32`. 23130 is 0x5A5A, and `eor` is C's `^`."
 ---
 
 # What the rows after the code mean
 
-The pool is not decoration. Every row of it belongs to the function, the diff
-compares it, and a listing with the wrong pool is a listing that does not match.
-Four things are worth knowing how to read.
+Every row of the pool belongs to the function, and the diff compares it. If
+your pool is wrong, your listing does not match. There are four things worth
+learning to read.
 
-**The `(->N)` annotation** is the workspace resolving the PC-relative arithmetic
-for you. An `ldr rN, [pc, #imm]` computes its address as (address of the
-instruction + 4), rounded *down* to a multiple of four, plus the immediate. The
-rounding is the part that catches people: a load sitting two bytes past a
-multiple of four rounds back down, so it shares its base with the instruction
+**The `(->N)` annotation** is the workspace doing the PC-relative address
+calculation for you. An `ldr rN, [pc, #imm]` computes its address like this:
+take the address of the instruction + 4, round it *down* to a multiple of four,
+then add the immediate. People often miss the rounding. A load two bytes past a
+multiple of four rounds back down, so it uses the same base as the instruction
 before it.
 
-**A `.word` row** is four bytes of data sitting in the instruction stream. It
-never executes; the function has already branched or returned before control
-reaches it.
+**A `.word` row** is four bytes of data placed in the instruction stream. It
+never runs as code, because the function has already branched or returned
+before execution reaches it.
 
-**A `.hword 0` row** is two bytes of padding. A `.word` has to sit on a
-four-byte boundary, so an odd number of two-byte instructions before the pool
-forces a filler halfword.
+**A `.hword 0` row** is two bytes of padding. A `.word` must start on a
+four-byte boundary. If an odd number of two-byte instructions comes before the
+pool, the compiler adds a filler halfword.
 
-**The pool's position** follows from that: the words go where the instruction
-stream stops running straight ahead, which for a function without branches is
-right after the return.
+**The pool's position** follows from the fact that it never runs. The words go
+where the instruction stream stops running straight ahead. For a function
+without branches, that is right after the return.
 
-`setScore` hands a value it was given straight to a global. That is three
-instructions, an odd count, so a filler halfword sits between the code and the
-pool word:
+`setScore` stores the value it was passed straight into a global. That takes
+three instructions, which is an odd count, so a filler halfword sits between
+the code and the pool word:
 
 ```asm
 0        ldr       r1, [pc, #4] (->8)
@@ -51,8 +51,8 @@ pool word:
 8        .word     gHiScore
 ```
 
-Double the value on the way through and the extra instruction swallows the
-filler — same pool, same everything else:
+If the function doubles the value first, the extra instruction takes the place
+of the filler. The pool and everything else stay the same:
 
 ```asm
 0        ldr       r1, [pc, #4] (->8)
@@ -62,11 +62,11 @@ filler — same pool, same everything else:
 8        .word     gHiScore
 ```
 
-That makes the filler row a free parity check while you are matching. If your
-attempt has a `.hword 0` and the target does not, your instruction *count* is
-wrong by one, whatever the opcodes say.
+So the filler row is a quick check on whether your instruction count is odd or
+even. If your attempt has a `.hword 0` and the target does not, your
+instruction *count* is wrong by one, even if the opcodes look right.
 
-Now `primeScore`, which stores a constant too large for a `mov`:
+Now look at `primeScore`, which stores a constant too large for a `mov`:
 
 ```asm
 0        ldr       r1, [pc, #4] (->8)
@@ -77,11 +77,11 @@ Now `primeScore`, which stores a constant too large for a `mov`:
 12       .word     1193046
 ```
 
-Two rows of pool, one of each kind: an address, printed as a symbol name, and a
-constant, printed in decimal. The two `ldr`s compute the same base — the first
-sits at address 0 and 0 + 4 is already a multiple of four, the second sits at
-address 2 and 2 + 4 rounds back down to 4 — so the immediates `#4` and `#8` are
-the whole difference between the rows they land on.
+The pool has two rows, one of each kind: an address, printed as a symbol name,
+and a constant, printed in decimal. The two `ldr`s compute the same base. The
+first is at address 0, and 0 + 4 is already a multiple of four. The second is
+at address 2, and 2 + 4 rounds down to 4. So the immediates `#4` and `#8` are
+the only thing that decides which row each load reads.
 
 Your target has two pool rows as well.
 

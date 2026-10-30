@@ -11,15 +11,15 @@ concepts:
   - capstone
 symbol: func_80004e88
 hints:
-  - "An addition flows into a guarded `sra` pair — you've decoded that divide shape before; this time its input is a sum, not an argument."
-  - "The fix-up block ends by copying its result home with an `or` from `zero`. None of that is extra C; one expression produces the whole listing."
+  - "An addition feeds into a guarded `sra` pair. You have decoded that divide shape before. This time its input is a sum instead of an argument."
+  - "The fix-up block ends by copying its result into the return register with an `or` with `zero`. None of that is extra C. One expression produces the whole listing."
 ---
 
-# A sum that isn't the answer
+# A sum fed into a divide
 
-Last capstone. Averages are everywhere in game code — positions, blends,
-midpoints — and they compile into exactly the pieces this chapter taught,
-composed. Here's the three-way version, `(p + q + r) / 3`:
+This is the last capstone. Game code computes averages all the time, for
+positions, blends and midpoints. They compile into the pieces this chapter
+taught, combined. Here's an average of three values, `(p + q + r) / 3`:
 
 ```asm
 addu  t6, a0, a1     # t6 = p + q
@@ -33,21 +33,23 @@ jr    ra
 nop
 ```
 
-Sum first, then the familiar divide ritual — with one structural note: the
-`div` consumes `v0`, the *computed sum*, not an argument register. Just like
-the multiply chain in the last capstone, the sub-expression funnels into the
-idiom's input slot, and spotting that register is step one of the decode.
+First the sum, then the divide sequence you already know. Note one thing about
+the structure: the `div` uses `v0`, the *computed sum*, instead of an argument
+register. As with the multiply chain in the first capstone, the sub-expression
+feeds into the input of the pattern. Finding that register is the first step
+of decoding.
 
-The target below divides its sum by a different constant — one that a signed
-division handles without the divide unit at all. That means the shape
-downstream of the sum is the *guarded* one: a branch, an `sra` doing double
-duty in the delay slot, a small bias, and a final register copy pulling the
-result into `v0`. Every line of it appeared earlier in this chapter; what's
-new is only seeing them stacked.
+The target below divides its sum by a different constant, one that the
+compiler handles without the divide unit at all. After the sum comes the
+*guarded* shape: a branch, an `sra` in the delay slot that does two jobs, a
+small bias, and a final register copy that moves the result into `v0`. You
+have seen every line of it earlier in this chapter. The only new part is
+seeing them together.
 
-Take it in two passes, like every compound expression: name the value the
-first instruction computes, then recognize the idiom that value feeds. Write
-the one line of C. That two-pass habit *is* the chapter — carry it with you.
+Read it in two passes, as with every compound expression. First, name the
+value that the first instruction computes. Then recognize the pattern that the
+value feeds into. Write the one line of C. This two-pass habit is the main
+skill of this chapter, and you will use it from now on.
 
 ## Your task
 

@@ -9,20 +9,21 @@ concepts:
   - fpu
 symbol: func_8000315c
 hints:
-  - "One `.s` instruction does all the work — its mnemonic names the operation."
+  - "One `.s` instruction does all the work. Its mnemonic names the operation."
   - "Operand order matters on the FPU exactly like it does on the integer side."
 ---
 
 # The FPU has its own argument registers
 
-Floating-point values never ride in `a0`–`a3`. They travel on the FPU, in its
-own bank of registers — and just like the integer side, the o32 convention gives
-those registers job-based names. The first two `f32` arguments arrive in **`fa0`
-and `fa1`**, and a float return value leaves in **`fv0`**. (In hardware terms
-those are `$f12`, `$f14`, and `$f0` — you'll see the raw numbers in other
-people's notes, but the diff always shows the friendly names.)
+Floating-point values are not passed in `a0` through `a3`. They go to the FPU,
+which has its own bank of registers. As on the integer side, the o32
+convention names those registers after their jobs. The first two `f32`
+arguments arrive in **`fa0` and `fa1`**, and a float return value goes out in
+**`fv0`**. (In hardware terms these are `$f12`, `$f14` and `$f0`. You will see
+the raw numbers in other people's notes, but the diff always shows the job
+names.)
 
-Here's `mixF(a, b)`, which computes `a * b + a`:
+This is `mixF(a, b)`, which computes `a * b + a`:
 
 ```asm
 mul.s  ft0, fa0, fa1   # a * b
@@ -31,18 +32,19 @@ jr     ra
 nop
 ```
 
-Read it exactly like integer code, with two substitutions:
+Read it like integer code, with two differences:
 
-- The `.s` suffix means **single precision** — these are `f32` operations.
-  (`.d`, for `f64`, exists too; it comes later.)
-- `ft0`, `ft1`, … are the FPU's **t**emporaries, the float cousins of `t6` and
-  friends.
+- The `.s` suffix means **single precision**, so these are `f32` operations.
+  (`.d`, for `f64`, also exists. It comes later.)
+- `ft0`, `ft1`, … are the FPU's **t**emporaries. They do the same job as `t6`
+  and the other integer temporaries.
 
-Same destination-first operand order, same chain-reading technique. The FPU is
-not a strange land — it's the same grammar with an `f` in front.
+The operands are in the same order as before, destination first, and you read
+the chain in the same way. FPU code follows the same rules as integer code,
+with an `f` in front of the register names.
 
 The target is a single `.s` operation. Read its mnemonic and its operand
-order, and you have the function.
+order, and you can write the function.
 
 ## Your task
 

@@ -9,41 +9,43 @@ concepts:
   - structs
 symbol: func_800cb060
 hints:
-  - "Use the `LINKED_LIST_NEXT_FIELD` macro from the context for the `addu`-then-`sw` pair; the value stored through it is whatever `lw` pulled out of the list first."
-  - "The `lw` from `4(a0)` happens before the `sw` to `4(a0)` — old head out, new head in, in that order. The final `lh`/`addiu`/`sh` trio is the count."
+  - "Use the `LINKED_LIST_NEXT_FIELD` macro from the context for the `addu` and `sw` pair. The value stored through it is the one that `lw` read from the list first."
+  - "The `lw` from `4(a0)` happens before the `sw` to `4(a0)`: the old head is read out first, then the new head is written in. The final `lh`/`addiu`/`sh` group is the count."
 ---
 
-# A list that can chain anything
+# A list that can link any struct
 
-This linked list doesn't wrap its elements in node structs. Instead, any struct
-can *be* a node: the list header just records **where inside each element the
-"next" pointer lives**, as a byte offset. One list type, reused for every kind
-of object in the game — at the price of some pointer arithmetic on every
-operation.
+This linked list does not wrap its elements in node structs. Any struct can
+*be* a node. The list header records **where inside each element the "next"
+pointer lives**, as a byte offset. The game uses this one list type for every
+kind of object. The cost is some pointer arithmetic on every operation.
 
-That arithmetic is the new read. The offset isn't a constant baked into a load
-— it's *data*, loaded from the header at runtime, then added to a node
-pointer. Here's `setHp`, which uses the same trick to store a stat into an
-animal at a per-species offset:
+That arithmetic is the new thing to read. In this list the offset is *data*.
+The code loads it from the header at runtime and then adds it to a node
+pointer, so no load instruction holds it as a fixed displacement. Here is
+`setHp`, which uses
+the same method to store a stat into an animal at an offset that depends on
+the species:
 
 ```asm
-lh   t6, 2(a0)      # sp->hpOffset — the offset is DATA, loaded like any field
+lh   t6, 2(a0)      # sp->hpOffset: the offset is DATA, loaded like any field
 addu t7, a1, t6     # animal + offset = the address OF the hp field
 sw   a2, 0(t7)      # store through it, displacement 0
 jr   ra
 nop
 ```
 
-`lh`, `addu`, then a memory op at `0(...)` — that triple is the fingerprint of
-a runtime-computed field address. In C it's a cast dance:
-`*(s32 *)((u32)animal + sp->hpOffset)`. The list header's version of that
-expression is wrapped in a macro for you in the context, exactly as the
+An `lh`, then an `addu`, then a memory operation at `0(...)`: this group of
+three is the pattern for a field address computed at runtime. In C it needs
+casts: `*(s32 *)((u32)animal + sp->hpOffset)`. The context gives you the list
+header's version of that expression as a macro, written exactly as the
 original source has it.
 
-The target is `func_800cb060`: push a node on the front. Four memory
-writes' worth of bookkeeping — study which value each store carries. Note the
-scheduler hoisted the offset load to the very top, above the head swap it
-belongs after; by now that shouldn't slow you down.
+The target is `func_800cb060`, which pushes a node onto the front of the list.
+The bookkeeping is about four memory writes, so check which value each store
+carries. Note that the scheduler moved the offset load to the very top, above
+the head swap, even though it belongs after the swap. You have seen this kind
+of reordering before, so it should not slow you down.
 
 ## Your task
 

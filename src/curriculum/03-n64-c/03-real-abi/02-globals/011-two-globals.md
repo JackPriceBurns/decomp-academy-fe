@@ -10,39 +10,40 @@ concepts:
 symbol: func_8014d04c
 hints:
   - "Pair each `%lo` with its `%hi` by symbol name, then read the final arithmetic to see how the two values combine."
-  - "`subu`'s operand order is the whole puzzle: which global is on the left?"
+  - "The operand order of `subu` is what matters here. Which global is on the left?"
 ---
 
-# Match the pairs by name, not by position
+# Match each pair by its symbol name
 
-An expression over two globals needs two `%hi`/`%lo` pairs — and the scheduler
-shuffles them together. Here's `sumPair`, which returns `gLeft + gRight`:
+An expression that uses two globals needs two `%hi`/`%lo` pairs, and the
+scheduler mixes them together. Here is `sumPair`, which returns
+`gLeft + gRight`:
 
 ```asm
 lui   t6, %hi(gLeft)
 lui   t7, %hi(gRight)       # both uppers first…
-lw    t7, %lo(gRight)(t7)   # …then the loads — gRight completes first!
+lw    t7, %lo(gRight)(t7)   # …then the loads. gRight completes first!
 lw    t6, %lo(gLeft)(t6)
 addu  v0, t6, t7
 jr    ra
 nop
 ```
 
-Both `lui`s are issued up front, then both loads — and the *second* global's
-load lands before the first's. The scheduler is stacking loads early so their
-latencies overlap; source order survives only in the final `addu`'s operands.
-This is why the machinery lesson told you to match pairs **by symbol name**:
-in real listings the four address-building lines arrive in whatever order the
-pipeline likes best.
+Both `lui`s come first, then both loads, and the *second* global's load comes
+before the first one's. The scheduler puts loads as early as it can so that
+their delays overlap. The source order survives only in the operands of the
+final `addu`. This is why the machinery lesson told you to match pairs **by
+symbol name**. In real listings, the four lines that build the addresses appear
+in whatever order suits the pipeline best.
 
-So the reading recipe for multi-global expressions:
+So, to read an expression that uses more than one global:
 
-1. Group each `%lo` with its `%hi` by name — ignore line order.
+1. Group each `%lo` with its `%hi` by name, and ignore the line order.
 2. Note which *register* each global's value ends up in.
-3. Read the arithmetic over those registers to reconstruct the expression.
+3. Read the arithmetic on those registers to rebuild the expression.
 
-The target combines two globals where the operation makes order matter. Step 3
-is where the answer lives.
+The target combines two globals with an operation where the order matters.
+Step 3 gives you the answer.
 
 ## Your task
 

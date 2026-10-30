@@ -1,7 +1,7 @@
 ---
 id: 68368718-fec7-4257-827e-0c89b3635b5f
 slug: gba-control-switch-chain
-title: A Switch That Is Really Ifs
+title: A Switch Built From Compares
 difficulty: 4
 concepts:
   - branches
@@ -9,19 +9,19 @@ concepts:
   - comparisons
 symbol: func_08161d78
 hints:
-  - The tests are a binary search, so the value compared first is the middle
-    case rather than the first one. The bodies at the bottom of the listing are
-    in source order, which is a much easier place to read the cases off.
-  - Two `s32` arguments and an `s32` result. Three consecutive case values
-    starting at zero, each doing something small to the second argument, and a
-    default that produces a constant.
+  - The tests are a binary search, so the first value compared is the middle
+    case. The bodies at the bottom of the listing are in source order, and they
+    are a much simpler place to read the cases from.
+  - There are two `s32` arguments and an `s32` result. There are three
+    consecutive case values, starting at zero. Each one does something small to
+    the second argument, and a default produces a constant.
 ---
 
 # The compare tree does not run in source order
 
-A switch over a handful of values gets no special machinery. gcc turns it into
-compares and branches — but not the linear chain of `if`s you would write by
-hand. It builds a binary search, and the first value it tests is the middle of
+A switch over a few values gets no special structure. gcc turns it into
+compares and branches, arranged as a binary search instead of the simple chain
+of `if`s you would write by hand. The first value it tests is in the middle of
 the case range:
 
 ```asm
@@ -50,25 +50,26 @@ the case range:
 44     ~>bx        lr
 ```
 
-The cases run 0 through 3 and the first test is against 1. Hit it and you are
-done; otherwise `bgt` splits the range and each half tests its own values. So
-the *tests* are in tree order while the *bodies* — addresses 24 through 42 — are
-laid out in plain source order, each ending in a `b` to the shared exit, with
-the default sitting last before it. Read the bodies to enumerate the cases, and
-read the tree only to find out which body belongs to which value.
+The cases run from 0 through 3, and the first test is against 1. If the value
+matches, the branch goes straight to that body. Otherwise `bgt` splits the
+range, and each half tests its own values. So the *tests* are in tree order,
+but the *bodies* (addresses 24 through 42) are in source order. Each body ends
+in a `b` to the shared exit, and the default comes last, just before the exit.
+Read the bodies to list the cases. Read the tree only to find out which body
+belongs to which value.
 
-Look at addresses 0 through 6. `cmp r0, #1` is emitted, a `beq` consumes the
-flags, and then `cmp r0, #1` is emitted *again* so that `bgt` can consume them
-too. agbcc will not carry flags across a branch that might have been taken, no
-matter how obviously they survive. A pair of identical compares with a single
-conditional branch between them is a reliable fingerprint of a switch tree.
+Look at addresses 0 through 6. The compiler emits `cmp r0, #1`, a `beq` reads
+the flags, and then `cmp r0, #1` is emitted *again* so that `bgt` can read them
+too. agbcc does not keep flags across a branch that might have been taken, even
+when the flags are clearly still valid. Two identical compares with one
+conditional branch between them are a reliable sign of a switch tree.
 
-The default label is reached from two places here, and by unconditional `b`
-rather than by a conditional branch: once from the bottom of the low half at 12
-and once from the bottom of the high half at 22. Every leaf of the tree that
-runs out of cases falls into one of those.
+Here the default label is reached from two places, both by an unconditional `b`
+and never by a conditional branch. One is at the bottom of the low half at 12,
+and the other is at the bottom of the high half at 22. Every leaf of the tree
+that runs out of cases ends at one of those.
 
-Your target is the same tree one case shorter, with bodies that do arithmetic
+Your target has the same tree with one case fewer, and its bodies do arithmetic
 instead of loading constants.
 
 ## Your task

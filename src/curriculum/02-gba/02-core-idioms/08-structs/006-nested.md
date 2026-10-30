@@ -8,28 +8,29 @@ concepts:
   - offsets
   - stores
 hints:
-  - There is no instruction for "step into the inner struct". Add the member's
-    offset within the outer struct to the field's offset within the inner one,
-    and that single number is what appears in the load.
-  - A `struct Body *` in, nothing out. Four loads and two stores, and the two
-    halves of the body are the same statement written for a different member of
-    the inner struct.
+  - There is no instruction that steps into the inner struct. Add the member's
+    offset within the outer struct to the field's offset within the inner
+    struct. That single number is what appears in the load.
+  - The function takes a `struct Body *` and returns nothing. It does four loads
+    and two stores. The two halves of the function body are the same statement,
+    written for a different member of the inner struct.
 symbol: func_08252ff0
 ---
 
-# Nesting is addition, and it happens at compile time
+# Nesting is addition, done at compile time
 
-An inner struct is not a pointer. `b->pos.y` does not load `pos` and then index
-it — `pos` *is* part of `b`, so the compiler adds the offset of `pos` inside
-`Body` to the offset of `y` inside `Vec` and emits one load with the sum. Two
-levels of nesting, one instruction, no trace of the inner type.
+An inner struct is stored inside the outer struct. It is not a pointer.
+`b->pos.y` does not load `pos` and then index into it, because `pos` *is* part
+of `b`. The compiler adds the offset of `pos` inside `Body` to the offset of `y`
+inside `Vec`, and emits one load with the sum. Two levels of nesting become one
+instruction, with no trace of the inner type.
 
-This means a nested access and a flat one are indistinguishable in the assembly.
-`b->pos.y` at offset 8 looks exactly like a field called `posY` declared at
-offset 8. The context block tells you which spelling the original used; the
+This means you cannot tell a nested access from a flat one in the assembly.
+`b->pos.y` at offset 8 looks the same as a field called `posY` declared at
+offset 8. The context block tells you which form the original code used. The
 assembly never will.
 
-Here is a function reading across two nested members:
+Here is a function that reads fields from two nested members:
 
 ```asm
 0        mov       r1, r0
@@ -39,14 +40,15 @@ Here is a function reading across two nested members:
 8        bx        lr
 ```
 
-The struct is `{ u32 tag; struct Range in; struct Range out; }` with
-`struct Range { u16 lo; u16 hi; }`. `in` starts at 4 and `out` at 8. So offset 4
-is `in.lo` (4 + 0) and offset 10 is `out.hi` (8 + 2). Both additions are done by
-the compiler; both are invisible by the time you see the code.
+The struct is `{ u32 tag; struct Range in; struct Range out; }`, with
+`struct Range { u16 lo; u16 hi; }`. `in` starts at 4 and `out` at 8. So offset
+4 is `in.lo` (4 + 0), and offset 10 is `out.hi` (8 + 2). The compiler does both
+additions, and neither one is visible in the code you read.
 
-Your target has six memory operations at four distinct offsets, and every store
-goes back to an offset that was loaded a moment earlier — the update-in-place
-shape from the writing lesson, applied to a nested member.
+Your target has six memory operations at four different offsets. Every store
+goes back to an offset that was loaded shortly before. This is the
+update-in-place pattern from the lesson on writing a field, applied to a nested
+member.
 
 ## Your task
 

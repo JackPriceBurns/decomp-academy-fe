@@ -10,16 +10,16 @@ concepts:
   - fingerprints
 symbol: func_802164a0
 hints:
-  - "The loaded constant is the loop limit — divide it by the number of element-ops per trip to sanity-check it against your `for` bound."
-  - "Four loads folding into one accumulator, two trips, upper bound 8. Write the plain counted `for` over `p[i]`."
+  - "The loaded constant is the loop limit. Divide it by the number of element operations per trip as a check against your `for` bound."
+  - "Four loads combine into one accumulator, over two trips, with an upper bound of 8. Write the plain counted `for` over `p[i]`."
 ---
 
-# When n is known, the scaffolding vanishes
+# When n is known, the extra code goes away
 
-All that guard/remainder machinery existed because the compiler couldn't
-know `n`. Write a loop with a **constant** trip count that divides by 4 and
-watch the unroll turn pristine. Here's `clear16(p)`, which zeroes exactly
-16 words:
+The guard and remainder code existed only because the compiler couldn't know
+`n`. If you write a loop with a **constant** trip count that divides by 4,
+the unroll becomes much cleaner. Here is `clear16(p)`, which sets exactly 16
+words to zero:
 
 ```c
 void clear16(s32 *p) {
@@ -34,7 +34,7 @@ void clear16(s32 *p) {
  0:  or    v1, a0, zero    # cursor = p
  4:  addiu a0, zero, 16    # the loop bound, as a real register value
  8:  or    v0, zero, zero  # i = 0
- c:  addiu v0, v0, 4       # ── loop: i += 4 (four elements per trip!)
+ c:  addiu v0, v0, 4       # ── loop: i += 4 (four elements per trip)
 10:  sw    zero, 4(v1)     # p[i+1] = 0
 14:  sw    zero, 8(v1)     # p[i+2] = 0
 18:  sw    zero, 12(v1)    # p[i+3] = 0
@@ -45,23 +45,23 @@ void clear16(s32 *p) {
 2c:  nop
 ```
 
-No guard — sixteen is famously greater than zero. No `andi`, no remainder
-loop, no dead `sll`. Just the ×4 body and a counter stepping by 4 toward
-the constant. Two details worth pocketing:
+There is no guard, because 16 is greater than zero. There is no `andi`, no
+remainder loop and no dead `sll`. There is only the ×4 body and a counter
+that steps by 4 toward the constant. Two details to remember:
 
-- **The bound lives in a register** (`addiu a0, zero, 16`) so the back-edge
-  can be a cheap `bne`. A materialized round number near a loop is usually
-  the `for` bound, not data.
-- **The counter strides by 4** — divide the bound by the stride to get the
-  trip count, then multiply by the ops-per-trip to recover your element
-  count. Here: 16/4 = 4 trips × 4 stores = 16 elements… conveniently, the C
-  bound itself.
+- **The bound is kept in a register** (`addiu a0, zero, 16`), so the
+  back-edge can be a cheap `bne`. A round number loaded into a register near
+  a loop is usually the `for` bound, and not data.
+- **The counter steps by 4.** Divide the bound by the step to get the number
+  of trips. Then multiply by the number of operations per trip to get the
+  element count. Here, 16/4 = 4 trips, and 4 trips × 4 stores = 16 elements,
+  which is the C bound itself.
 
-Careful on that last step, because it's where people misread these loops:
-your `for` bound is the number of *elements*, not the number of trips. The
-target sums a fixed run of words into a total — count its element-ops per
-trip, read its bound register, and do the little division before you write
-the C.
+Be careful with that last step, because it is where people often misread
+these loops. Your `for` bound is the number of *elements*, not the number of
+trips. The target adds a fixed number of words into a total. Count its
+element operations per trip, read its bound register, and do the division
+before you write the C.
 
 ## Your task
 

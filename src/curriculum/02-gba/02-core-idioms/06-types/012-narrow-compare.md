@@ -9,22 +9,24 @@ concepts:
   - branches
 symbol: func_081e359c
 hints:
-  - Two `lsl`s with no matching second shift is a comparison of two same-width
-    narrow values; the count gives the width and the branch mnemonic gives the
-    signedness. The third register is never shifted, so it is already wide.
-  - "Two `s16` parameters and an `s32`, returning an `s32` - a comparison of the
-    two narrow ones picks which way the `s32` is adjusted by one."
+  - Two `lsl`s with no matching second shift mean a comparison of two narrow
+    values of the same width. The count gives the width, and the branch mnemonic
+    gives the signedness. The third register is never shifted, so it is already
+    wide.
+  - There are two `s16` parameters and one `s32` parameter, and the function
+    returns an `s32`. A comparison of the two narrow parameters decides which
+    way the `s32` is adjusted by one.
 ---
 
 # Comparing in the top of the register
 
-Extending a narrow value takes two shifts, and a comparison of two of them
-would take four. gcc 2.9 charges you two. If both operands are the same width,
-it shifts each one up so the value sits at the top of its register and compares
-them there - the second half of each extension is skipped, because shifting both
-sides left by the same amount preserves the ordering.
+Extending a narrow value takes two shifts, so comparing two narrow values would
+take four. gcc 2.9 uses only two. If both operands have the same width, it
+shifts each one left so the value sits at the top of its register, and compares
+them there. It skips the second shift of each extension, because shifting both
+sides left by the same amount keeps their order the same.
 
-Here are two comparisons, each one `a < b`:
+Here are two comparisons, each of them `a < b`:
 
 ```asm
 0        lsl       r0, #16
@@ -48,18 +50,20 @@ Here are two comparisons, each one `a < b`:
 14       bx        lr
 ```
 
-The first compares two `u16`s, the second two `s8`s. A lone `lsl` with no `asr`
-or `lsr` following it is the fingerprint of this trick, and the shift count is
-still 32 minus the width. Signedness has gone somewhere new: it is in the branch
-mnemonic. `bhs`, `blo`, `bhi` and `bls` test the unsigned flags and mean the
-operands were unsigned; `bge`, `blt`, `bgt` and `ble` mean they were signed.
+The first compares two `u16`s and the second compares two `s8`s. An `lsl` with
+no `asr` or `lsr` after it is an unpaired shift, and it marks this pattern. The
+shift count is still 32 minus the width. The signedness now shows up in a
+different place: the branch mnemonic. `bhs`, `blo`, `bhi` and `bls` test the
+unsigned flags, so they mean the operands were unsigned. `bge`, `blt`, `bgt`
+and `ble` mean the operands were signed.
 
-Watch the scheduling too, because it is part of the match. The unsigned form
-emits `mov r2, #0` after both shifts and the signed form emits it first. Same
-instructions, different order, and only one of the two orders will match.
+Also look at the instruction order, because it affects the match. The unsigned
+form puts `mov r2, #0` after both shifts, and the signed form puts it first. The
+instructions are the same but the order differs, and only one of the two orders
+will match.
 
-Your target has two of those lone shifts and a branch, and the register that
-gets adjusted afterwards was never shifted at all.
+Your target has two of these unpaired shifts and a branch. The register that
+gets adjusted afterwards is never shifted at all.
 
 ## Your task
 

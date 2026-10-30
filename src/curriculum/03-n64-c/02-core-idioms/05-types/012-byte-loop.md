@@ -10,16 +10,17 @@ concepts:
   - delay-slots
 symbol: func_801b4590
 hints:
-  - "A do/while — no guard branch — with the load at the top and the accumulate riding the back-edge's slot."
-  - "Sum every byte, walk by one, count down. Four lines of body; the load's mnemonic types the pointer."
+  - "It is a do/while, so there is no guard branch. The load is at the top of the loop, and the addition to the total sits in the delay slot of the back-edge branch."
+  - "Add up every byte, move the pointer by one each time, and count down. The body is four lines, and the load's mnemonic gives the pointer's type."
 ---
 
-# The loop chapter, one byte at a time
+# Loops over bytes
 
-Time to run the two chapters together. Byte buffers get processed in
-loops constantly — checksums, string scans, palette tweaks — and the
-result is loop skeletons you know wearing load mnemonics you now read.
-Here's `count_zeros(p, n)`, which counts zero bytes in a buffer:
+Now you will combine this chapter with the loop chapter. Games process byte
+buffers in loops all the time, for checksums, string scans and palette
+changes. The result is a loop structure you already know, with load mnemonics
+that you can now read. Here is `count_zeros(p, n)`, which counts the zero bytes
+in a buffer:
 
 ```c
 s32 count_zeros(u8 *p, s32 n) {
@@ -49,22 +50,27 @@ s32 count_zeros(u8 *p, s32 n) {
 28:  nop
 ```
 
-Everything is a rerun, recombined: `do`/`while` so no guard, an `if`
-inside the body (forward branch, flipped, honest `nop` in its slot), the
-pointer increment riding the back-edge slot, stride 1 because bytes. The
-only *new* information in the whole listing is `lbu` — one mnemonic
-carrying the source declaration, exactly as it did in a two-line
+You have seen every part of this before, combined in a new way:
+
+- It is a `do`/`while`, so there is no guard branch.
+- The `if` inside the body is a forward branch with its condition flipped,
+  and a real `nop` in its delay slot.
+- The pointer increment is in the delay slot of the back-edge branch.
+- The stride is 1, because the elements are bytes.
+
+The only *new* information in the whole listing is `lbu`. That one mnemonic
+gives you the declaration of the source, exactly as it did in a two-line
 function.
 
-That's the general truth of this chapter: width idioms don't change
-inside larger structures. A `lbu` in a forty-line function means what it
-meant in a four-line one. When a big target overwhelms, find the loads
-and stores first — they type your variables — then read the control
-skeleton around them.
+This is true across the whole chapter: width idioms do not change inside
+larger structures. An `lbu` in a forty-line function means the same as it does
+in a four-line one. When a big target is hard to follow, find the loads and
+stores first, because they give you the types of your variables. Then read the
+control structure around them.
 
-The target accumulates every byte of a buffer into a total, counting
-down. No `if` this time — a tighter body than the worked example, same
-bones.
+The target adds every byte of a buffer into a total, counting down. There is
+no `if` this time, so the body is shorter than in the worked example, but the
+structure is the same.
 
 ## Your task
 

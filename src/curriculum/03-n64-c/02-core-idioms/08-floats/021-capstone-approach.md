@@ -11,17 +11,17 @@ concepts:
   - capstone
 symbol: func_80102960
 hints:
-  - "Start at the `sub.s` — note its operand order — and name its result `d`. Then read the two guards as a symmetric clamp on `d`, decoding `0x3f00` and `0xbf00`."
-  - "The final `add.s` combines an *argument* with the clamped `d`. Three statements and two `if`s reproduce everything, likely-slot tricks included."
+  - "Start at the `sub.s`, note its operand order, and name its result `d`. Then read the two guards as a symmetric clamp on `d`, decoding `0x3f00` and `0xbf00`."
+  - "The final `add.s` combines an *argument* with the clamped `d`. Three statements and two `if`s reproduce everything, including the code in the likely slots."
 ---
 
-# Chase a target, gently
+# Moving toward a target in limited steps
 
-The classic smoothing function: move a value toward a target, but
-never by more than a fixed step. Every camera, door, and volume
-slider in the game runs something like it. First, a cousin to warm
-up on — `rebound(v)`, which reflects and dampens a speed, zeroing it
-when it gets weak:
+This is a standard smoothing function: move a value toward a target, but
+never by more than a fixed step. Every camera, door and volume slider in the
+game runs something like it. First, a similar function to warm up on.
+`rebound(v)` reflects a speed and reduces it, and sets it to zero when it
+gets too small:
 
 ```c
 f32 rebound(f32 v) {
@@ -38,7 +38,7 @@ f32 rebound(f32 v) {
  4:  mtc1   at, ft1
  8:  neg.s  ft0, fa0       # -v
  c:  lui    at, 0x3f80     # 1.0f, staged while the mul runs
-10:  mul.s  fa0, ft0, ft1  # -v * 0.5f — overwriting the argument
+10:  mul.s  fa0, ft0, ft1  # -v * 0.5f, overwriting the argument
 14:  mtc1   at, ft2
 18:  nop
 1c:  c.lt.s fa0, ft2       # weak?
@@ -52,24 +52,25 @@ f32 rebound(f32 v) {
 3c:  nop
 ```
 
-Note how *reassigning a C variable* shows up: `fa0` stops being "the
-argument" the moment the `mul.s` overwrites it, and just means `v`,
-whatever `v` currently is. Track variables, not registers.
+Note how *reassigning a C variable* shows up. `fa0` stops being "the
+argument" as soon as the `mul.s` overwrites it. After that it means `v`,
+whatever `v` currently holds. Follow the variables instead of the registers.
 
-The target is denser — the same ingredients, aggressively
-scheduled. Expect, and don't be knocked over by:
+The target is denser. It uses the same parts, but the scheduler has moved
+them around a lot. Expect these things, and don't let them confuse you:
 
-- **A compare in a likely slot.** One guard's `c.lt.s` starts inside
-  the *previous* branch's annullable slot — and is duplicated on the
-  other path. Same instruction twice, two ways to arrive at it.
-- **`fv0` living two lives**: it carries a *constant* early on and
-  only becomes the return value at the end. Dataflow over names,
-  one more time.
-- **Symmetric bounds**: two `lui`s differing only in their top bit.
+- **A compare in a likely slot.** One guard's `c.lt.s` starts inside the
+  *previous* branch's annullable slot, and it is duplicated on the other
+  path. The same instruction appears twice, once for each way of reaching it.
+- **`fv0` with two jobs.** It holds a *constant* early on and only becomes
+  the return value at the end. Again, the data flow matters more than the
+  register name.
+- **Symmetric bounds.** There are two `lui`s that differ only in their top
+  bit.
 
-Un-schedule it patiently: find the `sub.s` first, watch its result
-get squeezed from both sides, and see what the final `add.s` sums.
-The C that produces all of it is short and completely ordinary.
+Undo the scheduling patiently. Find the `sub.s` first, watch its result get
+limited from both sides, and see what the final `add.s` adds together. The C
+that produces all of this is short and ordinary.
 
 ## Your task
 

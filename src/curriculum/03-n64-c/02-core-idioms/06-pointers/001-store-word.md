@@ -8,18 +8,17 @@ concepts:
   - stores
 symbol: func_803e224c
 hints:
-  - "The arithmetic happens first, into a scratch register; the `sw` then pushes that register through the pointer. Read the compute line to see what's being stored."
-  - "A void function with a pointer first parameter — the classic out-parameter. One assignment line in the body."
+  - "The arithmetic happens first and puts its result in a scratch register. Then the `sw` writes that register through the pointer. Read the instruction that computes the value to see what is stored."
+  - "It is a void function whose first parameter is a pointer. This is the usual out-parameter pattern. The body is one assignment line."
 ---
 
 # The out-parameter
 
-Last chapter every pointer was something you *read* through. This chapter
-turns the arrow around and then spends serious time on the addresses
-themselves. First, the write: `sw rt, offset(base)` — **s**tore
-**w**ord — copies a register into memory at `base + offset`. Here's
-`put_inc`, which delivers `x + 1` through a pointer instead of returning
-it:
+In the last chapter, you only *read* through pointers. This chapter starts by
+writing through one, and then looks closely at the addresses themselves. The
+write instruction is `sw rt, offset(base)`, short for **s**tore **w**ord. It
+copies a register into memory at `base + offset`. Here is `put_inc`, which
+writes `x + 1` through a pointer instead of returning it:
 
 ```c
 void put_inc(s32 *out, s32 x) {
@@ -34,21 +33,21 @@ jr    ra
 nop
 ```
 
-Two things worth pinning down:
+There are two things to note here:
 
-- **The value travels through a scratch register.** Memory-to-memory
-  doesn't exist; every store is compute-into-register, then `sw`. When
-  you read a target, find the store, then trace its register backwards to
-  see what was computed.
-- **`v0` never appears.** The function is `void` — its result leaves
-  through `a0`'s pointee, not the return register. A function whose
-  listing has no write to `v0` before `jr ra` returns nothing; the
-  pointer parameter is the delivery route. Game code does this
-  everywhere: "fill in this struct", "write the answer here".
+- **The value goes through a scratch register.** No instruction copies
+  memory straight to memory. Every store first computes the value into a
+  register, and then `sw` writes that register out. When you read a target,
+  find the store, then trace its register backwards to see what was computed.
+- **`v0` never appears.** The function is `void`. Its result goes out through
+  the memory that `a0` points to, instead of through the return register. If
+  a listing never writes to `v0` before `jr ra`, the function returns nothing.
+  Here the pointer parameter is how the result gets out. Game code does this
+  everywhere, for example "fill in this struct" or "write the answer here".
 
-The target computes one value from its other arguments and stores it
-through the first. Read the compute line's mnemonic to see the
-operation.
+The target computes one value and stores it through a pointer. Look at the
+mnemonic of the instruction that computes the value to see which operation
+it is.
 
 ## Your task
 

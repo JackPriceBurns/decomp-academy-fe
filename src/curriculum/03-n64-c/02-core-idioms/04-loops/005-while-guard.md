@@ -1,7 +1,7 @@
 ---
 id: e5c28776-5592-4699-a9e0-335d99d32662
 slug: loops-while-guard
-title: "while Means Guard"
+title: "A while Loop Gets a Guard"
 difficulty: 3
 concepts:
   - loops
@@ -10,17 +10,18 @@ concepts:
   - delay-slots
 symbol: func_80170a1c
 hints:
-  - "Guard at the top, likely back-edge at the bottom, and the cloned accumulate reads the loop variable — three lessons stacked in one listing."
-  - "The counter is the argument itself, stepping down — the accumulator adds it each trip. Mind which of the two the final copy returns."
+  - "There is a guard at the top and a likely back-edge at the bottom, and the cloned accumulate reads the loop variable. This listing combines three earlier lessons."
+  - "The counter is the argument itself, stepping down, and the accumulator adds it on each trip. Check which of the two the final copy returns."
 ---
 
-# The branch that runs zero times
+# A loop that can run zero times
 
-A `do`/`while` promises at least one trip. A `while` promises nothing — so
-before its rotated body, IDO plants a **guard**: the loop condition flipped,
-jumping past everything. You met the shape in the anatomy lesson; now read
-it knowing everything the last two lessons taught. Here's `shrink`, which
-counts how many right-shifts empty a positive number:
+A `do`/`while` always runs at least once. A `while` might not run at all. So
+before its rotated body, IDO adds a **guard**: the loop condition, flipped,
+as a branch that jumps past the whole loop. You saw this shape in the
+anatomy lesson. Now read it again with what the last two lessons taught you.
+Here is `shrink`, which counts how many right shifts it takes to bring a
+positive number down to zero:
 
 ```c
 s32 shrink(s32 x) {
@@ -45,22 +46,23 @@ s32 shrink(s32 x) {
 20:  nop
 ```
 
-Read the guard as part of the loop, not as an `if`: **`blez` guarding a
-`bgtz` back-edge is one `while (x > 0)`**, the same condition tested twice —
-flipped on the way in, straight on the way around. The giveaway that these
-branches belong together: the guard's target (`0x18`) is the first line
-*after* the back-edge's slot.
+Read the guard as part of the loop, and don't turn it into an `if`.
+**A `blez` guard in front of a `bgtz` back-edge is one `while (x > 0)`.** It
+is the same condition tested twice: flipped on the way in, and as written on
+each trip around. You can tell that these branches belong together because
+the guard's target (`0x18`) is the first line *after* the back-edge's delay
+slot.
 
-Two familiar friends in the frame: the guard's delay slot doing the `c = 0`
-setup, and `t6` holding the shifted value before it's committed back to
-`a0` — the test at `10` reads `t6` because it's the same value, one line
-fresher.
+Two other details are familiar. The guard's delay slot does the `c = 0`
+setup. And `t6` holds the shifted value before it is copied back to `a0`.
+The test at `10` reads `t6` because it is the same value, and it is ready one
+line earlier.
 
-The target is a `while` loop too, but its body *accumulates the counter
-itself* — which, as the last lesson taught you, forces the back-edge into
-its likely form with a cloned accumulate. Expect all three pieces: guard,
-`bgtzl`, twin `addu`s. The C is still just a plain `while` with a two-line
-body.
+The target is also a `while` loop, but its body *adds the counter itself to
+a total*. As the last lesson showed, that forces the back-edge into its
+likely form with a cloned accumulate. Expect to see all three pieces: the
+guard, a `bgtzl`, and two identical `addu`s. The C is still a plain `while`
+with a two-line body.
 
 ## Your task
 

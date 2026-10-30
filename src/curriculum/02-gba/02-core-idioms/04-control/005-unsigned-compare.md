@@ -9,29 +9,29 @@ concepts:
   - types
 symbol: func_0812c408
 hints:
-  - "`bhs` is the unsigned relation, so neither operand can be `s32`. The two
-    arms return a difference and a constant."
-  - Two `u32` arguments and a `u32` result. When the first is at least as large
-    as the second the function answers with their difference, otherwise with
-    zero.
+  - "`bhs` is an unsigned comparison, so neither operand can be `s32`. One arm
+    returns a difference and the other returns a constant."
+  - There are two `u32` arguments and a `u32` result. When the first is at least
+    as large as the second, the function returns their difference. Otherwise it
+    returns zero.
 ---
 
-# The mnemonic is the type declaration
+# The branch mnemonic shows the type
 
-A subtraction sets the same four flags whatever the operands mean. What differs
-is which flags a branch consults, so ARM carries two complete families of
-conditional branch and the compiler picks a family from the *types* in the
-source:
+A subtraction sets the same four flags, whatever the operands mean. The
+difference is in which flags a branch reads. So ARM has two complete families
+of conditional branches, and the compiler picks a family from the *types* in
+the source:
 
     signed     blt   bge   ble   bgt
     unsigned   blo   bhs   bls   bhi
 
-`blo` and `bhs` are the ones to memorise, because objdiff prints them under
-their ARM aliases: they are the carry-clear and carry-set conditions, and you
-will also see them written `bcc` and `bcs` in hand-written GBA assembly.
+Memorise `blo` and `bhs`, because objdiff prints them under these ARM alias
+names. They are the carry-clear and carry-set conditions. In hand-written GBA
+assembly you will also see them written as `bcc` and `bcs`.
 
-Here is one function compiled twice, with nothing changed but the declared type
-of the two values being compared:
+Here is one function compiled twice. The only change is the declared type of
+the two values being compared:
 
 ```asm
 0        cmp       r0, r1
@@ -49,20 +49,22 @@ of the two values being compared:
 8        bx        lr
 ```
 
-Ten bytes each, identical registers, identical layout, one mnemonic apart. The
-first pair of arguments is `s32`, the second `u32`. Nothing else in the listing
-records that difference — no extra masking, no extra shift, no change of
-instruction. If you are deriving a signature from a target with no other clue,
-the branch is the clue.
+Both versions are ten bytes, with the same registers and the same layout. Only
+one mnemonic is different. The arguments in the first version are `s32`, and in
+the second they are `u32`. Nothing else in the listing shows that difference:
+there is no extra masking, no extra shift and no other change of instruction.
+If you are working out a signature from a target with no other clue, the branch
+is the clue.
 
-The distinction is not cosmetic. `cmp r0, r1` with `r0` holding `0xFFFFFFFF`
-and `r1` holding `1` is "greater" to `bhi` and "less" to `bgt`, and a decomp
-that picks the wrong family compiles to different bytes on the first negative
-input. Real GBA code is full of `u16` counters and `u8` indices promoted into
-these compares, so the unsigned family turns up constantly.
+This difference matters. With `r0` holding `0xFFFFFFFF` and `r1` holding `1`,
+`cmp r0, r1` counts as "greater" for `bhi` and "less" for `bgt`. A decomp that
+picks the wrong family compiles to different bytes, and it gives a different
+answer on the first negative input. Real GBA code is full of `u16` counters and
+`u8` indices that are promoted into these compares, so you will see the
+unsigned family all the time.
 
-Your target's branch is from the unsigned family. Read what that settles before
-you write a line.
+Your target's branch is from the unsigned family. Work out what that tells you
+about the types before you write any code.
 
 ## Your task
 

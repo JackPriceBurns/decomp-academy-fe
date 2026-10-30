@@ -10,9 +10,9 @@ concepts:
 hints:
   - "`ldmia r3!, {r0}` is a load and a pointer advance in one instruction, so
     there is no separate `add r3, #4` to look for. The element size is 4."
-  - Write the same shape of indexed sum you have already written; the
-    post-increment form is the compiler's choice, not something you can spell in
-    C.
+  - Write the same kind of indexed sum you have already written. The compiler
+    chooses the post-increment form by itself, and there is no way to write it
+    in C.
   - "`eor` is exclusive or. An `s32 *` and a count in, `s32` out, with `^=`
     where the sum had `+=`."
 symbol: func_08185918
@@ -20,15 +20,16 @@ symbol: func_08185918
 
 # One instruction that loads and advances
 
-Thumb has no post-increment load. There is no `ldr r0, [r3], #4` — the encoding
-does not exist. What Thumb does have is load-multiple with writeback,
-`ldmia rN!, {list}`, which loads a list of registers from consecutive addresses
-and leaves the base pointing past the last one. Put exactly one register in the
-list and you have a post-increment load built out of the only instruction that
-offers writeback.
+Thumb has no post-increment load, which is a load that also advances its
+pointer register. There is no `ldr r0, [r3], #4`, because that encoding does not
+exist. Thumb does have a load-multiple with writeback, `ldmia rN!, {list}`. It
+loads a list of registers from consecutive addresses and leaves the base
+register pointing just past the last one. If you put exactly one register in the
+list, you get a post-increment load, built from the only instruction that offers
+writeback.
 
-That is why almost every word-sized array walk in an agbcc build looks like
-this. Here is a loop that fills an array with -1:
+This is why almost every loop over an array of words in an agbcc build uses it.
+Here is a loop that fills an array with -1:
 
 ```asm
 0        cmp       r1, #0
@@ -42,24 +43,29 @@ this. Here is a loop that fills an array with -1:
 16     ~>bx        lr
 ```
 
-`stmia r0!, {r2}` is the store mirror: write r2 to `[r0]`, then advance r0 by 4.
-Compare it with the halfword fill from the last lesson, which needed `strh`
-followed by `add r0, #2`. There is no halfword load-multiple, so halfwords and
-bytes pay for their advance separately and words do not.
+`stmia r0!, {r2}` is the matching store. It writes r2 to `[r0]`, then advances
+r0 by 4. Compare it with the halfword fill from the last lesson, which needed
+`strh` followed by `add r0, #2`. There is no halfword load-multiple. So loops
+over halfwords and bytes need a separate instruction to advance the pointer,
+and loops over words do not.
 
-The -1 in the preheader is the constant-building rule you already know. Thumb
-`mov` takes an unsigned 8-bit immediate, so a negative constant is built as the
-positive one and negated: `mov r2, #1 / neg r2, r2`.
+The -1 in the preheader follows the rule for building constants that you already
+know. Thumb `mov` takes an unsigned 8-bit immediate, so gcc builds a negative
+constant by loading the positive value and then negating it:
+`mov r2, #1 / neg r2, r2`.
 
-Three things have to be true before gcc reaches for the load-multiple form: the
-element is exactly four bytes, the pointer is read once per trip, and the
-advance sits in the same straight run of instructions as the load. Break any of
-them and the loop falls back to a plain `ldr` and a separate `add`. Later
-lessons in this chapter break each of them in turn, and now you know what the
-undamaged version looks like.
+gcc uses the load-multiple form only when three things are true:
 
-Your target's loop is built on this instruction. The part to read closely is
-what sits between the load and the countdown.
+- The element is exactly four bytes.
+- The pointer is read once per trip.
+- The advance is in the same straight run of instructions as the load.
+
+If any of these is false, the loop uses a plain `ldr` and a separate `add`
+instead. Later lessons in this chapter break each condition in turn. Now you
+know what the normal version looks like.
+
+Your target's loop uses this instruction. Read closely what sits between the
+load and the countdown.
 
 ## Your task
 

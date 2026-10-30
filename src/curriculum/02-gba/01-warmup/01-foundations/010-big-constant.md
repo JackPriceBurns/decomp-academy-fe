@@ -9,19 +9,20 @@ concepts:
   - shifts
 symbol: offsetFar
 hints:
-  - Read the pair as one value - the `mov` puts a small number in a spare
-    register and the `lsl` scales it up before the add.
-  - Multiply the moved constant by 2 to the power of the shift amount and you
-    have the number your C should add.
+  - Read the pair as one value. The `mov` puts a small number in a spare
+    register, and the `lsl` scales it up before the add.
+  - Multiply the moved constant by 2 to the power of the shift amount. The
+    result is the number your C should add.
 ---
 
-# Building what you cannot encode
+# Building a constant that does not fit
 
-The immediate field is eight bits wide, so `add rD, #imm` tops out at 255. Ask
-for more and the compiler cannot put the number in the instruction at all. It
-has to build the value in a spare register first, and then add that register.
+The immediate field is eight bits wide, so `add rD, #imm` can add at most 255.
+For a larger number, the compiler cannot put the number in the instruction at
+all. It has to build the value in a spare register first, and then add that
+register.
 
-Here is a function adding 768:
+Here is a function that adds 768:
 
 ```asm
 0        mov       r1, #192
@@ -30,18 +31,19 @@ Here is a function adding 768:
 6        bx        lr
 ```
 
-Three instructions where the small-constant version needed one. The compiler
-picked `r1` as scratch — argument registers it no longer needs are fair game —
-moved 192 into it, shifted left by 2 to reach 768, then did the add.
+That is three instructions, where the small-constant version needed one. The
+compiler chose `r1` as a scratch register. It can use any argument register
+that it no longer needs. It moved 192 into `r1`, shifted it left by 2 to get
+768, and then did the add.
 
-Why 192 and not something else? Because the constant has to be reachable by a
-`mov`, which has the same eight-bit ceiling, and 768 is 192 × 4. The compiler
-looks for a value under 256 that reaches the target with a single shift, and
-768 = 192 << 2 fits. Not every number can be written that way, and the next
-lesson is about what happens when one cannot.
+The compiler used 192 because the constant has to be loaded by a `mov`, which
+has the same eight-bit limit, and 768 is 192 × 4. The compiler looks for a value
+under 256 that reaches the target with a single shift, and 768 = 192 << 2
+works. Not every number can be built this way. The next lesson covers what
+happens when a number cannot.
 
-To read the pair back, do the arithmetic yourself: take the moved constant,
-shift it left by the shift amount, and that is the number the original C wrote.
+To read the pair back, do the arithmetic yourself. Take the moved constant and
+shift it left by the shift amount. The result is the number in the original C.
 
 ## Your task
 

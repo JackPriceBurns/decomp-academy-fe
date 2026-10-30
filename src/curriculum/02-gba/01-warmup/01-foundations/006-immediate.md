@@ -1,7 +1,7 @@
 ---
 id: 6c69e827-c923-5b61-ad6f-4bc6c4ca07cc
 slug: gba-foundations-immediate
-title: Constants Ride Inside the Instruction
+title: Constants Stored in the Instruction
 difficulty: 1
 concepts:
   - arithmetic
@@ -14,25 +14,24 @@ hints:
 
 # A constant with no load
 
-Adding a small constant costs nothing extra. The number rides inside the
-instruction itself, in the immediate form `add rD, #imm`. Here is a function
-that adds twelve to its argument:
+Adding a small constant needs no extra instructions. The number is stored inside
+the instruction itself, using the immediate form `add rD, #imm`. Here is a
+function that adds twelve to its argument:
 
 ```asm
 0        add       r0, #12
 2        bx        lr
 ```
 
-One instruction. No separate load, no register set aside to hold the twelve —
-the value is part of the encoding.
+This is one instruction. There is no separate load, and no register is used to
+hold the twelve. The value is part of the instruction's encoding.
 
-That encoding is where sixteen bits starts to pinch. The immediate field in this
-form is **eight bits wide**, so it reaches 0 to 255 and no further. Ask for a
-bigger constant and the compiler has to build the value some other way, which is
-a problem you will meet in a few lessons' time. Your target's constant is
-comfortably inside the range.
+The sixteen-bit instruction size limits this encoding. The immediate field in
+this form is **eight bits wide**, so it can only hold values from 0 to 255. For
+a bigger constant, the compiler has to build the value in another way. You will
+see how in a few lessons. Your target's constant is well inside the range.
 
-Read the number the target's `add` carries and that is the number you want.
+The number in the target's `add` is the number you want.
 
 ## Your task
 

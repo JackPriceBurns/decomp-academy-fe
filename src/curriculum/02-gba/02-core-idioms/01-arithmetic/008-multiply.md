@@ -9,23 +9,25 @@ concepts:
   - registers
 symbol: func_080532a0
 hints:
-  - "`mul` has no three-operand form, so the first factor has to be sitting in
-    the destination register before the product can start."
-  - "Four `s32` parameters in, an `s32` out. The first one is never used, and
-    the product runs left to right beginning with the fourth."
+  - "`mul` has no three-operand form, so the first factor has to be in the
+    destination register before the multiply can start."
+  - The function takes four `s32` parameters and returns an `s32`. The first
+    one is never used. The product is computed left to right, starting with the
+    fourth.
 ---
 
-# One multiply, no room to spare
+# Thumb's one multiply instruction
 
-The ARM7TDMI has a hardware multiplier, and Thumb gives it exactly one
-instruction: `mul rD, rM`, meaning `rD = rD * rM`.
+The ARM7TDMI has a hardware multiplier, and Thumb has exactly one instruction
+for it: `mul rD, rM`, which means `rD = rD * rM`.
 
-That is the whole encoding. There is no three-operand form to write the product
-somewhere else, and no immediate form to multiply by a constant. Both absences
-show up in real listings constantly — the first as copies, the second as the
-strength-reduced chains coming up in the next few lessons.
+That is the only encoding. There is no three-operand form that writes the
+product to another register, and no immediate form that multiplies by a
+constant. You will see the effect of both in real listings all the time. The
+missing three-operand form causes extra copies. The missing immediate form
+causes the strength-reduced chains that the next few lessons cover.
 
-Here is `x * y * z` across the first three arguments:
+Here is `x * y * z`, using the first three arguments:
 
 ```asm
 0        mul       r0, r1
@@ -33,8 +35,8 @@ Here is `x * y * z` across the first three arguments:
 4        bx        lr
 ```
 
-The product accumulates in `r0`, each `mul` overwriting it. Now the same three
-factors written in the opposite order, `z * y * x`:
+The product builds up in `r0`, and each `mul` overwrites it. Now here are the
+same three factors written in the opposite order, `z * y * x`:
 
 ```asm
 0        mul       r1, r2
@@ -43,22 +45,23 @@ factors written in the opposite order, `z * y * x`:
 ```
 
 `z * y` is computed in `r1` first, and only then is `x` multiplied in. As with
-the addition chains earlier, agbcc has preserved the association: the register
-written first held the innermost pair.
+the addition chains earlier, agbcc has kept the grouping from the source: the
+register written first held the innermost pair.
 
-A single multiply is different, though. `x * y` and `y * x` compile to the same
-`mul r0, r1`, because there is no encoding that could record the swap — with no
-three-operand form the operand order simply has nowhere to go. So a lone `mul`
-tells you nothing about which factor came first in the source, while a *chain* of
-them tells you everything.
+A single multiply is different. `x * y` and `y * x` both compile to the same
+`mul r0, r1`. With no three-operand form, there is no encoding that could
+record the swap. So one `mul` on its own tells you nothing about which factor
+came first in the source. A *chain* of them does show you the grouping.
 
-When the leftmost factor is not already in `r0`, the copy has to happen before
-the multiply can start, and you get a bare `mov r0, rN` at the top. Two rules
-constrain that copy: the destination must hold the left operand, and on this core
-`mul rD, rD` is not allowed at all — the two register fields have to differ, which
-is why squaring a value always costs a second register.
+When the leftmost factor is not already in `r0`, it has to be copied there
+before the multiply can start. You then get a plain `mov r0, rN` at the top.
+Two rules limit that copy. First, the destination must hold the left operand.
+Second, on this core `mul rD, rD` is not allowed at all. The two register
+fields must name different registers, so squaring a value always needs a second
+register.
 
-Read your target's first instruction as setup, then follow the accumulator.
+Read the first instruction of your target as setup. Then follow the running
+product.
 
 ## Your task
 

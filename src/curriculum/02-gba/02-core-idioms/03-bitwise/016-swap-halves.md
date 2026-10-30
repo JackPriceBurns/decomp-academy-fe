@@ -9,17 +9,18 @@ concepts:
   - constants
 symbol: func_08111750
 hints:
-  - Two rotates by different amounts, then one `orr`. Convert each rotate count
-    into the pair of shifts that produced it before you write anything.
-  - Two `u32` arguments and a `u32` result. Each argument is rotated by its own
-    amount and the two rotated values are or-ed together.
+  - There are two rotates by different amounts, then one `orr`. Convert each
+    rotate count into the pair of shifts that produced it before you write
+    anything.
+  - The function takes two `u32` arguments and returns a `u32`. Each argument
+    is rotated by its own amount, and the two rotated values are or-ed together.
 ---
 
-# ror, and the direction it hides
+# ror, and which way it rotates
 
-Write a value's bits out one end and back in the other and gcc 2.9 recognises
-the idiom. Shift right by `k`, shift left by `32 - k`, or the two together, and
-the whole thing becomes a rotate:
+If you shift a value's bits out of one end and back in at the other, gcc 2.9
+recognises the idiom. Shift right by `k`, shift left by `32 - k`, or the two
+results together, and the whole expression becomes a rotate:
 
 ```asm
 0        mov       r1, #4
@@ -27,20 +28,21 @@ the whole thing becomes a rotate:
 4        bx        lr
 ```
 
-Two instructions for what looks like three operations in the C, and the `mov` is
-there because Thumb's `ror` takes its count from a register only. There is no
-`ror r0, #4` encoding, so a constant rotate always drags a `mov` along with it.
+That is two instructions for what looks like three operations in the C. The
+`mov` is there because Thumb's `ror` can only take its count from a register.
+There is no `ror r0, #4` encoding, so a constant rotate always needs a `mov` as
+well.
 
-The number in that `mov` needs care. `ror` rotates **right**, and gcc normalises
-every left rotate into a right one by subtracting from 32. A rotate left by 8
-therefore appears as `mov rN, #24`, and reading it as a rotate right by 24 will
-give you C that produces the identical instruction — so the two spellings are
-interchangeable for matching, and you should write whichever makes sense of the
-code around it. A swap of a word's two halves is the one count that reads the
-same in either direction.
+Be careful with the number in that `mov`. `ror` rotates **right**, and gcc
+turns every left rotate into a right rotate by subtracting the count from 32. So
+a rotate left by 8 appears as `mov rN, #24`. If you read it as a rotate right by
+24, your C will produce exactly the same instruction. The two forms are
+interchangeable for matching, so write whichever makes sense with the code
+around it. A swap of a word's two halves is the one count that reads the same in
+either direction.
 
-The pattern fires only for a constant count. Make the rotate amount a variable
-and gcc gives up completely:
+The pattern is only recognised for a constant count. If the rotate amount is a
+variable, gcc does not use `ror` at all:
 
 ```asm
 0        mov       r3, r0
@@ -52,11 +54,11 @@ and gcc gives up completely:
 12       bx        lr
 ```
 
-Six instructions doing by hand what a single `ror r0, r1` would have done, and
-the hardware can encode that instruction perfectly well. gcc 2.9 simply has no
-pattern for it. When you meet this shape in a ROM, do not go looking for a
-clever rotate helper — the original C was the ordinary shift-shift-or, with a
-count that was not a constant.
+That is six instructions doing by hand what a single `ror r0, r1` would do, and
+the hardware does support that instruction. gcc 2.9 has no pattern for it. When
+you see this shape in a ROM, do not look for a special rotate helper. The
+original C was the ordinary pair of shifts joined with an or, with a count that
+was not a constant.
 
 ## Your task
 

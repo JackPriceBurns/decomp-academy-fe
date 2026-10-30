@@ -9,22 +9,22 @@ concepts:
   - register-allocation
 symbol: func_080aac44
 hints:
-  - The `mov` at the top happens before anything is computed, so it is protecting
-    a value the rest of the function is going to need.
+  - The `mov` at the top runs before anything is computed, so it is saving a
+    value that the rest of the function needs later.
   - Two `s32` parameters in, an `s32` out. The second is halved and the first is
     subtracted from the result.
 ---
 
 # The bias for a halving is one bit
 
-The bias sequence from the last lesson has a branch in it, and a branch is
-expensive on a chip that refills its pipeline every time one is taken. For one
-divisor gcc can avoid it entirely.
+The bias sequence from the last lesson contains a branch. Branches are
+expensive on this chip, because it refills its pipeline every time a branch is
+taken. For one divisor, gcc can avoid the branch completely.
 
-Dividing by 2 needs a bias of 1 for negative values and 0 for non-negative ones.
-That is the sign bit. `lsr rD, rS, #31` slides the top bit all the way to the
-bottom and zeroes everything else, producing exactly 1 or 0 with no test at all,
-so the add can be made unconditional:
+Dividing by 2 needs a bias of 1 for negative values and 0 for all other values.
+That is exactly the sign bit. `lsr rD, rS, #31` moves the top bit all the way
+down to the bottom and clears every other bit. The result is 1 or 0 without any
+test, so the add can always run:
 
 ```asm
 0        lsr       r1, r0, #31
@@ -33,9 +33,9 @@ so the add can be made unconditional:
 6        bx        lr
 ```
 
-The halving is three instructions, with no compare and no branch. This is the
-only power of two that gets the treatment. The very next one is back to the
-shape you already know:
+The halving takes three instructions, with no compare and no branch. This is
+the only power of two that is handled this way. The next one already goes back
+to the shape you know:
 
 ```asm
 0        cmp       r0, #0
@@ -45,25 +45,24 @@ shape you already know:
 8        bx        lr
 ```
 
-For every divisor from 4 upwards, the bias is a number that has to be added
-conditionally, and gcc has no cheaper way to produce it than the compare.
+For every divisor from 4 upwards, the bias is a number that must be added only
+for negative values. gcc has no cheaper way to do that than the compare.
 
-The practical value of this is that a signed halving is unmistakable. The
-sequence `lsr rN, rM, #31` / `add` / `asr #1` has no other source in gcc 2.9's
-output, and it always means a signed `/ 2` is happening somewhere, even when it
-turns up buried in something larger. Real GBA code is full of them —
-centring a sprite, splitting a rectangle, stepping a binary search — and once
-you can see the three instructions as a single unit, the surrounding arithmetic
-becomes easy to read.
+This means a signed halving is always recognisable. The sequence
+`lsr rN, rM, #31`, `add`, `asr #1` comes from nothing else in gcc 2.9's output.
+It always means a signed `/ 2` is happening, even when it is part of a larger
+expression. Real GBA code has many of them, for example when centring a sprite,
+splitting a rectangle or stepping through a binary search. Once you see the
+three instructions as one unit, the arithmetic around them becomes much clearer.
 
-Note also which register `lsr` writes. It is the three-operand form, because the
-value being tested has to survive to be added to. The compiler picks any free
-register for the sign bit, so the name of that register is worth nothing to you
-and the shape is worth everything.
+Also note which register `lsr` writes. It uses the three-operand form, because
+the value being tested must still be there for the add. The compiler uses any
+free register for the sign bit, so the name of that register tells you nothing.
+Only the shape matters.
 
-Your target halves something, and it opens with an instruction that runs before
-any of the arithmetic. Ask what the rest of the function would lose if that
-instruction were missing.
+Your target halves a value, and it starts with an instruction that runs before
+any of the arithmetic. Ask what the rest of the function would lose without that
+instruction.
 
 ## Your task
 

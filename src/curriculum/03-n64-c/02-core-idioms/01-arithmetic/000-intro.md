@@ -11,20 +11,21 @@ concept: true
 
 # The groundwork is done
 
-That's the warmup behind you. You can read a line of MIPS, you know where a
-function's arguments and return value live, and — as of the last chapter — you
-can recover a signature from nothing but the target in front of you.
+You have finished the warmup. You can read a line of MIPS, and you know where a
+function's arguments and return value live. Since the last chapter, you can
+also recover a signature from the target assembly alone.
 
-Now the real work starts. This tier, **Core idioms**, is a tour of every shape C
-compiles into, and we begin where the machine is friendliest: **integer
-arithmetic**. Over the next handful of lessons you'll learn to read:
+Now the main work starts. This tier, **Core idioms**, goes through the shapes
+that C compiles into. It starts where the machine is simplest to read:
+**integer arithmetic**. Over the next lessons you will learn to read:
 
 - **add, subtract, multiply, and divide** between registers,
-- the fingerprints IDO leaves behind — constant multiplies that dissolve into
-  **shift-and-add chains**, real `div` instructions babysat by **hazard
-  `nop`s**, and a **modulo** the hardware computes as a by-product,
-- and how **operator precedence** decides the order the instructions come out
-  in.
+- the patterns IDO always leaves behind (its fingerprints): constant
+  multiplies that turn into **shift-and-add chains**, real `div` instructions
+  that need **hazard `nop`s** after them, and a **modulo** that the hardware
+  computes at the same time as the division,
+- and how **operator precedence** decides the order of the instructions.
 
-Same rules as the last chapter: the editor starts empty, the name is in the
-header, and the signature is yours to work out. Let's go add two numbers.
+The rules are the same as in the last chapter. The editor starts empty, the
+function name is in the header, and you work out the signature yourself. The
+first lesson adds two numbers.

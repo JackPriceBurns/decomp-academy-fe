@@ -1,7 +1,7 @@
 ---
 id: 70b020e5-4984-4ceb-b078-8ead5261e0cb
 slug: gba-optimizer-reassociation
-title: Sums Rearranged
+title: The Compiler Rearranges Sums
 difficulty: 4
 concepts:
   - optimizer
@@ -9,28 +9,31 @@ concepts:
   - constants
 symbol: func_083c1118
 hints:
-  - "`mov #128` then `lsl #3` is one constant: 1024. It arrived by folding two
-    constants that were written on two different terms."
-  - Three `s32` parameters, an `s32` out. The third one is added, the second
-    subtracted, and both the first and third carried a constant that cancelled
-    down to a net gain.
+  - "`mov #128` followed by `lsl #3` builds one constant, 1024. The compiler
+    made it by folding two constants that were written on two different
+    terms."
+  - The function takes three `s32` parameters and returns an `s32`. The third
+    parameter is added and the second is subtracted. The first and the third
+    each had a constant, and the two constants partly cancel, leaving a
+    positive total.
 ---
 
-# Where the constant lands
+# Where the constant ends up
 
-An addition chain reaches gcc as a tree, and the first thing `fold` does is
-gather every constant leaf into one. Three terms with a constant each become
-three terms and a single immediate, and only then does the compiler decide
-which register that immediate is added to.
+A chain of additions reaches gcc as a tree. The first thing `fold` does is
+gather every constant leaf into one constant. Three terms that each carry a
+constant become three terms and a single immediate. Only after that does the
+compiler decide which register the immediate is added to.
 
-Where the immediate lands is not where you wrote it. The fold rebuilds the sum
-in its own canonical order before register allocation runs, so the constant can
-finish up on a register holding a variable it was never written beside. The way
-to find out which register is to compile the spelling and look.
+The immediate does not have to end up where you wrote it. The fold rebuilds
+the sum in its own standard order before register allocation runs. So the
+constant can end up added to a register that holds a different variable from
+the one you wrote it next to. To find out which register it lands on, compile
+your version and look.
 
-All three spellings below compute the same number and produce three different
-functions. If you are matching a target and the `add #imm` sits on the wrong
-register, the arithmetic is right and the parentheses are wrong.
+The three versions below compute the same number but produce three different
+functions. If you are matching a target and the `add #imm` is on the wrong
+register, your arithmetic is right and your parentheses are wrong.
 
 ```asm
 0        add       r1, #10
@@ -38,8 +41,8 @@ register, the arithmetic is right and the parentheses are wrong.
 4        bx        lr
 ```
 
-That is `(x + 10) + y`. The `+ 10` was written on `x`, and the compiler put it
-on `r1`, which holds `y`.
+That is `(x + 10) + y`. The `+ 10` was written next to `x`, but the compiler
+added it to `r1`, which holds `y`.
 
 ```asm
 0        add       r0, #10
@@ -47,8 +50,8 @@ on `r1`, which holds `y`.
 4        bx        lr
 ```
 
-That is `x + (y + 10)` — the mirror image, and again the immediate crossed to
-the other side.
+That is `x + (y + 10)`, the mirror image. Again the immediate moved to the
+other variable.
 
 ```asm
 0        add       r0, r1
@@ -56,17 +59,18 @@ the other side.
 4        bx        lr
 ```
 
-And that is `x + y + 10` with no parentheses at all: the variables are summed
-first and the constant is applied to the result. Three listings, one value.
+That is `x + y + 10` with no parentheses. The variables are added first, and
+then the constant is added to the result. All three listings compute the same
+value.
 
-The same fold runs when the constants disagree in sign — they simply add up,
-and a total too large for an 8-bit immediate gets built with `mov`/`lsl` before
-it can be applied. The fold only reaches constants the expression brings
-together, though: a chain written flat can leave them on separate terms, and
-then you pay for each one on its own.
+The same fold runs when the constants have different signs. They are added
+together as usual. If the total is too large for an 8-bit immediate, the
+compiler builds it with `mov`/`lsl` before adding it. The fold only combines
+constants that the expression brings together. A chain written flat can leave
+them on separate terms, and then each one costs its own instructions.
 
-Read your target's constant, work out what it is, then work out where the
-parentheses have to sit for it to land on that register.
+Read the constant in your target and work out its value. Then work out where
+the parentheses must go so that it lands on that register.
 
 ## Your task
 

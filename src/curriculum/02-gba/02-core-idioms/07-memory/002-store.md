@@ -11,22 +11,21 @@ symbol: func_081f9ae0
 hints:
   - The bracketed operand is always the memory side. Work out which register
     ends up in memory and which one only ever supplies an address.
-  - Two `s32 *` parameters and no return value — the second one is read, the
-    first one is written.
+  - There are two `s32 *` parameters and no return value. The second one is
+    read and the first one is written.
 ---
 
 # Storing is the same instruction backwards
 
-`str` is `ldr` with the traffic reversed: same operands, same brackets,
-opposite direction. `str rS, [rB, #0]` writes the word held in `rS` to the
-address held in `rB`. The register that is written comes first in both
-mnemonics, so the way to read either one is to find the brackets — that
-operand is memory, the other is a register.
+`str` is `ldr` in the other direction. It has the same operands and the same
+brackets, and the data moves the opposite way. `str rS, [rB, #0]` writes the
+word held in `rS` to the address held in `rB`. Both instructions list the
+register first. To read either one, find the brackets: that operand is memory,
+and the other one is a register.
 
-A function built around a store usually has nothing to hand back, and the
-listing shows it. Nothing is placed in `r0` before the return; whatever `r0`
-happens to contain at `bx lr` is left there, because the caller of a `void`
-function never looks.
+A function built around a store usually has nothing to return, and the listing
+shows this. Nothing is placed in `r0` before the return. Whatever `r0` contains
+at `bx lr` stays there, because the caller of a `void` function never reads it.
 
 ```asm
 0        str       r2, [r0, #0]
@@ -35,18 +34,18 @@ function never looks.
 6        bx        lr
 ```
 
-Two addresses and a value. `r2` is stored through `r0`, negated in place, then
-stored through `r1`. Notice that `r0` still holds an address when the function
-returns and nobody minds. Notice too that nothing is ever loaded back: the
-value stays in a register between the two stores, because the C never asks to
-read either location.
+This example has two addresses and a value. `r2` is stored through `r0`,
+negated in place, then stored through `r1`. Note that `r0` still holds an
+address when the function returns, and this causes no problem. Note also that
+nothing is loaded back from memory. The value stays in a register between the
+two stores, because the C never reads either location.
 
-The pattern to take away is that a store leaves no result behind. When you
-count what the body produced and come up empty, the return type is `void` —
-which is a piece of the signature you get for free.
+The point to remember is that a store leaves no result behind. If you count
+what the body produces and find nothing, the return type is `void`. That gives
+you part of the signature with no extra work.
 
 Your target reads memory once and writes memory once. Read the brackets to
-work out where the value comes from and where it lands.
+work out where the value comes from and where it goes.
 
 ## Your task
 

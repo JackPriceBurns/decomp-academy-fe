@@ -10,47 +10,49 @@ concepts:
   - frames
 symbol: func_80313628
 hints:
-  - "Two constants are built in t-registers and stored to `16(sp)` and `20(sp)` — the fifth and sixth argument slots, in that order."
+  - "Two constants are built in t-registers and stored to `16(sp)` and `20(sp)`. Those are the fifth and sixth argument slots, in that order."
   - "a0 through a3 are never touched, so the first four parameters pass straight through in declaration order."
 ---
 
 # The caller's side of the stack argument
 
-You've *received* a fifth argument from `16(sp)`. Now stand on the other side:
-when your function **calls** something with five arguments, your function is
-the one that must put the fifth one there — inside its own frame, before the
-`jal`.
+You have already *received* a fifth argument from `16(sp)`. Now look at it from
+the other side. When your function **calls** something with five arguments,
+your function must put the fifth one there. It stores it inside its own frame,
+before the `jal`.
 
-That has a knock-on effect: the minimal 24-byte frame only contains the four
-reserved slots (0–12) plus `ra`. An outgoing fifth argument needs a real slot
-at `16(sp)`, so the frame grows. Here's `launch5(a, b, c, d)`, which calls
-`pack5(a, b, c, d, 9)`:
+That affects the frame size. The minimal 24-byte frame contains only the four
+reserved slots (0 through 12) and `ra`. An outgoing fifth argument needs a real
+slot at `16(sp)`, so the frame grows. This is `launch5(a, b, c, d)`, which
+calls `pack5(a, b, c, d, 9)`:
 
 ```asm
 addiu  sp, sp, -32     # bigger frame: outgoing args now reach 16(sp)
-sw     ra, 28(sp)      # ra rides higher up as a result
-addiu  t6, zero, 9     # the fifth argument's value…
+sw     ra, 28(sp)      # so ra is saved higher up
+addiu  t6, zero, 9     # the fifth argument's value
 jal    pack5
-sw     t6, 16(sp)      # …stored into the fifth slot, in the delay slot
+sw     t6, 16(sp)      # stored into the fifth slot, in the delay slot
 lw     ra, 28(sp)
 addiu  sp, sp, 32
 jr     ra
 nop
 ```
 
-Read the shape:
+How to read it:
 
-- `a`–`d` arrive in `a0`–`a3` and `pack5` wants them in `a0`–`a3` — untouched,
-  invisible, free.
-- The fifth argument is built in a scratch register and **stored to `16(sp)`**
-  — and that store is what rides the `jal` delay slot this time. Argument setup
-  by store instead of by register, same prime real estate.
-- The frame is 32, not 24, and `ra` moved up to `28(sp)`. Frame size tracks the
-  *biggest* argument list this function ever passes. A sixth argument would go
-  to `20(sp)` right above the fifth.
+- `a` through `d` arrive in `a0` through `a3`, and `pack5` wants them in the
+  same registers. The compiler leaves them alone, so they cost nothing and
+  don't appear in the listing.
+- The fifth argument is built in a scratch register and **stored to
+  `16(sp)`**. This time that store is the instruction in the `jal` delay slot.
+  The argument is set up with a store instead of a register write, but it uses
+  the same delay slot.
+- The frame is 32 bytes instead of 24, and `ra` moved up to `28(sp)`. The frame
+  size follows the *biggest* argument list this function ever passes. A sixth
+  argument would go to `20(sp)`, just above the fifth.
 
 The target passes **six** arguments. Find the two stored words, note which slot
-each constant lands in, and remember slot order is argument order.
+each constant goes into, and remember that slot order is argument order.
 
 ## Your task
 

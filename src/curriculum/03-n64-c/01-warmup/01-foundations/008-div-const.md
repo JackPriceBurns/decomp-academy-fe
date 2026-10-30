@@ -9,45 +9,47 @@ concepts:
   - hi-lo
 symbol: divConst
 hints:
-  - "The `addiu at, zero, N` builds the divisor; `div` + `mflo` is signed division keeping the quotient."
-  - "Don't try to write the nops — a one-line division in C produces every instruction here, nops included."
+  - "The `addiu at, zero, N` builds the divisor. `div` followed by `mflo` is a signed division that keeps the quotient."
+  - "Don't try to write the nops. A one-line division in C produces every instruction here, including the nops."
 ---
 
 # Division goes through HI and LO
 
-Division has no immediate form at all, so the first thing the compiler must do
-is load the divisor into a register — the familiar `addiu`-from-`zero` — and
-the register it picks is `at`, the assembler temporary you met in the register
-tour, doing exactly the scratch work it exists for.
+Division has no immediate form, so the compiler first has to load the divisor
+into a register. It uses the familiar pattern of `addiu` with `zero`. The
+register it chooses is `at`, the assembler temporary from the list of registers
+you saw earlier. This is the kind of scratch work `at` is for.
 
-Then comes the strange part. `div` doesn't write its result to a normal
-register. The divide unit deposits results into a special pair called **HI and
-LO**: the quotient lands in LO, the remainder in HI. A separate instruction —
-`mflo`, "move from LO" — fetches the quotient out. Here's the whole ritual for a
-divide by 6:
+The next part is unusual. `div` doesn't write its result to a normal register.
+The divide unit puts its results into a special pair of registers called
+**HI and LO**: the quotient goes into LO, and the remainder goes into HI. A
+separate instruction, `mflo` ("move from LO"), copies the quotient out. Here is
+the whole sequence for a divide by 6:
 
 ```asm
 addiu  at, zero, 6    # the divisor, parked in the scratch register
 div    zero, a0, at   # LO = a0 / 6   (HI gets the remainder)
 mflo   v0             # fetch the quotient into v0
-nop                   # the divider is slow —
+nop                   # the divider is slow, so
 nop                   #   the compiler spaces it out
 jr     ra
 nop
 ```
 
-Two things to absorb:
+Two things to understand:
 
-- That `zero` in the `div` operands is just how the three-operand form is
-  printed — the actual results go to HI/LO, not to a register you name.
+- That `zero` in the `div` operands is only how the three-operand form is
+  printed. The results always go to HI and LO, never to a register named in
+  the operands.
 - The two `nop`s are **real and required**. The hardware divider takes many
-  cycles, and IDO conservatively pads after `mflo`. They come from the compiler,
-  not from anything you write — your one-line C produces them automatically.
-  This is your first taste of a theme that dominates N64 matching: the compiler
-  leaves fingerprints, and matching means reproducing those too.
+  cycles, and IDO adds padding after `mflo` to be safe. The compiler adds the
+  `nop`s itself, and your one-line C produces them automatically. This is the
+  first example of something you will see constantly in N64 matching: the
+  compiler adds its own patterns like these, and to match, you have to
+  reproduce them too.
 
-Read the divisor straight off the target's `addiu`-from-`zero` line, and you
-have the whole function.
+Read the divisor from the target's `addiu` line, the one that adds to `zero`.
+That gives you the whole function.
 
 ## Your task
 

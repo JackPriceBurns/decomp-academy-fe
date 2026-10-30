@@ -1,4 +1,4 @@
 ---
 title: Arithmetic
-blurb: Two-operand ALU forms, constant building, and the multiplies gcc takes apart.
+blurb: Two-operand ALU instructions, how constants are built, and the multiplies gcc turns into shifts and adds.
 ---

@@ -18,15 +18,15 @@ hints:
 
 # One success exit, mixed directions
 
-`||` compiles to a ladder like `&&`, but with a twist that trips people up
-the first time: **the early conditions branch on success, not failure**. As
-soon as any condition holds, the whole `||` is true — so each early branch
-jumps *straight to the true block*, no inversion. Only the *last* condition
-inverts, because falling past it means every test failed. Here's
+`||` compiles to a ladder like `&&`, with one important difference: **the
+early conditions branch on success instead of failure**. As soon as any
+condition holds, the whole `||` is true. So each early branch jumps *straight
+to the true block*, with no inversion. Only the *last* condition is inverted,
+because getting past it means every test failed. Here is
 `if (a == 0 || b == 0) return 0; return 1;`:
 
 ```asm
- 0:  beqz a0, 0x10        # a == 0? that alone decides it — go
+ 0:  beqz a0, 0x10        # a == 0? that alone decides it, so go
  4:  nop
  8:  bnez a1, 0x18        # last chance: b != 0 means NO condition held
  c:  addiu v0, zero, 1    # (delay slot) the all-failed value, preloaded
@@ -36,20 +36,19 @@ inverts, because falling past it means every test failed. Here's
 1c:  nop
 ```
 
-Compare rung by rung with the `&&` ladder: there, every branch was inverted
-and aimed at the shared *failure* label. Here the first branch is the C
-condition **verbatim** (`beqz` for `== 0`), aimed at the *success* label —
-and only the final `bnez` plays the usual opposites game. When you meet a
-ladder, check where its branches point before flipping anything: branches
-converging on the "then" block mean `||`, branches escaping past it mean
-`&&`.
+Compare this, step by step, with the `&&` ladder. There, every branch was
+inverted and aimed at the shared *failure* label. Here the first branch is the
+C condition **exactly as written** (`beqz` for `== 0`), aimed at the *success*
+label. Only the final `bnez` is flipped in the usual way. When you meet a
+ladder, check where its branches point before you flip anything. Branches that
+meet at the "then" block mean `||`. Branches that jump past it mean `&&`.
 
-The target is the classic use of `||`: a **range check**, rejecting a value
-that's out of bounds on either side. Expect a sign-test branch that goes
-straight to the reject block, with the second comparison — an `slti` against
-the far boundary — hoisted into its delay slot, and a final inverted branch
-deciding between "return the value" and "return the fallback". Mind the
-`slti` flip's off-by-one when you recover the boundary.
+The target is the classic use of `||`: a **range check**, which rejects a
+value that is out of bounds on either side. Expect a sign-test branch that
+goes straight to the reject block. The second comparison, an `slti` against
+the far boundary, is moved up into its delay slot. A final inverted branch
+then decides between "return the value" and "return the fallback". Watch for
+the `slti` flip's off-by-one when you recover the boundary.
 
 ## Your task
 

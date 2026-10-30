@@ -9,19 +9,20 @@ concepts:
   - promotion
 symbol: func_081e7d10
 hints:
-  - The pointer walks forward by 2 each iteration and the element load is
-    `ldrh`, yet the function closes with `asr`. The running total is what is
-    narrow, not only the return.
-  - "An `s16 *` and an `s32` count, returning `s16`, with an `s16` running total
-    starting at zero and a plain ascending `for` loop over the elements."
+  - The pointer moves forward by 2 each iteration and the element load is
+    `ldrh`, but the function ends with `asr`. The return value is narrow, and so
+    is the running total.
+  - "The arguments are an `s16 *` and an `s32` count, and the function returns
+    `s16`. It keeps an `s16` running total that starts at zero, and uses a plain
+    ascending `for` loop over the elements."
 ---
 
-# Paying the width on every iteration
+# The width costs instructions on every iteration
 
-A narrow variable inside a loop is charged for its width once per trip. The
-truncation cannot be hoisted anywhere, because each iteration has to see the
-wrapped value the previous one produced, so whatever a narrow assignment costs
-gets multiplied by the trip count.
+A narrow variable inside a loop costs extra instructions on every iteration.
+The truncation cannot be moved out of the loop, because each iteration has to
+use the wrapped value that the previous one produced. So the cost of a narrow
+assignment is multiplied by the number of iterations.
 
 Here is a running total held in an `s8`:
 
@@ -50,31 +51,33 @@ Here is a running total held in an `s8`:
 42       bx        r1
 ```
 
-Four instructions of that loop body are the width. Addresses 18 and 20 extend
-the running total, address 22 does the actual subtraction, and addresses 24 and
-26 truncate the result back into a byte for the next trip. The closing pair at
-34 and 36 extends it one last time for the return.
+Four instructions in that loop body are there only because of the width.
+Addresses 18 and 20 extend the running total, address 22 does the actual
+subtraction, and addresses 24 and 26 truncate the result back to a byte for the
+next iteration. The final pair at 34 and 36 extends it one last time for the
+return.
 
-Two details in there repay a close look.
+Two details in this code are worth a closer look.
 
-The element load is a bare `ldrb`, with no sign extension after it, even though
-it is reading through an `s8 *`. Only the low eight bits of the sum survive the
-truncation at the end of the body, and the loaded element's upper bits cannot
-influence them, so gcc drops the extension it would otherwise have emitted.
-`ldrb` and `ldrh` in a loop like this tell you nothing about the element's
+The element load is a plain `ldrb` with no sign extension after it, even though
+it reads through an `s8 *`. The truncation at the end of the body keeps only
+the low eight bits of the result, and the upper bits of the loaded element
+cannot affect them. So gcc leaves out the extension it would otherwise emit. In
+a loop like this, `ldrb` and `ldrh` tell you nothing about the element's
 signedness.
 
-The extension at 18 and 20 is dead. It sign-extends a value whose low eight bits
-are all the truncation at 24 keeps, so it cannot change the result. gcc 2.9
-emits it anyway when the accumulator is signed, and matching means reproducing
-it. Widen the total to an `s32` and the shifts swap ends: the element picks up
-an `lsl #24` / `asr #24` of its own straight after the load, and the truncation
-at the bottom of the body disappears.
+The extension at 18 and 20 has no effect. It sign-extends a value, but the
+truncation at 24 keeps only the low eight bits, so the extension cannot change
+the result. gcc 2.9 still emits it when the accumulator is signed, and to match
+you have to reproduce it. If you widen the total to an `s32`, the shifts move to
+the other end. The element gets its own `lsl #24` / `asr #24` straight after the
+load, and the truncation at the bottom of the body disappears.
 
-Your target pays the same tax at sixteen bits, and its pointer walk looks
-different: gcc strength-reduces a halfword loop into an incrementing pointer and
-leaves a byte loop indexed. Write the loop the natural way and let the compiler
-do that part.
+Your target pays the same cost at sixteen bits, and the way it steps through
+memory looks different. gcc turns a halfword loop into a pointer that is
+incremented each iteration (this is called strength reduction), but it leaves a
+byte loop indexed. Write the loop in the normal way and leave that part to the
+compiler.
 
 ## Your task
 

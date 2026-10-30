@@ -9,24 +9,25 @@ concepts:
   - addressing
 symbol: func_081bb288
 hints:
-  - Halve each `ldrh` immediate to recover the array subscript that produced it.
-  - "One `u16 *` in, an `s32` out, and the two elements you want are the ones at
-    byte offsets 0 and 14."
+  - Halve each `ldrh` immediate to get back the array subscript that produced it.
+  - The function takes one `u16 *` and returns an `s32`. The two elements you
+    want are at byte offsets 0 and 14.
 ---
 
-# Two bytes at a time, and how far you can reach
+# Loading two bytes, and how far the offset reaches
 
-`ldrh` is the halfword twin of `ldrb`: it fetches 16 bits and zero-fills the
-top half of the register. Like `ldrb` it is a single instruction with nothing to
-clean up afterwards, so an unsigned halfword is as cheap to read as an unsigned
-byte.
+`ldrh` is the halfword version of `ldrb`. It reads 16 bits and fills the top
+half of the register with zeros. Like `ldrb`, it is a single instruction with
+nothing to clean up afterwards. So an unsigned halfword is as cheap to read as
+an unsigned byte.
 
-The immediate on `ldrh` is scaled. Five bits of encoding multiplied by two gives
-a reach of 0 to 62 bytes, in even steps, so `p[3]` on a `u16 *` becomes
-`[r0, #6]`. To turn a listing back into subscripts you halve the offsets.
+The immediate on `ldrh` is scaled. The instruction has five bits for the
+offset, and the hardware multiplies that field by two. This gives a range of 0
+to 62 bytes, in steps of two. So `p[3]` on a `u16 *` becomes `[r0, #6]`. To
+turn the offsets in a listing back into subscripts, halve them.
 
-That reach runs out sooner than you would like. Here is a function reading
-element 3 and element 40 of the same array:
+That range is small. Here is a function that reads element 3 and element 40 of
+the same array:
 
 ```asm
 0        ldrh      r1, [r0, #6]
@@ -37,23 +38,24 @@ element 3 and element 40 of the same array:
 10       bx        lr
 ```
 
-Element 3 is 6 bytes in and rides in the load. Element 40 is 80 bytes in, past
-what the instruction can encode, so the compiler adds 80 into the pointer itself
-and loads at offset zero. Whenever you see an `add` on a pointer followed by a
-load at `#0`, the constant in the `add` is the byte offset that would not fit.
+Element 3 is 6 bytes from the start, so its offset fits in the load
+instruction. Element 40 is 80 bytes from the start, which is more than the
+instruction can encode. So the compiler adds 80 to the pointer itself and then
+loads at offset zero. When you see an `add` on a pointer followed by a load at
+`#0`, the constant in the `add` is the byte offset that did not fit.
 
-The last subscript that does fit is 31:
+The largest subscript that fits is 31:
 
 ```asm
 0        ldrh      r0, [r0, #62]
 2        bx        lr
 ```
 
-`#62` is the largest immediate `ldrh` can hold, which is why you will never see
-`ldrh rD, [rB, #64]` anywhere in a GBA binary.
+`#62` is the largest immediate `ldrh` can hold. That is why you will never see
+`ldrh rD, [rB, #64]` in a GBA binary.
 
-Both loads in your target sit within the encodable range. Halve their offsets
-and the subscripts fall out.
+Both loads in your target are within the range that fits in the instruction.
+Halve their offsets to get the subscripts.
 
 ## Your task
 

@@ -9,20 +9,19 @@ concepts:
   - hi-lo
 symbol: func_801a1758
 hints:
-  - "`mflo` after a divide fetches the quotient; `mfhi` fetches the remainder.
-    Which one does the target use?"
-  - "The divisor still sits in plain sight on the `addiu`-from-`zero` line."
+  - "After a divide, `mflo` fetches the quotient and `mfhi` fetches the remainder. Which one does the target use?"
+  - "The divisor is still the immediate in the `addiu` that starts from `zero`."
 ---
 
-# The remainder was there all along
+# The remainder is in HI
 
-Warmup's division lesson told you the divide unit computes *both* results at
-once — quotient into LO, remainder into HI — and then only ever fetched LO.
-Time to collect the other half. `mfhi`, "move from HI", pulls out the
-remainder. Here's `modFive(x)` returning `x % 5`:
+The division lesson in the warmup told you that the divide unit computes
+*both* results at once: the quotient goes into LO and the remainder into HI.
+That lesson only ever fetched LO. Now you will fetch the other half. `mfhi`
+("move from HI") gets the remainder. Here's `modFive(x)` returning `x % 5`:
 
 ```asm
-addiu at, zero, 5    # the divisor, parked in at as usual
+addiu at, zero, 5    # the divisor, in at as usual
 div   zero, a0, at   # LO = x / 5,  HI = x % 5
 mfhi  v0             # fetch the REMAINDER this time
 nop
@@ -31,16 +30,16 @@ jr    ra
 nop
 ```
 
-Compare with a plain division and the listing is identical except for one
-mnemonic: `mflo` became `mfhi`. That single letter pair is the entire
-difference between `/` and `%` in the output — so when you're skimming a
-target, the moment you see a `div`, jump ahead and check which fetch follows.
-It tells you which C operator you're reconstructing.
+Compare this with a plain division. The listing is identical except for one
+mnemonic: `mflo` has become `mfhi`. Those two letters are the only difference
+between `/` and `%` in the output. So when you read a target and see a `div`,
+look ahead and check which fetch follows it. That tells you which C operator
+you are rebuilding.
 
-One property to file away: for signed values, the remainder takes the *sign of
-the dividend* — `-7 % 5` is `-2` in C, and the hardware agrees, so no
-correction code is needed. (Divisors that are powers of two get cleverer and
-messier treatment; that's a lesson of its own shortly.)
+One more fact to remember: for signed values, the remainder has the *same
+sign as the dividend*. In C, `-7 % 5` is `-2`, and the hardware gives the same
+answer, so no correction code is needed. (Divisors that are powers of two are
+handled differently, with more complex code. A later lesson covers them.)
 
 ## Your task
 

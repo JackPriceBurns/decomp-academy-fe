@@ -9,38 +9,39 @@ concepts:
   - fingerprints
 symbol: func_80023ab0
 hints:
-  - "Same xor difference-detector as last lesson, but the finisher is `sltu zero, …` — \"is zero less than it?\" — which answers nonzero-ness."
-  - "One `!=` in C. The compiler picks the right finisher on its own."
+  - "The same xor \"difference detector\" as the last lesson, but the finishing instruction is `sltu zero, …`. It asks \"is zero less than it?\", which tests whether the value is nonzero."
+  - "One `!=` in C. The compiler picks the right finishing instruction on its own."
 ---
 
-# The other finisher
+# The other finishing instruction
 
-Equality's twin. `!=` starts from the same difference-detector — XOR — but
-needs the opposite finisher: not "is the difference zero?" but "is it
-*nonzero*?". You've already met that move, back when you tested a bit:
+Inequality works like equality. `!=` starts with the same XOR "difference
+detector", but its finishing instruction must ask the opposite question: "is
+the difference *nonzero*?". You already met that instruction when you tested a
+bit:
 
 ```asm
-sltu v0, zero, a0   # 0 < x (unsigned)? — 1 for any nonzero x
+sltu v0, zero, a0   # 0 < x (unsigned)? gives 1 for any nonzero x
 jr   ra
 nop
 ```
 
-That's the whole of `return x != 0;` — "zero is unsigned-less-than x" is
-true for every value except zero itself. Bolt the XOR on the front and you
-get `!=` for two values: difference first, nonzero-test second. The pair of
-finishers side by side:
+That is the whole of `return x != 0;`. "Zero is less than x, unsigned" is true
+for every value except zero itself. Put the XOR in front and you get `!=` for
+two values: the difference first, then the nonzero test. Here are the two
+finishing instructions side by side:
 
-- **`sltiu d, s, 1`** — "s == 0" — closes an **equality**.
-- **`sltu d, zero, s`** — "s != 0" — closes an **inequality**.
+- **`sltiu d, s, 1`** means "s == 0" and ends an **equality**.
+- **`sltu d, zero, s`** means "s != 0" and ends an **inequality**.
 
-Both lean on unsigned comparison against the edge of the number line, and
-they're easy to tell apart at a glance: `==` puts the **1 in the immediate**,
-`!=` puts **`zero` in the middle operand**. Neither line makes sense alone —
-when you spot either one, look up a line for the `xor`/`xori` (or other
-value) feeding it, and read the two lines as a single C comparison.
+Both rely on an unsigned comparison close to zero, the lowest unsigned value.
+You can tell them apart at a glance: `==` puts the **1 in the immediate**, and
+`!=` puts **`zero` in the middle operand**. Neither line makes sense by
+itself. When you see either one, look one line up for the `xor`/`xori` (or
+other value) that feeds it, and read the two lines as one C comparison.
 
-The target materializes `!=` between its two arguments. You know both
-halves; write the one-line C that summons them.
+The target computes a `!=` as a value. You know both halves, so write the one
+line of C that produces them.
 
 ## Your task
 

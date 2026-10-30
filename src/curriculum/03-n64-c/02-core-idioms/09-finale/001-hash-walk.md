@@ -1,7 +1,7 @@
 ---
 id: 86374d79-7e87-438a-bb2f-804d34f19cbe
 slug: finale-hash-walk
-title: "A Hash in a Walk"
+title: "Hashing a String"
 difficulty: 3
 concepts:
   - loops
@@ -11,16 +11,17 @@ concepts:
   - capstone
 symbol: func_8018dd34
 hints:
-  - "The loop skeleton is the worked example's exactly. The new body is `multu`/`mflo` against the hoisted constant, plus an `addu` of the byte that was just peeked."
-  - "The classic accumulator update is `h = h * K + byte` — the `addiu` before the loop names K."
+  - "The loop skeleton is exactly the same as in the worked example. The new body is a `multu`/`mflo` with the hoisted constant, then an `addu` that adds the byte that was just peeked."
+  - "The classic accumulator update is `h = h * K + byte`. The `addiu` before the loop tells you the value of K."
 ---
 
 # Nothing new, all at once
 
-From here to the end of the tier: complete functions made purely of
-idioms you already own. Your job shifts from *learning* shapes to
-*recognizing* them mid-sentence. Here's `xorAll(s)`, which XORs
-together the bytes of a zero-terminated string:
+From here to the end of the tier, every exercise is a complete function
+built only from idioms you have already learned. Your job now is to
+*recognize* the shapes you *learned* when they appear in the middle of a
+function. Here is `xorAll(s)`, which XORs together the bytes of a
+zero-terminated string:
 
 ```c
 u32 xorAll(u8 *s) {
@@ -48,19 +49,26 @@ u32 xorAll(u8 *s) {
 2c:  nop
 ```
 
-Name the pieces as they pass: sentinel walk with the tested byte
-peeked one ahead; guard with the accumulator's init in its likely
-slot; `bnezl` back-edge carrying the fold; `lbu` because the
-elements are unsigned bytes. Four chapters, twelve lines.
+Try to name each piece as you read it:
 
-The target is the same walk computing a real string *hash* — the
-kind used for name lookups. One upgrade to expect: the body
-multiplies the accumulator by a constant each trip, and inside a
-rotated loop IDO doesn't spin up the shift-and-add chains you saw in
-straight-line code. It **hoists the constant into a register before
-the loop** (one `addiu`) and spends a `multu`/`mflo` per trip.
-A constant materialized above a loop is almost always this — a
-loop-invariant pulled out once.
+- a sentinel walk, where the byte being tested is peeked one element
+  ahead;
+- a guard, with the accumulator's starting value placed in its likely
+  slot;
+- a `bnezl` back-edge, with the fold in its likely slot;
+- `lbu`, because the elements are unsigned bytes.
+
+Those twelve lines use ideas from four different chapters.
+
+The target is the same walk, but it computes a real string *hash*, the
+kind used to look up names. Expect one new detail. On each trip, the
+body multiplies the accumulator by a constant. In straight-line code you
+saw IDO turn a multiply by a constant into a chain of shifts and adds.
+Inside a rotated loop it does not do that. It **hoists the constant into
+a register before the loop** (one `addiu`) and uses a `multu`/`mflo`
+pair on every trip. When a constant is loaded into a register above a
+loop, it is almost always this: a loop-invariant value, computed once
+outside the loop.
 
 ## Your task
 

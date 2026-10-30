@@ -1,4 +1,4 @@
 ---
 title: Proving ground
-blurb: Pull together everything you've learned on functions that feel like the real thing.
+blurb: Use everything you have learned on functions written like real game code.
 ---

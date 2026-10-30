@@ -1,4 +1,4 @@
 ---
 title: Reading Signatures
-blurb: "The scaffolding comes off: derive the whole function from the assembly."
+blurb: There is no starter code from here on. Work out the whole function from the assembly.
 ---

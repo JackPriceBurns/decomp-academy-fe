@@ -9,23 +9,23 @@ concepts:
   - compare
 symbol: func_8006ca40
 hints:
-  - "`bgez` fires when x >= 0 and skips the first return — so the C's `if`
+  - "`bgez` jumps when x >= 0 and skips the first return, so the C's `if`
     tests the condition that FAILED: x < 0."
   - "Two exits, each returning one of the argument registers from a delay slot. Map them before writing."
 ---
 
 # Four more ways to test against zero
 
-Equality isn't the only cheap comparison against zero. MIPS gives *ordering*
-tests their own branch quartet:
+Equality isn't the only cheap comparison against zero. MIPS also has four
+branches for *ordering* tests:
 
-- **`blez`** — branch if `<= 0`
-- **`bgtz`** — branch if `> 0`
-- **`bltz`** — branch if `< 0`
-- **`bgez`** — branch if `>= 0`
+- **`blez`**: branch if `<= 0`
+- **`bgtz`**: branch if `> 0`
+- **`bltz`**: branch if `< 0`
+- **`bgez`**: branch if `>= 0`
 
-No compare instruction, no `at`, no constant — the sign test is fused
-straight into the branch. Here's `if (x > 0) return a; return b;`:
+There is no compare instruction, no `at` and no constant. The sign test is
+built into the branch itself. Here is `if (x > 0) return a; return b;`:
 
 ```asm
  0:  blez  a0, 0x10       # x <= 0? take b instead
@@ -36,18 +36,17 @@ straight into the branch. Here's `if (x > 0) return a; return b;`:
 14:  nop
 ```
 
-The C asks `> 0`; the branch is `blez` — its exact opposite, because the
-branch's job is still to skip the "then". The four mnemonics pair off into
-inverses: `blez` ↔ `bgtz`, `bltz` ↔ `bgez`. When you decode, find the
-mnemonic's partner and that's what the C tests.
+The C tests `> 0`, and the branch is `blez`, its exact opposite. This is
+because the branch's job is still to skip the "then" body. The four mnemonics
+form two pairs of opposites: `blez` ↔ `bgtz`, `bltz` ↔ `bgez`. When you
+decode, find the mnemonic's partner. That partner is what the C tests.
 
-Worth noticing: all four are **signed** tests. "Is it negative" only makes
-sense for a signed value, and these branches read bit 31 as a sign — which is
-a quiet type hint about whatever register they examine.
+Note that all four are **signed** tests. "Is it negative" only makes sense for
+a signed value, and these branches treat bit 31 as a sign bit. That is a small
+hint about the type of the register they test.
 
-The target picks between its second and third arguments based on a sign test
-of the first. Invert the mnemonic, pair the exits with their slots, and write
-the `if`.
+The target chooses between two values with a sign test on an argument. Invert
+the mnemonic, pair the exits with their slots, and write the `if`.
 
 ## Your task
 

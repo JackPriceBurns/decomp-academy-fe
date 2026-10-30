@@ -8,25 +8,25 @@ concepts:
   - helper-calls
   - calling-convention
 hints:
-  - Both operands reach the helper in the wrong registers, so both get copied.
-    Work out which incoming register ends up as the dividend and which as the
-    divisor.
-  - "Three `s32` parameters in, an `s32` out — and the first one is never touched."
+  - Neither operand arrives in the register the helper needs, so both are
+    copied. Work out which incoming register becomes the dividend and which
+    becomes the divisor.
+  - Three `s32` parameters in, an `s32` out. The first parameter is never used.
 symbol: func_0808f114
 ---
 
 # The instruction that does not exist
 
-The ARM7TDMI has a multiplier and no divider. Nothing in the instruction set
-produces a quotient, so gcc hands every division it cannot fold away to a
-helper routine in libgcc. For signed 32-bit operands that routine is
-`__divsi3`, and its name in a listing is what a division looks like on this
-machine.
+The ARM7TDMI has a multiplier but no divider. No instruction produces a
+quotient. So gcc passes every division it cannot replace with cheaper
+instructions to a helper routine in libgcc. For signed 32-bit operands that
+routine is `__divsi3`. When you see that name in a listing, you are looking at a
+division.
 
-The helper takes its arguments the ordinary way: dividend in `r0`, divisor in
-`r1`, quotient back in `r0`. Those are the registers the first two parameters
-already arrive in, so a function that divides its first argument by its second
-needs no setup at all:
+The helper takes its arguments in the normal way: the dividend in `r0` and the
+divisor in `r1`. It returns the quotient in `r0`. The first two parameters of a
+function already arrive in those registers. So a function that divides its
+first argument by its second needs no setup at all:
 
 ```asm
 0        push      {lr}
@@ -35,30 +35,31 @@ needs no setup at all:
 8        bx        r1
 ```
 
-One of those four instructions is the division. The rest is the cost of making
-a call. `push {lr}` appears because `bl` overwrites the link register, so a
-function that calls anything has to save its own return address first. Coming
-back out, the course builds with interworking, which forbids popping straight
-into `pc`: the return address goes into a scratch register and `bx` jumps to
-it. You will see this frame around every helper call in the chapter.
+Only one of those four instructions does the division. The others are the cost
+of making a call. `push {lr}` is there because `bl` overwrites the link
+register, so a function that calls anything must save its own return address
+first. Returning has one more detail. This course builds with interworking,
+which does not allow popping straight into `pc`. Instead, the return address is
+popped into a scratch register and `bx` jumps to it. You will see this frame
+around every helper call in this chapter.
 
-Read the address column while you are here. Thumb instructions are two bytes,
-so addresses normally step by two — but `bl` is a four-byte instruction, which
-is why address 2 is followed by address 6.
+Look at the address column too. Thumb instructions are two bytes long, so
+addresses normally go up by two. But `bl` is a four-byte instruction, which is
+why address 2 is followed by address 6.
 
-## The `-4` is not arithmetic
+## What the `-4` means
 
-`bl __divsi3-4` does not call four bytes before the helper. This object has not
-been linked, so the call target is still an unresolved relocation, and the
-disassembler prints the relocation's addend beside the symbol name. That addend
-is the Thumb PC bias and it is always `-4`. Read any `bl name-4` as "call
-`name`" and move on; the `-4` never appears in your C.
+`bl __divsi3-4` does not call an address four bytes before the helper. This
+object file has not been linked yet, so the call target is still an unresolved
+relocation. The disassembler prints the relocation's addend next to the symbol
+name. That addend is the Thumb PC bias, and it is always `-4`. Read any
+`bl name-4` as "call `name`". The `-4` never appears in your C.
 
-## The registers are not negotiable
+## The registers are fixed
 
-There is exactly one way to hand values to `__divsi3`, so when the operands are
-somewhere else, the compiler moves them. Here is a function dividing a constant
-by its argument:
+There is only one way to pass values to `__divsi3`. When the operands are in
+other registers, the compiler moves them. Here is a function that divides a
+constant by its argument:
 
 ```asm
 0        push      {lr}
@@ -69,14 +70,14 @@ by its argument:
 12       bx        r1
 ```
 
-The argument arrived in `r0`, but here it is the divisor, so it is copied into
+The argument arrives in `r0`, but here it is the divisor. So it is copied into
 `r1` before `r0` is overwritten with the numerator. The order of those two
-`mov`s is forced — do it the other way round and the argument is destroyed
-before it is saved.
+`mov`s cannot change. If they ran the other way round, the argument would be
+destroyed before it was saved.
 
-Every `mov` in front of a `bl __divsi3` is a clue about where the two operands
-came from. Read them backwards and you recover which value sat on which side of
-the slash. The target below has two of them.
+Every `mov` in front of a `bl __divsi3` tells you where one of the operands came
+from. Read them backwards to work out which value was the dividend and which was
+the divisor. The target below has two of them.
 
 ## Your task
 

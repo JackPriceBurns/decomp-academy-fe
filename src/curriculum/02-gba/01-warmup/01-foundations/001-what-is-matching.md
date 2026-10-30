@@ -11,65 +11,65 @@ concepts:
 concept: true
 ---
 
-# The cartridge never held the source
+# What the cartridge holds
 
-Dump a Game Boy Advance cartridge and you get a few megabytes of ARM machine
-code. That is **not** what the developers wrote. They wrote C, and before the
-game shipped a compiler translated it into the instructions the ARM7TDMI
-actually executes. Only that translated version went into the plastic. The C
-stayed on a workstation in Tokyo or Osaka, and for most GBA games it is gone.
+If you dump a Game Boy Advance cartridge, you get a few megabytes of ARM machine
+code. The developers did not write that. They wrote C, and before the game
+shipped, a compiler translated the C into the instructions that the ARM7TDMI
+executes. Only those instructions were stored on the cartridge. The C stayed on
+a workstation in Tokyo or Osaka, and for most GBA games it is now lost.
 
-Machine code runs perfectly well and reads terribly. Registers, offsets, raw
-branches — none of the names and structure that made the original make sense.
-Turn it back into C and suddenly anyone can read the game, patch it, port it,
-translate it, or fix a bug that has been sitting there since 2002.
+Machine code runs well, but it is hard to read. You see registers, offsets and
+raw branches, without the names and structure that made the original code
+readable. If you turn it back into C, anyone can read the game, patch it, port
+it, translate it, or fix a bug that has been there since 2002.
 
-That is **decompilation**: working the shipped program back toward the source it
-came from.
+That is **decompilation**: working from the shipped program back toward the
+source code it came from.
 
 # What "matching" adds
 
 Matching decompilation adds one much harder rule.
 
-C that *behaves* identically can *compile* differently. Two functions that
-produce the same answers may come out as different instructions. For ordinary
-decompilation that is fine — write C that does what the assembly does and you
-have won.
+C that *behaves* the same can *compile* differently. Two functions that give the
+same answers may compile to different instructions. For ordinary decompilation
+that is fine. If your C does what the assembly does, you are done.
 
-Matching decompilation keeps going. You compile your C a second time, with the
-same compiler the developers used, and ask a stricter question: did it produce
-*exactly* the same instructions? If it did not — even when the behaviour is
-identical — you are not finished.
+Matching decompilation goes further. You compile your C again, with the same
+compiler the developers used, and ask a stricter question: did it produce
+*exactly* the same instructions? If it did not, you are not finished, even when
+the behaviour is the same.
 
-Holding yourself to that is worth the trouble for two reasons:
+This extra work is worth it for two reasons:
 
-- **You get a number.** Diff your compiled output against the original
-  instruction by instruction and out falls a percentage. Without a metric like
-  that, "how much is left?" is guesswork and collaborating is awkward. With it,
-  everyone can see exactly what is done.
+- **You get a number.** Compare your compiled output with the original,
+  instruction by instruction, and you get a percentage. Without a measure like
+  that, nobody knows how much work is left, and it is hard for people to work
+  together. With it, everyone can see exactly what is done.
 - **You get certainty.** If your C compiles to the original bit for bit, you
-  have *proven* it behaves like the original. No subtle difference can hide.
+  have *proven* that it behaves like the original. No small difference can be
+  hidden.
 
 # The compiler in your browser
 
-The GBA's compiler was **agbcc** — a customised gcc 2.9 from 1998 that Nintendo's
-GBA toolchain shipped with, and the compiler every serious GBA decompilation
-project still builds with today. When you press **Compile & Check** on this
-site, agbcc itself runs, compiled to WebAssembly, right in this tab. There is no
-emulation and no approximation: the object file it hands back is byte-identical
-to what the real toolchain produces from the same input.
+The GBA's compiler was **agbcc**, a customised version of gcc 2.9 from 1998. It
+came with Nintendo's GBA toolchain, and every serious GBA decompilation project
+still builds with it today. When you press **Compile & Check** on this site, the
+real agbcc runs in this browser tab, compiled to WebAssembly. Nothing is
+emulated or approximated. The object file it returns is byte-identical to what
+the real toolchain produces from the same input.
 
-It compiles to **Thumb**, ARM's compact 16-bit instruction set. GBA games leaned
-on Thumb heavily because the cartridge bus is 16 bits wide, so 16-bit
-instructions fetch twice as fast from ROM as 32-bit ARM ones. Almost everything
-in this course is Thumb, and Thumb is a cramped, opinionated little instruction
-set with habits you will come to recognise instantly.
+agbcc compiles to **Thumb**, ARM's compact 16-bit instruction set. GBA games
+used Thumb heavily because the cartridge bus is 16 bits wide, so 16-bit
+instructions load from ROM twice as fast as 32-bit ARM instructions. Almost
+everything in this course is Thumb. Thumb is a small, restrictive instruction
+set, and its patterns repeat often, so you will soon learn to recognise them.
 
 # The real goal
 
-Under all of it sits one aim: to recover the C somebody actually wrote, years
-ago, when the game was made.
+The aim behind all of this is to recover the C that somebody wrote years ago,
+when the game was made.
 
-The goal of this course is narrow: get you good enough at matching decompilation
-that you can contribute to a real GBA project. Next, let's look at what Thumb
-assembly is and how to read it.
+The goal of this course is narrow: to make you good enough at matching
+decompilation to contribute to a real GBA project. The next lesson explains what
+Thumb assembly is and how to read it.

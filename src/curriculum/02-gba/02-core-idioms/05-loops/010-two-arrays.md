@@ -8,23 +8,25 @@ concepts:
   - arrays
   - registers
 hints:
-  - Two post-increment loads means two arrays walked in lockstep, and the two
-    instructions after them are the whole body.
+  - Two post-increment loads mean two arrays walked together, one element of
+    each per trip. The two instructions after them are the whole body.
   - The subtract is `r0 = r0 - r1`, and r0 came from the cursor that was set up
     from the first argument.
-  - Two `s32 *` and an `s32` count in, `s32` out - accumulate the difference
-    between the two elements at each position, first array minus second.
+  - Two `s32 *` and an `s32` count in, `s32` out. Add up the difference between
+    the two elements at each position, first array minus second.
 symbol: func_081976e8
 ---
 
 # Counting live values from the push list
 
-Walk two arrays at once and the loop has to carry two of most things. Each array
-needs its own cursor, both cursors have to survive the body, and the body needs
-scratch registers for the values it loads. Only r0 through r7 are freely usable
-in Thumb, so this is where a loop stops being a leaf function.
+When a loop walks two arrays at once, it has to carry two of most things. Each
+array needs its own cursor, and both cursors have to survive the body. The body
+also needs scratch registers for the values it loads. Only r0 through r7 can be
+used freely in Thumb, so this is the point where a loop stops being a leaf
+function.
 
-Here is a loop that reads one array, shifts, and writes another:
+Here is a loop that reads from one array, shifts each value, and writes it to
+another:
 
 ```asm
 0        cmp       r2, #0
@@ -39,25 +41,26 @@ Here is a loop that reads one array, shifts, and writes another:
 18     ~>bx        lr
 ```
 
-Count what has to stay alive across the back-edge: the source cursor in r1, the
-destination cursor in r3, the countdown in r2. Three. The body needs one scratch
-register for the value in flight, which is r0. Four low registers in total, and
-the function has r0 through r3 available without saving anything, so there is no
-push and the loop stays a leaf.
+Count the values that have to stay live across the back-edge: the source cursor
+in r1, the destination cursor in r3, and the countdown in r2. That is three. The
+body needs one scratch register for the value being copied, which is r0. That
+makes four low registers in total. The function can use r0 through r3 without
+saving anything, so there is no push and the loop stays a leaf.
 
-The destination pointer moved to r3 because r0 is the scratch. That is the same
-argument-protection move from the counting-up lesson, done here without any cost
-because r3 is caller-saved too.
+The destination pointer moved to r3 because r0 is the scratch register. This is
+the same move that protected an argument in the counting-up lesson. Here it
+costs nothing, because r3 is also caller-saved.
 
-Add one more live value and the arithmetic stops working out. An accumulator, or
-a second value that has to be held while the first is loaded, pushes the total
-past four, and the extra values land in r4 and upward — which have to be saved
-and restored, and which turn the epilogue into `pop {rN} / bx rN`. Before you
-write any C, count the values your target's loop carries and check them against
-its push list; if the counts disagree, your reading of the body is wrong.
+Add one more live value and there are not enough of these registers. An
+accumulator, or a second value that has to be held while the first is loaded,
+takes the total past four. The extra values go in r4 and up. Those registers
+have to be saved and restored, and they turn the epilogue into
+`pop {rN} / bx rN`. Before you write any C, count the values your target's loop
+carries and check them against its push list. If the counts do not agree, your
+reading of the body is wrong.
 
-Your target carries more than four. Work out what each `ldmia` feeds and which
-register holds the result being built up.
+Your target carries more than four values. Work out what uses the value from
+each `ldmia`, and which register holds the result being built up.
 
 ## Your task
 

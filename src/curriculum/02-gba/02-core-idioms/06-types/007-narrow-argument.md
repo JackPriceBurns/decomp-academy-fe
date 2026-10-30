@@ -9,21 +9,23 @@ concepts:
   - sign-extension
 symbol: func_081cd058
 hints:
-  - Two shift pairs at the very top, one on `r0` and one on `r1`, means both
-    parameters are narrow - and the shift count gives the width while the second
-    mnemonic gives the signedness.
-  - "Two `u8` parameters, an `s32` result, and one subtraction between them."
+  - There are two shift pairs at the very top, one on `r0` and one on `r1`. This
+    means both parameters are narrow. The shift count gives the width, and the
+    second mnemonic gives the signedness.
+  - The function takes two `u8` parameters and returns an `s32`. It does one
+    subtraction between them.
 ---
 
-# Cleaning up after the caller
+# The callee widens its own arguments
 
-An argument narrower than a word still travels in a whole 32-bit register. The
-ABI makes no promise about the bits above the value, so a callee that cares
-about them has to produce them itself. That is why so many agbcc functions open
-with shifting before they do any work at all.
+An argument narrower than a word is still passed in a full 32-bit register. The
+ABI makes no promise about the bits above the value. So if the callee needs
+those bits to be correct, it has to set them itself. That is why so many agbcc
+functions start with shifts before they do any other work.
 
-The pair is the same one you have been reading off loads, applied to a register
-that is already in hand. Here a `u8` arrives as the second argument:
+This is the same shift pair you have seen after loads, but here it is applied to
+a value that is already in a register. In this example a `u8` is passed as the
+second argument:
 
 ```asm
 0        lsl       r1, #24
@@ -32,9 +34,9 @@ that is already in hand. Here a `u8` arrives as the second argument:
 6        bx        lr
 ```
 
-`lsl #24` throws away everything above bit 7, `lsr #24` brings the byte back
-down with zeros on top, and only then is it added. Here is an `s16` arriving as
-the first argument instead:
+`lsl #24` removes everything above bit 7. `lsr #24` moves the byte back down and
+fills the top with zeros. Only then is the value added. Here is an `s16` passed
+as the first argument instead:
 
 ```asm
 0        lsl       r0, #16
@@ -43,17 +45,17 @@ the first argument instead:
 6        bx        lr
 ```
 
-Three things fall out of a leading pair, and you can read all of them at a
-glance. The register says which parameter it is - `r0`, `r1`, `r2`, `r3` in
-order. The shift count says how wide the type is, since the count is 32 minus
-the width. The second mnemonic says the signedness: `lsr` fills with zeros for
-an unsigned type, `asr` copies the sign bit for a signed one.
+A shift pair at the start of a function tells you three things. The register
+tells you which parameter it is: `r0`, `r1`, `r2` and `r3`, in order. The shift
+count tells you how wide the type is, because the count is 32 minus the width.
+The second mnemonic tells you the signedness. `lsr` fills with zeros for an
+unsigned type, and `asr` copies the sign bit for a signed one.
 
-Parameters that are already 32 bits wide need none of this, so a leading shift
-pair is the fingerprint of a narrow parameter. Count the pairs, note their
-registers, and the signature writes itself.
+Parameters that are already 32 bits wide need no shifts. So a shift pair at the
+start of a function is a sure sign of a narrow parameter. Count the pairs and
+note their registers. That tells you most of the signature.
 
-Read the opening of your target the same way, register by register.
+Read the start of your target the same way, one register at a time.
 
 ## Your task
 

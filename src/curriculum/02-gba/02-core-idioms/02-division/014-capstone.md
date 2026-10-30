@@ -9,19 +9,18 @@ concepts:
   - signedness
 symbol: func_080ca11c
 hints:
-  - The same value is divided twice — once through the helper, once inline. The
-    inline half is a remainder, and its shift amounts name the divisor.
-  - Two `s32` parameters in, an `s32` out. The quotient of the two, plus the
-    first one's remainder modulo 4.
+  - The same value is divided twice, once through the helper and once inline.
+    The inline part is a remainder, and its shift amounts give the divisor.
+  - Two `s32` parameters in, an `s32` out. It returns the quotient of the two,
+    plus the first one's remainder modulo 4.
 ---
 
-# Both halves of a division at once
+# Quotient and remainder together
 
-Splitting a value into a quotient and a remainder is everywhere in game code:
-frames into seconds and ticks, an index into a row and a column, a total into
-whole units and change. There is no divmod helper on this target, so the two
-halves are compiled independently, and what that looks like depends on what each
-divisor is.
+Game code often splits a value into a quotient and a remainder: frames into
+seconds and ticks, an index into a row and a column, or a total into whole units
+and change. There is no divmod helper on this target, so the two parts are
+compiled separately. What that looks like depends on each divisor.
 
 Here is an unsigned value taken modulo a second argument, with an eighth of the
 same value added on:
@@ -37,30 +36,30 @@ same value added on:
 16       bx        r1
 ```
 
-Eight instructions, and every one of them is something from this chapter. The
-first argument is parked in `r4` because the call will destroy `r0`. The
-remainder comes back in `r0`. The parked copy is then divided by 8 with a single
-`lsr` — the free divide — and the add finishes in `r0`, no trailing move
-needed, because the call's result was written first.
+That is eight instructions, and you have seen every one of them in this
+chapter. The first argument is saved in `r4` because the call will destroy
+`r0`. The remainder comes back in `r0`. The saved copy is then divided by 8 with
+a single `lsr`, the unsigned divide by a power of two. The add puts its result
+straight into `r0`. No final move is needed, because the call's result was
+written first.
 
-Notice how cheaply the parked value pays for itself. It was saved for the call,
-and the second division then uses that same saved copy rather than reloading
-anything. One `mov` covers both jobs.
+The saved value does two jobs. It was saved to survive the call, and the second
+division then uses that same copy without loading anything again. One `mov`
+covers both jobs.
 
-Make the same shape signed and the balance shifts hard. A signed divide by a
-power of two is the bias sequence; a signed remainder is that sequence plus the
-shift back and the subtract. Either way the inline half stops being one
-instruction and starts needing a scratch register of its own. `r0` is the
-obvious choice, and the helper's return value is sitting in it, so gcc moves
-that value into another low register first — a low one is safe, because no
-further call is coming to destroy it. When a `mov r1, r0` follows a `bl` and no
-second call is on the way, read it as `r0` being cleared for the arithmetic that
-follows.
+Make the same function signed and the code changes a lot. A signed divide by a
+power of two is the bias sequence. A signed remainder is that sequence plus the
+shift back and the subtract. In both cases the inline part is no longer one
+instruction, and it needs a scratch register of its own. gcc prefers `r0`, but
+the helper's return value is in it. So gcc first moves that value into another
+low register. A low register is safe here, because no further call will destroy
+it. When a `mov r1, r0` follows a `bl` and no second call comes after it, read
+it as `r0` being freed for the arithmetic that follows.
 
-Your target is the signed version. Work through it in three passes: the push
-list and the parked register, the call and what it returns, then the inline
-block. Check the order of the two halves before you commit, because writing them
-the other way round moves the call.
+Your target is the signed version. Work through it in three passes. First read
+the push list and the saved register. Then read the call and what it returns.
+Then read the inline block. Check the order of the two parts before you finish,
+because writing them the other way round moves the call.
 
 ## Your task
 
